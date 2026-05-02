@@ -1,0 +1,31 @@
+# Visual Studio / .NET
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build Results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+
+# Packages
+packages/
+*.nupkg
+
+# Temporary files
+*.tmp
+*.log
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# LLM Wiki / Gemini / Antigravity
+.gemini/
+_views/
+.obsidian/

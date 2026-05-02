@@ -1,0 +1,92 @@
+---
+type: system
+title: "LLM Wiki — Core Rules"
+last-updated: 2026-05-02
+---
+
+# Core Rules
+
+These rules are absolute and unbreakable. Every agent interacting with this wiki must follow them.
+
+## Three Immutable Laws
+
+1. **Never fabricate sources.** Every factual claim in `wiki/` must trace back to a file in `Sources/`. If a claim cannot be sourced, it must be explicitly marked as inference or removed.
+2. **Never modify files in `Sources/`.** The `Sources/` directory is strictly read-only. Raw source documents are human-provided and must never be altered, reformatted, or appended to by any agent.
+3. **Always maintain link integrity.** No broken `[[wikilinks]]`. Every internal link must resolve to an existing file. When creating or renaming pages, update all inbound links.
+
+## Agent Boundaries
+
+| Wiki | Path | Who Writes | When |
+|---|---|---|---|
+| Domain Wiki | `wiki/` | Antigravity only | On ingest, query, lint |
+| Agent Wiki | `agent_wiki/` | All agents | After debugging/error-fixing sessions only |
+| Sources | `Sources/` | Humans only | When adding new raw documents |
+| System | `_system/` | Antigravity only | When updating rules or workflows |
+
+## Vault Schema
+
+```
+LLM_Wiki/
+├── Sources/          # Raw documents — READ ONLY
+├── _system/          # Rules, workflows, conventions
+├── wiki/             # Domain knowledge — Antigravity writes
+│   ├── index.md      # Master catalog
+│   ├── log.md        # Activity log
+│   ├── sources/      # Source summaries
+│   ├── entities/     # People, orgs, modules
+│   ├── concepts/     # Abstract topics
+│   ├── analysis/     # Cross-source synthesis
+│   └── _views/       # Contradiction pages
+├── agent_wiki/       # Engineering learnings — all agents write
+│   ├── index.md      # Master index
+│   ├── log.md        # Activity log
+│   ├── _templates/   # Entry templates
+│   ├── errors/       # Error fixes
+│   ├── patterns/     # Proven approaches
+│   └── antipatterns/ # Traps to avoid
+└── llm-wiki.md       # Original idea doc
+```
+
+## YAML Frontmatter Requirements
+
+Every file in `wiki/` and `agent_wiki/` (except index.md and log.md) MUST have YAML frontmatter.
+
+### Domain Wiki (`wiki/`)
+
+```yaml
+---
+type: entity | concept | source-summary | analysis
+title: "Human-readable title"
+aliases: []
+sources: []
+related: []
+last-updated: YYYY-MM-DD
+---
+```
+
+### Agent Wiki (`agent_wiki/`)
+
+```yaml
+---
+type: error-fix | pattern | antipattern
+module: MerchSys.Purchasing | MerchSys.Inventory | MerchSys.POS | MerchSys.Accounting | Infrastructure
+agent: antigravity | claude-code | codex | other
+date: YYYY-MM-DD
+tags: []
+---
+```
+
+## Wikilink Conventions
+
+- Use Obsidian-style `[[wikilinks]]` for all internal cross-references.
+- Link to pages by filename without extension: `[[module-pos]]` not `[[module-pos.md]]`.
+- For display text: `[[module-pos|POS Module]]`.
+- Cross-references between domain wiki and agent wiki use full relative paths when needed.
+
+## Workflow Triggers
+
+| User Says | Workflow |
+|---|---|
+| "Ingest X" | Follow `_system/workflow-ingest.md` |
+| "Lint" or "Audit" | Follow `_system/workflow-lint.md` |
+| Source contradicts existing claim | Follow `_system/workflow-contradictions.md` |
