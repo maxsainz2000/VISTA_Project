@@ -9,7 +9,8 @@
       "PowerShell(Get-ChildItem *)",
       "PowerShell(dotnet build *)",
       "PowerShell(git *)",
-      "PowerShell(dotnet remove *)"
+      "PowerShell(dotnet remove *)",
+      "Bash(Remove-Item *)"
     ]
   }
 }

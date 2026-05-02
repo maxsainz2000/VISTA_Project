@@ -11,4 +11,4 @@ All engineering learnings from debugging and error-fixing sessions. Check this i
 
 | Entry | Type | Module | Tags | Agent | Date |
 |---|---|---|---|---|---|
-| *(no entries yet)* | | | | | |
+| [vbnet-rootnamespace-relative-declarations](patterns/vbnet-rootnamespace-relative-declarations.md) | antipattern | Infrastructure | vb-net, namespace, build-error | claude-code | 2026-05-02 |
