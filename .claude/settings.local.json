@@ -10,7 +10,14 @@
       "PowerShell(dotnet build *)",
       "PowerShell(git *)",
       "PowerShell(dotnet remove *)",
-      "Bash(Remove-Item *)"
+      "Bash(Remove-Item *)",
+      "Bash(not exist *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "mcp__visualstudio__build_solution",
+      "mcp__visualstudio__solution_open",
+      "mcp__visualstudio__build_status",
+      "mcp__visualstudio__errors_list"
     ]
   }
 }
