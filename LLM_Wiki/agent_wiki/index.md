@@ -12,3 +12,4 @@ All engineering learnings from debugging and error-fixing sessions. Check this i
 | Entry | Type | Module | Tags | Agent | Date |
 |---|---|---|---|---|---|
 | [vbnet-rootnamespace-relative-declarations](patterns/vbnet-rootnamespace-relative-declarations.md) | antipattern | Infrastructure | vb-net, namespace, build-error | claude-code | 2026-05-02 |
+| [vbnet-loop-variable-shadows-dbcontext-method](antipatterns/vbnet-loop-variable-shadows-dbcontext-method.md) | antipattern | Infrastructure | vb-net, ef-core, dbcontext, build-error | claude-code | 2026-05-02 |
