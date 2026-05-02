@@ -5,7 +5,11 @@
       "Bash(dotnet sln *)",
       "Bash(dotnet add *)",
       "Bash(dotnet build *)",
-      "Bash(dotnet list *)"
+      "Bash(dotnet list *)",
+      "PowerShell(Get-ChildItem *)",
+      "PowerShell(dotnet build *)",
+      "PowerShell(git *)",
+      "PowerShell(dotnet remove *)"
     ]
   }
 }

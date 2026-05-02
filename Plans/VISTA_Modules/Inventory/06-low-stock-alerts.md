@@ -10,7 +10,7 @@ estimated-files: 2
 
 ## Context
 
-Implements threshold-based low-stock alerts. Each product has a configurable minimum threshold; when current stock falls at or below it, an alert is generated. Uses ToastNotifications for desktop alerts. Addresses Problem I2 (manual counting) and I3 (no dashboard alerts).
+Implements threshold-based low-stock alerts. Each product has a configurable minimum threshold; when current stock falls at or below it, an alert is generated. Uses Notification.Wpf for desktop alerts. Addresses Problem I2 (manual counting) and I3 (no dashboard alerts).
 
 ## Prerequisites
 
@@ -19,7 +19,7 @@ Implements threshold-based low-stock alerts. Each product has a configurable min
 ## Wiki References
 
 - `sources/inventory-module-paper.md` — "Automated Low-Stock Alerts: triggers at manager-defined minimum threshold"
-- `analysis/tech-stack-reference.md` — "ToastNotifications NuGet"
+- `analysis/tech-stack-reference.md` — "Notification.Wpf NuGet"
 
 ## Deliverables
 

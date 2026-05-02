@@ -49,7 +49,7 @@ Scaffolded the complete MerchSys solution: created the `.slnx` solution file, al
 | CommunityToolkit.Mvvm | 8.4.2 | Purchasing, Inventory, POS, Accounting |
 | Microsoft.Extensions.DependencyInjection | 10.0.7 | MerchSys.App |
 | Microsoft.Extensions.Hosting | 10.0.7 | MerchSys.App |
-| ToastNotifications | 2.5.1 | MerchSys.App |
+| Notification.Wpf | 8.0.0 | MerchSys.App |
 
 ## Build & Test Status
 
@@ -68,8 +68,8 @@ Scaffolded the complete MerchSys solution: created the `.slnx` solution file, al
 - **Issue:** `dotnet new sln` generates `.slnx` (new XML solution format) in .NET 10, not `.sln`.
   - **Resolution:** Build and restore commands use `MerchSys.slnx`. CLAUDE.md references `.sln` but the `.slnx` is fully supported by all dotnet CLI commands and VS 2022 17.x+.
 
-- **Issue:** `ToastNotifications 2.5.1` (plan-specified package) targets .NET Framework only, producing NU1701 restore warning.
-  - **Resolution:** Added `NoWarn="NU1701"` to the `PackageReference` in `MerchSys.App.vbproj`. The package is WPF-binary-compatible; actual compatibility will be verified when toast notifications are implemented in a later plan.
+- **Issue:** Plan originally specified `ToastNotifications` (a .NET Framework-only package causing NU1701 warning). Plan was updated to specify `Notification.Wpf` instead.
+  - **Resolution:** Replaced `ToastNotifications 2.5.1` with `Notification.Wpf 8.0.0`, which natively targets WPF on .NET 6+. Build is clean with 0 warnings.
 
 - **Issue:** The WPF template generates `Application.xaml.vb` (not `App.xaml.vb` as referenced in the plan).
   - **Resolution:** Used the template-generated filename; functionality is identical. The plan reference to `App.xaml.vb` was a naming expectation, not a hard requirement.

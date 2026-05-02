@@ -30,7 +30,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.7" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.7" />
-    <PackageReference Include="ToastNotifications" Version="2.5.1" NoWarn="NU1701" />
+    <PackageReference Include="Notification.Wpf" Version="8.0.0" />
   </ItemGroup>
 
 </Project>

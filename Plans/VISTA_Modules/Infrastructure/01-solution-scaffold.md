@@ -31,13 +31,13 @@ Create the following structure under `WPF_Applications/MerchSys/`:
 
 ```
 WPF_Applications/MerchSys/
-├── MerchSys.sln
+├── MerchSys.slnx
 │
 ├── src/
 │   ├── MerchSys.App/                         ← WPF startup project
 │   │   ├── MerchSys.App.vbproj
-│   │   ├── App.xaml
-│   │   ├── App.xaml.vb
+│   │   ├── Application.xaml
+│   │   ├── Application.xaml.vb
 │   │   ├── MainWindow.xaml
 │   │   ├── MainWindow.xaml.vb
 │   │   └── Views/                            ← empty folder for module views
@@ -85,7 +85,7 @@ WPF_Applications/MerchSys/
 
 ## Specification
 
-### Solution File (`MerchSys.sln`)
+### Solution File (`MerchSys.slnx`)
 - Create via `dotnet new sln` in `WPF_Applications/MerchSys/`
 - Add all 6 projects to the solution
 
@@ -93,7 +93,7 @@ WPF_Applications/MerchSys/
 - Create via `dotnet new wpf --language VB` targeting `.NET 10`
 - This is the only executable project; all others are class libraries
 - Add project references to all 5 class libraries
-- `App.xaml.vb` should have a minimal `Application_Startup` that sets up DI (placeholder for now)
+- `Application.xaml.vb` should have a minimal `Application_Startup` that sets up DI (placeholder for now)
 - `MainWindow.xaml` should be a basic shell with a navigation sidebar (placeholder — later plans will populate it)
 
 ### SharedKernel Library (`MerchSys.SharedKernel`)
@@ -115,7 +115,7 @@ WPF_Applications/MerchSys/
 ### WPF App Additional NuGet Packages
 - `Microsoft.Extensions.DependencyInjection` (latest)
 - `Microsoft.Extensions.Hosting` (latest)
-- `ToastNotifications` (latest stable) — for desktop toast alerts
+- `Notification.Wpf` (latest stable) — for desktop toast alerts
 - All packages from module libraries are transitively available
 
 ## Implementation Notes
@@ -123,13 +123,13 @@ WPF_Applications/MerchSys/
 - Use `dotnet` CLI commands to create projects, then add to the solution
 - All projects must target `net10.0`
 - All projects must use VB.NET (`--language VB`)
-- Ensure the `.sln` file lives at `WPF_Applications/MerchSys/MerchSys.sln`
+- Ensure the `.slnx` file lives at `WPF_Applications/MerchSys/MerchSys.slnx`
 - The `src/` subfolder keeps source projects organized
 - Do NOT create any test projects — testing is handled in a separate session
 
 ## Acceptance Criteria
 
-1. `dotnet build MerchSys.sln` completes with **0 errors, 0 warnings**
+1. `dotnet build MerchSys.slnx` completes with **0 errors, 0 warnings**
 2. All 6 projects appear in the solution
 3. Project reference graph:
    - `App` → `SharedKernel`, `Purchasing`, `Inventory`, `POS`, `Accounting`
@@ -152,7 +152,7 @@ Using the template structure from `Progress/_template.md`. Include:
 - Any deviations from this plan
 
 ### Documentation
-- Add XML doc comments to `App.xaml.vb` explaining the DI setup placeholder
+- Add XML doc comments to `Application.xaml.vb` explaining the DI setup placeholder
 - Create a `README.md` at `WPF_Applications/MerchSys/README.md` with:
   - Solution overview (one paragraph)
   - Project list with descriptions

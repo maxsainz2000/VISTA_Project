@@ -18,13 +18,13 @@ These apply once `WPF_Applications/MerchSys/` is scaffolded (INFRA-01):
 
 ```powershell
 # Build the entire solution
-dotnet build WPF_Applications/MerchSys/MerchSys.sln
+dotnet build WPF_Applications/MerchSys/MerchSys.slnx
 
 # Run the application
 dotnet run --project WPF_Applications/MerchSys/src/MerchSys.App
 
 # Restore packages
-dotnet restore WPF_Applications/MerchSys/MerchSys.sln
+dotnet restore WPF_Applications/MerchSys/MerchSys.slnx
 
 # Scaffold new projects (always --language VB, --framework net10.0)
 dotnet new wpf --language VB --framework net10.0 -n MerchSys.App
@@ -42,7 +42,7 @@ If the build fails, do not directly fix the error. Instead document all the erro
 
 ```
 WPF_Applications/MerchSys/
-├── MerchSys.sln
+├── MerchSys.slnx
 └── src/
     ├── MerchSys.App/          ← WPF startup project (.exe)
     ├── MerchSys.SharedKernel/ ← Base types, events, interfaces, enums
@@ -87,7 +87,7 @@ Each module library has: `Entities/`, `Services/`, `Data/`, `Handlers/`, `ViewMo
 | `CommunityToolkit.Mvvm` (latest stable) | All module libraries |
 | `Microsoft.Extensions.DependencyInjection` (latest) | MerchSys.App |
 | `Microsoft.Extensions.Hosting` (latest) | MerchSys.App |
-| `ToastNotifications` (latest stable) | MerchSys.App |
+| `Notification.Wpf` (latest stable) | MerchSys.App |
 
 ## Planning & Progress Workflow
 
