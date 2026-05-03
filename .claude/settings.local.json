@@ -21,7 +21,8 @@
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Admin\\\\Documents\\\\VISTA_Project\\\\WPF_Applications\\\\MerchSys\\\\src\" -Recurse -Directory)",
       "Bash(Select-Object -First 20 FullName)",
       "PowerShell(ls -Path \"C:\\\\Users\\\\Admin\\\\Documents\\\\VISTA_Project\\\\WPF_Applications\\\\MerchSys\\\\src\" -Recurse | Where-Object { $_.PSIsContainer } | Select-Object -First 30)",
-      "Bash(Sort-Object)"
+      "Bash(Sort-Object)",
+      "Bash(Get-ChildItem *)"
     ]
   }
 }
