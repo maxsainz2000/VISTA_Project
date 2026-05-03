@@ -17,7 +17,10 @@
       "mcp__visualstudio__build_solution",
       "mcp__visualstudio__solution_open",
       "mcp__visualstudio__build_status",
-      "mcp__visualstudio__errors_list"
+      "mcp__visualstudio__errors_list",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Admin\\\\Documents\\\\VISTA_Project\\\\WPF_Applications\\\\MerchSys\\\\src\" -Recurse -Directory)",
+      "Bash(Select-Object -First 20 FullName)",
+      "PowerShell(ls -Path \"C:\\\\Users\\\\Admin\\\\Documents\\\\VISTA_Project\\\\WPF_Applications\\\\MerchSys\\\\src\" -Recurse | Where-Object { $_.PSIsContainer } | Select-Object -First 30)"
     ]
   }
 }

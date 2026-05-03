@@ -1,0 +1,681 @@
+<UserControl x:Class="Views.POS.CreditManagementView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MerchSys.POS.ViewModels;assembly=MerchSys.POS"
+             mc:Ignorable="d"
+             d:DesignHeight="768" d:DesignWidth="1200"
+             Background="#F5F6FA">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
+        <Style x:Key="SectionHeader" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#2C3E50"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="#7F8C8D"/>
+            <Setter Property="Margin" Value="0,4,0,2"/>
+        </Style>
+
+        <Style x:Key="CardPanel" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#DFE6E9"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="16,12"/>
+        </Style>
+
+        <Style x:Key="FilterButton" TargetType="Button">
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="Margin" Value="0,0,4,0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#BDC3C7"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#2C3E50"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Background" Value="#2980B9"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#BDC3C7"/>
+                    <Setter Property="Foreground" Value="#7F8C8D"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="DangerButton" TargetType="Button">
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Padding" Value="10,0"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Background" Value="#E74C3C"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style x:Key="SuccessButton" TargetType="Button">
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Background" Value="#27AE60"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#BDC3C7"/>
+                    <Setter Property="Foreground" Value="#7F8C8D"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/><!-- Summary cards -->
+            <RowDefinition Height="Auto"/><!-- Action bar -->
+            <RowDefinition Height="Auto"/><!-- Add account form -->
+            <RowDefinition Height="Auto"/><!-- Status / busy banner -->
+            <RowDefinition Height="*"/>  <!-- Main content -->
+        </Grid.RowDefinitions>
+
+        <!-- ═══ ROW 0: Summary Cards ═══════════════════════════════════════════ -->
+        <UniformGrid Grid.Row="0" Rows="1" Columns="3" Margin="0,0,0,10">
+
+            <Border Style="{StaticResource CardPanel}" Margin="0,0,6,0">
+                <StackPanel>
+                    <TextBlock Text="Total Outstanding AR" Style="{StaticResource FieldLabel}"/>
+                    <TextBlock Text="{Binding TotalOutstanding, StringFormat='₱{0:N2}'}"
+                               FontSize="22" FontWeight="Bold" Foreground="#2C3E50"/>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource CardPanel}" Margin="0,0,6,0">
+                <StackPanel>
+                    <TextBlock Text="Blocked Accounts" Style="{StaticResource FieldLabel}"/>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding BlockedCount}"
+                                   FontSize="22" FontWeight="Bold" Foreground="#E74C3C"/>
+                        <TextBlock Text=" accounts" FontSize="13" Foreground="#7F8C8D"
+                                   VerticalAlignment="Bottom" Margin="4,0,0,3"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource CardPanel}">
+                <StackPanel>
+                    <TextBlock Text="Overdue (30+ days)" Style="{StaticResource FieldLabel}"/>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding OverdueCount}"
+                                   FontSize="22" FontWeight="Bold" Foreground="#E67E22"/>
+                        <TextBlock Text=" accounts" FontSize="13" Foreground="#7F8C8D"
+                                   VerticalAlignment="Bottom" Margin="4,0,0,3"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+        </UniformGrid>
+
+        <!-- ═══ ROW 1: Action Bar ═══════════════════════════════════════════════ -->
+        <Border Grid.Row="1" Background="White" BorderBrush="#DFE6E9" BorderThickness="1"
+                CornerRadius="4" Padding="10,8" Margin="0,0,0,6">
+            <DockPanel LastChildFill="False">
+
+                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
+
+                    <Button Content="All" Command="{Binding ApplyFilterCommand}" CommandParameter="All">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource FilterButton}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsFilterAll}" Value="True">
+                                        <Setter Property="Background" Value="#2C3E50"/>
+                                        <Setter Property="Foreground" Value="White"/>
+                                        <Setter Property="BorderBrush" Value="#2C3E50"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+
+                    <Button Content="Blocked" Command="{Binding ApplyFilterCommand}" CommandParameter="Blocked">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource FilterButton}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsFilterBlocked}" Value="True">
+                                        <Setter Property="Background" Value="#E74C3C"/>
+                                        <Setter Property="Foreground" Value="White"/>
+                                        <Setter Property="BorderBrush" Value="#C0392B"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+
+                    <Button Content="With Balance" Command="{Binding ApplyFilterCommand}" CommandParameter="WithBalance">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource FilterButton}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsFilterWithBalance}" Value="True">
+                                        <Setter Property="Background" Value="#E67E22"/>
+                                        <Setter Property="Foreground" Value="White"/>
+                                        <Setter Property="BorderBrush" Value="#CA6F1E"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+
+                    <Button Content="Cleared" Command="{Binding ApplyFilterCommand}" CommandParameter="Cleared">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource FilterButton}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsFilterCleared}" Value="True">
+                                        <Setter Property="Background" Value="#27AE60"/>
+                                        <Setter Property="Foreground" Value="White"/>
+                                        <Setter Property="BorderBrush" Value="#1E8449"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+
+                </StackPanel>
+
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+
+                    <TextBox x:Name="SearchBox"
+                             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                             Width="180" Height="30" Padding="8,0"
+                             VerticalContentAlignment="Center"
+                             BorderBrush="#BDC3C7" BorderThickness="1"/>
+                    <Button Content="Search"
+                            Command="{Binding SearchCommand}"
+                            Margin="4,0,12,0" Style="{StaticResource PrimaryButton}"
+                            Height="30"/>
+
+                    <Button Content="+ Add Account"
+                            Command="{Binding AddAccountCommand}"
+                            Style="{StaticResource SuccessButton}"
+                            Height="30"/>
+
+                    <Button Content="Refresh"
+                            Command="{Binding LoadDataCommand}"
+                            Margin="6,0,0,0" Height="30" Padding="12,0"
+                            BorderThickness="1" BorderBrush="#BDC3C7"
+                            Background="White" Foreground="#2C3E50"
+                            Cursor="Hand"/>
+
+                </StackPanel>
+
+            </DockPanel>
+        </Border>
+
+        <!-- ═══ ROW 2: Add Account Form ════════════════════════════════════════ -->
+        <Border Grid.Row="2" Background="White" BorderBrush="#A8D5A2" BorderThickness="1"
+                CornerRadius="4" Padding="12,10" Margin="0,0,0,6"
+                Visibility="{Binding IsAddAccountVisible, Converter={StaticResource BoolToVis}}">
+            <StackPanel>
+
+                <TextBlock Text="New Credit Account" Style="{StaticResource SectionHeader}" Margin="0,0,0,6"/>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                        <TextBlock Text="Customer Name *" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding NewAccountName, UpdateSourceTrigger=PropertyChanged}"
+                                 Padding="6,4" BorderBrush="#BDC3C7" BorderThickness="1"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Margin="0,0,8,0">
+                        <TextBlock Text="Phone *" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding NewAccountPhone, UpdateSourceTrigger=PropertyChanged}"
+                                 Padding="6,4" BorderBrush="#BDC3C7" BorderThickness="1"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2" Margin="0,0,8,0">
+                        <TextBlock Text="Address" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding NewAccountAddress, UpdateSourceTrigger=PropertyChanged}"
+                                 Padding="6,4" BorderBrush="#BDC3C7" BorderThickness="1"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Bottom">
+                        <Button Content="Confirm"
+                                Command="{Binding ConfirmAddAccountCommand}"
+                                Style="{StaticResource SuccessButton}"
+                                Margin="0,0,6,0"/>
+                        <Button Content="Cancel"
+                                Command="{Binding CancelAddAccountCommand}"
+                                Height="32" Padding="12,0"
+                                BorderThickness="1" BorderBrush="#BDC3C7"
+                                Background="White" Foreground="#2C3E50"
+                                Cursor="Hand"/>
+                    </StackPanel>
+
+                </Grid>
+
+            </StackPanel>
+        </Border>
+
+        <!-- ═══ ROW 3: Busy / Status Banner ════════════════════════════════════ -->
+        <StackPanel Grid.Row="3" Margin="0,0,0,6">
+
+            <Border Background="#EBF5FB" BorderBrush="#AED6F1" BorderThickness="1"
+                    CornerRadius="3" Padding="10,6" Margin="0,0,0,4"
+                    Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}">
+                <TextBlock Text="Loading…" Foreground="#2471A3" FontSize="12"/>
+            </Border>
+
+            <Border CornerRadius="3" Padding="10,6"
+                    Visibility="{Binding HasStatusMessage, Converter={StaticResource BoolToVis}}">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Background" Value="#FDEDEC"/>
+                        <Setter Property="BorderBrush" Value="#F1948A"/>
+                        <Setter Property="BorderThickness" Value="1"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsStatusSuccess}" Value="True">
+                                <Setter Property="Background" Value="#EAFAF1"/>
+                                <Setter Property="BorderBrush" Value="#A9DFBF"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <TextBlock Text="{Binding StatusMessage}" FontSize="12" TextWrapping="Wrap">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="#E74C3C"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsStatusSuccess}" Value="True">
+                                    <Setter Property="Foreground" Value="#1E8449"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Border>
+
+        </StackPanel>
+
+        <!-- ═══ ROW 4: Main Content ═════════════════════════════════════════════ -->
+        <Grid Grid.Row="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="320"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- ── Account DataGrid ──────────────────────────────────────────── -->
+            <Border Grid.Column="0" Background="White" BorderBrush="#DFE6E9"
+                    BorderThickness="1" CornerRadius="4" Margin="0,0,6,0">
+                <DockPanel Margin="12">
+
+                    <TextBlock DockPanel.Dock="Top" Text="Credit Accounts"
+                               Style="{StaticResource SectionHeader}"/>
+
+                    <DataGrid x:Name="AccountsDataGrid"
+                              ItemsSource="{Binding Accounts}"
+                              SelectedItem="{Binding SelectedAccount}"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False"
+                              CanUserDeleteRows="False"
+                              CanUserReorderColumns="False"
+                              CanUserResizeRows="False"
+                              SelectionUnit="FullRow"
+                              GridLinesVisibility="Horizontal"
+                              BorderBrush="#DFE6E9" BorderThickness="1"
+                              RowBackground="White"
+                              AlternatingRowBackground="#FAFBFC"
+                              HeadersVisibility="Column"
+                              IsReadOnly="True">
+
+                        <DataGrid.RowStyle>
+                            <Style TargetType="DataGridRow">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsBlocked}" Value="True">
+                                        <Setter Property="Background" Value="#FFF5F5"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.RowStyle>
+
+                        <DataGrid.Columns>
+
+                            <DataGridTextColumn Header="Customer Name" Width="*"
+                                                Binding="{Binding CustomerName}"/>
+
+                            <DataGridTextColumn Header="Phone" Width="110"
+                                                Binding="{Binding Phone}"/>
+
+                            <DataGridTextColumn Header="Balance" Width="100"
+                                                Binding="{Binding CurrentBalance, StringFormat='₱{0:N2}'}"/>
+
+                            <DataGridTemplateColumn Header="Status" Width="70" IsReadOnly="True">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center" FontSize="14">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Text" Value="✅"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsBlocked}" Value="True">
+                                                            <Setter Property="Text" Value="🔴"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                            <DataGridTextColumn Header="Total Credit" Width="100"
+                                                Binding="{Binding TotalCreditExtended, StringFormat='₱{0:N2}'}"/>
+
+                            <DataGridTextColumn Header="Total Paid" Width="100"
+                                                Binding="{Binding TotalPaymentsReceived, StringFormat='₱{0:N2}'}"/>
+
+                            <DataGridTextColumn Header="Last Transaction" Width="120"
+                                                Binding="{Binding LastTransactionDate, StringFormat='MM/dd/yyyy'}"/>
+
+                            <DataGridTemplateColumn Header="" Width="80" IsReadOnly="True">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="Pay"
+                                                Style="{StaticResource DangerButton}"
+                                                Command="{Binding DataContext.OpenPaymentDialogCommand,
+                                                          RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}"
+                                                Visibility="{Binding IsBlocked, Converter={StaticResource BoolToVis}}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                </DockPanel>
+            </Border>
+
+            <!-- ── History Panel ─────────────────────────────────────────────── -->
+            <Border Grid.Column="1" Background="White" BorderBrush="#DFE6E9"
+                    BorderThickness="1" CornerRadius="4">
+                <Grid>
+
+                <!-- Empty state (no account selected) -->
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <StackPanel.Style>
+                        <Style TargetType="StackPanel">
+                            <Setter Property="Visibility" Value="Visible"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasSelectedAccount}" Value="True">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </StackPanel.Style>
+                    <TextBlock Text="Select an account" Foreground="#BDC3C7"
+                               FontSize="13" HorizontalAlignment="Center"/>
+                    <TextBlock Text="to view history" Foreground="#BDC3C7"
+                               FontSize="13" HorizontalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- History content (visible when account selected) -->
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              Visibility="{Binding HasSelectedAccount, Converter={StaticResource BoolToVis}}">
+                    <StackPanel Margin="12">
+
+                        <!-- Account info -->
+                        <TextBlock Text="{Binding SelectedAccount.CustomerName}"
+                                   FontSize="14" FontWeight="Bold" Foreground="#2C3E50"/>
+                        <TextBlock Text="{Binding SelectedAccount.Phone}"
+                                   FontSize="11" Foreground="#7F8C8D" Margin="0,0,0,4"/>
+
+                        <Grid Margin="0,0,0,6">
+                            <TextBlock Text="Current Balance" Style="{StaticResource FieldLabel}"
+                                       VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding SelectedAccount.CurrentBalance, StringFormat='₱{0:N2}'}"
+                                       HorizontalAlignment="Right" FontSize="14" FontWeight="Bold">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="#27AE60"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedAccount.IsBlocked}" Value="True">
+                                                <Setter Property="Foreground" Value="#E74C3C"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Grid>
+
+                        <Border Background="#FDEDEC" BorderBrush="#E74C3C" BorderThickness="1"
+                                CornerRadius="3" Padding="8,5" Margin="0,0,0,8"
+                                Visibility="{Binding SelectedAccount.IsBlocked, Converter={StaticResource BoolToVis}}">
+                            <TextBlock Text="🔴 Blocked — balance must be cleared"
+                                       Foreground="#E74C3C" FontSize="11" FontWeight="SemiBold"
+                                       TextWrapping="Wrap"/>
+                        </Border>
+
+                        <Separator Margin="0,0,0,8"/>
+
+                        <!-- Payments -->
+                        <TextBlock Text="Payments" Style="{StaticResource SectionHeader}"/>
+
+                        <TextBlock Text="No payments recorded." FontSize="11"
+                                   Foreground="#BDC3C7" Margin="0,0,0,8">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding PaymentHistory.Count}" Value="0">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+
+                        <ItemsControl ItemsSource="{Binding PaymentHistory}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BorderBrush="#EEE" BorderThickness="0,0,0,1" Padding="0,5">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition/>
+                                                <RowDefinition/>
+                                            </Grid.RowDefinitions>
+
+                                            <TextBlock Grid.Row="0" Grid.Column="0"
+                                                       Text="{Binding PaymentDate, StringFormat='MM/dd/yyyy'}"
+                                                       FontSize="11" Foreground="#2C3E50"/>
+                                            <TextBlock Grid.Row="0" Grid.Column="1"
+                                                       Text="{Binding PaymentAmount, StringFormat='₱{0:N2}'}"
+                                                       FontWeight="SemiBold" FontSize="12"
+                                                       Foreground="#27AE60"/>
+                                            <TextBlock Grid.Row="1" Grid.Column="0"
+                                                       FontSize="10" Foreground="#7F8C8D">
+                                                <Run Text="{Binding PaymentMethod}"/>
+                                                <Run Text=" · "/>
+                                                <Run Text="{Binding ReceivedBy}"/>
+                                            </TextBlock>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Separator Margin="0,8"/>
+
+                        <!-- Credit Sales -->
+                        <TextBlock Text="Credit Sales" Style="{StaticResource SectionHeader}"/>
+
+                        <TextBlock Text="No credit sales on record." FontSize="11"
+                                   Foreground="#BDC3C7" Margin="0,0,0,8">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CreditTransactions.Count}" Value="0">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+
+                        <ItemsControl ItemsSource="{Binding CreditTransactions}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BorderBrush="#EEE" BorderThickness="0,0,0,1" Padding="0,5">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition/>
+                                                <RowDefinition/>
+                                            </Grid.RowDefinitions>
+
+                                            <TextBlock Grid.Row="0" Grid.Column="0"
+                                                       Text="{Binding TransactionDate, StringFormat='MM/dd/yyyy'}"
+                                                       FontSize="11" Foreground="#2C3E50"/>
+                                            <TextBlock Grid.Row="0" Grid.Column="1"
+                                                       Text="{Binding Amount, StringFormat='₱{0:N2}'}"
+                                                       FontWeight="SemiBold" FontSize="12"
+                                                       Foreground="#E74C3C"/>
+                                            <TextBlock Grid.Row="1" Grid.Column="0"
+                                                       Text="{Binding TransactionNumber}"
+                                                       FontSize="10" Foreground="#7F8C8D"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                    </StackPanel>
+                </ScrollViewer>
+
+                </Grid>
+            </Border>
+
+        </Grid>
+
+        <!-- ═══ Payment Dialog Overlay ═════════════════════════════════════════ -->
+        <Grid Grid.RowSpan="5" Panel.ZIndex="100"
+              Visibility="{Binding IsPaymentDialogVisible, Converter={StaticResource BoolToVis}}">
+
+            <Rectangle Fill="#99000000"/>
+
+            <Border Background="White" Width="400"
+                    BorderBrush="#DFE6E9" BorderThickness="1" CornerRadius="6"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Padding="24">
+                <StackPanel>
+
+                    <TextBlock Text="Record Payment" FontSize="16" FontWeight="Bold"
+                               Foreground="#2C3E50" Margin="0,0,0,16"/>
+
+                    <!-- Customer info (read-only) -->
+                    <Border Background="#F8F9FA" BorderBrush="#DFE6E9" BorderThickness="1"
+                            CornerRadius="3" Padding="12,8" Margin="0,0,0,14">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="80"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Customer"
+                                       Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Grid.Row="0" Grid.Column="1"
+                                       Text="{Binding PaymentTargetAccount.CustomerName}"
+                                       FontWeight="SemiBold" FontSize="13" Foreground="#2C3E50"
+                                       VerticalAlignment="Center"/>
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Phone"
+                                       Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Grid.Row="1" Grid.Column="1"
+                                       Text="{Binding PaymentTargetAccount.Phone}"
+                                       FontSize="12" Foreground="#2C3E50"
+                                       VerticalAlignment="Center"/>
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Balance"
+                                       Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Grid.Row="2" Grid.Column="1"
+                                       Text="{Binding PaymentTargetAccount.CurrentBalance, StringFormat='₱{0:N2}'}"
+                                       FontSize="13" FontWeight="Bold" Foreground="#E74C3C"
+                                       VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+
+                    <TextBlock Text="Payment Amount (₱)" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding PaymentAmount, UpdateSourceTrigger=PropertyChanged}"
+                             Padding="8,6" BorderBrush="#BDC3C7" BorderThickness="1"
+                             FontSize="16" HorizontalContentAlignment="Right"
+                             Margin="0,0,0,12"/>
+
+                    <TextBlock Text="Payment Method" Style="{StaticResource FieldLabel}"/>
+                    <ComboBox ItemsSource="{Binding PaymentMethodOptions}"
+                              SelectedIndex="{Binding SelectedPaymentMethodIndex}"
+                              Padding="8,6" BorderBrush="#BDC3C7" BorderThickness="1"
+                              Margin="0,0,0,16"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Button Grid.Column="0" Content="Cancel"
+                                Command="{Binding CancelPaymentCommand}"
+                                Height="38" Padding="0"
+                                BorderThickness="1" BorderBrush="#BDC3C7"
+                                Background="White" Foreground="#2C3E50"
+                                Cursor="Hand"/>
+
+                        <Button Grid.Column="2" Content="Confirm Payment"
+                                Command="{Binding RecordPaymentCommand}"
+                                Height="38" FontWeight="Bold"
+                                Style="{StaticResource SuccessButton}"/>
+                    </Grid>
+
+                </StackPanel>
+            </Border>
+
+        </Grid>
+
+    </Grid>
+</UserControl>
