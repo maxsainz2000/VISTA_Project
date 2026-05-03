@@ -20,6 +20,7 @@ These rules are absolute and unbreakable. Every agent interacting with this wiki
 |---|---|---|---|
 | Domain Wiki | `wiki/` | Antigravity only | On ingest, query, lint |
 | Agent Wiki | `agent_wiki/` | All agents | After debugging/error-fixing sessions only |
+| Codebase Wiki | `codebase_wiki/` | Antigravity only | Before every git commit |
 | Sources | `Sources/` | Humans only | When adding new raw documents |
 | System | `_system/` | Antigravity only | When updating rules or workflows |
 
@@ -44,12 +45,13 @@ LLM_Wiki/
 │   ├── errors/       # Error fixes
 │   ├── patterns/     # Proven approaches
 │   └── antipatterns/ # Traps to avoid
+├── codebase_wiki/    # Codebase map — Antigravity writes ONLY
 └── llm-wiki.md       # Original idea doc
 ```
 
 ## YAML Frontmatter Requirements
 
-Every file in `wiki/` and `agent_wiki/` (except index.md and log.md) MUST have YAML frontmatter.
+Every file in `wiki/`, `agent_wiki/`, and `codebase_wiki/` (except index.md and log.md) MUST have YAML frontmatter.
 
 ### Domain Wiki (`wiki/`)
 
@@ -73,6 +75,15 @@ module: MerchSys.Purchasing | MerchSys.Inventory | MerchSys.POS | MerchSys.Accou
 agent: antigravity | claude-code | codex | other
 date: YYYY-MM-DD
 tags: []
+---
+```
+
+### Codebase Wiki (`codebase_wiki/`)
+
+```yaml
+---
+type: module-index | layer-manifest | contracts-registry | schema-map | dependency-map
+last-updated: YYYY-MM-DD
 ---
 ```
 

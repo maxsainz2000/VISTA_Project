@@ -1,0 +1,18 @@
+---
+type: dependency-map
+last-updated: 2026-05-03
+---
+
+# NuGet Packages
+
+Pinned package versions used across the solution.
+
+| Package | Version | Used In |
+|---|---|---|
+| `MediatR` | Latest Stable | All modules |
+| `Microsoft.EntityFrameworkCore` | `10.x` | `SharedKernel`, `POS`, `Purchasing`, `Inventory`, `Accounting` |
+| `Microsoft.EntityFrameworkCore.Sqlite` | `10.x` | `SharedKernel`, `POS`, `Purchasing`, `Inventory`, `Accounting` |
+| `CommunityToolkit.Mvvm` | Latest Stable | `POS`, `Purchasing`, `Inventory`, `Accounting` |
+| `Microsoft.Extensions.DependencyInjection` | Latest Stable | `MerchSys.App` |
+| `Microsoft.Extensions.Hosting` | Latest Stable | `MerchSys.App` |
+| `Notification.Wpf` | Latest Stable | `MerchSys.App` |

@@ -1,0 +1,23 @@
+---
+type: schema-map
+last-updated: 2026-05-03
+---
+
+# Dependency Injection Registry
+
+This page documents the composition root in `MerchSys.App`.
+
+## POS Services
+| Interface | Implementation | Lifetime |
+|---|---|---|
+| `ICartService` | `CartService` | Scoped |
+| `IPaymentService` | `PaymentService` | Scoped |
+| `ICreditService` | `CreditService` | Scoped |
+| `IReceiptService` | `ReceiptService` | Scoped |
+| `ISalesReturnService` | `SalesReturnService` | Scoped |
+| `IDailySummaryService` | `DailySummaryService` | Scoped |
+
+## Shared Services
+| Interface | Implementation | Lifetime |
+|---|---|---|
+| `IEventBus` | `MediatR` | Transient (by MediatR default) |

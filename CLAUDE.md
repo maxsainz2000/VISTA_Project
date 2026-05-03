@@ -103,9 +103,9 @@ After completing a plan, you must **generate an implementation summary** at `Pro
 
 **Implementation order:** INFRA-01 → INFRA-02 → INFRA-03 → INFRA-04 → then module plans in dependency order.
 
-## Two-Tier Knowledge Base (`LLM_Wiki/`)
+## Three-Tier Knowledge Base (`LLM_Wiki/`)
 
-The repository uses a strict two-tier wiki system. You must adhere to these boundaries:
+The repository uses a strict three-tier wiki system. You must adhere to these boundaries:
 
 ### 1. Domain Wiki (`LLM_Wiki/wiki/`) — **READ ONLY**
 This is the authoritative domain knowledge base maintained by Antigravity. **You must not modify these files.** Read them to understand business rules and architecture. Key references:
@@ -122,6 +122,18 @@ This is the authoritative domain knowledge base maintained by Antigravity. **You
 This is the shared engineering log for all coding agents.
 - **MANDATORY:** Before starting any complex debugging or fixing an error, you **MUST** check `agent_wiki/index.md` and the `errors/` or `patterns/` directories for previous solutions.
 - **MANDATORY:** After resolving a significant bug or establishing a new code pattern, you **MUST** log it in the Agent Wiki. Use `agent_wiki/_templates/error-fix.md` or `agent_wiki/_templates/pattern.md` as your starting point. Update `agent_wiki/index.md` and `agent_wiki/log.md` when you add a new entry.
+
+### 3. Codebase Wiki (`LLM_Wiki/codebase_wiki/`) — **READ ONLY**
+This is the pre-digested codebase intelligence layer mapped by Antigravity. It contains the live architecture, file indices, and class signatures.
+- **MANDATORY PRE-TASK READING:** Before writing any code for a plan, you **MUST** read `LLM_Wiki/codebase_wiki/index.md` and the specific module index page for your target module. Use this instead of scanning the entire codebase. **Do not write to this folder.**
+
+## Hybrid Commit Workflow
+
+To keep the `codebase_wiki` up to date without wasting agent tokens during coding tasks, we use a hybrid commit workflow:
+1. You (the coding agent) implement the code and write your progress summary (e.g., `Progress/VISTA_Modules/<Module>/<PLAN-ID>-summary.md`).
+2. You stop here.
+3. The user will ask Antigravity to parse your summary and sync the `codebase_wiki/`.
+4. The user commits the code, summary, and wiki updates together using the `[wiki-synced]` tag.
 
 ## Security Requirements
 
