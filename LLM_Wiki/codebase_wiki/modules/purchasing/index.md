@@ -2,8 +2,8 @@
 type: module-index
 module: MerchSys.Purchasing
 last-updated: 2026-05-04
-plans-completed: [PUR-01]
-file-count: 13
+plans-completed: [PUR-01, PUR-02]
+file-count: 21
 ---
 
 # MerchSys.Purchasing — Module Index
@@ -17,3 +17,4 @@ This is the root index for the **MerchSys.Purchasing** module.
 
 ## Layer Manifests
 - [[entities|Entities (Database Models)]]
+- [[data-access|Data Access]]

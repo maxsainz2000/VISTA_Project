@@ -18,7 +18,14 @@ This page maps the EF Core entities across all modules to their SQLite/MariaDB t
 | `SalesReturnItem` | `Pos_SalesReturnItems` | PK `Id`, FK `SalesReturnId` -> `Pos_SalesReturns` |
 
 ## MerchSys.Purchasing (`Pur_` prefix)
-*(To be populated during Purchasing implementation)*
+| Entity | DB Table | Key Constraints |
+|---|---|---|
+| `Vendor` | `Pur_Vendors` | PK `Id`, Index on `Name` |
+| `PurchaseOrder` | `Pur_PurchaseOrders` | PK `Id`, FK `VendorId` -> `Pur_Vendors`, Index on `OrderNumber` |
+| `PurchaseOrderLine` | `Pur_PurchaseOrderLines` | PK `Id`, FK `PurchaseOrderId` -> `Pur_PurchaseOrders` |
+| `GoodsReceipt` | `Pur_GoodsReceipts` | PK `Id`, FK `PurchaseOrderId` -> `Pur_PurchaseOrders`, Index on `ReceiptNumber` |
+| `GoodsReceiptLine` | `Pur_GoodsReceiptLines` | PK `Id`, FK `GoodsReceiptId` -> `Pur_GoodsReceipts` |
+| `AccountsPayableEntry` | `Pur_AccountsPayable` | PK `Id`, FK `PurchaseOrderId` -> `Pur_PurchaseOrders`, FK `VendorId` -> `Pur_Vendors`, Index on `VendorId`+`IsPaid` |
 
 ## MerchSys.Inventory (`Inv_` prefix)
 *(To be populated during Inventory implementation)*
