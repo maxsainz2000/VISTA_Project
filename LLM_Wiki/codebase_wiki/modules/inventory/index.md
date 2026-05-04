@@ -2,8 +2,8 @@
 type: module-index
 module: MerchSys.Inventory
 last-updated: 2026-05-04
-plans-completed: [INV-01, INV-02, INV-03, INV-04, INV-05, INV-06, INV-07, INV-08, INV-09, INV-10]
-file-count: 32
+plans-completed: [INV-01, INV-02, INV-03, INV-04, INV-05, INV-06, INV-07, INV-08, INV-09, INV-10, INV-11]
+file-count: 35
 ---
 
 # MerchSys.Inventory — Module Index

@@ -1,0 +1,621 @@
+<UserControl x:Class="Views.Inventory.ProductManagementView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignHeight="768" d:DesignWidth="1280"
+             Background="#F5F6FA">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
+        <Style x:Key="PageTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#2C3E50"/>
+        </Style>
+
+        <Style x:Key="SectionHeader" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#2C3E50"/>
+        </Style>
+
+        <Style x:Key="FilterLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="#7F8C8D"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,4,0"/>
+        </Style>
+
+        <Style x:Key="FormLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="#2C3E50"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,0,2"/>
+        </Style>
+
+        <Style x:Key="FormInput" TargetType="TextBox">
+            <Setter Property="Padding" Value="6,4"/>
+            <Setter Property="BorderBrush" Value="#BDC3C7"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+        </Style>
+
+        <Style x:Key="FormCombo" TargetType="ComboBox">
+            <Setter Property="Padding" Value="6,4"/>
+            <Setter Property="BorderBrush" Value="#BDC3C7"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#2980B9"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="14,6"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#BDC3C7"/>
+                    <Setter Property="Foreground" Value="#7F8C8D"/>
+                </Trigger>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#2471A3"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="SecondaryButton" TargetType="Button">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#2C3E50"/>
+            <Setter Property="BorderBrush" Value="#BDC3C7"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Foreground" Value="#BDC3C7"/>
+                </Trigger>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#EBF5FB"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="DangerButton" TargetType="Button">
+            <Setter Property="Background" Value="#E74C3C"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#BDC3C7"/>
+                    <Setter Property="Foreground" Value="#7F8C8D"/>
+                </Trigger>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#C0392B"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="WarningButton" TargetType="Button">
+            <Setter Property="Background" Value="#E67E22"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#BDC3C7"/>
+                    <Setter Property="Foreground" Value="#7F8C8D"/>
+                </Trigger>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#CA6F1E"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ProductRowStyle" TargetType="DataGridRow">
+            <Setter Property="Background" Value="White"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsActive}" Value="False">
+                    <Setter Property="Background" Value="#F2F3F4"/>
+                    <Setter Property="Foreground" Value="#95A5A6"/>
+                </DataTrigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#D6EAF8"/>
+                    <Setter Property="BorderBrush" Value="#2980B9"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ErrorText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#E74C3C"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+
+        <Style x:Key="OverlayBackground" TargetType="Grid">
+            <Setter Property="Background" Value="#66000000"/>
+        </Style>
+
+        <Style x:Key="DialogCard" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#DFE6E9"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="24,20"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="MinWidth" Value="480"/>
+            <Setter Property="MaxWidth" Value="560"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="20" ShadowDepth="4" Opacity="0.2"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <!-- Root Grid holds main content + overlays -->
+    <Grid>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             MAIN CONTENT
+             ═══════════════════════════════════════════════════════════ -->
+        <DockPanel Margin="12">
+
+            <!-- Page Header -->
+            <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Product Management" Style="{StaticResource PageTitle}"/>
+                    <TextBlock Text="  (Manager Only)" FontSize="11" Foreground="#95A5A6" VerticalAlignment="Center"/>
+                </StackPanel>
+                <TextBlock Text="Loading…" HorizontalAlignment="Right" FontSize="11"
+                           Foreground="#7F8C8D" VerticalAlignment="Center"
+                           Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
+            </Grid>
+
+            <!-- Tab Control -->
+            <TabControl DockPanel.Dock="Top" Background="White"
+                        BorderBrush="#DFE6E9" BorderThickness="1">
+
+                <!-- ═══════════════ TAB 1: PRODUCTS ═══════════════ -->
+                <TabItem Header="Products">
+                    <DockPanel Margin="12">
+
+                        <!-- Toolbar -->
+                        <Border DockPanel.Dock="Top"
+                                Background="#FAFBFC" BorderBrush="#DFE6E9" BorderThickness="0,0,0,1"
+                                Padding="0,8,0,8" Margin="0,0,0,8">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="140"/>
+                                    <ColumnDefinition Width="14"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="200"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Column="0" Text="Category:" Style="{StaticResource FilterLabel}"/>
+                                <ComboBox Grid.Column="1"
+                                          ItemsSource="{Binding CategoryFilters}"
+                                          SelectedItem="{Binding SelectedCategoryFilter}"
+                                          Padding="6,4" VerticalContentAlignment="Center"
+                                          BorderBrush="#BDC3C7"/>
+
+                                <TextBlock Grid.Column="3" Text="Search:" Style="{StaticResource FilterLabel}"/>
+                                <TextBox Grid.Column="4"
+                                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                         Padding="6,4" BorderBrush="#BDC3C7" BorderThickness="1"
+                                         VerticalContentAlignment="Center"
+                                         x:Name="SearchBox"/>
+
+                                <!-- Add Product -->
+                                <Button Grid.Column="6" Content="+ Add Product"
+                                        Command="{Binding AddProductCommand}"
+                                        Style="{StaticResource PrimaryButton}"/>
+
+                                <!-- Edit -->
+                                <Button Grid.Column="8" Content="Edit"
+                                        Command="{Binding EditProductCommand}"
+                                        CommandParameter="{Binding SelectedProduct}"
+                                        IsEnabled="{Binding HasSelectedProduct}"
+                                        Style="{StaticResource SecondaryButton}"/>
+
+                                <!-- Deactivate / Reactivate -->
+                                <Button Grid.Column="10"
+                                        Command="{Binding DeactivateProductCommand}"
+                                        CommandParameter="{Binding SelectedProduct}"
+                                        IsEnabled="{Binding HasSelectedProduct}">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource WarningButton}">
+                                            <Setter Property="Content" Value="Deactivate"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding SelectedProductIsActive}" Value="False">
+                                                    <Setter Property="Content" Value="Reactivate"/>
+                                                    <Setter Property="Background" Value="#27AE60"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+
+                                <!-- Refresh -->
+                                <Button Grid.Column="12" Content="Refresh"
+                                        Command="{Binding LoadDataCommand}"
+                                        Style="{StaticResource SecondaryButton}"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Product DataGrid -->
+                        <DataGrid x:Name="ProductGrid"
+                                  ItemsSource="{Binding Products}"
+                                  SelectedItem="{Binding SelectedProduct, Mode=TwoWay}"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False" CanUserDeleteRows="False"
+                                  CanUserReorderColumns="False" CanUserResizeRows="False"
+                                  IsReadOnly="True"
+                                  SelectionUnit="FullRow" SelectionMode="Single"
+                                  GridLinesVisibility="Horizontal"
+                                  BorderBrush="#DFE6E9" BorderThickness="1"
+                                  HeadersVisibility="Column"
+                                  RowStyle="{StaticResource ProductRowStyle}"
+                                  CanUserSortColumns="True"
+                                  AlternatingRowBackground="#FAFBFC">
+
+                            <DataGrid.Columns>
+
+                                <DataGridTextColumn Header="Product Name" Width="*" MinWidth="160"
+                                                   Binding="{Binding Name}"/>
+
+                                <DataGridTextColumn Header="SKU" Width="100"
+                                                   Binding="{Binding Sku}"/>
+
+                                <DataGridTextColumn Header="Category" Width="130"
+                                                   Binding="{Binding CategoryName}"/>
+
+                                <DataGridTextColumn Header="Retail Price" Width="95"
+                                                   SortMemberPath="RetailPrice"
+                                                   Binding="{Binding RetailPrice, StringFormat='₱{0:N2}'}">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                                            <Setter Property="Padding" Value="0,0,6,0"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+
+                                <DataGridTextColumn Header="Unit" Width="60"
+                                                   Binding="{Binding Unit}"/>
+
+                                <DataGridTemplateColumn Header="Has Expiry" Width="75" IsReadOnly="True">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock HorizontalAlignment="Center" FontSize="12">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Text" Value="No"/>
+                                                        <Setter Property="Foreground" Value="#7F8C8D"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding HasExpiry}" Value="True">
+                                                                <Setter Property="Text" Value="Yes"/>
+                                                                <Setter Property="Foreground" Value="#E67E22"/>
+                                                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                                <DataGridTextColumn Header="Min Threshold" Width="95"
+                                                   SortMemberPath="MinThreshold"
+                                                   Binding="{Binding MinThreshold}">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                                            <Setter Property="Padding" Value="0,0,6,0"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+
+                                <DataGridTemplateColumn Header="Status" Width="80" IsReadOnly="True">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Border CornerRadius="3" Margin="4,2" Padding="5,2" HorizontalAlignment="Center">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="Background" Value="#D5F5E3"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsActive}" Value="False">
+                                                                <Setter Property="Background" Value="#EAECEE"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                                <TextBlock FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Center">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Text" Value="Active"/>
+                                                            <Setter Property="Foreground" Value="#1E8449"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsActive}" Value="False">
+                                                                    <Setter Property="Text" Value="Inactive"/>
+                                                                    <Setter Property="Foreground" Value="#7F8C8D"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </Border>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                    </DockPanel>
+                </TabItem>
+
+                <!-- ═══════════════ TAB 2: CATEGORIES ═══════════════ -->
+                <TabItem Header="Categories">
+                    <DockPanel Margin="12">
+
+                        <!-- Category Toolbar -->
+                        <Border DockPanel.Dock="Top"
+                                Background="#FAFBFC" BorderBrush="#DFE6E9" BorderThickness="0,0,0,1"
+                                Padding="0,8,0,8" Margin="0,0,0,8">
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="+ Add Category"
+                                        Command="{Binding AddCategoryCommand}"
+                                        Style="{StaticResource PrimaryButton}"
+                                        Margin="0,0,8,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock DockPanel.Dock="Top"
+                                   Text="Note: Categories with products cannot be deleted."
+                                   FontSize="11" Foreground="#7F8C8D" Margin="0,0,0,8"/>
+
+                        <!-- Category DataGrid -->
+                        <DataGrid ItemsSource="{Binding Categories}"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False" CanUserDeleteRows="False"
+                                  CanUserReorderColumns="False" CanUserResizeRows="False"
+                                  IsReadOnly="True"
+                                  SelectionUnit="FullRow" SelectionMode="Single"
+                                  GridLinesVisibility="Horizontal"
+                                  BorderBrush="#DFE6E9" BorderThickness="1"
+                                  HeadersVisibility="Column"
+                                  RowBackground="White" AlternatingRowBackground="#FAFBFC"
+                                  CanUserSortColumns="True">
+
+                            <DataGrid.Columns>
+
+                                <DataGridTextColumn Header="Category Name" Width="*" MinWidth="160"
+                                                   Binding="{Binding Name}"/>
+
+                                <DataGridTextColumn Header="Description" Width="*"
+                                                   Binding="{Binding Description}"/>
+
+                                <DataGridTextColumn Header="Products" Width="80"
+                                                   SortMemberPath="ProductCount"
+                                                   Binding="{Binding ProductCount}">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                                            <Setter Property="Padding" Value="0,0,6,0"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+
+                                <DataGridTemplateColumn Header="Actions" Width="160" IsReadOnly="True">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" Margin="4,2">
+                                                <Button Content="Edit"
+                                                        Command="{Binding DataContext.EditCategoryCommand,
+                                                                  RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}"
+                                                        Padding="10,3" FontSize="11"
+                                                        Background="#2980B9" Foreground="White"
+                                                        BorderThickness="0" Cursor="Hand"
+                                                        Margin="0,0,6,0"/>
+                                                <Button Content="Delete"
+                                                        Command="{Binding DataContext.DeleteCategoryCommand,
+                                                                  RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}"
+                                                        Padding="10,3" FontSize="11"
+                                                        BorderThickness="0" Cursor="Hand">
+                                                    <Button.Style>
+                                                        <Style TargetType="Button">
+                                                            <Setter Property="Background" Value="#E74C3C"/>
+                                                            <Setter Property="Foreground" Value="White"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding ProductCount}" Value="0">
+                                                                    <Setter Property="IsEnabled" Value="True"/>
+                                                                </DataTrigger>
+                                                                <Trigger Property="IsEnabled" Value="False">
+                                                                    <Setter Property="Background" Value="#BDC3C7"/>
+                                                                    <Setter Property="Foreground" Value="#7F8C8D"/>
+                                                                </Trigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Button.Style>
+                                                </Button>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                    </DockPanel>
+                </TabItem>
+
+            </TabControl>
+        </DockPanel>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             PRODUCT EDITOR OVERLAY
+             ═══════════════════════════════════════════════════════════ -->
+        <Grid Style="{StaticResource OverlayBackground}"
+              Visibility="{Binding IsEditorOpen, Converter={StaticResource BoolToVis}}">
+
+            <Border Style="{StaticResource DialogCard}">
+                <StackPanel>
+
+                    <!-- Dialog Header -->
+                    <TextBlock Text="{Binding EditorTitle}"
+                               FontSize="15" FontWeight="Bold" Foreground="#2C3E50"
+                               Margin="0,0,0,16"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Left Column -->
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Product Name *" Style="{StaticResource FormLabel}"/>
+                            <TextBox Text="{Binding EditorName, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource FormInput}"/>
+
+                            <TextBlock Text="SKU *" Style="{StaticResource FormLabel}"/>
+                            <TextBox Text="{Binding EditorSku, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource FormInput}"/>
+
+                            <TextBlock Text="Category *" Style="{StaticResource FormLabel}"/>
+                            <ComboBox ItemsSource="{Binding Categories}"
+                                      SelectedValuePath="CategoryId"
+                                      DisplayMemberPath="Name"
+                                      SelectedValue="{Binding EditorCategoryId}"
+                                      Style="{StaticResource FormCombo}"/>
+
+                            <TextBlock Text="Retail Price (₱) *" Style="{StaticResource FormLabel}"/>
+                            <TextBox Text="{Binding EditorRetailPriceText, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource FormInput}"/>
+                        </StackPanel>
+
+                        <!-- Right Column -->
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Unit *" Style="{StaticResource FormLabel}"/>
+                            <ComboBox ItemsSource="{Binding UnitOptions}"
+                                      SelectedItem="{Binding EditorUnit}"
+                                      Style="{StaticResource FormCombo}"/>
+
+                            <TextBlock Text="Has Expiry Date" Style="{StaticResource FormLabel}"/>
+                            <CheckBox IsChecked="{Binding EditorHasExpiry}"
+                                      Content="Track expiry on batches"
+                                      Margin="0,0,0,12" FontSize="12"/>
+
+                            <TextBlock Text="Minimum Threshold *" Style="{StaticResource FormLabel}"/>
+                            <TextBox Text="{Binding EditorMinThresholdText, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource FormInput}"/>
+
+                            <TextBlock Text="Description" Style="{StaticResource FormLabel}"/>
+                            <TextBox Text="{Binding EditorDescription, UpdateSourceTrigger=PropertyChanged}"
+                                     Height="60" TextWrapping="Wrap" AcceptsReturn="True"
+                                     VerticalScrollBarVisibility="Auto"
+                                     Padding="6,4" BorderBrush="#BDC3C7" BorderThickness="1"
+                                     FontSize="12" Margin="0,0,0,10"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Validation Error -->
+                    <TextBlock Text="{Binding EditorError}"
+                               Style="{StaticResource ErrorText}"
+                               Visibility="{Binding HasEditorError, Converter={StaticResource BoolToVis}}"/>
+
+                    <!-- Footer Buttons -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Cancel"
+                                Command="{Binding CancelEditorCommand}"
+                                Style="{StaticResource SecondaryButton}"
+                                Margin="0,0,8,0"/>
+                        <Button Content="Save Product"
+                                Command="{Binding SaveProductCommand}"
+                                Style="{StaticResource PrimaryButton}"/>
+                    </StackPanel>
+
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             CATEGORY EDITOR OVERLAY
+             ═══════════════════════════════════════════════════════════ -->
+        <Grid Style="{StaticResource OverlayBackground}"
+              Visibility="{Binding IsCategoryEditorOpen, Converter={StaticResource BoolToVis}}">
+
+            <Border Style="{StaticResource DialogCard}" MaxWidth="420">
+                <StackPanel>
+
+                    <TextBlock Text="{Binding CategoryEditorTitle}"
+                               FontSize="15" FontWeight="Bold" Foreground="#2C3E50"
+                               Margin="0,0,0,16"/>
+
+                    <TextBlock Text="Category Name *" Style="{StaticResource FormLabel}"/>
+                    <TextBox Text="{Binding CategoryEditorName, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource FormInput}"/>
+
+                    <TextBlock Text="Description" Style="{StaticResource FormLabel}"/>
+                    <TextBox Text="{Binding CategoryEditorDescription, UpdateSourceTrigger=PropertyChanged}"
+                             Height="70" TextWrapping="Wrap" AcceptsReturn="True"
+                             VerticalScrollBarVisibility="Auto"
+                             Padding="6,4" BorderBrush="#BDC3C7" BorderThickness="1"
+                             FontSize="12" Margin="0,0,0,12"/>
+
+                    <!-- Validation Error -->
+                    <TextBlock Text="{Binding CategoryEditorError}"
+                               Style="{StaticResource ErrorText}"
+                               Visibility="{Binding HasCategoryEditorError, Converter={StaticResource BoolToVis}}"/>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Cancel"
+                                Command="{Binding CancelCategoryEditorCommand}"
+                                Style="{StaticResource SecondaryButton}"
+                                Margin="0,0,8,0"/>
+                        <Button Content="Save Category"
+                                Command="{Binding SaveCategoryCommand}"
+                                Style="{StaticResource PrimaryButton}"/>
+                    </StackPanel>
+
+                </StackPanel>
+            </Border>
+        </Grid>
+
+    </Grid>
+
+</UserControl>
