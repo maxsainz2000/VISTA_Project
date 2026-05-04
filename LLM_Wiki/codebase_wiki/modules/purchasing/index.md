@@ -1,9 +1,9 @@
 ---
 type: module-index
 module: MerchSys.Purchasing
-last-updated: 2026-05-03
-plans-completed: []
-file-count: 7
+last-updated: 2026-05-04
+plans-completed: [PUR-01]
+file-count: 13
 ---
 
 # MerchSys.Purchasing — Module Index
@@ -15,4 +15,5 @@ This is the root index for the **MerchSys.Purchasing** module.
 - **Dependencies:** `MerchSys.SharedKernel`
 - **Primary Responsibility:** Vendor management, PO lifecycle, AP tracking, and reorder engine.
 
-*(Detailed layer manifests will be populated when implementation begins.)*
+## Layer Manifests
+- [[entities|Entities (Database Models)]]
