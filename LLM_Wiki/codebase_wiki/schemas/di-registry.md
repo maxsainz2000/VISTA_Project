@@ -17,6 +17,12 @@ This page documents the composition root in `MerchSys.App`.
 | `ISalesReturnService` | `SalesReturnService` | Scoped |
 | `IDailySummaryService` | `DailySummaryService` | Scoped |
 
+## Inventory Services
+| Interface | Implementation | Lifetime |
+|---|---|---|
+| `IStockService` | `StockService` | Scoped |
+| `IExpiryTrackingService` | `ExpiryTrackingService` | Scoped |
+
 ## Shared Services
 | Interface | Implementation | Lifetime |
 |---|---|---|

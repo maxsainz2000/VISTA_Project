@@ -14,3 +14,4 @@ This page details the Service implementations for the **MerchSys.Inventory** mod
 | File Path | Interface & Implementation | Key Responsibilities |
 |---|---|---|
 | `src/MerchSys.Inventory/Services/IStockService.vb`<br>`src/MerchSys.Inventory/Services/StockService.vb` | `IStockService`<br>`StockService` | Core FIFO deduction engine. `AddStockBatchAsync()`, `DeductStockFIFOAsync()`, `GetCurrentStockAsync()`, `GetStockBatchesAsync()`, `GetTotalValuationAsync()`. |
+| `src/MerchSys.Inventory/Services/IExpiryTrackingService.vb`<br>`src/MerchSys.Inventory/Services/ExpiryTrackingService.vb` | `IExpiryTrackingService`<br>`ExpiryTrackingService` | Batch-level expiry monitoring and alerting. `GetNearExpiryBatchesAsync()`, `GetExpiredBatchesAsync()`, `GetExpiryStatusForProductAsync()`, `WriteOffExpiredBatchAsync()`. |
