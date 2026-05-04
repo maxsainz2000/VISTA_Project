@@ -1,6 +1,6 @@
 ---
 type: schema-map
-last-updated: 2026-05-03
+last-updated: 2026-05-04
 ---
 
 # Dependency Injection Registry
@@ -22,6 +22,10 @@ This page documents the composition root in `MerchSys.App`.
 |---|---|---|
 | `IStockService` | `StockService` | Scoped |
 | `IExpiryTrackingService` | `ExpiryTrackingService` | Scoped |
+| `IStockDashboardService` | `StockDashboardService` | Scoped |
+| `ILowStockAlertService` | `LowStockAlertService` | Scoped |
+| `IInventoryAuditService` | `InventoryAuditService` | Scoped |
+| `IShrinkageService` | `ShrinkageService` | Scoped |
 
 ## Shared Services
 | Interface | Implementation | Lifetime |
