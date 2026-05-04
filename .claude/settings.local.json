@@ -22,7 +22,11 @@
       "Bash(Select-Object -First 20 FullName)",
       "PowerShell(ls -Path \"C:\\\\Users\\\\Admin\\\\Documents\\\\VISTA_Project\\\\WPF_Applications\\\\MerchSys\\\\src\" -Recurse | Where-Object { $_.PSIsContainer } | Select-Object -First 30)",
       "Bash(Sort-Object)",
-      "Bash(Get-ChildItem *)"
+      "Bash(Get-ChildItem *)",
+      "Bash(New-Item -ItemType Directory -Force -Path \"C:\\\\Users\\\\Admin\\\\Documents\\\\VISTA_Project\\\\WPF_Applications\\\\MerchSys\\\\src\\\\MerchSys.Inventory\\\\Data\\\\Configurations\")",
+      "Bash(Out-Null)",
+      "Bash(New-Item -ItemType Directory -Force -Path \"C:\\\\Users\\\\Admin\\\\Documents\\\\VISTA_Project\\\\WPF_Applications\\\\MerchSys\\\\src\\\\MerchSys.Inventory\\\\Data\\\\SeedData\")",
+      "Bash(Write-Output \"Directories created.\")"
     ]
   }
 }
