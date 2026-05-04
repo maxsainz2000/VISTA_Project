@@ -1,9 +1,9 @@
 ---
 type: module-index
 module: MerchSys.App
-last-updated: 2026-05-03
+last-updated: 2026-05-04
 plans-completed: [INFRA-01]
-file-count: 10
+file-count: 12
 ---
 
 # MerchSys.App — Module Index
