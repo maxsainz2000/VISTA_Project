@@ -1,9 +1,9 @@
 ---
 type: module-index
 module: MerchSys.Inventory
-last-updated: 2026-05-03
-plans-completed: [INV-01]
-file-count: 5
+last-updated: 2026-05-04
+plans-completed: [INV-01, INV-02]
+file-count: 12
 ---
 
 # MerchSys.Inventory — Module Index
@@ -17,3 +17,4 @@ This is the root index for the **MerchSys.Inventory** module.
 
 ## Layer Manifests
 - [[entities|Entities (Database Models)]]
+- [[data-access|Data Access (EF Core Context & Configurations)]]
