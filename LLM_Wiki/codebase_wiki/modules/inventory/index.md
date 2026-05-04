@@ -2,7 +2,7 @@
 type: module-index
 module: MerchSys.Inventory
 last-updated: 2026-05-03
-plans-completed: []
+plans-completed: [INV-01]
 file-count: 5
 ---
 
@@ -15,4 +15,5 @@ This is the root index for the **MerchSys.Inventory** module.
 - **Dependencies:** `MerchSys.SharedKernel`
 - **Primary Responsibility:** Stock management, FIFO costing, expiry alerts.
 
-*(Detailed layer manifests will be populated when implementation begins.)*
+## Layer Manifests
+- [[entities|Entities (Database Models)]]
