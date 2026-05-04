@@ -16,3 +16,5 @@ This log tracks updates made to the `codebase_wiki/` by Antigravity during the H
 | 2026-05-04 | 10:30 | INV-09 | antigravity |
 | 2026-05-04 | 10:47 | INV-10 | antigravity |
 | 2026-05-04 | 14:36 | INV-11 | antigravity |
+| 2026-05-04 | 14:48 | INV-12 | antigravity |
+| 2026-05-04 | 15:05 | INV-13 | antigravity |
