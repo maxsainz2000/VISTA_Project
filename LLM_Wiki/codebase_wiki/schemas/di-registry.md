@@ -27,6 +27,11 @@ This page documents the composition root in `MerchSys.App`.
 | `IInventoryAuditService` | `InventoryAuditService` | Scoped |
 | `IShrinkageService` | `ShrinkageService` | Scoped |
 
+## Purchasing Services
+| Interface | Implementation | Lifetime |
+|---|---|---|
+| `IPurchaseOrderService` | `PurchaseOrderService` | Scoped |
+
 ## Shared Services
 | Interface | Implementation | Lifetime |
 |---|---|---|
