@@ -1,0 +1,475 @@
+<UserControl x:Class="Views.Inventory.StockDashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignHeight="768" d:DesignWidth="1280"
+             Background="#F5F6FA">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
+        <!-- Summary card border -->
+        <Style x:Key="SummaryCard" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#DFE6E9"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="16,12"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+        </Style>
+
+        <Style x:Key="CardValue" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="24"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#2C3E50"/>
+        </Style>
+
+        <Style x:Key="CardLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="#7F8C8D"/>
+            <Setter Property="Margin" Value="0,2,0,0"/>
+        </Style>
+
+        <Style x:Key="SectionHeader" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#2C3E50"/>
+        </Style>
+
+        <Style x:Key="FilterLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="#7F8C8D"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,4,0"/>
+        </Style>
+
+        <!-- DataGrid row coloring — priority: Out > Low > HasExpired > NearExpiry > Normal (last trigger wins) -->
+        <Style x:Key="StockRowStyle" TargetType="DataGridRow">
+            <Setter Property="Background" Value="#EBF5EE"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding ExpiryStatus}" Value="NearExpiry">
+                    <Setter Property="Background" Value="#FEFCE8"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding ExpiryStatus}" Value="HasExpired">
+                    <Setter Property="Background" Value="#FDEDEC"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding StockStatus}" Value="Low">
+                    <Setter Property="Background" Value="#FDF2E9"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding StockStatus}" Value="Out">
+                    <Setter Property="Background" Value="#FDEDEC"/>
+                </DataTrigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#D6EAF8"/>
+                    <Setter Property="BorderBrush" Value="#2980B9"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="StatusBadge" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="6,2"/>
+        </Style>
+
+        <Style x:Key="DetailHeader" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#2C3E50"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+
+        <Style x:Key="RefreshButton" TargetType="Button">
+            <Setter Property="Background" Value="#2980B9"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="14,6"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#BDC3C7"/>
+                    <Setter Property="Foreground" Value="#7F8C8D"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+
+    <DockPanel Margin="10">
+
+        <!-- ═══════════════════════════════════════════════════════════
+             SUMMARY CARDS ROW
+             ═══════════════════════════════════════════════════════════ -->
+        <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Style="{StaticResource SummaryCard}">
+                <StackPanel>
+                    <TextBlock Text="{Binding TotalProducts}" Style="{StaticResource CardValue}" Foreground="#2980B9"/>
+                    <TextBlock Text="Total Products" Style="{StaticResource CardLabel}"/>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="1" Style="{StaticResource SummaryCard}">
+                <StackPanel>
+                    <TextBlock Text="{Binding TotalStockValue, StringFormat='₱{0:N2}'}"
+                               FontSize="18" FontWeight="Bold" Foreground="#27AE60"/>
+                    <TextBlock Text="Total Stock Value" Style="{StaticResource CardLabel}"/>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="2" Style="{StaticResource SummaryCard}">
+                <StackPanel>
+                    <TextBlock Text="{Binding LowStockCount}" Style="{StaticResource CardValue}" Foreground="#E67E22"/>
+                    <TextBlock Text="Low / Out of Stock" Style="{StaticResource CardLabel}"/>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="3" Style="{StaticResource SummaryCard}">
+                <StackPanel>
+                    <TextBlock Text="{Binding NearExpiryCount}" Style="{StaticResource CardValue}" Foreground="#F39C12"/>
+                    <TextBlock Text="Near-Expiry Batches" Style="{StaticResource CardLabel}"/>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="4" Style="{StaticResource SummaryCard}" Margin="0">
+                <StackPanel>
+                    <TextBlock Text="{Binding CriticalStockoutCount}" Style="{StaticResource CardValue}" Foreground="#E74C3C"/>
+                    <TextBlock Text="Critical Stockout Risk" Style="{StaticResource CardLabel}"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             FILTER / TOOLBAR ROW
+             ═══════════════════════════════════════════════════════════ -->
+        <Border DockPanel.Dock="Top"
+                Background="White" BorderBrush="#DFE6E9" BorderThickness="1"
+                CornerRadius="4" Padding="12,8" Margin="0,0,0,6">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="140"/>
+                    <ColumnDefinition Width="16"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="120"/>
+                    <ColumnDefinition Width="16"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="200"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="Category:" Style="{StaticResource FilterLabel}"/>
+                <ComboBox Grid.Column="1"
+                          ItemsSource="{Binding Categories}"
+                          SelectedItem="{Binding SelectedCategory}"
+                          Padding="6,4" VerticalContentAlignment="Center"
+                          BorderBrush="#BDC3C7"/>
+
+                <TextBlock Grid.Column="3" Text="Status:" Style="{StaticResource FilterLabel}"/>
+                <ComboBox Grid.Column="4"
+                          ItemsSource="{Binding StatusOptions}"
+                          SelectedItem="{Binding SelectedStatus}"
+                          Padding="6,4" VerticalContentAlignment="Center"
+                          BorderBrush="#BDC3C7"/>
+
+                <TextBlock Grid.Column="6" Text="Search:" Style="{StaticResource FilterLabel}"/>
+                <TextBox Grid.Column="7"
+                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                         Padding="6,4" BorderBrush="#BDC3C7" BorderThickness="1"
+                         VerticalContentAlignment="Center"
+                         x:Name="SearchBox"/>
+
+                <TextBlock Grid.Column="9"
+                           Text="{Binding LastRefreshed}"
+                           FontSize="10" Foreground="#95A5A6"
+                           VerticalAlignment="Center" Margin="0,0,10,0"/>
+
+                <Button Grid.Column="10"
+                        Content="Refresh"
+                        Command="{Binding RefreshCommand}"
+                        Style="{StaticResource RefreshButton}"/>
+            </Grid>
+        </Border>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             PRODUCT DETAIL PANEL (bottom, docked, visible on row click)
+             ═══════════════════════════════════════════════════════════ -->
+        <Border DockPanel.Dock="Bottom"
+                Visibility="{Binding IsDetailVisible, Converter={StaticResource BoolToVis}}"
+                Background="White" BorderBrush="#DFE6E9" BorderThickness="1"
+                CornerRadius="4" Margin="0,6,0,0" Height="220">
+            <Grid Margin="12,8">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3"
+                            Orientation="Horizontal" Margin="0,0,0,6">
+                    <TextBlock Text="Product Detail — " Style="{StaticResource SectionHeader}"/>
+                    <TextBlock Text="{Binding SelectedProduct.ProductName}"
+                               Style="{StaticResource SectionHeader}" Foreground="#2980B9"/>
+                    <TextBlock Text="{Binding SelectedProduct.Category, StringFormat=' ({0})'}"
+                               Style="{StaticResource SectionHeader}" Foreground="#7F8C8D" FontWeight="Normal"/>
+                </StackPanel>
+
+                <!-- Stock Batches -->
+                <DockPanel Grid.Row="1" Grid.Column="0">
+                    <TextBlock DockPanel.Dock="Top" Text="Stock Batches" Style="{StaticResource DetailHeader}"/>
+                    <DataGrid ItemsSource="{Binding ProductDetail.StockBatches}"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False" CanUserDeleteRows="False"
+                              IsReadOnly="True" CanUserReorderColumns="False" CanUserResizeRows="False"
+                              HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                              BorderBrush="#DFE6E9" BorderThickness="1"
+                              RowBackground="White" AlternatingRowBackground="#FAFBFC"
+                              FontSize="11">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Receipt Date" Width="90"
+                                               Binding="{Binding ReceiptDate, StringFormat='MM/dd/yyyy'}"/>
+                            <DataGridTextColumn Header="Received"   Width="68"
+                                               Binding="{Binding QuantityReceived}"/>
+                            <DataGridTextColumn Header="Remaining"  Width="68"
+                                               Binding="{Binding QuantityRemaining}"/>
+                            <DataGridTextColumn Header="Unit Cost"  Width="78"
+                                               Binding="{Binding UnitCost, StringFormat='₱{0:N2}'}"/>
+                            <DataGridTextColumn Header="Expiry Date" Width="90"
+                                               Binding="{Binding ExpiryDate, StringFormat='MM/dd/yyyy'}"/>
+                            <DataGridTextColumn Header="Expired?" Width="56"
+                                               Binding="{Binding IsExpired}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+
+                <!-- Recent Movements -->
+                <DockPanel Grid.Row="1" Grid.Column="2">
+                    <TextBlock DockPanel.Dock="Top" Text="Recent Movements (30 days)" Style="{StaticResource DetailHeader}"/>
+                    <DataGrid ItemsSource="{Binding ProductDetail.RecentMovements}"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False" CanUserDeleteRows="False"
+                              IsReadOnly="True" CanUserReorderColumns="False" CanUserResizeRows="False"
+                              HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                              BorderBrush="#DFE6E9" BorderThickness="1"
+                              RowBackground="White" AlternatingRowBackground="#FAFBFC"
+                              FontSize="11">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Type"      Width="72"
+                                               Binding="{Binding MovementType}"/>
+                            <DataGridTextColumn Header="Date"      Width="90"
+                                               Binding="{Binding MovementDate, StringFormat='MM/dd/yyyy'}"/>
+                            <DataGridTextColumn Header="Qty"       Width="48"
+                                               Binding="{Binding Quantity}"/>
+                            <DataGridTextColumn Header="Unit Cost" Width="78"
+                                               Binding="{Binding UnitCost, StringFormat='₱{0:N2}'}"/>
+                            <DataGridTextColumn Header="Notes"     Width="*"
+                                               Binding="{Binding Notes}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Grid>
+        </Border>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             MAIN PRODUCT DATAGRID
+             ═══════════════════════════════════════════════════════════ -->
+        <Border Background="White" BorderBrush="#DFE6E9" BorderThickness="1" CornerRadius="4">
+            <DockPanel Margin="12">
+
+                <Grid DockPanel.Dock="Top" Margin="0,0,0,6">
+                    <TextBlock Text="Stock Inventory" Style="{StaticResource SectionHeader}"
+                               VerticalAlignment="Center"/>
+                    <TextBlock Text="Loading…" HorizontalAlignment="Right"
+                               FontSize="11" Foreground="#7F8C8D" VerticalAlignment="Center"
+                               Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
+                </Grid>
+
+                <!-- Color legend -->
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,6">
+                    <Border Width="14" Height="14" Background="#FDEDEC" BorderBrush="#E74C3C" BorderThickness="1" Margin="0,0,3,0" CornerRadius="2"/>
+                    <TextBlock Text="Out of Stock" FontSize="10" Foreground="#7F8C8D" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                    <Border Width="14" Height="14" Background="#FDF2E9" BorderBrush="#E67E22" BorderThickness="1" Margin="0,0,3,0" CornerRadius="2"/>
+                    <TextBlock Text="Low Stock" FontSize="10" Foreground="#7F8C8D" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                    <Border Width="14" Height="14" Background="#FEFCE8" BorderBrush="#F39C12" BorderThickness="1" Margin="0,0,3,0" CornerRadius="2"/>
+                    <TextBlock Text="Near-Expiry" FontSize="10" Foreground="#7F8C8D" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                    <Border Width="14" Height="14" Background="#EBF5EE" BorderBrush="#27AE60" BorderThickness="1" Margin="0,0,3,0" CornerRadius="2"/>
+                    <TextBlock Text="Normal" FontSize="10" Foreground="#7F8C8D" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <DataGrid x:Name="ProductGrid"
+                          ItemsSource="{Binding Products}"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False" CanUserDeleteRows="False"
+                          CanUserReorderColumns="False" CanUserResizeRows="False"
+                          IsReadOnly="True"
+                          SelectionUnit="FullRow" SelectionMode="Single"
+                          GridLinesVisibility="Horizontal"
+                          BorderBrush="#DFE6E9" BorderThickness="1"
+                          HeadersVisibility="Column"
+                          RowStyle="{StaticResource StockRowStyle}"
+                          CanUserSortColumns="True">
+
+                    <DataGrid.Columns>
+
+                        <DataGridTextColumn Header="Product Name" Width="*" MinWidth="160"
+                                           Binding="{Binding ProductName}"/>
+
+                        <DataGridTextColumn Header="Category" Width="120"
+                                           Binding="{Binding Category}"/>
+
+                        <DataGridTextColumn Header="Stock" Width="70"
+                                           SortMemberPath="CurrentStock"
+                                           Binding="{Binding CurrentStock}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                                    <Setter Property="Padding" Value="0,0,4,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="Unit" Width="55"
+                                           Binding="{Binding Unit}"/>
+
+                        <DataGridTextColumn Header="Price" Width="80"
+                                           SortMemberPath="RetailPrice"
+                                           Binding="{Binding RetailPrice, StringFormat='₱{0:N2}'}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                                    <Setter Property="Padding" Value="0,0,4,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="Stock Value" Width="95"
+                                           SortMemberPath="StockValue"
+                                           Binding="{Binding StockValue, StringFormat='₱{0:N2}'}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                                    <Setter Property="Padding" Value="0,0,4,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <!-- Stock Status badge -->
+                        <DataGridTemplateColumn Header="Status" Width="80"
+                                               SortMemberPath="StockStatus" IsReadOnly="True">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border CornerRadius="3" Margin="4,2" Padding="4,2" HorizontalAlignment="Center">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="#D5F5E3"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding StockStatus}" Value="Low">
+                                                        <Setter Property="Background" Value="#FDEBD0"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding StockStatus}" Value="Out">
+                                                        <Setter Property="Background" Value="#FADBD8"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <TextBlock Text="{Binding StockStatus}">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock" BasedOn="{StaticResource StatusBadge}">
+                                                    <Setter Property="Foreground" Value="#1E8449"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding StockStatus}" Value="Low">
+                                                            <Setter Property="Foreground" Value="#A04000"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding StockStatus}" Value="Out">
+                                                            <Setter Property="Foreground" Value="#922B21"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <!-- Expiry Status -->
+                        <DataGridTemplateColumn Header="Expiry" Width="90"
+                                               SortMemberPath="ExpiryStatus" IsReadOnly="True">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock HorizontalAlignment="Center" FontSize="11">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Text" Value="—"/>
+                                                <Setter Property="Foreground" Value="#BDC3C7"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding HasExpiry}" Value="True">
+                                                        <Setter Property="Text" Value="OK"/>
+                                                        <Setter Property="Foreground" Value="#1E8449"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding ExpiryStatus}" Value="NearExpiry">
+                                                        <Setter Property="Text" Value="Near Expiry"/>
+                                                        <Setter Property="Foreground" Value="#B7950B"/>
+                                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding ExpiryStatus}" Value="HasExpired">
+                                                        <Setter Property="Text" Value="Expired!"/>
+                                                        <Setter Property="Foreground" Value="#922B21"/>
+                                                        <Setter Property="FontWeight" Value="Bold"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <!-- Days Until Stockout -->
+                        <DataGridTextColumn Header="Days to Stockout" Width="110"
+                                           SortMemberPath="DaysUntilStockout"
+                                           Binding="{Binding DaysUntilStockoutDisplay}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    <Setter Property="Foreground" Value="#2C3E50"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding RiskLevel}" Value="Critical">
+                                            <Setter Property="Foreground" Value="#922B21"/>
+                                            <Setter Property="FontWeight" Value="Bold"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding RiskLevel}" Value="Warning">
+                                            <Setter Property="Foreground" Value="#A04000"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                    </DataGrid.Columns>
+
+                </DataGrid>
+
+            </DockPanel>
+        </Border>
+
+    </DockPanel>
+
+</UserControl>
