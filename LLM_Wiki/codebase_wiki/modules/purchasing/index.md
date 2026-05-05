@@ -2,8 +2,8 @@
 type: module-index
 module: MerchSys.Purchasing
 last-updated: 2026-05-05
-plans-completed: [PUR-01, PUR-02, PUR-03, PUR-04, PUR-05, PUR-06, PUR-07, PUR-08]
-file-count: 36
+plans-completed: [PUR-01, PUR-02, PUR-03, PUR-04, PUR-05, PUR-06, PUR-07, PUR-08, PUR-09]
+file-count: 40
 ---
 
 # MerchSys.Purchasing — Module Index
@@ -19,3 +19,4 @@ This is the root index for the **MerchSys.Purchasing** module.
 - [[entities|Entities (Database Models)]]
 - [[data-access|Data Access]]
 - [[services|Services (PO Lifecycle)]]
+- [[views|Views & ViewModels]]

@@ -11,6 +11,7 @@ Namespace Extensions
             services.AddScoped(Of IPurchaseOrderService, PurchaseOrderService)()
             services.AddScoped(Of IPriceChangeService, PriceChangeService)()
             services.AddScoped(Of IGoodsReceivingService, GoodsReceivingService)()
+            services.AddScoped(Of IVendorService, VendorService)()
             Return services
         End Function
 

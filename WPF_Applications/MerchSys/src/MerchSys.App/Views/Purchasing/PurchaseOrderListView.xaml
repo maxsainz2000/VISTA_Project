@@ -1,0 +1,497 @@
+<UserControl x:Class="Views.Purchasing.PurchaseOrderListView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignHeight="768" d:DesignWidth="1280"
+             Background="#F5F6FA">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
+        <Style x:Key="SummaryCard" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#DFE6E9"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="16,12"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+        </Style>
+
+        <Style x:Key="SectionHeader" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#2C3E50"/>
+        </Style>
+
+        <Style x:Key="FilterLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="#7F8C8D"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,4,0"/>
+        </Style>
+
+        <Style x:Key="ActionButton" TargetType="Button">
+            <Setter Property="Background" Value="#2980B9"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="12,5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,4,0"/>
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#BDC3C7"/>
+                    <Setter Property="Foreground" Value="#7F8C8D"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
+            <Setter Property="Background" Value="#E74C3C"/>
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#BDC3C7"/>
+                    <Setter Property="Foreground" Value="#7F8C8D"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="SuccessButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
+            <Setter Property="Background" Value="#27AE60"/>
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#BDC3C7"/>
+                    <Setter Property="Foreground" Value="#7F8C8D"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
+            <Setter Property="Background" Value="#7F8C8D"/>
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#BDC3C7"/>
+                    <Setter Property="Foreground" Value="#7F8C8D"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="SmallButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
+            <Setter Property="Padding" Value="8,3"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Margin" Value="0,0,3,0"/>
+        </Style>
+
+        <!-- Row coloring by PO status -->
+        <Style x:Key="PORowStyle" TargetType="DataGridRow">
+            <Setter Property="Background" Value="White"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Status}" Value="Draft">
+                    <Setter Property="Background" Value="#F8F9FA"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Status}" Value="Submitted">
+                    <Setter Property="Background" Value="#EBF5FB"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Status}" Value="Received">
+                    <Setter Property="Background" Value="#FEF9E7"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Status}" Value="Verified">
+                    <Setter Property="Background" Value="#E8F8F5"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Status}" Value="Closed">
+                    <Setter Property="Background" Value="#EAFAF1"/>
+                </DataTrigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#D6EAF8"/>
+                    <Setter Property="BorderBrush" Value="#2980B9"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="EditorLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="#7F8C8D"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,6,0"/>
+        </Style>
+    </UserControl.Resources>
+
+    <DockPanel Margin="10">
+
+        <!-- ═══════════════════════════════════════════════════════════
+             FILTER / TOOLBAR ROW
+             ═══════════════════════════════════════════════════════════ -->
+        <Border DockPanel.Dock="Top"
+                Background="White" BorderBrush="#DFE6E9" BorderThickness="1"
+                CornerRadius="4" Padding="12,8" Margin="0,0,0,6">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="130"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="200"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="Status:" Style="{StaticResource FilterLabel}"/>
+                <ComboBox Grid.Column="1"
+                          ItemsSource="{Binding StatusOptions}"
+                          SelectedItem="{Binding SelectedStatus}"
+                          Padding="6,4" VerticalContentAlignment="Center"
+                          BorderBrush="#BDC3C7"/>
+
+                <TextBlock Grid.Column="3" Text="Search:" Style="{StaticResource FilterLabel}"/>
+                <TextBox Grid.Column="4"
+                         x:Name="SearchBox"
+                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                         Padding="6,4" BorderBrush="#BDC3C7" BorderThickness="1"
+                         VerticalContentAlignment="Center"/>
+
+                <!-- Action buttons — hidden from Owner (IsManager = False) -->
+                <StackPanel Grid.Column="6" Orientation="Horizontal"
+                            Visibility="{Binding IsManager, Converter={StaticResource BoolToVis}}">
+                    <Button Content="New PO"
+                            Command="{Binding NewPOCommand}"
+                            Style="{StaticResource SuccessButton}"/>
+                    <Button Content="Edit"
+                            Command="{Binding EditPOCommand}"
+                            Style="{StaticResource ActionButton}"/>
+                    <Button Content="Submit"
+                            Command="{Binding SubmitPOCommand}"
+                            Style="{StaticResource ActionButton}"/>
+                    <Button Content="Delete"
+                            Command="{Binding DeletePOCommand}"
+                            Style="{StaticResource DangerButton}"/>
+                    <Button Content="Refresh"
+                            Command="{Binding RefreshCommand}"
+                            Style="{StaticResource SecondaryButton}"
+                            Margin="0"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             STATUS BAR
+             ═══════════════════════════════════════════════════════════ -->
+        <Border DockPanel.Dock="Top"
+                Padding="8,3" Margin="0,0,0,4">
+            <Grid>
+                <TextBlock Text="{Binding StatusMessage}"
+                           FontSize="11" Foreground="#7F8C8D" VerticalAlignment="Center"/>
+                <TextBlock Text="Loading…" HorizontalAlignment="Right"
+                           FontSize="11" Foreground="#7F8C8D" VerticalAlignment="Center"
+                           Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
+            </Grid>
+        </Border>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             EDITOR PANEL — visible when IsEditorOpen = True
+             ═══════════════════════════════════════════════════════════ -->
+        <Border DockPanel.Dock="Bottom"
+                Visibility="{Binding IsEditorOpen, Converter={StaticResource BoolToVis}}"
+                Background="White" BorderBrush="#2980B9" BorderThickness="1"
+                CornerRadius="4" Margin="0,6,0,0" MinHeight="280">
+            <DockPanel Margin="12,10">
+
+                <!-- Editor Header -->
+                <Grid DockPanel.Dock="Top" Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="180"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0"
+                               Text="{Binding Editor.EditorTitle}"
+                               Style="{StaticResource SectionHeader}"
+                               Foreground="#2980B9" VerticalAlignment="Center"
+                               Margin="0,0,16,0"/>
+
+                    <TextBlock Grid.Column="2" Text="Vendor:" Style="{StaticResource EditorLabel}"/>
+                    <ComboBox Grid.Column="3"
+                              ItemsSource="{Binding Editor.Vendors}"
+                              SelectedItem="{Binding Editor.SelectedVendor}"
+                              DisplayMemberPath="Name"
+                              Padding="6,4" VerticalContentAlignment="Center"
+                              BorderBrush="#BDC3C7"/>
+
+                    <StackPanel Grid.Column="4" Orientation="Horizontal" Margin="12,0,0,0">
+                        <Button Content="Save Draft"
+                                Command="{Binding SaveDraftCommand}"
+                                Style="{StaticResource ActionButton}"/>
+                        <Button Content="Submit PO"
+                                Command="{Binding SubmitEditorCommand}"
+                                Style="{StaticResource SuccessButton}"/>
+                        <Button Content="Cancel"
+                                Command="{Binding CancelEditorCommand}"
+                                Style="{StaticResource SecondaryButton}"
+                                Margin="0"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Delivery Date + Notes row -->
+                <Grid DockPanel.Dock="Top" Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="16"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" Text="Expected Delivery:" Style="{StaticResource EditorLabel}"/>
+                    <DatePicker Grid.Column="1"
+                                SelectedDate="{Binding Editor.ExpectedDeliveryDate}"
+                                BorderBrush="#BDC3C7"/>
+
+                    <TextBlock Grid.Column="3" Text="Notes:" Style="{StaticResource EditorLabel}"/>
+                    <TextBox Grid.Column="4"
+                             Text="{Binding Editor.Notes, UpdateSourceTrigger=PropertyChanged}"
+                             Padding="6,3" BorderBrush="#BDC3C7" BorderThickness="1"
+                             VerticalContentAlignment="Center"/>
+                </Grid>
+
+                <!-- Line Items toolbar -->
+                <Grid DockPanel.Dock="Top" Margin="0,0,0,4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                        <TextBlock Text="Line Items" Style="{StaticResource SectionHeader}"
+                                   VerticalAlignment="Center" Margin="0,0,12,0"/>
+                        <Button Content="+ Add Line"
+                                Command="{Binding Editor.AddLineCommand}"
+                                Style="{StaticResource SmallButton}"/>
+                    </StackPanel>
+
+                    <TextBlock Grid.Column="2"
+                               Text="{Binding Editor.TotalAmount, StringFormat='Running Total: ₱{0:N2}'}"
+                               FontSize="13" FontWeight="Bold" Foreground="#2C3E50"
+                               VerticalAlignment="Center"/>
+                </Grid>
+
+                <!-- Line Items DataGrid -->
+                <DataGrid x:Name="LineItemsGrid"
+                          ItemsSource="{Binding Editor.LineItems}"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False" CanUserDeleteRows="False"
+                          CanUserReorderColumns="False" CanUserResizeRows="False"
+                          IsReadOnly="False"
+                          SelectionUnit="FullRow" SelectionMode="Single"
+                          GridLinesVisibility="Horizontal"
+                          BorderBrush="#DFE6E9" BorderThickness="1"
+                          HeadersVisibility="Column"
+                          RowBackground="White" AlternatingRowBackground="#FAFBFC"
+                          FontSize="12">
+                    <DataGrid.Columns>
+
+                        <DataGridTextColumn Header="Product ID" Width="90"
+                                           Binding="{Binding ProductId, Mode=TwoWay, UpdateSourceTrigger=LostFocus}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                                    <Setter Property="Padding" Value="0,0,4,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="Product Name" Width="*" MinWidth="160"
+                                           Binding="{Binding ProductName, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+
+                        <DataGridTextColumn Header="Qty" Width="70"
+                                           Binding="{Binding QuantityOrdered, Mode=TwoWay, UpdateSourceTrigger=LostFocus}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                                    <Setter Property="Padding" Value="0,0,4,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="Unit Cost" Width="100"
+                                           Binding="{Binding UnitCost, Mode=TwoWay, UpdateSourceTrigger=LostFocus, StringFormat='N2'}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                                    <Setter Property="Padding" Value="0,0,4,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="Line Total" Width="110"
+                                           IsReadOnly="True"
+                                           Binding="{Binding LineTotal, StringFormat='₱{0:N2}'}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                                    <Setter Property="Padding" Value="0,0,4,0"/>
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <!-- Per-row Remove button -->
+                        <DataGridTemplateColumn Header="" Width="70" IsReadOnly="True">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="Remove"
+                                            FontSize="10" Padding="4,2"
+                                            Background="#E74C3C" Foreground="White"
+                                            BorderThickness="0" Cursor="Hand"
+                                            Command="{Binding DataContext.Editor.RemoveLineCommand,
+                                                      RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                    </DataGrid.Columns>
+                </DataGrid>
+
+            </DockPanel>
+        </Border>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             MAIN PO LIST DATAGRID
+             ═══════════════════════════════════════════════════════════ -->
+        <Border Background="White" BorderBrush="#DFE6E9" BorderThickness="1" CornerRadius="4">
+            <DockPanel Margin="12">
+
+                <Grid DockPanel.Dock="Top" Margin="0,0,0,6">
+                    <TextBlock Text="Purchase Orders" Style="{StaticResource SectionHeader}"
+                               VerticalAlignment="Center"/>
+                </Grid>
+
+                <!-- Status legend -->
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,6">
+                    <Border Width="14" Height="14" Background="#F8F9FA" BorderBrush="#BDC3C7" BorderThickness="1" Margin="0,0,3,0" CornerRadius="2"/>
+                    <TextBlock Text="Draft" FontSize="10" Foreground="#7F8C8D" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <Border Width="14" Height="14" Background="#EBF5FB" BorderBrush="#2980B9" BorderThickness="1" Margin="0,0,3,0" CornerRadius="2"/>
+                    <TextBlock Text="Submitted" FontSize="10" Foreground="#7F8C8D" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <Border Width="14" Height="14" Background="#FEF9E7" BorderBrush="#F39C12" BorderThickness="1" Margin="0,0,3,0" CornerRadius="2"/>
+                    <TextBlock Text="Received" FontSize="10" Foreground="#7F8C8D" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <Border Width="14" Height="14" Background="#E8F8F5" BorderBrush="#1ABC9C" BorderThickness="1" Margin="0,0,3,0" CornerRadius="2"/>
+                    <TextBlock Text="Verified" FontSize="10" Foreground="#7F8C8D" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <Border Width="14" Height="14" Background="#EAFAF1" BorderBrush="#27AE60" BorderThickness="1" Margin="0,0,3,0" CornerRadius="2"/>
+                    <TextBlock Text="Closed" FontSize="10" Foreground="#7F8C8D" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <DataGrid x:Name="POGrid"
+                          ItemsSource="{Binding Orders}"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False" CanUserDeleteRows="False"
+                          CanUserReorderColumns="False" CanUserResizeRows="False"
+                          IsReadOnly="True"
+                          SelectionUnit="FullRow" SelectionMode="Single"
+                          GridLinesVisibility="Horizontal"
+                          BorderBrush="#DFE6E9" BorderThickness="1"
+                          HeadersVisibility="Column"
+                          RowStyle="{StaticResource PORowStyle}"
+                          CanUserSortColumns="True"
+                          FontSize="12">
+                    <DataGrid.Columns>
+
+                        <DataGridTextColumn Header="Order Number" Width="130"
+                                           Binding="{Binding OrderNumber}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                    <Setter Property="Foreground" Value="#2C3E50"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="Vendor" Width="*" MinWidth="150"
+                                           Binding="{Binding VendorName}"/>
+
+                        <!-- Status badge -->
+                        <DataGridTemplateColumn Header="Status" Width="100"
+                                               SortMemberPath="Status" IsReadOnly="True">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border CornerRadius="3" Margin="4,2" Padding="5,2" HorizontalAlignment="Center">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="#E8E8E8"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Status}" Value="Submitted">
+                                                        <Setter Property="Background" Value="#D6EAF8"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Status}" Value="Received">
+                                                        <Setter Property="Background" Value="#FDEBD0"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Status}" Value="Verified">
+                                                        <Setter Property="Background" Value="#D1F2EB"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Status}" Value="Closed">
+                                                        <Setter Property="Background" Value="#D5F5E3"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <TextBlock Text="{Binding Status}" FontSize="11" FontWeight="SemiBold">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Foreground" Value="#5D6D7E"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Status}" Value="Submitted">
+                                                            <Setter Property="Foreground" Value="#1A5276"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Status}" Value="Received">
+                                                            <Setter Property="Foreground" Value="#784212"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Status}" Value="Verified">
+                                                            <Setter Property="Foreground" Value="#0E6655"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Status}" Value="Closed">
+                                                            <Setter Property="Foreground" Value="#1E8449"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTextColumn Header="Order Date" Width="105"
+                                           SortMemberPath="OrderDate"
+                                           Binding="{Binding OrderDate, StringFormat='MM/dd/yyyy'}"/>
+
+                        <DataGridTextColumn Header="Expected Delivery" Width="120"
+                                           SortMemberPath="ExpectedDeliveryDate"
+                                           Binding="{Binding ExpectedDeliveryDate, StringFormat='MM/dd/yyyy'}"/>
+
+                        <DataGridTextColumn Header="Total Amount" Width="110"
+                                           SortMemberPath="TotalAmount"
+                                           Binding="{Binding TotalAmount, StringFormat='₱{0:N2}'}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                                    <Setter Property="Padding" Value="0,0,8,0"/>
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                    </DataGrid.Columns>
+                </DataGrid>
+
+            </DockPanel>
+        </Border>
+
+    </DockPanel>
+
+</UserControl>
