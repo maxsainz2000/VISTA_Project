@@ -11,10 +11,16 @@ Namespace Services
     End Class
 
     Public Interface IPurchaseOrderService
-        Function CreateDraftAsync(vendorId As Integer, lines As List(Of CreatePOLineDto)) As Task(Of PurchaseOrder)
+        Function CreateDraftAsync(vendorId As Integer,
+                                  lines As List(Of CreatePOLineDto),
+                                  Optional notes As String = Nothing,
+                                  Optional expectedDeliveryDate As DateTime? = Nothing) As Task(Of PurchaseOrder)
         Function GetByIdAsync(id As Integer) As Task(Of PurchaseOrder)
         Function GetAllAsync(Optional status As PurchaseOrderStatus? = Nothing) As Task(Of List(Of PurchaseOrder))
-        Function UpdateDraftAsync(id As Integer, lines As List(Of CreatePOLineDto)) As Task(Of PurchaseOrder)
+        Function UpdateDraftAsync(id As Integer,
+                                  lines As List(Of CreatePOLineDto),
+                                  Optional notes As String = Nothing,
+                                  Optional expectedDeliveryDate As DateTime? = Nothing) As Task(Of PurchaseOrder)
         Function SubmitAsync(id As Integer) As Task(Of PurchaseOrder)
         Function MarkReceivedAsync(id As Integer) As Task(Of PurchaseOrder)
         Function VerifyAsync(id As Integer) As Task(Of PurchaseOrder)

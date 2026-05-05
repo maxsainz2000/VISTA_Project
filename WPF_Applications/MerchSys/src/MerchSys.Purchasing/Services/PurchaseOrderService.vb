@@ -15,7 +15,10 @@ Namespace Services
             _db = db
         End Sub
 
-        Public Async Function CreateDraftAsync(vendorId As Integer, lines As List(Of CreatePOLineDto)) As Task(Of PurchaseOrder) Implements IPurchaseOrderService.CreateDraftAsync
+        Public Async Function CreateDraftAsync(vendorId As Integer,
+                                               lines As List(Of CreatePOLineDto),
+                                               Optional notes As String = Nothing,
+                                               Optional expectedDeliveryDate As DateTime? = Nothing) As Task(Of PurchaseOrder) Implements IPurchaseOrderService.CreateDraftAsync
             Dim year As Integer = DateTime.UtcNow.Year
             Dim existingNumbers As List(Of String) = Await _db.PurchaseOrders.
                 Select(Function(p) p.OrderNumber).
@@ -27,7 +30,9 @@ Namespace Services
                 .VendorId = vendorId,
                 .Status = PurchaseOrderStatus.Draft,
                 .OrderDate = DateTime.UtcNow,
-                .TotalAmount = 0D
+                .TotalAmount = 0D,
+                .Notes = notes,
+                .ExpectedDeliveryDate = expectedDeliveryDate
             }
 
             For Each dto In lines
@@ -67,7 +72,10 @@ Namespace Services
             Return Await query.OrderByDescending(Function(po) po.OrderDate).ToListAsync()
         End Function
 
-        Public Async Function UpdateDraftAsync(id As Integer, lines As List(Of CreatePOLineDto)) As Task(Of PurchaseOrder) Implements IPurchaseOrderService.UpdateDraftAsync
+        Public Async Function UpdateDraftAsync(id As Integer,
+                                               lines As List(Of CreatePOLineDto),
+                                               Optional notes As String = Nothing,
+                                               Optional expectedDeliveryDate As DateTime? = Nothing) As Task(Of PurchaseOrder) Implements IPurchaseOrderService.UpdateDraftAsync
             Dim po As PurchaseOrder = Await _db.PurchaseOrders.
                 Include(Function(p) p.Lines).
                 FirstOrDefaultAsync(Function(p) p.Id = id)
@@ -78,6 +86,9 @@ Namespace Services
             If po.Status <> PurchaseOrderStatus.Draft Then
                 Throw New InvalidOperationException($"Only Draft purchase orders can be updated. Current status: {po.Status}.")
             End If
+
+            If notes IsNot Nothing Then po.Notes = notes
+            If expectedDeliveryDate.HasValue Then po.ExpectedDeliveryDate = expectedDeliveryDate
 
             _db.PurchaseOrderLines.RemoveRange(po.Lines)
             po.Lines.Clear()

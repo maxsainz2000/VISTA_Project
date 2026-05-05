@@ -38,10 +38,16 @@ MerchSys.Purchasing/
 ### IPurchaseOrderService
 ```
 Public Interface IPurchaseOrderService
-    Function CreateDraftAsync(vendorId As Integer, lines As List(Of CreatePOLineDto)) As Task(Of PurchaseOrder)
+    Function CreateDraftAsync(vendorId As Integer,
+                              lines As List(Of CreatePOLineDto),
+                              Optional notes As String = Nothing,
+                              Optional expectedDeliveryDate As DateTime? = Nothing) As Task(Of PurchaseOrder)
     Function GetByIdAsync(id As Integer) As Task(Of PurchaseOrder)
     Function GetAllAsync(Optional status As PurchaseOrderStatus? = Nothing) As Task(Of List(Of PurchaseOrder))
-    Function UpdateDraftAsync(id As Integer, lines As List(Of CreatePOLineDto)) As Task(Of PurchaseOrder)
+    Function UpdateDraftAsync(id As Integer,
+                              lines As List(Of CreatePOLineDto),
+                              Optional notes As String = Nothing,
+                              Optional expectedDeliveryDate As DateTime? = Nothing) As Task(Of PurchaseOrder)
     Function SubmitAsync(id As Integer) As Task(Of PurchaseOrder)
     Function MarkReceivedAsync(id As Integer) As Task(Of PurchaseOrder)
     Function VerifyAsync(id As Integer) As Task(Of PurchaseOrder)
@@ -49,6 +55,8 @@ Public Interface IPurchaseOrderService
     Function DeleteDraftAsync(id As Integer) As Task(Of Boolean)
 End Interface
 ```
+
+> **Amendment (PUR-09):** `notes` and `expectedDeliveryDate` were added as optional parameters after `PurchaseOrderListView` (PUR-09) identified they were collected in the UI but had no service-layer path to persist. Using `Optional` keeps all existing call sites unchanged.
 
 ### CreatePOLineDto
 ```
@@ -100,6 +108,7 @@ Recalculate on every add/update/remove of lines.
 - Use `PurchasingDbContext` for all data access — no repository abstraction needed
 - Include `.Include(Function(po) po.Lines).Include(Function(po) po.Vendor)` in read queries
 - Register `IPurchaseOrderService` / `PurchaseOrderService` in DI (add a module-level DI extension method)
+- In `CreateDraftAsync` and `UpdateDraftAsync`: if `notes` is non-Nothing, assign `po.Notes = notes`; if `expectedDeliveryDate` has a value, assign `po.ExpectedDeliveryDate = expectedDeliveryDate`. Callers that omit the optional params retain existing behaviour.
 
 ## Acceptance Criteria
 
@@ -109,6 +118,7 @@ Recalculate on every add/update/remove of lines.
 4. PO numbers follow `PO-YYYY-XXXX` pattern
 5. Total recalculates on line changes
 6. Only Draft POs can be edited/deleted
+7. `notes` and `expectedDeliveryDate` optional params are persisted when provided; omitting them leaves existing values unchanged
 
 ## Output Requirements
 

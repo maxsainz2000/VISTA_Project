@@ -302,9 +302,11 @@ Namespace ViewModels
             Try
                 Dim lineDtos = Editor.ToLineDtos()
                 If Editor.IsNewPO Then
-                    Await _poService.CreateDraftAsync(Editor.SelectedVendor.Id, lineDtos)
+                    Await _poService.CreateDraftAsync(Editor.SelectedVendor.Id, lineDtos,
+                                                      Editor.Notes, Editor.ExpectedDeliveryDate)
                 Else
-                    Await _poService.UpdateDraftAsync(Editor.EditingPOId.Value, lineDtos)
+                    Await _poService.UpdateDraftAsync(Editor.EditingPOId.Value, lineDtos,
+                                                      Editor.Notes, Editor.ExpectedDeliveryDate)
                 End If
                 CloseEditor()
                 Await LoadDataAsync()
@@ -331,9 +333,11 @@ Namespace ViewModels
                 Dim lineDtos = Editor.ToLineDtos()
                 Dim savedPO As PurchaseOrder
                 If Editor.IsNewPO Then
-                    savedPO = Await _poService.CreateDraftAsync(Editor.SelectedVendor.Id, lineDtos)
+                    savedPO = Await _poService.CreateDraftAsync(Editor.SelectedVendor.Id, lineDtos,
+                                                                Editor.Notes, Editor.ExpectedDeliveryDate)
                 Else
-                    savedPO = Await _poService.UpdateDraftAsync(Editor.EditingPOId.Value, lineDtos)
+                    savedPO = Await _poService.UpdateDraftAsync(Editor.EditingPOId.Value, lineDtos,
+                                                                Editor.Notes, Editor.ExpectedDeliveryDate)
                 End If
                 Await _poService.SubmitAsync(savedPO.Id)
                 CloseEditor()
