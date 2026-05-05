@@ -33,6 +33,7 @@ This page documents the composition root in `MerchSys.App`.
 | `IPurchaseOrderService` | `PurchaseOrderService` | Scoped |
 | `IGoodsReceivingService` | `GoodsReceivingService` | Scoped |
 | `IVendorService` | `VendorService` | Scoped |
+| `IAccountsPayableService` | `AccountsPayableService` | Scoped |
 
 ## Shared Services
 | Interface | Implementation | Lifetime |
