@@ -14,10 +14,12 @@ Namespace Services
 
         Private ReadOnly _db As PurchasingDbContext
         Private ReadOnly _mediator As IMediator
+        Private ReadOnly _priceChangeService As IPriceChangeService
 
-        Public Sub New(db As PurchasingDbContext, mediator As IMediator)
+        Public Sub New(db As PurchasingDbContext, mediator As IMediator, priceChangeService As IPriceChangeService)
             _db = db
             _mediator = mediator
+            _priceChangeService = priceChangeService
         End Sub
 
         Public Async Function ReceiveGoodsAsync(purchaseOrderId As Integer, lines As List(Of ReceiveGoodsLineDto)) As Task(Of GoodsReceipt) Implements IGoodsReceivingService.ReceiveGoodsAsync
@@ -84,6 +86,7 @@ Namespace Services
             Next
 
             Await _mediator.Publish(ev)
+            Await _priceChangeService.DetectChangesAsync(receipt.Id)
 
             Return Await GetReceiptByIdAsync(receipt.Id)
         End Function

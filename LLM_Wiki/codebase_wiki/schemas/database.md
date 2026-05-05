@@ -28,6 +28,7 @@ This page maps the EF Core entities across all modules to their SQLite/MariaDB t
 | `AccountsPayableEntry` | `Pur_AccountsPayable` | PK `Id`, FK `PurchaseOrderId` -> `Pur_PurchaseOrders`, FK `VendorId` -> `Pur_Vendors`, Index on `VendorId`+`IsPaid` |
 | `ReorderConfig` | `Pur_ReorderConfigs` | PK `Id`, Unique Index on `ProductId`, nullable FK `PreferredVendorId` -> `Pur_Vendors` (SetNull) |
 | `ReorderSuggestion` | `Pur_ReorderSuggestions` | PK `Id`, Composite Index on `(ProductId, Status)` |
+| `PriceChangeAlert` | `Pur_PriceChangeAlerts` | PK `Id`, Index on `IsAcknowledged`, Index on `ProductId`, precision(18,4) on cost/percent columns |
 
 ## MerchSys.Inventory (`Inv_` prefix)
 *(To be populated during Inventory implementation)*
