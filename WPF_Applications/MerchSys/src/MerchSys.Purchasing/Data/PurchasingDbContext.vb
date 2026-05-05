@@ -18,6 +18,8 @@ Namespace Data
         Public Property GoodsReceipts As DbSet(Of GoodsReceipt)
         Public Property GoodsReceiptLines As DbSet(Of GoodsReceiptLine)
         Public Property AccountsPayableEntries As DbSet(Of AccountsPayableEntry)
+        Public Property ReorderConfigs As DbSet(Of ReorderConfig)
+        Public Property ReorderSuggestions As DbSet(Of ReorderSuggestion)
 
         Public Sub New(options As DbContextOptions(Of PurchasingDbContext))
             MyBase.New(options)

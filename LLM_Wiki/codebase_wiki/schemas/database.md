@@ -1,6 +1,6 @@
 ---
 type: schema-map
-last-updated: 2026-05-03
+last-updated: 2026-05-05
 ---
 
 # Database Schema Mapping
@@ -26,6 +26,8 @@ This page maps the EF Core entities across all modules to their SQLite/MariaDB t
 | `GoodsReceipt` | `Pur_GoodsReceipts` | PK `Id`, FK `PurchaseOrderId` -> `Pur_PurchaseOrders`, Index on `ReceiptNumber` |
 | `GoodsReceiptLine` | `Pur_GoodsReceiptLines` | PK `Id`, FK `GoodsReceiptId` -> `Pur_GoodsReceipts` |
 | `AccountsPayableEntry` | `Pur_AccountsPayable` | PK `Id`, FK `PurchaseOrderId` -> `Pur_PurchaseOrders`, FK `VendorId` -> `Pur_Vendors`, Index on `VendorId`+`IsPaid` |
+| `ReorderConfig` | `Pur_ReorderConfigs` | PK `Id`, Unique Index on `ProductId`, nullable FK `PreferredVendorId` -> `Pur_Vendors` (SetNull) |
+| `ReorderSuggestion` | `Pur_ReorderSuggestions` | PK `Id`, Composite Index on `(ProductId, Status)` |
 
 ## MerchSys.Inventory (`Inv_` prefix)
 *(To be populated during Inventory implementation)*
