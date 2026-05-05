@@ -1,6 +1,6 @@
 ---
 type: schema-map
-last-updated: 2026-05-04
+last-updated: 2026-05-05
 ---
 
 # Dependency Injection Registry
@@ -31,6 +31,7 @@ This page documents the composition root in `MerchSys.App`.
 | Interface | Implementation | Lifetime |
 |---|---|---|
 | `IPurchaseOrderService` | `PurchaseOrderService` | Scoped |
+| `IGoodsReceivingService` | `GoodsReceivingService` | Scoped |
 
 ## Shared Services
 | Interface | Implementation | Lifetime |

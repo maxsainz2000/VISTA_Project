@@ -9,6 +9,7 @@ Namespace Extensions
         <Extension()>
         Public Function AddPurchasingServices(services As IServiceCollection) As IServiceCollection
             services.AddScoped(Of IPurchaseOrderService, PurchaseOrderService)()
+            services.AddScoped(Of IGoodsReceivingService, GoodsReceivingService)()
             Return services
         End Function
 
