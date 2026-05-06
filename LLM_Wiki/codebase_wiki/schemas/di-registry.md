@@ -45,6 +45,7 @@ This page documents the composition root in `MerchSys.App`.
 | `IFinancialOverviewService` | `FinancialOverviewService` | Scoped |
 | `IIncomeStatementService` | `IncomeStatementService` | Scoped |
 | `ISalesSummaryService` | `SalesSummaryService` | Scoped |
+| `IWhatThisMeansService` | `WhatThisMeansService` | Scoped |
 
 ## Shared Services
 | Interface | Implementation | Lifetime |

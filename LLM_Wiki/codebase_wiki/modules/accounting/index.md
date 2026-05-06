@@ -2,8 +2,8 @@
 type: module-index
 module: MerchSys.Accounting
 last-updated: 2026-05-06
-plans-completed: [ACC-01, ACC-02, ACC-03, ACC-04, ACC-05]
-file-count: 23
+plans-completed: [ACC-01, ACC-02, ACC-03, ACC-04, ACC-05, ACC-06]
+file-count: 25
 ---
 
 # MerchSys.Accounting — Module Index
