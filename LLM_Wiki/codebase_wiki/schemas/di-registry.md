@@ -33,8 +33,11 @@ This page documents the composition root in `MerchSys.App`.
 | `IPurchaseOrderService` | `PurchaseOrderService` | Scoped |
 | `IPriceChangeService` | `PriceChangeService` | Scoped |
 | `IGoodsReceivingService` | `GoodsReceivingService` | Scoped |
+| `IVendorService` | `VendorService` | Scoped |
+| `IAccountsPayableService` | `AccountsPayableService` | Scoped |
+| (none) | `APLedgerViewModel` | Transient |
 
-> **Note:** `IVendorService`, `IAccountsPayableService`, and `IReorderService` exist in `src/MerchSys.Purchasing/Services/` but are **not** registered in `PurchasingServiceCollectionExtensions.vb`. They are instantiated directly where used (or will be registered in a future plan).
+> **Note:** `IReorderService` exists in `src/MerchSys.Purchasing/Services/` but is **not** registered in `PurchasingServiceCollectionExtensions.vb`. It is instantiated directly where used (or will be registered in a future plan).
 
 ## Shared Services
 | Interface | Implementation | Lifetime |

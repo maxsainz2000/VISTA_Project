@@ -29,6 +29,9 @@ Namespace Services
         ''' <summary>Returns the sum of Balance across all outstanding (unpaid) AP entries.</summary>
         Function GetTotalOutstandingAsync() As Task(Of Decimal)
 
+        ''' <summary>Returns all AP entries ordered by InvoiceDate descending.</summary>
+        Function GetAllAsync() As Task(Of List(Of AccountsPayableEntry))
+
     End Interface
 
 End Namespace

@@ -126,6 +126,14 @@ Namespace Services
                 SumAsync(Function(ap) ap.Balance)
         End Function
 
+        Public Async Function GetAllAsync() As Task(Of List(Of AccountsPayableEntry)) Implements IAccountsPayableService.GetAllAsync
+            Return Await _db.AccountsPayableEntries.
+                Include(Function(apEnt) apEnt.Vendor).
+                Include(Function(apEnt) apEnt.PurchaseOrder).
+                OrderByDescending(Function(apEnt) apEnt.InvoiceDate).
+                ToListAsync()
+        End Function
+
         Private Async Function GetByIdWithNavigationAsync(id As Integer) As Task(Of AccountsPayableEntry)
             Return Await _db.AccountsPayableEntries.
                 Include(Function(ap) ap.Vendor).
