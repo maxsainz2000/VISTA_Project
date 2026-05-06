@@ -1,0 +1,444 @@
+<UserControl x:Class="Views.Accounting.SalesSummaryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignHeight="768" d:DesignWidth="1280"
+             Background="#F5F6FA">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
+        <Style x:Key="SectionCard" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#DFE6E9"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="14,12"/>
+        </Style>
+
+        <Style x:Key="KpiCard" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#DFE6E9"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="16,12"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+        </Style>
+
+        <Style x:Key="KpiLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="Foreground" Value="#7F8C8D"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+
+        <Style x:Key="KpiValue" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#2C3E50"/>
+        </Style>
+
+        <Style x:Key="KpiValueSmall" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#2C3E50"/>
+        </Style>
+
+        <Style x:Key="RefreshButton" TargetType="Button">
+            <Setter Property="Background" Value="#2980B9"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="14,6"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#BDC3C7"/>
+                    <Setter Property="Foreground" Value="#7F8C8D"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="PeriodToggle" TargetType="RadioButton">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style x:Key="TableHeader" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#636E72"/>
+            <Setter Property="Padding" Value="6,5"/>
+        </Style>
+
+        <Style x:Key="TableCell" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="#2C3E50"/>
+            <Setter Property="Padding" Value="6,5"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="TableCellRight" TargetType="TextBlock" BasedOn="{StaticResource TableCell}">
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+        </Style>
+
+        <Style x:Key="TableCellBold" TargetType="TextBlock" BasedOn="{StaticResource TableCell}">
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+
+        <Style x:Key="TableCellRightBold" TargetType="TextBlock" BasedOn="{StaticResource TableCellRight}">
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+
+        <Style x:Key="DataGridCellRight" TargetType="TextBlock">
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+            <Setter Property="Padding" Value="0,0,6,0"/>
+        </Style>
+    </UserControl.Resources>
+
+    <DockPanel Margin="10">
+
+        <!-- ═══════════════════════════════════════════════════════════
+             TOOLBAR ROW
+             ═══════════════════════════════════════════════════════════ -->
+        <Border DockPanel.Dock="Top"
+                Background="White" BorderBrush="#DFE6E9" BorderThickness="1"
+                CornerRadius="4" Padding="12,7" Margin="0,0,0,8">
+            <Grid>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Sales Summary" FontSize="14" FontWeight="Bold"
+                               Foreground="#2C3E50" VerticalAlignment="Center"/>
+                    <TextBlock Text=" — by Payment Method" FontSize="13" Foreground="#7F8C8D"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+
+                    <!-- Period Type Toggles -->
+                    <TextBlock Text="View:" FontSize="11" Foreground="#7F8C8D"
+                               VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <RadioButton Content="Daily" IsChecked="{Binding IsDaily, Mode=TwoWay}"
+                                 Style="{StaticResource PeriodToggle}"/>
+                    <RadioButton Content="Weekly" IsChecked="{Binding IsWeekly, Mode=TwoWay}"
+                                 Style="{StaticResource PeriodToggle}"/>
+                    <RadioButton Content="Monthly" IsChecked="{Binding IsMonthly, Mode=TwoWay}"
+                                 Style="{StaticResource PeriodToggle}" Margin="0,0,14,0"/>
+
+                    <!-- Date Picker — Daily and Weekly -->
+                    <TextBlock Text="Date:" FontSize="11" Foreground="#7F8C8D"
+                               VerticalAlignment="Center" Margin="0,0,4,0"
+                               Visibility="{Binding ShowDatePicker, Converter={StaticResource BoolToVis}}"/>
+                    <DatePicker SelectedDate="{Binding SelectedDate, Mode=TwoWay}"
+                                Width="120" FontSize="11" VerticalAlignment="Center"
+                                Margin="0,0,12,0"
+                                Visibility="{Binding ShowDatePicker, Converter={StaticResource BoolToVis}}"/>
+
+                    <!-- Month + Year Selectors — Monthly -->
+                    <ComboBox ItemsSource="{Binding AvailableMonths}"
+                              SelectedItem="{Binding SelectedMonth, Mode=TwoWay}"
+                              Width="50" Margin="0,0,6,0" FontSize="11" VerticalAlignment="Center"
+                              Visibility="{Binding ShowMonthSelectors, Converter={StaticResource BoolToVis}}"/>
+                    <ComboBox ItemsSource="{Binding AvailableYears}"
+                              SelectedItem="{Binding SelectedYear, Mode=TwoWay}"
+                              Width="64" Margin="0,0,12,0" FontSize="11" VerticalAlignment="Center"
+                              Visibility="{Binding ShowMonthSelectors, Converter={StaticResource BoolToVis}}"/>
+
+                    <TextBlock Text="Loading…" FontSize="10" Foreground="#7F8C8D"
+                               VerticalAlignment="Center" Margin="0,0,10,0"
+                               Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
+                    <Button Content="Refresh" Command="{Binding LoadCommand}"
+                            Style="{StaticResource RefreshButton}"/>
+
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             WHAT THIS MEANS BOX — mandatory, always visible
+             ═══════════════════════════════════════════════════════════ -->
+        <Border DockPanel.Dock="Top"
+                BorderThickness="1" CornerRadius="6" Padding="14,10" Margin="0,0,0,8">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="Background" Value="#EBF5FB"/>
+                    <Setter Property="BorderBrush" Value="#AED6F1"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding HasCreditWarning}" Value="True">
+                            <Setter Property="Background" Value="#FEF9E7"/>
+                            <Setter Property="BorderBrush" Value="#F39C12"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="&#x1F4A1;" FontSize="22"
+                           VerticalAlignment="Top" Margin="0,0,12,0"/>
+
+                <StackPanel Grid.Column="1">
+                    <TextBlock Text="What This Means"
+                               FontSize="12" FontWeight="Bold" Foreground="#1A5276"
+                               Margin="0,0,0,2"/>
+                    <TextBlock Text="⚠ Credit Alert — High AR Exposure"
+                               FontSize="11" FontWeight="Bold" Foreground="#E67E22"
+                               Margin="0,0,0,4"
+                               Visibility="{Binding HasCreditWarning, Converter={StaticResource BoolToVis}}"/>
+                    <TextBlock Text="{Binding WhatThisMeansText}"
+                               FontSize="12" Foreground="#1F618D"
+                               TextWrapping="Wrap" LineHeight="18"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             SUMMARY CARDS
+             ═══════════════════════════════════════════════════════════ -->
+        <Border DockPanel.Dock="Top" Margin="0,0,0,8" Padding="0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Total Net Sales -->
+                <Border Grid.Column="0" Style="{StaticResource KpiCard}">
+                    <StackPanel>
+                        <TextBlock Text="TOTAL NET SALES" Style="{StaticResource KpiLabel}"/>
+                        <TextBlock Text="{Binding TotalNetSalesDisplay}"
+                                   Style="{StaticResource KpiValue}"/>
+                        <TextBlock Text="{Binding PeriodDescription}"
+                                   FontSize="10" Foreground="#95A5A6" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Transaction Count -->
+                <Border Grid.Column="1" Style="{StaticResource KpiCard}">
+                    <StackPanel>
+                        <TextBlock Text="TRANSACTIONS" Style="{StaticResource KpiLabel}"/>
+                        <TextBlock Text="{Binding TransactionCount}"
+                                   Style="{StaticResource KpiValue}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Avg Transaction Value -->
+                <Border Grid.Column="2" Style="{StaticResource KpiCard}">
+                    <StackPanel>
+                        <TextBlock Text="AVG. TRANSACTION VALUE" Style="{StaticResource KpiLabel}"/>
+                        <TextBlock Text="{Binding AvgTransactionValueDisplay}"
+                                   Style="{StaticResource KpiValueSmall}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Returns -->
+                <Border Grid.Column="3">
+                    <Border.Style>
+                        <Style TargetType="Border" BasedOn="{StaticResource KpiCard}">
+                            <Setter Property="Margin" Value="0"/>
+                        </Style>
+                    </Border.Style>
+                    <StackPanel>
+                        <TextBlock Text="RETURNS" Style="{StaticResource KpiLabel}"/>
+                        <TextBlock Text="{Binding TotalReturnsDisplay}"
+                                   Style="{StaticResource KpiValueSmall}"
+                                   Foreground="#E74C3C"/>
+                    </StackPanel>
+                </Border>
+
+            </Grid>
+        </Border>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             MAIN SCROLL AREA
+             ═══════════════════════════════════════════════════════════ -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel>
+
+                <!-- ── Payment Method Breakdown ─────────────────────── -->
+                <Border Style="{StaticResource SectionCard}" Margin="0,0,0,8">
+                    <StackPanel>
+                        <TextBlock Text="Payment Method Breakdown"
+                                   FontSize="13" FontWeight="Bold" Foreground="#2C3E50"
+                                   Margin="0,0,0,10"/>
+
+                        <!-- Header Row -->
+                        <Border Background="#F8F9FA" BorderBrush="#DFE6E9" BorderThickness="1,1,1,0"
+                                CornerRadius="4,4,0,0">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="120"/>
+                                    <ColumnDefinition Width="120"/>
+                                    <ColumnDefinition Width="90"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Payment Method" Style="{StaticResource TableHeader}"/>
+                                <TextBlock Grid.Column="1" Text="Transactions" Style="{StaticResource TableHeader}"
+                                           HorizontalAlignment="Right" Padding="6,5"/>
+                                <TextBlock Grid.Column="2" Text="Gross Amount" Style="{StaticResource TableHeader}"
+                                           HorizontalAlignment="Right" Padding="6,5"/>
+                                <TextBlock Grid.Column="3" Text="Net Amount" Style="{StaticResource TableHeader}"
+                                           HorizontalAlignment="Right" Padding="6,5"/>
+                                <TextBlock Grid.Column="4" Text="% of Total" Style="{StaticResource TableHeader}"
+                                           HorizontalAlignment="Right" Padding="6,5"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Data Rows -->
+                        <ItemsControl ItemsSource="{Binding PaymentBreakdown}"
+                                      BorderBrush="#DFE6E9" BorderThickness="1,0,1,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BorderBrush="#DFE6E9" BorderThickness="0,0,0,1">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="White"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding PaymentMethod}" Value="Credit">
+                                                        <Setter Property="Background" Value="#FFFDF0"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="100"/>
+                                                <ColumnDefinition Width="120"/>
+                                                <ColumnDefinition Width="120"/>
+                                                <ColumnDefinition Width="90"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0"
+                                                       Text="{Binding PaymentMethod}"
+                                                       Style="{StaticResource TableCell}"/>
+                                            <TextBlock Grid.Column="1"
+                                                       Text="{Binding TransactionCount}"
+                                                       Style="{StaticResource TableCellRight}"/>
+                                            <TextBlock Grid.Column="2"
+                                                       Text="{Binding GrossAmount, StringFormat='₱{0:N2}'}"
+                                                       Style="{StaticResource TableCellRight}"/>
+                                            <TextBlock Grid.Column="3"
+                                                       Text="{Binding NetAmount, StringFormat='₱{0:N2}'}"
+                                                       Style="{StaticResource TableCellRight}"/>
+                                            <TextBlock Grid.Column="4"
+                                                       Text="{Binding Percentage, StringFormat='{}{0:N1}%'}"
+                                                       Style="{StaticResource TableCellRight}"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <!-- Total Footer Row -->
+                        <Border Background="#F0F3F4" BorderBrush="#DFE6E9" BorderThickness="1,1,1,1"
+                                CornerRadius="0,0,4,4">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="120"/>
+                                    <ColumnDefinition Width="120"/>
+                                    <ColumnDefinition Width="90"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Total"
+                                           Style="{StaticResource TableCellBold}"/>
+                                <TextBlock Grid.Column="1"
+                                           Text="{Binding TotalTxCountDisplay}"
+                                           Style="{StaticResource TableCellRightBold}"/>
+                                <TextBlock Grid.Column="2"
+                                           Text="{Binding TotalGrossSalesDisplay}"
+                                           Style="{StaticResource TableCellRightBold}"/>
+                                <TextBlock Grid.Column="3"
+                                           Text="{Binding TotalNetSalesDisplay}"
+                                           Style="{StaticResource TableCellRightBold}"/>
+                                <TextBlock Grid.Column="4" Text="100%"
+                                           Style="{StaticResource TableCellRightBold}"/>
+                            </Grid>
+                        </Border>
+
+                    </StackPanel>
+                </Border>
+
+                <!-- ── Daily Breakdown — Weekly/Monthly only ─────────── -->
+                <Border Style="{StaticResource SectionCard}"
+                        Visibility="{Binding ShowDailyBreakdown, Converter={StaticResource BoolToVis}}">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top"
+                                   Text="Daily Breakdown"
+                                   FontSize="13" FontWeight="Bold" Foreground="#2C3E50"
+                                   Margin="0,0,0,10"/>
+                        <TextBlock DockPanel.Dock="Top"
+                                   Text="Per-day net sales totals for the selected period."
+                                   FontSize="11" Foreground="#7F8C8D" Margin="0,0,0,10"/>
+
+                        <DataGrid ItemsSource="{Binding DailyBreakdown}"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False" CanUserDeleteRows="False"
+                                  IsReadOnly="True" CanUserReorderColumns="False" CanUserResizeRows="False"
+                                  HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                                  BorderBrush="#DFE6E9" BorderThickness="1"
+                                  RowBackground="White" AlternatingRowBackground="#FAFBFC"
+                                  FontSize="11" CanUserSortColumns="False"
+                                  SelectionMode="Single">
+
+                            <DataGrid.Columns>
+
+                                <DataGridTextColumn Header="Date" Width="110"
+                                                   Binding="{Binding SalesDate, StringFormat='MMM d, yyyy'}"/>
+
+                                <DataGridTextColumn Header="Gross Sales" Width="120"
+                                                   Binding="{Binding GrossSales, StringFormat='₱{0:N2}'}">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock" BasedOn="{StaticResource DataGridCellRight}"/>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+
+                                <DataGridTextColumn Header="Discounts" Width="110"
+                                                   Binding="{Binding Discounts, StringFormat='₱{0:N2}'}">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock" BasedOn="{StaticResource DataGridCellRight}"/>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+
+                                <DataGridTextColumn Header="Returns" Width="110"
+                                                   Binding="{Binding Returns, StringFormat='₱{0:N2}'}">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock" BasedOn="{StaticResource DataGridCellRight}"/>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+
+                                <DataGridTextColumn Header="Net Sales" Width="120"
+                                                   Binding="{Binding NetSales, StringFormat='₱{0:N2}'}">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock" BasedOn="{StaticResource DataGridCellRight}"/>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+
+                                <DataGridTextColumn Header="Transactions" Width="100"
+                                                   Binding="{Binding TransactionCount}">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock" BasedOn="{StaticResource DataGridCellRight}"/>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </DockPanel>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+
+    </DockPanel>
+
+</UserControl>
