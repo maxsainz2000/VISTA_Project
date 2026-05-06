@@ -1,9 +1,9 @@
 ---
 type: module-index
 module: MerchSys.App
-last-updated: 2026-05-04
-plans-completed: [INFRA-01]
-file-count: 12
+last-updated: 2026-05-06
+plans-completed: [INFRA-01, ACC-07]
+file-count: 14
 ---
 
 # MerchSys.App — Module Index
@@ -15,4 +15,5 @@ This is the root index for the **MerchSys.App** module (the WPF startup project)
 - **Dependencies:** All other MerchSys modules
 - **Primary Responsibility:** Application startup, Dependency Injection composition root, and holding all UI Views (`.xaml`).
 
-*(Detailed layer manifests will be populated as the shell UI is implemented.)*
+## Layer Manifests
+- [[ui|UI (Views and Resources)]]
