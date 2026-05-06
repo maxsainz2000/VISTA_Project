@@ -26,7 +26,9 @@
       "Bash(New-Item -ItemType Directory -Force -Path \"C:\\\\Users\\\\Admin\\\\Documents\\\\VISTA_Project\\\\WPF_Applications\\\\MerchSys\\\\src\\\\MerchSys.Inventory\\\\Data\\\\Configurations\")",
       "Bash(Out-Null)",
       "Bash(New-Item -ItemType Directory -Force -Path \"C:\\\\Users\\\\Admin\\\\Documents\\\\VISTA_Project\\\\WPF_Applications\\\\MerchSys\\\\src\\\\MerchSys.Inventory\\\\Data\\\\SeedData\")",
-      "Bash(Write-Output \"Directories created.\")"
+      "Bash(Write-Output \"Directories created.\")",
+      "Bash(dir \"C:\\\\Users\\\\Admin\\\\Documents\\\\VISTA_Project\\\\Plans\" /s /b /a-d)",
+      "mcp__visualstudio__solution_info"
     ]
   }
 }

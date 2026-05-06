@@ -1,0 +1,446 @@
+<UserControl x:Class="Views.Purchasing.VendorDirectoryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignHeight="768" d:DesignWidth="1280"
+             Background="#F5F6FA">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
+        <Style x:Key="SectionHeader" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#2C3E50"/>
+        </Style>
+
+        <Style x:Key="FilterLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="#7F8C8D"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,4,0"/>
+        </Style>
+
+        <Style x:Key="FormLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="#7F8C8D"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+            <Setter Property="Margin" Value="0,0,6,0"/>
+        </Style>
+
+        <Style x:Key="FormInput" TargetType="TextBox">
+            <Setter Property="Padding" Value="6,4"/>
+            <Setter Property="BorderBrush" Value="#BDC3C7"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+
+        <Style x:Key="ActionButton" TargetType="Button">
+            <Setter Property="Background" Value="#2980B9"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="12,5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,4,0"/>
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#BDC3C7"/>
+                    <Setter Property="Foreground" Value="#7F8C8D"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
+            <Setter Property="Background" Value="#E74C3C"/>
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#BDC3C7"/>
+                    <Setter Property="Foreground" Value="#7F8C8D"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="SuccessButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
+            <Setter Property="Background" Value="#27AE60"/>
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#BDC3C7"/>
+                    <Setter Property="Foreground" Value="#7F8C8D"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
+            <Setter Property="Background" Value="#7F8C8D"/>
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#BDC3C7"/>
+                    <Setter Property="Foreground" Value="#7F8C8D"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="StatLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="Foreground" Value="#7F8C8D"/>
+            <Setter Property="TextAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="StatValue" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#2C3E50"/>
+            <Setter Property="TextAlignment" Value="Center"/>
+        </Style>
+    </UserControl.Resources>
+
+    <DockPanel Margin="10">
+
+        <!-- ═══════════════════════════════════════════════════════════
+             TOOLBAR
+             ═══════════════════════════════════════════════════════════ -->
+        <Border DockPanel.Dock="Top"
+                Background="White" BorderBrush="#DFE6E9" BorderThickness="1"
+                CornerRadius="4" Padding="12,8" Margin="0,0,0,6">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="220"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="Search:" Style="{StaticResource FilterLabel}"/>
+                <TextBox Grid.Column="1"
+                         x:Name="SearchBox"
+                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                         Padding="6,4" BorderBrush="#BDC3C7" BorderThickness="1"
+                         VerticalContentAlignment="Center"/>
+
+                <StackPanel Grid.Column="3" Orientation="Horizontal"
+                            Visibility="{Binding IsManager, Converter={StaticResource BoolToVis}}">
+                    <Button Content="Add Vendor"
+                            Command="{Binding AddVendorCommand}"
+                            Style="{StaticResource SuccessButton}"/>
+                    <Button Content="Edit"
+                            Command="{Binding EditVendorCommand}"
+                            Style="{StaticResource ActionButton}"/>
+                    <Button Content="Delete"
+                            Command="{Binding DeleteVendorCommand}"
+                            Style="{StaticResource DangerButton}"/>
+                    <Button Content="Refresh"
+                            Command="{Binding RefreshCommand}"
+                            Style="{StaticResource SecondaryButton}"
+                            Margin="0"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             STATUS BAR
+             ═══════════════════════════════════════════════════════════ -->
+        <Border DockPanel.Dock="Top" Padding="8,3" Margin="0,0,0,4">
+            <Grid>
+                <TextBlock Text="{Binding StatusMessage}"
+                           FontSize="11" Foreground="#7F8C8D" VerticalAlignment="Center"/>
+                <TextBlock Text="Loading…" HorizontalAlignment="Right"
+                           FontSize="11" Foreground="#7F8C8D" VerticalAlignment="Center"
+                           Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
+            </Grid>
+        </Border>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             EDITOR PANEL
+             ═══════════════════════════════════════════════════════════ -->
+        <Border DockPanel.Dock="Bottom"
+                Visibility="{Binding IsEditorOpen, Converter={StaticResource BoolToVis}}"
+                Background="White" BorderBrush="#2980B9" BorderThickness="1"
+                CornerRadius="4" Margin="0,6,0,0" Padding="16,12">
+            <DockPanel>
+
+                <!-- Editor header + action buttons -->
+                <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0"
+                               Text="{Binding Editor.EditorTitle}"
+                               Style="{StaticResource SectionHeader}"
+                               Foreground="#2980B9" VerticalAlignment="Center"/>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+                        <Button Content="Save"
+                                Command="{Binding SaveVendorCommand}"
+                                Style="{StaticResource SuccessButton}"/>
+                        <Button Content="Cancel"
+                                Command="{Binding CancelEditorCommand}"
+                                Style="{StaticResource SecondaryButton}"
+                                Margin="0"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Validation error -->
+                <TextBlock DockPanel.Dock="Top"
+                           Text="{Binding Editor.ValidationError}"
+                           Foreground="#E74C3C" FontSize="11" Margin="0,0,0,6"
+                           Visibility="{Binding Editor.ValidationError,
+                                        Converter={StaticResource BoolToVis},
+                                        ConverterParameter=notEmpty}">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Editor.ValidationError}" Value="">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Editor.ValidationError}" Value="{x:Null}">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+
+                <!-- Form fields: 2 rows × 4 columns (Label | Input | Label | Input) -->
+                <Grid DockPanel.Dock="Top">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="6"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="6"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="120"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Row 0: Name | ContactPerson | LeadTimeDays -->
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Name *" Style="{StaticResource FormLabel}"/>
+                    <TextBox Grid.Row="0" Grid.Column="1"
+                             Text="{Binding Editor.Name, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource FormInput}"/>
+
+                    <TextBlock Grid.Row="0" Grid.Column="3" Text="Contact Person" Style="{StaticResource FormLabel}"/>
+                    <TextBox Grid.Row="0" Grid.Column="4"
+                             Text="{Binding Editor.ContactPerson, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource FormInput}"/>
+
+                    <TextBlock Grid.Row="0" Grid.Column="6" Text="Lead Time (days) *" Style="{StaticResource FormLabel}"
+                               TextWrapping="Wrap"/>
+                    <TextBox Grid.Row="0" Grid.Column="7"
+                             Text="{Binding Editor.DefaultLeadTimeDays, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource FormInput}"/>
+
+                    <!-- Row 2: Phone | Email -->
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Phone *" Style="{StaticResource FormLabel}"/>
+                    <TextBox Grid.Row="2" Grid.Column="1"
+                             Text="{Binding Editor.Phone, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource FormInput}"/>
+
+                    <TextBlock Grid.Row="2" Grid.Column="3" Text="Email" Style="{StaticResource FormLabel}"/>
+                    <TextBox Grid.Row="2" Grid.Column="4"
+                             Text="{Binding Editor.Email, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource FormInput}"/>
+
+                    <!-- Row 4: Address | Notes -->
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Address" Style="{StaticResource FormLabel}"/>
+                    <TextBox Grid.Row="4" Grid.Column="1"
+                             Text="{Binding Editor.Address, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource FormInput}"/>
+
+                    <TextBlock Grid.Row="4" Grid.Column="3" Text="Notes" Style="{StaticResource FormLabel}"/>
+                    <TextBox Grid.Row="4" Grid.Column="4" Grid.ColumnSpan="4"
+                             Text="{Binding Editor.Notes, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource FormInput}"/>
+                </Grid>
+
+            </DockPanel>
+        </Border>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             MAIN CONTENT: Vendor list + Detail panel
+             ═══════════════════════════════════════════════════════════ -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Vendor List -->
+            <Border Grid.Column="0"
+                    Background="White" BorderBrush="#DFE6E9" BorderThickness="1"
+                    CornerRadius="4" Margin="0,0,6,0">
+                <DockPanel Margin="12">
+                    <TextBlock DockPanel.Dock="Top" Text="Vendors"
+                               Style="{StaticResource SectionHeader}" Margin="0,0,0,8"/>
+
+                    <DataGrid x:Name="VendorGrid"
+                              ItemsSource="{Binding Vendors}"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False" CanUserDeleteRows="False"
+                              CanUserReorderColumns="False" CanUserResizeRows="False"
+                              IsReadOnly="True"
+                              SelectionUnit="FullRow" SelectionMode="Single"
+                              GridLinesVisibility="Horizontal"
+                              BorderBrush="#DFE6E9" BorderThickness="1"
+                              HeadersVisibility="Column"
+                              RowBackground="White" AlternatingRowBackground="#FAFBFC"
+                              CanUserSortColumns="True"
+                              FontSize="12">
+                        <DataGrid.Columns>
+
+                            <DataGridTextColumn Header="Name" Width="*" MinWidth="160"
+                                               Binding="{Binding Name}">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                        <Setter Property="Foreground" Value="#2C3E50"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+
+                            <DataGridTextColumn Header="Contact Person" Width="140"
+                                               Binding="{Binding ContactPerson}"/>
+
+                            <DataGridTextColumn Header="Phone" Width="120"
+                                               Binding="{Binding Phone}"/>
+
+                            <DataGridTextColumn Header="Email" Width="180"
+                                               Binding="{Binding Email}"/>
+
+                            <DataGridTextColumn Header="Lead Time (days)" Width="120"
+                                               Binding="{Binding DefaultLeadTimeDays}">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Border>
+
+            <!-- Detail Panel -->
+            <Border Grid.Column="1"
+                    Width="340"
+                    Visibility="{Binding HasDetailVisible, Converter={StaticResource BoolToVis}}"
+                    Background="White" BorderBrush="#DFE6E9" BorderThickness="1"
+                    CornerRadius="4">
+                <DockPanel Margin="12">
+
+                    <!-- Vendor name header -->
+                    <TextBlock DockPanel.Dock="Top"
+                               Text="{Binding VendorDetail.Vendor.Name}"
+                               FontSize="14" FontWeight="Bold" Foreground="#2C3E50"
+                               TextWrapping="Wrap" Margin="0,0,0,12"/>
+
+                    <!-- Stats row -->
+                    <Border DockPanel.Dock="Top"
+                            Background="#F8F9FA" CornerRadius="4" Padding="8,6" Margin="0,0,0,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+                                <TextBlock Text="{Binding VendorDetail.TotalPurchaseOrders}"
+                                           Style="{StaticResource StatValue}"/>
+                                <TextBlock Text="Total POs" Style="{StaticResource StatLabel}"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                                <TextBlock Text="{Binding VendorDetail.TotalSpent, StringFormat='₱{0:N0}'}"
+                                           Style="{StaticResource StatValue}" FontSize="13"/>
+                                <TextBlock Text="Total Spent" Style="{StaticResource StatLabel}"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2" HorizontalAlignment="Center">
+                                <TextBlock Text="{Binding VendorDetail.LastOrderDate, StringFormat='MM/dd/yy'}"
+                                           Style="{StaticResource StatValue}" FontSize="12"/>
+                                <TextBlock Text="Last Order" Style="{StaticResource StatLabel}"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="3" HorizontalAlignment="Center">
+                                <TextBlock Text="{Binding VendorDetail.AverageLeadTimeDays, StringFormat='{}{0:N1}d'}"
+                                           Style="{StaticResource StatValue}" FontSize="13"/>
+                                <TextBlock Text="Avg Lead Time" Style="{StaticResource StatLabel}"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Recent POs header -->
+                    <TextBlock DockPanel.Dock="Top" Text="Recent Purchase Orders"
+                               Style="{StaticResource SectionHeader}" Margin="0,0,0,6"/>
+
+                    <!-- Recent POs grid -->
+                    <DataGrid ItemsSource="{Binding RecentPOs}"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False" CanUserDeleteRows="False"
+                              CanUserReorderColumns="False" CanUserResizeRows="False"
+                              IsReadOnly="True"
+                              SelectionUnit="FullRow" SelectionMode="Single"
+                              GridLinesVisibility="Horizontal"
+                              BorderBrush="#DFE6E9" BorderThickness="1"
+                              HeadersVisibility="Column"
+                              RowBackground="White" AlternatingRowBackground="#FAFBFC"
+                              FontSize="11">
+                        <DataGrid.Columns>
+
+                            <DataGridTextColumn Header="Order #" Width="*"
+                                               Binding="{Binding OrderNumber}">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                        <Setter Property="Foreground" Value="#2C3E50"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+
+                            <DataGridTextColumn Header="Date" Width="70"
+                                               Binding="{Binding OrderDate, StringFormat='MM/dd/yy'}"/>
+
+                            <DataGridTextColumn Header="Status" Width="70"
+                                               Binding="{Binding Status}"/>
+
+                            <DataGridTextColumn Header="Total" Width="80"
+                                               Binding="{Binding Total, StringFormat='₱{0:N0}'}">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="HorizontalAlignment" Value="Right"/>
+                                        <Setter Property="Padding" Value="0,0,4,0"/>
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                </DockPanel>
+            </Border>
+
+        </Grid>
+
+    </DockPanel>
+
+</UserControl>
