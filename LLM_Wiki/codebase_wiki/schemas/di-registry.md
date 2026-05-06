@@ -39,6 +39,13 @@ This page documents the composition root in `MerchSys.App`.
 | (none) | `APLedgerViewModel` | Transient |
 | (none) | `ReorderSuggestionsViewModel` | Transient |
 
+## Accounting Services
+| Interface | Implementation | Lifetime |
+|---|---|---|
+| `IFinancialOverviewService` | `FinancialOverviewService` | Scoped |
+| `IIncomeStatementService` | `IncomeStatementService` | Scoped |
+| `ISalesSummaryService` | `SalesSummaryService` | Scoped |
+
 ## Shared Services
 | Interface | Implementation | Lifetime |
 |---|---|---|
