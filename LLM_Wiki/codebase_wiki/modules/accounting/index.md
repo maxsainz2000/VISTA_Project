@@ -1,9 +1,9 @@
 ---
 type: module-index
 module: MerchSys.Accounting
-last-updated: 2026-05-03
-plans-completed: []
-file-count: 5
+last-updated: 2026-05-06
+plans-completed: [ACC-01]
+file-count: 9
 ---
 
 # MerchSys.Accounting — Module Index
@@ -15,4 +15,5 @@ This is the root index for the **MerchSys.Accounting** module.
 - **Dependencies:** `MerchSys.SharedKernel`
 - **Primary Responsibility:** Financial reports, KPIs, plain-language summaries.
 
-*(Detailed layer manifests will be populated when implementation begins.)*
+## Layer Manifests
+- [[entities|Entities (Financial Data Foundation)]]

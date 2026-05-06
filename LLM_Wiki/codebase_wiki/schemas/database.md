@@ -34,4 +34,9 @@ This page maps the EF Core entities across all modules to their SQLite/MariaDB t
 *(To be populated during Inventory implementation)*
 
 ## MerchSys.Accounting (`Acc_` prefix)
-*(To be populated during Accounting implementation)*
+| Entity | DB Table | Key Constraints |
+|---|---|---|
+| `FinancialPeriod` | `Acc_FinancialPeriods` | PK `Id`, Index on `StartDate`+`EndDate` |
+| `RevenueRecord` | `Acc_RevenueRecords` | PK `Id`, Index on `ProductId`, Index on `RecordDate` |
+| `ExpenseRecord` | `Acc_ExpenseRecords` | PK `Id`, Index on `SourceModule` |
+| `FinancialSnapshot` | `Acc_FinancialSnapshots` | PK `Id`, Index on `SnapshotDate` |
