@@ -2,8 +2,8 @@
 type: module-index
 module: MerchSys.Accounting
 last-updated: 2026-05-06
-plans-completed: [ACC-01]
-file-count: 9
+plans-completed: [ACC-01, ACC-02]
+file-count: 17
 ---
 
 # MerchSys.Accounting — Module Index
@@ -17,3 +17,5 @@ This is the root index for the **MerchSys.Accounting** module.
 
 ## Layer Manifests
 - [[entities|Entities (Financial Data Foundation)]]
+- [[data-access|Data Access (EF Core Configuration)]]
+- [[handlers|Handlers (Cross-Module Sync)]]

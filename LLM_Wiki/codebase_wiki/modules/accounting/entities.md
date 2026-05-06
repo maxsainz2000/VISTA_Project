@@ -1,10 +1,9 @@
 ---
-1: ---
-2: type: layer-manifest
-3: module: MerchSys.Accounting
-4: layer: Entities
-5: last-updated: 2026-05-06
-6: ---
+type: layer-manifest
+module: MerchSys.Accounting
+layer: Entities
+last-updated: 2026-05-06
+---
 7: 
 8: # MerchSys.Accounting — Entities
 9: 
