@@ -31,6 +31,9 @@ Namespace Services
         ''' <summary>Returns all <see cref="ReorderConfig"/> records regardless of active state.</summary>
         Function GetAllConfigsAsync() As Task(Of List(Of ReorderConfig))
 
+        ''' <summary>Returns all <see cref="ReorderSuggestion"/> records regardless of status.</summary>
+        Function GetAllSuggestionsAsync() As Task(Of List(Of ReorderSuggestion))
+
     End Interface
 
 End Namespace

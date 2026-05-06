@@ -35,9 +35,9 @@ This page documents the composition root in `MerchSys.App`.
 | `IGoodsReceivingService` | `GoodsReceivingService` | Scoped |
 | `IVendorService` | `VendorService` | Scoped |
 | `IAccountsPayableService` | `AccountsPayableService` | Scoped |
+| `IReorderService` | `ReorderService` | Scoped |
 | (none) | `APLedgerViewModel` | Transient |
-
-> **Note:** `IReorderService` exists in `src/MerchSys.Purchasing/Services/` but is **not** registered in `PurchasingServiceCollectionExtensions.vb`. It is instantiated directly where used (or will be registered in a future plan).
+| (none) | `ReorderSuggestionsViewModel` | Transient |
 
 ## Shared Services
 | Interface | Implementation | Lifetime |

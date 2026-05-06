@@ -185,6 +185,12 @@ Namespace Services
                 ToListAsync()
         End Function
 
+        Public Async Function GetAllSuggestionsAsync() As Task(Of List(Of ReorderSuggestion)) Implements IReorderService.GetAllSuggestionsAsync
+            Return Await _db.ReorderSuggestions.
+                OrderByDescending(Function(s) s.CreatedAt).
+                ToListAsync()
+        End Function
+
     End Class
 
 End Namespace
