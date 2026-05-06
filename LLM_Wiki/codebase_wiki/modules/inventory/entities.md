@@ -18,4 +18,3 @@ This page details the Entities for the **MerchSys.Inventory** module.
 | `src/MerchSys.Inventory/Entities/ShrinkageRecord.vb` | `ShrinkageRecord` | `AuditableEntity` | Financial impact: `Reason`, `QuantityLost`, `UnitCost`, `TotalValue`. |
 | `src/MerchSys.Inventory/Entities/StockAlertConfig.vb` | `StockAlertConfig` | `AuditableEntity` | Alert config: `MinimumThreshold`, `ExpiryAlertDays`, `IsAlertEnabled`. |
 | `src/MerchSys.Inventory/Entities/StockBatch.vb` | `StockBatch` | `AuditableEntity` | FIFO core: `QuantityReceived`, `QuantityRemaining`, `UnitCost`, `ReceiptDate`, `ExpiryDate`, `IsExpired`, `IsFullyConsumed`. |
-| `src/MerchSys.Inventory/Entities/StockMovement.vb` | `StockMovement` | `AuditableEntity` | Tracks in/out movements for velocity/audit: `Type` (Received, Sold, Shrinkage), `Quantity`, `Date`. |

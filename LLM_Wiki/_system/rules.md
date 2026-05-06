@@ -101,3 +101,4 @@ last-updated: YYYY-MM-DD
 | "Ingest X" | Follow `_system/workflow-ingest.md` |
 | "Lint" or "Audit" | Follow `_system/workflow-lint.md` |
 | Source contradicts existing claim | Follow `_system/workflow-contradictions.md` |
+| "Does codebase_wiki directly mirrors..." | Follow `_system/workflow-code-wiki-audit.md` |

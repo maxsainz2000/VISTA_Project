@@ -121,11 +121,12 @@ This is the authoritative domain knowledge base maintained by Antigravity. **You
 ### 2. Agent Wiki (`LLM_Wiki/agent_wiki/`) — **READ & WRITE**
 This is the shared engineering log for all coding agents.
 - **MANDATORY:** Before starting any complex debugging or fixing an error, you **MUST** check `agent_wiki/index.md` and the `errors/` or `patterns/` directories for previous solutions.
-- **MANDATORY:** After resolving a significant bug or establishing a new code pattern, you **MUST** log it in the Agent Wiki. Use `agent_wiki/_templates/error-fix.md` or `agent_wiki/_templates/pattern.md` as your starting point. Update `agent_wiki/index.md` and `agent_wiki/log.md` when you add a new entry.
+- **MANDATORY:** After resolving a significant bug or establishing a new code pattern, you **MUST** log it in the Agent Wiki following the `LLM_Wiki/_system/workflow-agent-wiki-update.md` workflow. Use `agent_wiki/_templates/error-fix.md` or `agent_wiki/_templates/pattern.md` as your starting point. Update `agent_wiki/index.md` and `agent_wiki/log.md` when you add a new entry.
 
 ### 3. Codebase Wiki (`LLM_Wiki/codebase_wiki/`) — **READ ONLY**
 This is the pre-digested codebase intelligence layer mapped by Antigravity. It contains the live architecture, file indices, and class signatures.
 - **MANDATORY PRE-TASK READING:** Before writing any code for a plan, you **MUST** read `LLM_Wiki/codebase_wiki/index.md` and the specific module index page for your target module. Use this instead of scanning the entire codebase. **Do not write to this folder.**
+- **DISCREPANCIES:** You can log any noticed `codebase_wiki` discrepancies in your implementation summary, but you cannot touch the contents of `codebase_wiki`.
 
 ## Hybrid Commit Workflow
 

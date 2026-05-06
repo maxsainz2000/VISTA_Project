@@ -23,5 +23,4 @@ Configures the `InventoryDbContext` with EF Core entity configurations for all I
 | `src/MerchSys.Inventory/Data/Configurations/ShrinkageRecordConfiguration.vb` | `ShrinkageRecordConfiguration` | Table: `Inv_ShrinkageRecords`. UnitCost precision(18,4), TotalValue precision(18,2), Reason max 50. |
 | `src/MerchSys.Inventory/Data/Configurations/StockAlertConfigConfiguration.vb` | `StockAlertConfigConfiguration` | Table: `Inv_StockAlertConfigs`. |
 | `src/MerchSys.Inventory/Data/Configurations/ProductCategoryConfiguration.vb` | `ProductCategoryConfiguration` | Table: `Inv_ProductCategories`. Name max 100, unique index. |
-| `src/MerchSys.Inventory/Data/Configurations/StockMovementConfiguration.vb` | `StockMovementConfiguration` | Table: `Inv_StockMovements`. Index on ProductId + Date for velocity queries. |
 | `src/MerchSys.Inventory/Data/SeedData/InventorySeedData.vb` | `InventorySeedData` | Seeds 4 product categories (Fertilizers, Pesticides/Chemicals, Seeds, Animal Feeds) and sample products. |

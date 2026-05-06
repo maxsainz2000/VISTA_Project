@@ -2,6 +2,7 @@
 type: module-index
 module: MerchSys.Purchasing
 last-updated: 2026-05-06
+last-audited: 2026-05-06
 plans-completed: [PUR-01, PUR-02, PUR-03, PUR-04, PUR-05, PUR-06, PUR-07, PUR-08, PUR-09, PUR-10, PUR-11, PUR-12, PUR-13]
 file-count: 53
 ---
