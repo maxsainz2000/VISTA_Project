@@ -1,0 +1,368 @@
+<UserControl x:Class="Views.Accounting.IncomeStatementView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignHeight="768" d:DesignWidth="1280"
+             Background="#F5F6FA">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
+        <Style x:Key="LineLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="0,5"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Foreground" Value="#2C3E50"/>
+        </Style>
+
+        <Style x:Key="LineLabelMuted" TargetType="TextBlock" BasedOn="{StaticResource LineLabel}">
+            <Setter Property="Foreground" Value="#636E72"/>
+        </Style>
+
+        <Style x:Key="LineAmount" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="0,5"/>
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="FontFamily" Value="Courier New"/>
+            <Setter Property="Foreground" Value="#2C3E50"/>
+        </Style>
+
+        <Style x:Key="LineAmountMuted" TargetType="TextBlock" BasedOn="{StaticResource LineAmount}">
+            <Setter Property="Foreground" Value="#636E72"/>
+        </Style>
+
+        <Style x:Key="LineBoldLabel" TargetType="TextBlock" BasedOn="{StaticResource LineLabel}">
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+
+        <Style x:Key="LineBoldAmount" TargetType="TextBlock" BasedOn="{StaticResource LineAmount}">
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+
+        <Style x:Key="LinePercent" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="12,5,0,5"/>
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Foreground" Value="#27AE60"/>
+        </Style>
+
+        <Style x:Key="LineBoldPercent" TargetType="TextBlock" BasedOn="{StaticResource LinePercent}">
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+
+        <Style x:Key="SectionCard" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#DFE6E9"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="14,12"/>
+        </Style>
+
+        <Style x:Key="RefreshButton" TargetType="Button">
+            <Setter Property="Background" Value="#2980B9"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="14,6"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#BDC3C7"/>
+                    <Setter Property="Foreground" Value="#7F8C8D"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="PeriodToggle" TargetType="RadioButton">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style x:Key="DataGridCellRight" TargetType="TextBlock">
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+            <Setter Property="Padding" Value="0,0,6,0"/>
+        </Style>
+    </UserControl.Resources>
+
+    <DockPanel Margin="10">
+
+        <!-- ═══════════════════════════════════════════════════════════
+             TOOLBAR ROW
+             ═══════════════════════════════════════════════════════════ -->
+        <Border DockPanel.Dock="Top"
+                Background="White" BorderBrush="#DFE6E9" BorderThickness="1"
+                CornerRadius="4" Padding="12,7" Margin="0,0,0,8">
+            <Grid>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Income Statement" FontSize="14" FontWeight="Bold"
+                               Foreground="#2C3E50" VerticalAlignment="Center"/>
+                    <TextBlock Text=" — Profit &amp; Loss" FontSize="13" Foreground="#7F8C8D"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+
+                    <!-- Period Type Toggle -->
+                    <TextBlock Text="View:" FontSize="11" Foreground="#7F8C8D"
+                               VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <RadioButton Content="Monthly" IsChecked="{Binding IsMonthly, Mode=TwoWay}"
+                                 Style="{StaticResource PeriodToggle}"/>
+                    <RadioButton Content="Quarterly" IsChecked="{Binding IsQuarterly, Mode=TwoWay}"
+                                 Style="{StaticResource PeriodToggle}"/>
+                    <RadioButton Content="Annual" IsChecked="{Binding IsAnnual, Mode=TwoWay}"
+                                 Style="{StaticResource PeriodToggle}" Margin="0,0,14,0"/>
+
+                    <!-- Month Selector — Monthly only -->
+                    <ComboBox ItemsSource="{Binding AvailableMonths}"
+                              SelectedItem="{Binding SelectedMonth, Mode=TwoWay}"
+                              Width="50" Margin="0,0,6,0" FontSize="11" VerticalAlignment="Center"
+                              Visibility="{Binding IsMonthly, Converter={StaticResource BoolToVis}}"/>
+
+                    <!-- Quarter Selector — Quarterly only -->
+                    <ComboBox ItemsSource="{Binding AvailableQuarterLabels}"
+                              SelectedItem="{Binding SelectedQuarterLabel, Mode=TwoWay}"
+                              Width="52" Margin="0,0,6,0" FontSize="11" VerticalAlignment="Center"
+                              Visibility="{Binding IsQuarterly, Converter={StaticResource BoolToVis}}"/>
+
+                    <!-- Year Selector — always visible -->
+                    <ComboBox ItemsSource="{Binding AvailableYears}"
+                              SelectedItem="{Binding SelectedYear, Mode=TwoWay}"
+                              Width="64" Margin="0,0,12,0" FontSize="11" VerticalAlignment="Center"/>
+
+                    <TextBlock Text="Loading…" FontSize="10" Foreground="#7F8C8D"
+                               VerticalAlignment="Center" Margin="0,0,10,0"
+                               Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
+                    <Button Content="Refresh" Command="{Binding LoadCommand}"
+                            Style="{StaticResource RefreshButton}"/>
+
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             WHAT THIS MEANS BOX — mandatory, always visible
+             ═══════════════════════════════════════════════════════════ -->
+        <Border DockPanel.Dock="Top"
+                Background="#EBF5FB" BorderBrush="#AED6F1" BorderThickness="1"
+                CornerRadius="6" Padding="14,10" Margin="0,0,0,8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" VerticalAlignment="Top" Margin="0,0,12,0">
+                    <TextBlock Text="&#x1F4A1;" FontSize="22" VerticalAlignment="Top"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1">
+                    <TextBlock Text="What This Means"
+                               FontSize="12" FontWeight="Bold" Foreground="#1A5276"
+                               Margin="0,0,0,4"/>
+                    <TextBlock Text="{Binding WhatThisMeansText}"
+                               FontSize="12" Foreground="#1F618D"
+                               TextWrapping="Wrap" LineHeight="18"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             MAIN TAB CONTROL
+             ═══════════════════════════════════════════════════════════ -->
+        <TabControl Background="Transparent" BorderThickness="0">
+
+            <!-- ── Income Statement Tab ──────────────────────────────── -->
+            <TabItem Header="Income Statement" FontSize="12">
+                <Border Style="{StaticResource SectionCard}" Margin="0,6,0,0">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel>
+
+                            <!-- Period subtitle -->
+                            <TextBlock Text="{Binding PeriodDescription}"
+                                       FontSize="12" Foreground="#7F8C8D"
+                                       Margin="0,0,0,14"/>
+
+                            <!-- P&L Grid -->
+                            <Grid MaxWidth="580" HorizontalAlignment="Left">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="148"/>
+                                    <ColumnDefinition Width="72"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <!-- 0: Net Sales -->
+                                    <RowDefinition Height="Auto"/>
+                                    <!-- 1: Less COGS -->
+                                    <RowDefinition Height="6"/>
+                                    <!-- 2: spacer -->
+                                    <RowDefinition Height="1"/>
+                                    <!-- 3: separator -->
+                                    <RowDefinition Height="6"/>
+                                    <!-- 4: spacer -->
+                                    <RowDefinition Height="Auto"/>
+                                    <!-- 5: Gross Profit -->
+                                    <RowDefinition Height="10"/>
+                                    <!-- 6: spacer -->
+                                    <RowDefinition Height="Auto"/>
+                                    <!-- 7: Less Op Expenses -->
+                                    <RowDefinition Height="Auto"/>
+                                    <!-- 8: Shrinkage Loss -->
+                                    <RowDefinition Height="6"/>
+                                    <!-- 9: spacer -->
+                                    <RowDefinition Height="1"/>
+                                    <!-- 10: separator -->
+                                    <RowDefinition Height="6"/>
+                                    <!-- 11: spacer -->
+                                    <RowDefinition Height="Auto"/>
+                                    <!-- 12: Net Income -->
+                                </Grid.RowDefinitions>
+
+                                <!-- Row 0: Net Sales -->
+                                <TextBlock Grid.Row="0" Grid.Column="0"
+                                           Text="Net Sales"
+                                           Style="{StaticResource LineLabel}"/>
+                                <TextBlock Grid.Row="0" Grid.Column="1"
+                                           Text="{Binding NetSalesDisplay}"
+                                           Style="{StaticResource LineAmount}"/>
+
+                                <!-- Row 1: Less COGS -->
+                                <TextBlock Grid.Row="1" Grid.Column="0"
+                                           Text="Less: Cost of Goods Sold"
+                                           Style="{StaticResource LineLabelMuted}"/>
+                                <TextBlock Grid.Row="1" Grid.Column="1"
+                                           Text="{Binding COGSDisplay}"
+                                           Style="{StaticResource LineAmountMuted}"/>
+
+                                <!-- Row 3: Separator -->
+                                <Rectangle Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3"
+                                           Fill="#BDC3C7" Height="1"/>
+
+                                <!-- Row 5: Gross Profit -->
+                                <TextBlock Grid.Row="5" Grid.Column="0"
+                                           Text="Gross Profit"
+                                           Style="{StaticResource LineBoldLabel}"/>
+                                <TextBlock Grid.Row="5" Grid.Column="1"
+                                           Text="{Binding GrossProfitDisplay}"
+                                           Style="{StaticResource LineBoldAmount}"/>
+                                <TextBlock Grid.Row="5" Grid.Column="2"
+                                           Text="{Binding GrossMarginPercent, StringFormat='{}{0:N1}%'}"
+                                           Style="{StaticResource LineBoldPercent}"/>
+
+                                <!-- Row 7: Less Operating Expenses -->
+                                <TextBlock Grid.Row="7" Grid.Column="0"
+                                           Text="Less: Operating Expenses"
+                                           Style="{StaticResource LineLabelMuted}"/>
+                                <TextBlock Grid.Row="7" Grid.Column="1"
+                                           Text="{Binding OperatingExpensesDisplay}"
+                                           Style="{StaticResource LineAmountMuted}"/>
+
+                                <!-- Row 8: Shrinkage Loss (indented) -->
+                                <TextBlock Grid.Row="8" Grid.Column="0"
+                                           Text="Shrinkage Loss"
+                                           Style="{StaticResource LineLabelMuted}"
+                                           Margin="20,0,0,0"/>
+                                <TextBlock Grid.Row="8" Grid.Column="1"
+                                           Text="{Binding ShrinkageLossDisplay}"
+                                           Style="{StaticResource LineAmountMuted}"/>
+
+                                <!-- Row 10: Separator -->
+                                <Rectangle Grid.Row="10" Grid.Column="0" Grid.ColumnSpan="3"
+                                           Fill="#BDC3C7" Height="1"/>
+
+                                <!-- Row 12: Net Income -->
+                                <TextBlock Grid.Row="12" Grid.Column="0"
+                                           Text="Net Income"
+                                           Style="{StaticResource LineBoldLabel}"/>
+                                <TextBlock Grid.Row="12" Grid.Column="1"
+                                           Text="{Binding NetIncomeDisplay}"
+                                           Style="{StaticResource LineBoldAmount}"/>
+                                <TextBlock Grid.Row="12" Grid.Column="2"
+                                           Text="{Binding NetMarginPercent, StringFormat='{}{0:N1}%'}"
+                                           Style="{StaticResource LineBoldPercent}"/>
+
+                            </Grid>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+            </TabItem>
+
+            <!-- ── Per-Product Margins Tab ───────────────────────────── -->
+            <TabItem Header="Per-Product Margins" FontSize="12">
+                <Border Style="{StaticResource SectionCard}" Margin="0,6,0,0">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top"
+                                   Text="Products sorted by gross margin — lowest first to identify underperformers."
+                                   FontSize="11" Foreground="#7F8C8D" Margin="0,0,0,10"/>
+
+                        <DataGrid ItemsSource="{Binding ProductMargins}"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False" CanUserDeleteRows="False"
+                                  IsReadOnly="True" CanUserReorderColumns="False" CanUserResizeRows="False"
+                                  HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                                  BorderBrush="#DFE6E9" BorderThickness="1"
+                                  RowBackground="White" AlternatingRowBackground="#FAFBFC"
+                                  FontSize="11" CanUserSortColumns="True"
+                                  SelectionMode="Single">
+
+                            <DataGrid.Columns>
+
+                                <DataGridTextColumn Header="Product" Width="*" MinWidth="140"
+                                                   Binding="{Binding ProductName}"/>
+
+                                <DataGridTextColumn Header="Revenue" Width="110"
+                                                   Binding="{Binding Revenue, StringFormat='₱{0:N2}'}">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock" BasedOn="{StaticResource DataGridCellRight}"/>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+
+                                <DataGridTextColumn Header="COGS" Width="110"
+                                                   Binding="{Binding COGS, StringFormat='₱{0:N2}'}">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock" BasedOn="{StaticResource DataGridCellRight}"/>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+
+                                <DataGridTextColumn Header="Gross Profit" Width="110"
+                                                   Binding="{Binding GrossProfit, StringFormat='₱{0:N2}'}">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock" BasedOn="{StaticResource DataGridCellRight}"/>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+
+                                <DataGridTextColumn Header="Margin %" Width="80"
+                                                   Binding="{Binding GrossMarginPercent, StringFormat='{}{0:N1}%'}">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock" BasedOn="{StaticResource DataGridCellRight}"/>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+
+                                <DataGridTextColumn Header="Units Sold" Width="84"
+                                                   Binding="{Binding UnitsSold}">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock" BasedOn="{StaticResource DataGridCellRight}"/>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </DockPanel>
+                </Border>
+            </TabItem>
+
+        </TabControl>
+
+    </DockPanel>
+
+</UserControl>

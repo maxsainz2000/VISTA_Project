@@ -14,9 +14,11 @@ This page details the ViewModel implementations for the **MerchSys.Accounting** 
 | File Path | Class | Key Responsibilities | Dependencies (DI) |
 |---|---|---|---|
 | `src/MerchSys.Accounting/ViewModels/FinancialOverviewViewModel.vb` | `FinancialOverviewViewModel` | ViewModel for the Financial Overview Dashboard. Aggregates KPIs, 6-month trends, top products, and alerts. Includes a 5-minute auto-refresh timer and a `RefreshCommand`. | `IFinancialOverviewService`, `IWhatThisMeansService` |
+| `src/MerchSys.Accounting/ViewModels/IncomeStatementViewModel.vb` | `IncomeStatementViewModel` | ViewModel for the Income Statement (P&L) view. Supports Monthly, Quarterly, and Annual periods. Provides formatted display strings for accounting lines, "What This Means" interpretation, and per-product margin breakdown. | `IIncomeStatementService`, `IWhatThisMeansService` |
 
 ## Support Classes
 
 | File Path | Class | Description |
 |---|---|---|
 | `src/MerchSys.Accounting/ViewModels/FinancialOverviewViewModel.vb` | `TrendBarItem` | Flat item for the 6-month trend bar chart. Contains pre-computed bar heights for UI normalization. |
+| `src/MerchSys.Accounting/ViewModels/IncomeStatementViewModel.vb` | `IncomeStatementPeriodType` | Enum: `Monthly`, `Quarterly`, `Annual`. |

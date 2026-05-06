@@ -47,6 +47,7 @@ This page documents the composition root in `MerchSys.App`.
 | `ISalesSummaryService` | `SalesSummaryService` | Scoped |
 | `IWhatThisMeansService` | `WhatThisMeansService` | Scoped |
 | (none) | `FinancialOverviewViewModel` | Transient |
+| (none) | `IncomeStatementViewModel` | Transient |
 
 ## Shared Services
 | Interface | Implementation | Lifetime |
