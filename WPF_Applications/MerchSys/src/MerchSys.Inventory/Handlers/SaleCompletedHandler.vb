@@ -8,17 +8,18 @@ Namespace Handlers
 
     ''' <summary>
     ''' Handles <see cref="SaleCompletedEvent"/> published by the POS module.
-    ''' Deducts stock via FIFO for each item sold. COGS data remains within Inventory;
-    ''' Accounting calculates its own COGS by handling the same event independently.
+    ''' Deducts stock via FIFO for each item sold, then triggers low-stock alert generation.
     ''' </summary>
     Public Class SaleCompletedHandler
         Implements INotificationHandler(Of SaleCompletedEvent)
 
         Private ReadOnly _stockService As IStockService
+        Private ReadOnly _alertService As ILowStockAlertService
         Private ReadOnly _logger As ILogger(Of SaleCompletedHandler)
 
-        Public Sub New(stockService As IStockService, logger As ILogger(Of SaleCompletedHandler))
+        Public Sub New(stockService As IStockService, alertService As ILowStockAlertService, logger As ILogger(Of SaleCompletedHandler))
             _stockService = stockService
+            _alertService = alertService
             _logger = logger
         End Sub
 
@@ -37,6 +38,11 @@ Namespace Handlers
                     Throw
                 End Try
             Next
+
+            Dim alerts = Await _alertService.CheckAndGenerateAlertsAsync()
+            If alerts.Count > 0 Then
+                _logger.LogWarning("{AlertCount} low-stock alert(s) triggered after sale Transaction {TransactionId}.", alerts.Count, notification.TransactionId)
+            End If
         End Function
 
     End Class

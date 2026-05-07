@@ -17,10 +17,12 @@ Namespace Services
         Private Shared ReadOnly _carts As New ConcurrentDictionary(Of Guid, CartDto)()
 
         Private ReadOnly _context As POSDbContext
+        Private ReadOnly _receiptService As IReceiptService
         Private ReadOnly _isVatRegistered As Boolean
 
-        Public Sub New(context As POSDbContext, configuration As IConfiguration)
+        Public Sub New(context As POSDbContext, receiptService As IReceiptService, configuration As IConfiguration)
             _context = context
+            _receiptService = receiptService
             _isVatRegistered = String.Equals(configuration("POS:IsVatRegistered"), "true", StringComparison.OrdinalIgnoreCase)
         End Sub
 
@@ -117,6 +119,8 @@ Namespace Services
 
             _context.SalesTransactions.Add(transaction)
             Await _context.SaveChangesAsync()
+
+            Await _receiptService.GenerateReceiptAsync(transaction.Id)
 
             Dim removed As CartDto = Nothing
             _carts.TryRemove(cartId, removed)

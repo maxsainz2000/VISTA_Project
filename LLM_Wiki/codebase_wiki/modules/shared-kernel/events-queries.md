@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.SharedKernel
 layer: Events & Queries
-last-updated: 2026-05-03
+last-updated: 2026-05-07
 ---
 
 # MerchSys.SharedKernel — Events & Queries
@@ -21,4 +21,8 @@ last-updated: 2026-05-03
 |---|---|---|---|---|
 | `Queries/GetCurrentStockQuery.vb` | `GetCurrentStockQuery` | `GetCurrentStockResult` | `ProductSku` | Inventory |
 | `Queries/GetInventoryValuationQuery.vb`| `GetInventoryValuationQuery` | `GetInventoryValuationResult`| N/A | Inventory |
-| `Queries/GetProductCatalogQuery.vb`| `GetProductCatalogQuery`| `GetProductCatalogResult`| N/A | Inventory |
+| `Queries/GetProductCatalogQuery.vb`| `GetProductCatalogQuery`| `GetProductCatalogResult`| `SearchTerm`, `ProductId` | Inventory |
+| `Queries/GetProductCostQuery.vb` | `GetProductCostQuery` | `GetProductCostResult` | `ProductId` | Inventory |
+| `Queries/GetTotalARQuery.vb` | `GetTotalARQuery` | `Decimal` | N/A | POS |
+| `Queries/GetTotalAPQuery.vb` | `GetTotalAPQuery` | `Decimal` | N/A | Purchasing |
+| `Queries/GetLowStockAlertCountQuery.vb` | `GetLowStockAlertCountQuery` | `Integer` | N/A | Inventory |

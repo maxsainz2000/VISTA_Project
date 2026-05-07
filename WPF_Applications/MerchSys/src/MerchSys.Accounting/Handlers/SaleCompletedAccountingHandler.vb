@@ -4,23 +4,25 @@ Imports Microsoft.Extensions.Logging
 Imports MerchSys.Accounting.Data
 Imports MerchSys.Accounting.Entities
 Imports MerchSys.SharedKernel.Events
+Imports MerchSys.SharedKernel.Queries
 
 Namespace Handlers
 
     ''' <summary>
     ''' Handles <see cref="SaleCompletedEvent"/> for the Accounting module.
     ''' Creates one <see cref="RevenueRecord"/> and one COGS <see cref="ExpenseRecord"/> per line item.
-    ''' COGS is not carried in the event payload; it is recorded as zero until a dedicated
-    ''' per-product cost query is available from Inventory.
+    ''' COGS is resolved at sale time by querying the Inventory module for the current FIFO unit cost.
     ''' </summary>
     Public Class SaleCompletedAccountingHandler
         Implements INotificationHandler(Of SaleCompletedEvent)
 
         Private ReadOnly _db As AccountingDbContext
+        Private ReadOnly _mediator As IMediator
         Private ReadOnly _logger As ILogger(Of SaleCompletedAccountingHandler)
 
-        Public Sub New(db As AccountingDbContext, logger As ILogger(Of SaleCompletedAccountingHandler))
+        Public Sub New(db As AccountingDbContext, mediator As IMediator, logger As ILogger(Of SaleCompletedAccountingHandler))
             _db = db
+            _mediator = mediator
             _logger = logger
         End Sub
 
@@ -31,6 +33,9 @@ Namespace Handlers
             For Each item In notification.Items
                 Dim grossAmount = item.UnitPrice * item.Quantity
                 Dim netAmount = grossAmount - item.DiscountAmount
+
+                Dim costResult = Await _mediator.Send(New GetProductCostQuery() With {.ProductId = item.ProductId}, cancellationToken)
+                Dim cogs = costResult.FifoUnitCost * item.Quantity
 
                 Dim revenue As New RevenueRecord With {
                     .RecordDate = notification.TransactionDate,
@@ -43,8 +48,8 @@ Namespace Handlers
                     .DiscountAmount = item.DiscountAmount,
                     .NetAmount = netAmount,
                     .VatAmount = 0,
-                    .COGS = 0,
-                    .GrossProfit = netAmount
+                    .COGS = cogs,
+                    .GrossProfit = netAmount - cogs
                 }
 
                 _db.RevenueRecords.Add(revenue)
@@ -53,7 +58,7 @@ Namespace Handlers
                     .RecordDate = notification.TransactionDate,
                     .Category = "COGS",
                     .Description = $"COGS for {item.ProductName} (Tx #{notification.TransactionId})",
-                    .Amount = 0,
+                    .Amount = cogs,
                     .SourceModule = "POS",
                     .SourceReferenceId = notification.TransactionId
                 }
