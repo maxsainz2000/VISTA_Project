@@ -1,7 +1,7 @@
 ---
 type: system
 title: "LLM Wiki — Core Rules"
-last-updated: 2026-05-02
+last-updated: 2026-05-07
 ---
 
 # Core Rules
@@ -71,7 +71,7 @@ last-updated: YYYY-MM-DD
 ```yaml
 ---
 type: error-fix | pattern | antipattern
-module: MerchSys.Purchasing | MerchSys.Inventory | MerchSys.POS | MerchSys.Accounting | Infrastructure
+module: MerchSys.Purchasing | MerchSys.Inventory | MerchSys.POS | MerchSys.Accounting | Integration | Infrastructure
 agent: antigravity | claude-code | codex | other
 date: YYYY-MM-DD
 tags: []

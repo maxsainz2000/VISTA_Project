@@ -39,6 +39,19 @@ This workflow is used to synchronize the `codebase_wiki/` with recent code chang
 - Open `codebase_wiki/index.md`. Update any global file counts or plan status indicators.
 - Open `codebase_wiki/log.md`. Add a new timestamped entry specifying which plan was synced and what changed.
 
+## Module Routing
+
+| Plan prefix | Wiki module folder(s) | Notes |
+|---|---|---|
+| PUR-XX | `modules/purchasing/` | Single module |
+| INV-XX | `modules/inventory/` | Single module |
+| POS-XX | `modules/pos/` | Single module |
+| ACC-XX | `modules/accounting/` | Single module |
+| INFRA-XX | `modules/shared-kernel/` or `modules/app/` | Depends on deliverables |
+| INT-XX | Multiple — read plan `## Deliverables` | Cross-module: update every module folder that received new files |
+
+> **INT plans are cross-cutting.** A single INT plan may add SharedKernel contracts, Inventory handlers, POS handlers, and App-layer registrations. You must update layer manifests in *every* affected module folder, not just one.
+
 ## Constraints
 - **Never guess:** If a file's contents aren't clear from the summary, read the actual file. Do not invent properties or signatures.
 - **Keep it brief:** Layer manifests should serve as a quick-reference index (e.g., tables), not a full copy of the code.

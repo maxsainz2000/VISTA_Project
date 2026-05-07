@@ -1,7 +1,7 @@
 ---
 type: system
 title: "Workflow — Codebase Wiki Audit"
-last-updated: 2026-05-06
+last-updated: 2026-05-07
 ---
 
 # Workflow: Codebase Wiki Audit
@@ -12,7 +12,7 @@ This workflow is used to strictly verify that the `codebase_wiki` perfectly mirr
 
 ## Phase 1: Context Gathering
 
-1. **Identify the Target Module:** Determine which module is being audited (e.g., `Purchasing`, `Inventory`, `POS`, `SharedKernel`, `App`).
+1. **Identify the Target Module:** Determine which module is being audited (e.g., `Purchasing`, `Inventory`, `POS`, `Accounting`, `SharedKernel`, `App`, `Integration`).
 2. **Scan the Source Code:** 
    - Read the actual `.vb` and `.xaml` files in `WPF_Applications/MerchSys/src/MerchSys.[Module]/` (and related views in `MerchSys.App/Views/` if applicable).
 3. **Load the Wiki Manifests:**

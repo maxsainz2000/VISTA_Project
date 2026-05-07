@@ -28,7 +28,9 @@
       "Bash(New-Item -ItemType Directory -Force -Path \"C:\\\\Users\\\\Admin\\\\Documents\\\\VISTA_Project\\\\WPF_Applications\\\\MerchSys\\\\src\\\\MerchSys.Inventory\\\\Data\\\\SeedData\")",
       "Bash(Write-Output \"Directories created.\")",
       "Bash(dir \"C:\\\\Users\\\\Admin\\\\Documents\\\\VISTA_Project\\\\Plans\" /s /b /a-d)",
-      "mcp__visualstudio__solution_info"
+      "mcp__visualstudio__solution_info",
+      "Bash(mkdir -p \"C:\\\\Users\\\\Admin\\\\Documents\\\\VISTA_Project\\\\.claude\\\\commands\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\Admin\\\\Documents\\\\VISTA_Project\\\\Pending_Tasks\")"
     ]
   }
 }

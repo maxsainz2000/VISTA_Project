@@ -91,7 +91,7 @@ Each module library has: `Entities/`, `Services/`, `Data/`, `Handlers/`, `ViewMo
 
 ## Planning & Progress Workflow
 
-The project is driven by 51 independent batch plans located in `Plans/VISTA_Modules/`. 
+The project is driven by 56 independent batch plans located in `Plans/VISTA_Modules/`. 
 When tasked with "implement this plan" and given a plan file, you must focus **only on writing the code and documentation** specified in that plan. **Testing and deep troubleshooting will be conducted in separate future sessions.** Do not create test projects.
 
 Each plan specifies:
@@ -101,7 +101,7 @@ Each plan specifies:
 
 After completing a plan, you must **generate an implementation summary** at `Progress/VISTA_Modules/<Module>/<PLAN-ID>-summary.md` using the template at `Progress/_template.md`.
 
-**Implementation order:** INFRA-01 → INFRA-02 → INFRA-03 → INFRA-04 → then module plans in dependency order.
+**Implementation order:** INFRA-01 → INFRA-02 → INFRA-03 → INFRA-04 → then module plans in dependency order → then INT-01 → INT-02 → INT-03 → INT-04 → INT-05.
 
 ## Three-Tier Knowledge Base (`LLM_Wiki/`)
 
@@ -151,3 +151,27 @@ All code must implement the OWASP DA Top 10 controls documented in `LLM_Wiki/wik
 
 - **Manager** — full access to all modules and operations
 - **Owner** — read-only access to KPIs, financial reports, and notifications
+
+## Module Audit Skill (`/vista-audit`)
+
+A custom slash command is registered at `.claude/commands/vista-audit.md`. It performs a full mirror-check between `Plans/VISTA_Modules/<module>/` and `Progress/VISTA_Modules/<module>/`, extracts all pending `[ ]` tasks from existing progress summaries, and writes a report to `Pending_Tasks/`.
+
+**Trigger phrase:** When the user says *"Does the Progress folder directly mirrors what's in the Plans folder [module name]"*, run `/vista-audit [module name]` immediately.
+
+**Usage:**
+```
+/vista-audit Accounting
+/vista-audit Purchasing
+/vista-audit Inventory
+/vista-audit POS
+/vista-audit Infrastructure
+```
+
+**Output:** `Pending_Tasks/<MODULE>-audit-<YYYY-MM-DD>.md`
+
+The report contains:
+- Mirror check table (Completed / In Progress / Blocked / Missing per plan)
+- All unchecked `[ ]` tasks extracted from "What's Next" sections
+- List of plans with no progress file yet
+- Amendment files noted separately
+- Summary and priority recommendations
