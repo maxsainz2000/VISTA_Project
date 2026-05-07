@@ -1,6 +1,6 @@
 ---
 type: schema-map
-last-updated: 2026-05-05
+last-updated: 2026-05-07
 ---
 
 # Dependency Injection Registry
@@ -10,22 +10,29 @@ This page documents the composition root in `MerchSys.App`.
 ## POS Services
 | Interface | Implementation | Lifetime |
 |---|---|---|
-| `ICartService` | `CartService` | Scoped |
-| `IPaymentService` | `PaymentService` | Scoped |
-| `ICreditService` | `CreditService` | Scoped |
 | `IReceiptService` | `ReceiptService` | Scoped |
-| `ISalesReturnService` | `SalesReturnService` | Scoped |
 | `IDailySummaryService` | `DailySummaryService` | Scoped |
+| (none) | `SalesCartViewModel` | Transient |
+| (none) | `CreditManagementViewModel` | Transient |
+| (none) | `TransactionHistoryViewModel` | Transient |
+| (none) | `DailySummaryViewModel` | Transient |
+| *Pending* | *ICartService, IPaymentService, ICreditService, ISalesReturnService* | *Not yet registered* |
 
 ## Inventory Services
 | Interface | Implementation | Lifetime |
 |---|---|---|
-| `IStockService` | `StockService` | Scoped |
 | `IExpiryTrackingService` | `ExpiryTrackingService` | Scoped |
 | `IStockDashboardService` | `StockDashboardService` | Scoped |
 | `ILowStockAlertService` | `LowStockAlertService` | Scoped |
-| `IInventoryAuditService` | `InventoryAuditService` | Scoped |
+| `ILowStockNotifier` | `WpfLowStockNotifier` | Singleton |
 | `IShrinkageService` | `ShrinkageService` | Scoped |
+| `IVelocityService` | `VelocityService` | Scoped |
+| `IStockoutEstimationService` | `StockoutEstimationService` | Scoped |
+| (none) | `StockDashboardViewModel` | Transient |
+| (none) | `ProductManagementViewModel` | Transient |
+| (none) | `ExpiryMonitorViewModel` | Transient |
+| (none) | `ShrinkageViewModel` | Transient |
+| *Pending* | *IStockService, IInventoryAuditService* | *Not yet registered* |
 
 ## Purchasing Services
 | Interface | Implementation | Lifetime |
@@ -38,19 +45,19 @@ This page documents the composition root in `MerchSys.App`.
 | `IReorderService` | `ReorderService` | Scoped |
 | (none) | `APLedgerViewModel` | Transient |
 | (none) | `ReorderSuggestionsViewModel` | Transient |
+| *Pending* | *PurchaseOrderListViewModel, GoodsReceivingViewModel, VendorListViewModel* | *Not yet registered* |
 
 ## Accounting Services
 | Interface | Implementation | Lifetime |
 |---|---|---|
-| `IFinancialOverviewService` | `FinancialOverviewService` | Scoped |
-| `IIncomeStatementService` | `IncomeStatementService` | Scoped |
-| `ISalesSummaryService` | `SalesSummaryService` | Scoped |
-| `IWhatThisMeansService` | `WhatThisMeansService` | Scoped |
 | (none) | `FinancialOverviewViewModel` | Transient |
 | (none) | `IncomeStatementViewModel` | Transient |
 | (none) | `SalesSummaryViewModel` | Transient |
+| *Pending* | *IFinancialOverviewService, IIncomeStatementService, ISalesSummaryService, IWhatThisMeansService* | *Not yet registered* |
 
 ## Shared Services
 | Interface | Implementation | Lifetime |
 |---|---|---|
 | `IEventBus` | `MediatR` | Transient (by MediatR default) |
+| (Extension) | `AddModuleDbContexts()` | Registers all module DbContexts (Scoped) |
+| (Extension) | `AddMediatRServices()` | Registers MediatR and all module handlers |

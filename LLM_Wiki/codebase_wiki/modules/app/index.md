@@ -1,9 +1,9 @@
 ---
 type: module-index
 module: MerchSys.App
-last-updated: 2026-05-06
-plans-completed: [INFRA-01, ACC-07, ACC-08, ACC-09]
-file-count: 18
+last-updated: 2026-05-07
+plans-completed: [INFRA-01, ACC-07, ACC-08, ACC-09, INT-01]
+file-count: 19
 ---
 
 # MerchSys.App — Module Index
@@ -17,3 +17,4 @@ This is the root index for the **MerchSys.App** module (the WPF startup project)
 
 ## Layer Manifests
 - [[ui|UI (Views and Resources)]]
+- [[services|Services (Infrastructure Implementations)]]
