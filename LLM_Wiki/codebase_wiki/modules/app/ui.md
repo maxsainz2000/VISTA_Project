@@ -2,12 +2,20 @@
 type: layer-manifest
 module: MerchSys.App
 layer: UI
-last-updated: 2026-05-06
+last-updated: 2026-05-07
 ---
 
 # MerchSys.App — UI (Views)
 
 This page details the WPF View implementations (XAML and code-behind) in the **MerchSys.App** module.
+
+## Shell & Navigation
+
+| File Path | Class | Description | DataContext / Injection |
+|---|---|---|---|
+| `src/MerchSys.App/MainWindow.xaml`<br>`src/MerchSys.App/MainWindow.xaml.vb` | `MainWindow` | Main application shell with grouped sidebar navigation and a dynamic content area. | `MainWindowViewModel` (Constructor Injection) |
+| `src/MerchSys.App/ViewModels/MainWindowViewModel.vb` | `MainWindowViewModel` | MVVM hub for the shell. Manages `NavigationGroups`, `CurrentView` state, and navigation commands. | `IServiceProvider` (Constructor Injection) |
+| `src/MerchSys.App/Models/NavigationItem.vb` | `NavigationItem`, `NavigationGroup` | POCO models representing navigation nodes and their parent groups. `NavigationItem` is observable for `IsActive` state. | (none) |
 
 ## Accounting Views
 

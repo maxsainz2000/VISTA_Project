@@ -4,52 +4,119 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="VISTA - Villon Integrated Supply and Trade Application"
+        Title="VISTA — Villon Integrated Supply and Trade Application"
         Height="768" Width="1280"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        MinHeight="600" MinWidth="900">
+
+    <Window.Resources>
+
+        <!-- Nav item button — strips default chrome, supports active/hover states -->
+        <Style x:Key="NavItemButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#BDC3C7"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Padding" Value="28,0,12,0"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center"
+                                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsActive}" Value="True">
+                    <Setter Property="Background" Value="#3D566E"/>
+                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                </DataTrigger>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#34495E"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+    </Window.Resources>
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <!-- Navigation sidebar -->
-            <ColumnDefinition Width="200" />
-            <!-- Main content area -->
-            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="220"/>
+            <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <!-- Sidebar -->
+        <!-- ═══════════════════════════════════════════════════════════
+             SIDEBAR
+             ═══════════════════════════════════════════════════════════ -->
         <Border Grid.Column="0" Background="#2C3E50">
-            <StackPanel Margin="0,16,0,0">
-                <TextBlock Text="VISTA" Foreground="White" FontSize="20"
-                           FontWeight="Bold" HorizontalAlignment="Center"
-                           Margin="0,0,0,24"/>
+            <DockPanel>
 
-                <!-- Navigation items — populated by module plans -->
-                <Button Content="Point of Sale" Height="44" Margin="8,2"
-                        Background="Transparent" Foreground="White"
-                        BorderThickness="0" HorizontalContentAlignment="Left"
-                        Padding="16,0"/>
-                <Button Content="Inventory" Height="44" Margin="8,2"
-                        Background="Transparent" Foreground="White"
-                        BorderThickness="0" HorizontalContentAlignment="Left"
-                        Padding="16,0"/>
-                <Button Content="Purchasing" Height="44" Margin="8,2"
-                        Background="Transparent" Foreground="White"
-                        BorderThickness="0" HorizontalContentAlignment="Left"
-                        Padding="16,0"/>
-                <Button Content="Accounting" Height="44" Margin="8,2"
-                        Background="Transparent" Foreground="White"
-                        BorderThickness="0" HorizontalContentAlignment="Left"
-                        Padding="16,0"/>
-            </StackPanel>
+                <!-- App title -->
+                <StackPanel DockPanel.Dock="Top" Margin="0,20,0,16">
+                    <TextBlock Text="VISTA"
+                               Foreground="White" FontSize="20" FontWeight="Bold"
+                               HorizontalAlignment="Center"/>
+                    <TextBlock Text="Villon Farm Supply"
+                               Foreground="#7F8C8D" FontSize="10"
+                               HorizontalAlignment="Center" Margin="0,3,0,0"/>
+                </StackPanel>
+
+                <!-- Divider -->
+                <Border DockPanel.Dock="Top" Height="1" Background="#34495E" Margin="12,0,12,8"/>
+
+                <!-- Navigation groups -->
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled">
+                    <ItemsControl ItemsSource="{Binding NavigationGroups}" Focusable="False">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Margin="0,8,0,0">
+
+                                    <!-- Group label -->
+                                    <TextBlock Text="{Binding GroupName}"
+                                               Foreground="#7F8C8D"
+                                               FontSize="10"
+                                               FontWeight="Bold"
+                                               Margin="16,0,16,2"/>
+
+                                    <!-- Nav items -->
+                                    <ItemsControl ItemsSource="{Binding Items}" Focusable="False">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Button Content="{Binding DisplayName}"
+                                                        Command="{Binding DataContext.NavigateCommand,
+                                                                          RelativeSource={RelativeSource AncestorType=Window}}"
+                                                        CommandParameter="{Binding}"
+                                                        Style="{StaticResource NavItemButton}"/>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+            </DockPanel>
         </Border>
 
-        <!-- Content frame — module views are loaded here by subsequent plans -->
-        <Border Grid.Column="1" Background="#F5F6FA">
-            <TextBlock Text="Select a module from the sidebar."
-                       VerticalAlignment="Center"
-                       HorizontalAlignment="Center"
-                       Foreground="#95A5A6"
-                       FontSize="16"/>
-        </Border>
+        <!-- ═══════════════════════════════════════════════════════════
+             MAIN CONTENT AREA
+             ═══════════════════════════════════════════════════════════ -->
+        <ContentControl Grid.Column="1"
+                        Content="{Binding CurrentView}"
+                        Background="#F5F6FA"/>
+
     </Grid>
 </Window>

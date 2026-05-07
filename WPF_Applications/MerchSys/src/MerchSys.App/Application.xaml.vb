@@ -3,13 +3,14 @@ Imports Microsoft.Extensions.Hosting
 Imports MerchSys.App.Data
 Imports MerchSys.App.Services
 Imports MerchSys.App.Startup
+Imports MerchSys.App.ViewModels
 Imports MerchSys.Inventory.Services
 Imports MerchSys.Inventory.ViewModels
 Imports MerchSys.POS.Services
 Imports MerchSys.POS.ViewModels
-Imports MerchSys.Accounting.Services
 Imports MerchSys.Accounting.ViewModels
 Imports MerchSys.Purchasing.Extensions
+Imports MerchSys.Purchasing.ViewModels
 
 Class Application
 
@@ -28,6 +29,11 @@ Class Application
 
                                       ' ── Purchasing ────────────────────────────────────────
                                       services.AddPurchasingServices()
+
+                                      ' Missing Purchasing ViewModels (not in AddPurchasingServices)
+                                      services.AddTransient(Of PurchaseOrderListViewModel)()
+                                      services.AddTransient(Of GoodsReceivingViewModel)()
+                                      services.AddTransient(Of VendorListViewModel)()
 
                                       ' ── Inventory ─────────────────────────────────────────
                                       services.AddScoped(Of IExpiryTrackingService, ExpiryTrackingService)()
@@ -55,10 +61,39 @@ Class Application
                                       services.AddTransient(Of IncomeStatementViewModel)()
                                       services.AddTransient(Of SalesSummaryViewModel)()
 
+                                      ' ── Views (UserControls) ──────────────────────────────
+                                      services.AddTransient(Of Views.POS.SalesCartView)()
+                                      services.AddTransient(Of Views.POS.CreditManagementView)()
+                                      services.AddTransient(Of Views.POS.TransactionHistoryView)()
+                                      services.AddTransient(Of Views.POS.DailySummaryView)()
+                                      services.AddTransient(Of Views.Purchasing.PurchaseOrderListView)()
+                                      services.AddTransient(Of Views.Purchasing.GoodsReceivingView)()
+                                      services.AddTransient(Of Views.Purchasing.VendorDirectoryView)()
+                                      services.AddTransient(Of Views.Purchasing.APLedgerView)()
+                                      services.AddTransient(Of Views.Purchasing.ReorderSuggestionsView)()
+                                      services.AddTransient(Of Views.Inventory.StockDashboardView)()
+                                      services.AddTransient(Of Views.Inventory.ProductManagementView)()
+                                      services.AddTransient(Of Views.Inventory.ExpiryMonitorView)()
+                                      services.AddTransient(Of Views.Inventory.ShrinkageView)()
+                                      services.AddTransient(Of Views.Accounting.FinancialOverviewView)()
+                                      services.AddTransient(Of Views.Accounting.IncomeStatementView)()
+                                      services.AddTransient(Of Views.Accounting.SalesSummaryView)()
+
+                                      ' ── Shell ─────────────────────────────────────────────
+                                      services.AddSingleton(Of MainWindowViewModel)()
+                                      services.AddSingleton(Of MainWindow)()
+
                                   End Sub)
 
         _host = builder.Build()
         _host.Start()
+
+        ' Initialise Notification.Wpf NotificationManager on the UI thread
+        _host.Services.GetRequiredService(Of ILowStockNotifier)()
+
+        ' Show the main window
+        Dim window = _host.Services.GetRequiredService(Of MainWindow)()
+        window.Show()
     End Sub
 
     Private Sub Application_Exit(sender As Object, e As ExitEventArgs)
