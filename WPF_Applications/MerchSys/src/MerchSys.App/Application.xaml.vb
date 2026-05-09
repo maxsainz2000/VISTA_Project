@@ -9,6 +9,7 @@ Imports MerchSys.SharedKernel.Interfaces
 Imports MerchSys.Inventory.ViewModels
 Imports MerchSys.POS.Services
 Imports MerchSys.POS.ViewModels
+Imports MerchSys.Accounting.Services
 Imports MerchSys.Accounting.ViewModels
 Imports MerchSys.Purchasing.Extensions
 Imports MerchSys.Purchasing.ViewModels
@@ -40,6 +41,7 @@ Class Application
                                       services.AddTransient(Of VendorListViewModel)()
 
                                       ' ── Inventory ─────────────────────────────────────────
+                                      services.AddScoped(Of IStockService, StockService)()
                                       services.AddScoped(Of IExpiryTrackingService, ExpiryTrackingService)()
                                       services.AddScoped(Of IStockDashboardService, StockDashboardService)()
                                       services.AddScoped(Of ILowStockAlertService, LowStockAlertService)()
@@ -53,6 +55,10 @@ Class Application
                                       services.AddTransient(Of ShrinkageViewModel)()
 
                                       ' ── POS ───────────────────────────────────────────────
+                                      services.AddScoped(Of ICartService, CartService)()
+                                      services.AddScoped(Of IPaymentService, PaymentService)()
+                                      services.AddScoped(Of ICreditService, CreditService)()
+                                      services.AddScoped(Of ISalesReturnService, SalesReturnService)()
                                       services.AddScoped(Of IReceiptService, ReceiptService)()
                                       services.AddScoped(Of IDailySummaryService, DailySummaryService)()
                                       services.AddTransient(Of SalesCartViewModel)()
@@ -61,6 +67,10 @@ Class Application
                                       services.AddTransient(Of DailySummaryViewModel)()
 
                                       ' ── Accounting ────────────────────────────────────────
+                                      services.AddScoped(Of IFinancialOverviewService, FinancialOverviewService)()
+                                      services.AddScoped(Of IIncomeStatementService, IncomeStatementService)()
+                                      services.AddScoped(Of ISalesSummaryService, SalesSummaryService)()
+                                      services.AddScoped(Of IWhatThisMeansService, WhatThisMeansService)()
                                       services.AddTransient(Of FinancialOverviewViewModel)()
                                       services.AddTransient(Of IncomeStatementViewModel)()
                                       services.AddTransient(Of SalesSummaryViewModel)()

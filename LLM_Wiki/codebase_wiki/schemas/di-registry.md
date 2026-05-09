@@ -10,17 +10,21 @@ This page documents the composition root in `MerchSys.App`.
 ## POS Services
 | Interface | Implementation | Lifetime |
 |---|---|---|
+| `ICartService` | `CartService` | Scoped |
+| `IPaymentService` | `PaymentService` | Scoped |
+| `ICreditService` | `CreditService` | Scoped |
+| `ISalesReturnService` | `SalesReturnService` | Scoped |
 | `IReceiptService` | `ReceiptService` | Scoped |
 | `IDailySummaryService` | `DailySummaryService` | Scoped |
 | (none) | `SalesCartViewModel` | Transient |
 | (none) | `CreditManagementViewModel` | Transient |
 | (none) | `TransactionHistoryViewModel` | Transient |
 | (none) | `DailySummaryViewModel` | Transient |
-| *Pending* | *ICartService, IPaymentService, ICreditService, ISalesReturnService* | *Not yet registered* |
 
 ## Inventory Services
 | Interface | Implementation | Lifetime |
 |---|---|---|
+| `IStockService` | `StockService` | Scoped |
 | `IExpiryTrackingService` | `ExpiryTrackingService` | Scoped |
 | `IStockDashboardService` | `StockDashboardService` | Scoped |
 | `ILowStockAlertService` | `LowStockAlertService` | Scoped |
@@ -32,7 +36,7 @@ This page documents the composition root in `MerchSys.App`.
 | (none) | `ProductManagementViewModel` | Transient |
 | (none) | `ExpiryMonitorViewModel` | Transient |
 | (none) | `ShrinkageViewModel` | Transient |
-| *Pending* | *IStockService, IInventoryAuditService* | *Not yet registered* |
+| *IInventoryAuditService* | *Missing from codebase* | *Pending* |
 
 ## Purchasing Services
 | Interface | Implementation | Lifetime |
@@ -52,10 +56,13 @@ This page documents the composition root in `MerchSys.App`.
 ## Accounting Services
 | Interface | Implementation | Lifetime |
 |---|---|---|
+| `IFinancialOverviewService` | `FinancialOverviewService` | Scoped |
+| `IIncomeStatementService` | `IncomeStatementService` | Scoped |
+| `ISalesSummaryService` | `SalesSummaryService` | Scoped |
+| `IWhatThisMeansService` | `WhatThisMeansService` | Scoped |
 | (none) | `FinancialOverviewViewModel` | Transient |
 | (none) | `IncomeStatementViewModel` | Transient |
 | (none) | `SalesSummaryViewModel` | Transient |
-| *Pending* | *IFinancialOverviewService, IIncomeStatementService, ISalesSummaryService, IWhatThisMeansService* | *Not yet registered* |
 
 ## Views (UserControls)
 | View | Module | Lifetime |
