@@ -19,8 +19,11 @@ Map the user's input to the correct folder names. Accepted values (case-insensit
 | Inventory / INV | `Plans/VISTA_Modules/Inventory/` | `Progress/VISTA_Modules/Inventory/` | `INV-` |
 | POS | `Plans/VISTA_Modules/POS/` | `Progress/VISTA_Modules/POS/` | `POS-` |
 | Accounting / ACC | `Plans/VISTA_Modules/Accounting/` | `Progress/VISTA_Modules/Accounting/` | `ACC-` |
+| Integration / INT | `Plans/VISTA_Modules/Integration/` | `Progress/VISTA_Modules/Integration/` | `INT-` |
 
-If `$ARGUMENTS` is empty or unrecognised, ask the user to specify the module name and stop.
+If `$ARGUMENTS` is `all` (case-insensitive), run the full audit for **all six modules** in this order: Infrastructure, Purchasing, Inventory, POS, Accounting, Integration. For each module, execute Steps 2–5 independently and write/overwrite its own report file. Then skip to Step 6-ALL.
+
+If `$ARGUMENTS` is empty or unrecognised, ask the user to specify the module name (or `all`) and stop.
 
 ---
 
@@ -63,7 +66,7 @@ For every progress summary that exists (regardless of status), read the full fil
 
 ## Step 5 — Write the Report
 
-Create the file: `Pending_Tasks/<MODULE>-audit-<YYYY-MM-DD>.md`  
+Look for an existing file matching `Pending_Tasks/<MODULE>-audit-*.md` (any date). If one exists, **overwrite it** — update both the filename date and all `audit-date` / **Audit Date:** fields inside to today's date. If none exists, create `Pending_Tasks/<MODULE>-audit-<YYYY-MM-DD>.md`.  
 (Use today's date. Use the canonical module name from the table in Step 1.)
 
 The report must contain:
@@ -144,3 +147,21 @@ After writing the file, tell the user:
 - The path of the generated report
 - The mirror check counts (Completed / In Progress / Blocked / Missing)
 - The total number of pending `[ ]` tasks found across all summaries
+
+---
+
+## Step 6-ALL — Report Back (all-modules mode only)
+
+After writing all six report files, tell the user:
+- The paths of all six updated/created files
+- A single combined summary table:
+
+| Module | Completed | In Progress | Blocked | Missing | Pending Tasks |
+|--------|-----------|-------------|---------|---------|---------------|
+| Infrastructure | N | N | N | N | N |
+| Purchasing | N | N | N | N | N |
+| Inventory | N | N | N | N | N |
+| POS | N | N | N | N | N |
+| Accounting | N | N | N | N | N |
+| Integration | N | N | N | N | N |
+| **TOTAL** | N | N | N | N | N |
