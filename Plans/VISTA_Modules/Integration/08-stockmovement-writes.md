@@ -82,3 +82,11 @@ Verify that `StockoutEstimationService` benefits from the new movement data:
 ## Output Requirements
 
 Create progress report at `Progress/VISTA_Modules/Integration/INT-08-summary.md`.
+
+## Post-Completion Notes
+
+> **Added 2026-05-09** — Surfaced by `Progress/VISTA_Modules/Integration/INT-08-summary.md` execution findings and `Pending_Tasks/Integration-audit-2026-05-09.md`.
+
+**Follow-up plan created for gaps identified during INT-08 execution:**
+
+- **INT-10 (Runtime Verification & Smoke Testing):** Runtime verification that `StockMovement` records appear in `Inv_StockMovements` after each operation type, and VelocityService classification verification, require a live runtime session. See `Plans/VISTA_Modules/Integration/10-runtime-verification.md`.

@@ -36,7 +36,7 @@ This page documents the composition root in `MerchSys.App`.
 | (none) | `ProductManagementViewModel` | Transient |
 | (none) | `ExpiryMonitorViewModel` | Transient |
 | (none) | `ShrinkageViewModel` | Transient |
-| *IInventoryAuditService* | *Missing from codebase* | *Pending* |
+| `IInventoryAuditService` | `InventoryAuditService` | Scoped |
 
 ## Purchasing Services
 | Interface | Implementation | Lifetime |

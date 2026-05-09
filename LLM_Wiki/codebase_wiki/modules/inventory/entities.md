@@ -13,7 +13,8 @@ This page details the Entities for the **MerchSys.Inventory** module.
 
 | File Path | Class / Interface | Base / Implements | Key Members / Responsibilities |
 |---|---|---|---|
-| `src/MerchSys.Inventory/Entities/MovementType.vb` | `MovementType` | `Enum` | Types: `Sale`, `Receipt`, `Shrinkage`, `[Return]`. |
+| `src/MerchSys.Inventory/Entities/MovementType.vb` | `MovementType` | `Enum` | Types: `Sale`, `Receipt`, `Shrinkage`, `[Return]`, `Adjustment`. |
+| `src/MerchSys.Inventory/Entities/StockAuditRecord.vb` | `StockAuditRecord` | `AuditableEntity` | Audit event: `ExpectedQuantity`, `PhysicalCount`, `Variance`, `Reason`, `Notes`, `PerformedBy`, `AuditedAt`. |
 | `src/MerchSys.Inventory/Entities/Product.vb` | `Product` | `SoftDeletableEntity` | Catalog entry: `Sku`, `RetailPrice`, `Unit`, `HasExpiry`, `MinimumThreshold`. Computed: `CurrentStock`, `TotalValue`. |
 | `src/MerchSys.Inventory/Entities/ProductCategory.vb` | `ProductCategory` | `SoftDeletableEntity` | Groups products: `Name`, `Description`, `Products`. |
 | `src/MerchSys.Inventory/Entities/ShrinkageRecord.vb` | `ShrinkageRecord` | `AuditableEntity` | Financial impact: `Reason`, `QuantityLost`, `UnitCost`, `TotalValue`. |

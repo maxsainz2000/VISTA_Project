@@ -5,6 +5,7 @@ Namespace Entities
         Receipt = 2
         Shrinkage = 3
         [Return] = 4
+        Adjustment = 5
     End Enum
 
 End Namespace

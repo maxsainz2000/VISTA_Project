@@ -17,7 +17,7 @@ Configures the `InventoryDbContext` with EF Core entity configurations for all I
 
 | File Path | Class / Interface | Responsibilities / Notes |
 |---|---|---|
-| `src/MerchSys.Inventory/Data/InventoryDbContext.vb` | `InventoryDbContext` | Contains DbSets: `Products`, `StockBatches`, `ShrinkageRecords`, `StockAlertConfigs`, `ProductCategories`, `StockMovements`. |
+| `src/MerchSys.Inventory/Data/InventoryDbContext.vb` | `InventoryDbContext` | Contains DbSets: `Products`, `StockBatches`, `ShrinkageRecords`, `StockAlertConfigs`, `ProductCategories`, `StockMovements`, `StockAuditRecords`. |
 | `src/MerchSys.Inventory/Data/InventoryDbContextFactory.vb` | `InventoryDbContextFactory` | `IDesignTimeDbContextFactory(Of InventoryDbContext)` implementation for EF CLI design-time support. |
 | `src/MerchSys.Inventory/Data/Configurations/ProductConfiguration.vb` | `ProductConfiguration` | Table: `Inv_Products`. Name max 200, Sku max 50 unique index, RetailPrice precision(18,2). |
 | `src/MerchSys.Inventory/Data/Configurations/StockBatchConfiguration.vb` | `StockBatchConfiguration` | Table: `Inv_StockBatches`. UnitCost precision(18,4). Index on ProductId + ReceiptDate for FIFO. |
@@ -25,6 +25,7 @@ Configures the `InventoryDbContext` with EF Core entity configurations for all I
 | `src/MerchSys.Inventory/Data/Configurations/StockAlertConfigConfiguration.vb` | `StockAlertConfigConfiguration` | Table: `Inv_StockAlertConfigs`. |
 | `src/MerchSys.Inventory/Data/Configurations/ProductCategoryConfiguration.vb` | `ProductCategoryConfiguration` | Table: `Inv_ProductCategories`. Name max 100, unique index. |
 | `src/MerchSys.Inventory/Data/Configurations/StockMovementConfiguration.vb` | `StockMovementConfiguration` | Table: `Inv_StockMovements`. MovementType as string. Composite index: (ProductId, OccurredAt). |
+| `src/MerchSys.Inventory/Data/Configurations/StockAuditRecordConfiguration.vb` | `StockAuditRecordConfiguration` | Table: `Inv_StockAuditRecords`. Variance precision(18,2), Reason max 100, Notes max 500. |
 | `src/MerchSys.Inventory/Data/SeedData/InventorySeedData.vb` | `InventorySeedData` | Seeds 4 product categories (Fertilizers, Pesticides/Chemicals, Seeds, Animal Feeds) and sample products. |
 | `src/MerchSys.Inventory/Migrations/20260507100002_InitialInventory.vb` | `InitialInventory` | Manual EF Core migration (Sqlite) for 5 Inventory tables and seed data. |
 | `src/MerchSys.Inventory/Migrations/20260509100003_AddStockMovement.vb` | `AddStockMovement` | Manual EF Core migration creating `Inv_StockMovements` table. |

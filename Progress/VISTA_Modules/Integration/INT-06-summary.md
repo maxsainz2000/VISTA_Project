@@ -163,8 +163,8 @@ The `StockMovement` entity (`Inventory/Entities/StockMovement.vb`) exists and th
 
 ## What's Next
 
-- [ ] Register missing DI services: `IStockService`, `ICreditService`, `ICartService`, `IPaymentService`, `ISalesReturnService`, `IInventoryAuditService`, and Accounting service interfaces in `Application.xaml.vb`
-- [ ] Implement `StockMovement` log writes in `StockService.AddStockBatchAsync` and `DeductStockFIFOAsync`
+- [x] Register missing DI services: `IStockService`, `ICreditService`, `ICartService`, `IPaymentService`, `ISalesReturnService`, `IInventoryAuditService`, and Accounting service interfaces in `Application.xaml.vb` *(resolved by INT-07)*
+- [x] Implement `StockMovement` log writes in `StockService.AddStockBatchAsync` and `DeductStockFIFOAsync` *(resolved by INT-08)*
 - [ ] Runtime navigation smoke test for all 16 views (requires DI gaps resolved first)
 - [ ] Verify cross-module event flows at runtime (requires `IStockService` DI registration)
 

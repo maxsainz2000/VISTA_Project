@@ -86,3 +86,12 @@ Update `LLM_Wiki/codebase_wiki/schemas/di-registry.md` to change all 10 entries 
 ## Output Requirements
 
 Create progress report at `Progress/VISTA_Modules/Integration/INT-07-summary.md`.
+
+## Post-Completion Notes
+
+> **Added 2026-05-09** — Surfaced by `Progress/VISTA_Modules/Integration/INT-07-summary.md` execution findings and `Pending_Tasks/Integration-audit-2026-05-09.md`.
+
+**Follow-up plans created for gaps identified during INT-07 execution:**
+
+- **INT-09 (IInventoryAuditService Implementation):** `IInventoryAuditService` and `InventoryAuditService` are absent from the codebase (not just unregistered). A new plan creates the interface, implementation, and DI registration. See `Plans/VISTA_Modules/Integration/09-inventory-audit-service.md`.
+- **INT-10 (Runtime Verification & Smoke Testing):** Runtime navigation smoke test (all 16 views) and cross-module event flow verification require a live runtime session. See `Plans/VISTA_Modules/Integration/10-runtime-verification.md`.

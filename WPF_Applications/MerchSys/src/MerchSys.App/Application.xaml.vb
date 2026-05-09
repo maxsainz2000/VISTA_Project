@@ -49,6 +49,7 @@ Class Application
                                       services.AddScoped(Of IShrinkageService, ShrinkageService)()
                                       services.AddScoped(Of IVelocityService, VelocityService)()
                                       services.AddScoped(Of IStockoutEstimationService, StockoutEstimationService)()
+                                      services.AddScoped(Of IInventoryAuditService, InventoryAuditService)()
                                       services.AddTransient(Of StockDashboardViewModel)()
                                       services.AddTransient(Of ProductManagementViewModel)()
                                       services.AddTransient(Of ExpiryMonitorViewModel)()
