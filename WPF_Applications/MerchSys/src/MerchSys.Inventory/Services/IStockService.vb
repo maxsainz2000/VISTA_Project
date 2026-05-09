@@ -3,7 +3,7 @@ Imports MerchSys.Inventory.Entities
 Namespace Services
 
     Public Interface IStockService
-        Function AddStockBatchAsync(productId As Integer, qty As Integer, unitCost As Decimal, receiptDate As DateTime, expiryDate As DateTime?, sourcePOId As Integer?) As Task(Of StockBatch)
+        Function AddStockBatchAsync(productId As Integer, qty As Integer, unitCost As Decimal, receiptDate As DateTime, expiryDate As DateTime?, sourcePOId As Integer?, Optional movementType As MovementType = MovementType.Receipt) As Task(Of StockBatch)
         Function DeductStockFIFOAsync(productId As Integer, quantity As Integer) As Task(Of List(Of FIFODeductionResult))
         Function GetCurrentStockAsync(productId As Integer?) As Task(Of List(Of StockLevelDto))
         Function GetStockBatchesAsync(productId As Integer) As Task(Of List(Of StockBatch))

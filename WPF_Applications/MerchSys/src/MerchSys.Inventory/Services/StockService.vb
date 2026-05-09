@@ -35,7 +35,7 @@ Namespace Services
             _logger = logger
         End Sub
 
-        Public Async Function AddStockBatchAsync(productId As Integer, qty As Integer, unitCost As Decimal, receiptDate As DateTime, expiryDate As DateTime?, sourcePOId As Integer?) As Task(Of StockBatch) Implements IStockService.AddStockBatchAsync
+        Public Async Function AddStockBatchAsync(productId As Integer, qty As Integer, unitCost As Decimal, receiptDate As DateTime, expiryDate As DateTime?, sourcePOId As Integer?, Optional movementType As MovementType = MovementType.Receipt) As Task(Of StockBatch) Implements IStockService.AddStockBatchAsync
             Dim batch As New StockBatch With {
                 .ProductId = productId,
                 .QuantityReceived = qty,
@@ -46,6 +46,12 @@ Namespace Services
                 .SourcePurchaseOrderId = sourcePOId
             }
             _db.StockBatches.Add(batch)
+            _db.StockMovements.Add(New StockMovement With {
+                .ProductId = productId,
+                .MovementType = movementType,
+                .Quantity = qty,
+                .OccurredAt = DateTime.UtcNow
+            })
             Await _db.SaveChangesAsync()
             _logger.LogInformation("Stock batch added: ProductId={ProductId}, Qty={Qty}, UnitCost={UnitCost}", productId, qty, unitCost)
             Return batch
@@ -84,6 +90,12 @@ Namespace Services
                 Throw New InsufficientStockException(productId, quantity, quantity - remaining)
             End If
 
+            _db.StockMovements.Add(New StockMovement With {
+                .ProductId = productId,
+                .MovementType = MovementType.Sale,
+                .Quantity = -quantity,
+                .OccurredAt = DateTime.UtcNow
+            })
             Await _db.SaveChangesAsync()
             Return results
         End Function

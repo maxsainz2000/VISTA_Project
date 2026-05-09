@@ -1,6 +1,7 @@
 Imports System.Threading
 Imports MediatR
 Imports Microsoft.Extensions.Logging
+Imports MerchSys.Inventory.Entities
 Imports MerchSys.Inventory.Services
 Imports MerchSys.SharedKernel.Events
 
@@ -32,7 +33,8 @@ Namespace Handlers
                 unitCost:=notification.UnitPrice,
                 receiptDate:=notification.ReturnDate,
                 expiryDate:=Nothing,
-                sourcePOId:=Nothing)
+                sourcePOId:=Nothing,
+                movementType:=MovementType.[Return])
 
             _logger.LogInformation(
                 "Restocked {Qty} unit(s) of ProductId={ProductId} from return ReturnId={ReturnId}.",

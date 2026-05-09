@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.Inventory
 layer: Handlers
-last-updated: 2026-05-07
+last-updated: 2026-05-09
 ---
 
 # MerchSys.Inventory — Handlers
@@ -15,7 +15,7 @@ This page details the MediatR Handlers for the **MerchSys.Inventory** module.
 |---|---|---|---|
 | `src/MerchSys.Inventory/Handlers/GoodsReceivedHandler.vb` | `GoodsReceivedHandler` | `GoodsReceivedEvent` | Receives incoming inventory from Purchasing. Ensures Product exists, adds new stock batches via `StockService`. |
 | `src/MerchSys.Inventory/Handlers/SaleCompletedHandler.vb` | `SaleCompletedHandler` | `SaleCompletedEvent` | Deducts stock for sales using FIFO rules via `StockService.DeductStockFIFOAsync()`. Triggers low-stock alert generation. |
-| `src/MerchSys.Inventory/Handlers/StockReturnedEventHandler.vb` | `StockReturnedEventHandler` | `StockReturnedEvent` | Adds returned items back to FIFO stock pool via `StockService.AddStockBatchAsync()`. |
+| `src/MerchSys.Inventory/Handlers/StockReturnedEventHandler.vb` | `StockReturnedEventHandler` | `StockReturnedEvent` | Adds returned items back to FIFO stock pool via `StockService.AddStockBatchAsync()`; logs as `Return` movement type. |
 | `src/MerchSys.Inventory/Handlers/ShrinkageRecordedHandler.vb` | `ShrinkageRecordedHandler` | `ShrinkageRecordedEvent` | Triggers low-stock alert generation after stock reduction by shrinkage. |
 
 ## Request Handlers

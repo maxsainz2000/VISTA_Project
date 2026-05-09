@@ -99,6 +99,13 @@ Namespace Services
                 End If
             End If
 
+            Dim totalQtyForMovement As Integer = created.Sum(Function(r) r.QuantityLost)
+            _db.StockMovements.Add(New StockMovement With {
+                .ProductId = productId,
+                .MovementType = MovementType.Shrinkage,
+                .Quantity = -totalQtyForMovement,
+                .OccurredAt = now
+            })
             Await _db.SaveChangesAsync()
 
             Dim totalQty As Integer = created.Sum(Function(r) r.QuantityLost)
