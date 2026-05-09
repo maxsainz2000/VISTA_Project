@@ -122,3 +122,17 @@ Using the template structure from `Progress/_template.md`. Include:
 - Service modifications made
 - Build status confirmation
 - Any deviations from this plan
+
+## Post-Completion Notes
+
+> **Added 2026-05-09** — Surfaced by `Pending_Tasks/Integration-audit-2026-05-09.md`.
+
+**Pending codebase wiki sync:** Antigravity must update `LLM_Wiki/codebase_wiki/` to reflect the following INT-03 deliverables:
+
+1. **5 new Inventory handlers:** `GetProductCatalogQueryHandler`, `StockReturnedEventHandler`, `GetProductCostQueryHandler`, `GetLowStockAlertCountQueryHandler`, `SaleCompletedInventoryHandler` (modified)
+2. **4 new SharedKernel query contracts:** `GetProductCatalogQuery`, `GetProductCostQuery`, `GetTotalARQuery`, `GetTotalAPQuery` (+ response DTOs)
+3. **1 POS handler:** `GetTotalARQueryHandler`
+4. **1 Purchasing handler:** `GetTotalAPQueryHandler`
+5. **CartService constructor change:** `IReceiptService` added as a dependency to `CartService.vb`
+
+This sync should be performed using the standard "Update from Implementation Summary" workflow when the user triggers it.

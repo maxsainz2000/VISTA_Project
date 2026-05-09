@@ -165,6 +165,7 @@ A custom slash command is registered at `.claude/commands/vista-audit.md`. It pe
 /vista-audit Inventory
 /vista-audit POS
 /vista-audit Infrastructure
+/vista-audit Integration
 ```
 
 **Output:** `Pending_Tasks/<MODULE>-audit-<YYYY-MM-DD>.md`
