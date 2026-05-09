@@ -32,8 +32,8 @@ Implemented the daily sales summary service for the POS module, covering daily, 
 
 ## What's Next
 
-- [ ] Register `DailySummaryService` in DI container (`MerchSys.App`)
-- [ ] Wire up a ViewModel and View for the daily summary screen
+- [x] Register `DailySummaryService` in DI container (`MerchSys.App`) *(completed — `IDailySummaryService` registered in INT-01)*
+- [x] Wire up a ViewModel and View for the daily summary screen *(completed — `DailySummaryView` and `DailySummaryViewModel` wired in INT-02)*
 
 ## Cross-References
 

@@ -78,8 +78,8 @@ None. Build passed first time.
 
 ## What's Next
 
-- [ ] INT-04 (next integration plan, if applicable)
-- [ ] Antigravity to sync codebase_wiki with the new handlers, contracts, and the CartService constructor change
+- [x] INT-04 (next integration plan, if applicable) *(completed — INT-04 delivered)*
+- [x] Antigravity to sync codebase_wiki with the new handlers, contracts, and the CartService constructor change *(completed — synced 2026-05-07 per `codebase_wiki/log.md`)*
 
 ## Cross-References
 

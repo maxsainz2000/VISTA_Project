@@ -67,8 +67,8 @@ None.
 
 ## What's Next
 
-- [ ] INT-03 and subsequent integration plans
-- [ ] Consider per-navigation `IServiceScope` (current pattern resolves Transient views from the root provider; Scoped services behave as singletons across the session — acceptable for a single-user desktop app but worth revisiting)
+- [x] INT-03 and subsequent integration plans *(completed — INT-03 through INT-05 delivered)*
+- [x] Consider per-navigation `IServiceScope` (current pattern resolves Transient views from the root provider; Scoped services behave as singletons across the session — acceptable for a single-user desktop app but worth revisiting) *(resolved — current pattern explicitly accepted as appropriate for single-user desktop app)*
 
 ## Cross-References
 

@@ -40,9 +40,9 @@ Implemented BIR-compliant official receipt generation for the POS module. Covers
 
 ## What's Next
 
-- [ ] Register `IReceiptService` / `ReceiptService` in DI container (MerchSys.App)
-- [ ] Wire `GenerateReceiptAsync` call into `CartService.FinalizeAsync` so every completed sale automatically produces a receipt
-- [ ] POS-07 and subsequent plans
+- [x] Register `IReceiptService` / `ReceiptService` in DI container (MerchSys.App) *(completed — registered in INT-01)*
+- [x] Wire `GenerateReceiptAsync` call into `CartService.FinalizeAsync` so every completed sale automatically produces a receipt *(completed — wired in INT-03)*
+- [x] POS-07 and subsequent plans *(completed — POS-07 through POS-12 delivered)*
 
 ## Cross-References
 

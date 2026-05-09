@@ -76,9 +76,9 @@ Scaffolded the complete MerchSys solution: created the `.slnx` solution file, al
 
 ## What's Next
 
-- [ ] INFRA-02: DI and MediatR wiring in `Application.xaml.vb`
-- [ ] INFRA-03: Shared DbContext configuration
-- [ ] INFRA-04: Navigation and main window shell (Views loaded at runtime)
+- [x] INFRA-02: DI and MediatR wiring in `Application.xaml.vb` *(completed — INFRA-02 delivered)*
+- [x] INFRA-03: Shared DbContext configuration *(completed — INFRA-03 delivered)*
+- [x] INFRA-04: Navigation and main window shell (Views loaded at runtime) *(completed — INFRA-04 delivered)*
 
 ## Cross-References
 

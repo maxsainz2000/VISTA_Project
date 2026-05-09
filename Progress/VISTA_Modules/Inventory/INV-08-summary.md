@@ -55,8 +55,8 @@ None.
 
 ## What's Next
 
-- [ ] Register `IVelocityService` → `VelocityService` (Scoped) in the App composition root
-- [ ] Add a `StockMovement` log entity to enable precise time-windowed velocity queries (recommended from the plan)
+- [x] Register `IVelocityService` → `VelocityService` (Scoped) in the App composition root *(completed — registered in INT-01)*
+- [x] Add a `StockMovement` log entity to enable precise time-windowed velocity queries *(completed — created in INT-05)*
 
 ## Cross-References
 

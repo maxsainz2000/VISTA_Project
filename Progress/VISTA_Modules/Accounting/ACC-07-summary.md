@@ -37,9 +37,9 @@ Implemented the Financial Overview Dashboard — the primary Accounting screen. 
 
 ## What's Next
 
-- [ ] DI registration of `FinancialOverviewViewModel` as Transient in `Application.xaml.vb` (when INFRA-02 DI wiring is finalized)
-- [ ] Wire `FinancialOverviewView` into the main navigation shell
-- [ ] Next Accounting plan (ACC-08+)
+- [x] DI registration of `FinancialOverviewViewModel` as Transient in `Application.xaml.vb` (when INFRA-02 DI wiring is finalized) *(completed — registered in INT-01)*
+- [x] Wire `FinancialOverviewView` into the main navigation shell *(completed — wired in INT-02)*
+- [x] Next Accounting plan (ACC-08+) *(completed — ACC-08 and ACC-09 delivered)*
 
 ## Cross-References
 

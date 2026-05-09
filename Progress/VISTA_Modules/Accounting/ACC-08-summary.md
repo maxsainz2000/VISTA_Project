@@ -52,9 +52,9 @@ Implemented the Income Statement (P&L) View for the Accounting module. Creates a
 
 ## What's Next
 
-- [ ] DI registration of `IncomeStatementViewModel` as Transient in `Application.xaml.vb` (when INFRA-02 DI wiring is finalized)
-- [ ] Wire `IncomeStatementView` into the main navigation shell
-- [ ] Next Accounting plan (ACC-09+)
+- [x] DI registration of `IncomeStatementViewModel` as Transient in `Application.xaml.vb` (when INFRA-02 DI wiring is finalized) *(completed — registered in INT-01)*
+- [x] Wire `IncomeStatementView` into the main navigation shell *(completed — wired in INT-02)*
+- [x] Next Accounting plan (ACC-09+) *(completed — ACC-09 delivered)*
 
 ## Cross-References
 

@@ -80,9 +80,9 @@ All tables have `CreatedBy`, `CreatedAt`, `ModifiedBy`, `ModifiedAt` audit colum
 
 ## What's Next
 
-- [ ] Log EF Core 10 VB.NET migration discovery bug in `LLM_Wiki/agent_wiki/errors/` for future agent awareness
-- [ ] When EF Core fixes VB.NET migration discovery: run `dotnet ef database update` for all 4 modules to validate the manual migration files apply cleanly
-- [ ] INT-05: Final integration and smoke testing
+- [x] Log EF Core 10 VB.NET migration discovery bug in `LLM_Wiki/agent_wiki/errors/` for future agent awareness *(completed — logged at `agent_wiki/errors/efcore10-vbnet-migration-discovery-bug.md`)*
+- [ ] When EF Core fixes VB.NET migration discovery: run `dotnet ef database update` for all 4 modules to validate the manual migration files apply cleanly *(genuine — tracked by INT-06)*
+- [x] INT-05: Final integration and smoke testing *(completed — INT-05 delivered)*
 
 ## Codebase Wiki Discrepancies
 

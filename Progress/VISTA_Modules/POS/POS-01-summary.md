@@ -35,8 +35,8 @@ None. Applied the relative-namespace antipattern rule from the Agent Wiki — us
 
 ## What's Next
 
-- [ ] POS-02 — DbContext entity configuration and EF Core mappings (DbSets, table names, column precision, constraints)
-- [ ] POS-03 — POS service layer (transaction recording, credit blocking enforcement, receipt number generation)
+- [x] POS-02 — DbContext entity configuration and EF Core mappings (DbSets, table names, column precision, constraints) *(completed — POS-02 delivered)*
+- [x] POS-03 — POS service layer (transaction recording, credit blocking enforcement, receipt number generation) *(completed — POS-03 delivered)*
 
 ## Cross-References
 

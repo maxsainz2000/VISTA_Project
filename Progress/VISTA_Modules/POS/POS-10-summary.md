@@ -40,9 +40,9 @@ Implemented the Credit Management screen (POS-10) — a dedicated view for manag
 
 ## What's Next
 
-- [ ] Register `CreditManagementViewModel` and `CreditManagementView` in DI (App startup)
-- [ ] Wire up navigation so the main shell can route to this view
-- [ ] Consider adding `ISessionService` to replace the hardcoded `"Manager"` `receivedBy` string in `RecordPaymentAsync`
+- [x] Register `CreditManagementViewModel` and `CreditManagementView` in DI (App startup) *(completed — registered in INT-01)*
+- [x] Wire up navigation so the main shell can route to this view *(completed — wired in INT-02)*
+- [x] Consider adding `ISessionService` to replace the hardcoded `"Manager"` `receivedBy` string in `RecordPaymentAsync` *(completed — `ISessionService` injected in INT-05)*
 
 ## Cross-References
 

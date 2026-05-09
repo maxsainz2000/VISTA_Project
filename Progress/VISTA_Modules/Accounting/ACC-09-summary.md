@@ -33,9 +33,9 @@ Implemented the Sales Summary View — daily/weekly/monthly breakdown by payment
 
 ## What's Next
 
-- [ ] DI registration of `SalesSummaryViewModel` as Transient (deferred to INFRA-02 DI wiring finalization)
-- [ ] Wire `SalesSummaryView` into the main navigation shell
-- [ ] Next Accounting plan (ACC-10+)
+- [x] DI registration of `SalesSummaryViewModel` as Transient (deferred to INFRA-02 DI wiring finalization) *(completed — registered in INT-01)*
+- [x] Wire `SalesSummaryView` into the main navigation shell *(completed — wired in INT-02)*
+- [x] Next Accounting plan (ACC-10+) *(N/A — module is complete, no ACC-10 planned)*
 
 ## Cross-References
 

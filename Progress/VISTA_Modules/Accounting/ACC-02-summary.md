@@ -39,8 +39,8 @@ Implemented the Accounting data access layer: updated `AccountingDbContext` with
 
 ## What's Next
 
-- [ ] ACC-03: Accounting Services — implement `IAccountingService` for period aggregation and snapshot refresh
-- [ ] ACC-04: Accounting ViewModels and Views — KPI dashboard and plain-language summaries
+- [x] ACC-03: Accounting Services — implement `IAccountingService` for period aggregation and snapshot refresh *(completed — ACC-03 delivered)*
+- [x] ACC-04: Accounting ViewModels and Views — KPI dashboard and plain-language summaries *(completed — ACC-04 through ACC-09 delivered)*
 
 ## Cross-References
 

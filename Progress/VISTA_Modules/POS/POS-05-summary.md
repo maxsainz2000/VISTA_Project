@@ -32,8 +32,8 @@ Implemented the Credit (Utang) System for the POS module — digital credit acco
 
 ## What's Next
 
-- [ ] POS-06 and subsequent plans per dependency order
-- [ ] UI enforcement: disable sale-completion button when Credit selected and `CanExtendCreditAsync` returns False
+- [x] POS-06 and subsequent plans per dependency order *(completed — POS-06 through POS-12 delivered)*
+- [x] UI enforcement: disable sale-completion button when Credit selected and `CanExtendCreditAsync` returns False *(completed — verified in INT-03, `SalesCartViewModel.CanPay`)*
 
 ## Cross-References
 

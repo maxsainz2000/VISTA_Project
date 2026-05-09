@@ -31,8 +31,8 @@ None.
 
 ## What's Next
 
-- [ ] POS-05 — Returns & Voids
-- [ ] POS-06 — Receipt generation (will populate `PaymentResultDto.ReceiptNumber`, currently `Nothing`)
+- [x] POS-05 — Returns & Voids *(completed — POS-05 delivered)*
+- [x] POS-06 — Receipt generation (will populate `PaymentResultDto.ReceiptNumber`, currently `Nothing`) *(completed — POS-06 delivered)*
 
 ## Cross-References
 

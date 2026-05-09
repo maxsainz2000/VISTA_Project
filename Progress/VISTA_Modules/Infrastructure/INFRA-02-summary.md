@@ -40,8 +40,8 @@ Implemented the Shared Kernel foundation — all base entity classes, interfaces
 
 ## What's Next
 
-- [ ] INFRA-03 — MediatR event contracts in SharedKernel
-- [ ] INFRA-04 — EF Core DbContext base infrastructure
+- [x] INFRA-03 — MediatR event contracts in SharedKernel *(completed — INFRA-03 delivered)*
+- [x] INFRA-04 — EF Core DbContext base infrastructure *(completed — INFRA-04 delivered)*
 
 ## Cross-References
 

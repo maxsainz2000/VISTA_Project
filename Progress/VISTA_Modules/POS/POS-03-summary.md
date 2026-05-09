@@ -32,8 +32,8 @@ Implemented the cart-based transaction service for the POS module: in-memory car
 
 ## What's Next
 
-- [ ] POS-04: Receipt & event publishing (consumes the `SalesTransaction` returned by `FinalizeAsync`)
-- [ ] POS-05: Credit account management (updating balances after finalization)
+- [x] POS-04: Receipt & event publishing (consumes the `SalesTransaction` returned by `FinalizeAsync`) *(completed — POS-04 delivered)*
+- [x] POS-05: Credit account management (updating balances after finalization) *(completed — POS-05 delivered)*
 
 ## Cross-References
 

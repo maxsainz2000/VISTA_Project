@@ -91,9 +91,9 @@ None.
 
 ## What's Next
 
-- [ ] INT-02 and subsequent integration plans
-- [ ] Register `PurchaseOrderListViewModel`, `GoodsReceivingViewModel`, `VendorListViewModel` (Purchasing) — omitted from `PurchasingServiceCollectionExtensions`
-- [ ] Register remaining POS services (`ICartService`, `IPaymentService`, `ICreditService`, `ISalesReturnService`) and Inventory services (`IStockService`, `IInventoryAuditService`) if not covered by future plans
+- [x] INT-02 and subsequent integration plans *(completed — INT-02 through INT-05 delivered)*
+- [x] Register `PurchaseOrderListViewModel`, `GoodsReceivingViewModel`, `VendorListViewModel` (Purchasing) — omitted from `PurchasingServiceCollectionExtensions` *(completed — registered in INT-02)*
+- [x] Register remaining POS services (`ICartService`, `IPaymentService`, `ICreditService`, `ISalesReturnService`) and Inventory services (`IStockService`, `IInventoryAuditService`) if not covered by future plans *(resolved — scoped out per plan deliverables)*
 
 ## Cross-References
 

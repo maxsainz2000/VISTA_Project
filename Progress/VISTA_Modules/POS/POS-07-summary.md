@@ -33,8 +33,8 @@ Implemented sales return and exchange processing for the POS module. Returns are
 
 ## What's Next
 
-- [ ] POS-08 (Receipt Service) — `IReceiptService` / `ReceiptService` (files already present from prior session, may need review)
-- [ ] Inventory module handler to consume `StockReturnedEvent` and add returned quantity back to stock
+- [x] POS-08 (Receipt Service) — `IReceiptService` / `ReceiptService` (files already present from prior session, may need review) *(completed — POS-08 delivered)*
+- [x] Inventory module handler to consume `StockReturnedEvent` and add returned quantity back to stock *(completed — `StockReturnedEventHandler` created in INT-03)*
 
 ## Cross-References
 

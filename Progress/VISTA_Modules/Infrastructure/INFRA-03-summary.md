@@ -49,9 +49,9 @@ Implemented one `DbContext` per module with a shared abstract base that auto-pop
 
 ## What's Next
 
-- [ ] INFRA-04 — DI bootstrap / app host wiring
-- [ ] Per-module data-access plans that add `DbSet` properties to each context
-- [ ] EF Core migrations once first entities are defined
+- [x] INFRA-04 — DI bootstrap / app host wiring *(completed — INFRA-04 delivered)*
+- [x] Per-module data-access plans that add `DbSet` properties to each context *(completed — PUR-02, INV-02, POS-02, ACC-02 delivered)*
+- [x] EF Core migrations once first entities are defined *(completed — INT-04 delivered)*
 
 ## Cross-References
 

@@ -43,8 +43,8 @@ All query methods include `Vendor` and `PurchaseOrder` navigation via `Include` 
 
 ## What's Next
 
-- [ ] PUR-07 and beyond (reorder engine, ViewModels)
-- [ ] DI registration of `IAccountsPayableService` / `AccountsPayableService` in `MerchSys.App` (deferred to a consolidation plan)
+- [x] PUR-07 and beyond (reorder engine, ViewModels) *(completed — PUR-07 through PUR-13 delivered)*
+- [x] DI registration of `IAccountsPayableService` / `AccountsPayableService` in `MerchSys.App` *(completed — registered in INT-01 via `AddPurchasingServices`)*
 
 ## Cross-References
 
