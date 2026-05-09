@@ -47,7 +47,19 @@
       "Bash(Write-Host \"Deleted design_time.db\")",
       "mcp__visualstudio__debugger_launch_without_debugging",
       "mcp__visualstudio__project_list",
-      "PowerShell($proc = Start-Process -FilePath \"dotnet\" -ArgumentList \"run --project WPF_Applications/MerchSys/src/MerchSys.App --no-build\" -WorkingDirectory \"C:\\\\Users\\\\Admin\\\\Documents\\\\VISTA_Project\" -PassThru -WindowStyle Normal; Start-Sleep -Seconds 8; if \\(-not $proc.HasExited\\) { Write-Output \"APP_RUNNING: Process $\\($proc.Id\\) started and is still running after 8s\"; $proc.Kill\\(\\); Write-Output \"Process terminated for test.\" } else { Write-Output \"APP_EXITED_EARLY: Exit code $\\($proc.ExitCode\\)\" })"
+      "PowerShell($proc = Start-Process -FilePath \"dotnet\" -ArgumentList \"run --project WPF_Applications/MerchSys/src/MerchSys.App --no-build\" -WorkingDirectory \"C:\\\\Users\\\\Admin\\\\Documents\\\\VISTA_Project\" -PassThru -WindowStyle Normal; Start-Sleep -Seconds 8; if \\(-not $proc.HasExited\\) { Write-Output \"APP_RUNNING: Process $\\($proc.Id\\) started and is still running after 8s\"; $proc.Kill\\(\\); Write-Output \"Process terminated for test.\" } else { Write-Output \"APP_EXITED_EARLY: Exit code $\\($proc.ExitCode\\)\" })",
+      "mcp__visualstudio__debugger_status",
+      "PowerShell(Get-Item *)",
+      "PowerShell(dotnet nuget locals *)",
+      "Bash(python3 *)",
+      "Bash(python query_db.py)",
+      "Bash(python apply_audit_migration.py)",
+      "mcp__visualstudio__debugger_add_breakpoint",
+      "mcp__visualstudio__debugger_launch",
+      "Bash(tasklist)",
+      "Bash(python verify_event_chain.py)",
+      "mcp__visualstudio__startup_project_get",
+      "mcp__visualstudio__startup_project_set"
     ]
   }
 }

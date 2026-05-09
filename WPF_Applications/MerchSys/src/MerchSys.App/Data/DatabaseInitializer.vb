@@ -22,6 +22,7 @@ Namespace Data
                 ApplyIfPending(conn, "20260507100003_InitialPOS", AddressOf ApplyPOS)
                 ApplyIfPending(conn, "20260507100004_InitialAccounting", AddressOf ApplyAccounting)
                 ApplyIfPending(conn, "20260509100003_AddStockMovement", AddressOf ApplyStockMovement)
+                ApplyIfPending(conn, "20260509100004_AddStockAuditRecords", AddressOf ApplyStockAuditRecords)
             End Using
         End Sub
 
@@ -536,6 +537,31 @@ Namespace Data
             Exec(conn,
                 "CREATE INDEX IF NOT EXISTS ""IX_Inv_StockMovements_ProductId_OccurredAt"" " &
                 "ON ""Inv_StockMovements"" (""ProductId"", ""OccurredAt"")")
+        End Sub
+
+        ' ── StockAuditRecords (20260509100004) ───────────────────────────────────────
+
+        Private Sub ApplyStockAuditRecords(conn As SqliteConnection)
+            Exec(conn,
+                "CREATE TABLE IF NOT EXISTS ""Inv_StockAuditRecords"" (" &
+                """Id"" INTEGER NOT NULL CONSTRAINT ""PK_Inv_StockAuditRecords"" PRIMARY KEY AUTOINCREMENT, " &
+                """ProductId"" INTEGER NOT NULL, " &
+                """ExpectedQuantity"" INTEGER NOT NULL, " &
+                """PhysicalCount"" INTEGER NOT NULL, " &
+                """Variance"" INTEGER NOT NULL, " &
+                """Reason"" TEXT NOT NULL, " &
+                """Notes"" TEXT NULL, " &
+                """PerformedBy"" TEXT NOT NULL, " &
+                """AuditedAt"" TEXT NOT NULL, " &
+                """CreatedBy"" TEXT NULL, " &
+                """CreatedAt"" TEXT NOT NULL, " &
+                """ModifiedBy"" TEXT NULL, " &
+                """ModifiedAt"" TEXT NULL, " &
+                "CONSTRAINT ""FK_Inv_StockAuditRecords_ProductId"" FOREIGN KEY (""ProductId"") REFERENCES ""Inv_Products"" (""Id"") ON DELETE RESTRICT" &
+                ")")
+            Exec(conn,
+                "CREATE INDEX IF NOT EXISTS ""IX_Inv_StockAuditRecords_ProductId"" " &
+                "ON ""Inv_StockAuditRecords"" (""ProductId"")")
         End Sub
 
         ' ── Accounting (20260507100004) ───────────────────────────────────────

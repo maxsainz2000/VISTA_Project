@@ -2,7 +2,7 @@
 type: module-index
 module: MerchSys.App
 last-updated: 2026-05-09
-plans-completed: [INFRA-01, ACC-07, ACC-08, ACC-09, INT-01, INT-02, INT-04, INT-05, INT-06, INT-07]
+plans-completed: [INFRA-01, ACC-07, ACC-08, ACC-09, INT-01, INT-02, INT-04, INT-05, INT-06, INT-07, INT-10]
 file-count: 24
 ---
 
