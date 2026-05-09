@@ -4,6 +4,7 @@ Chronological record of all agent contributions to the Agent Wiki.
 
 <!-- Append new entries at the top. Format: ## [YYYY-MM-DD] agent | action | description -->
 
+## [2026-05-09] claude-code | added error-fix | EF Core 10 CLI cannot discover VB.NET migration classes — use manual migration files + DatabaseInitializer workaround
 ## [2026-05-04] claude-code | added antipattern | VB.NET lambda parameter name conflicts with local variable in same method causes BC36641 — use distinct names for lambda params
 ## [2026-05-04] claude-code | added pattern | classlib ViewModel auto-refresh: use System.Timers.Timer + captured SynchronizationContext instead of DispatcherTimer (not available in classlib)
 ## [2026-05-04] claude-code | added antipattern | VB.NET List(Of T).Count property shadows LINQ Count(predicate) extension — causes BC32016; use Enumerable.Count(list, predicate) instead

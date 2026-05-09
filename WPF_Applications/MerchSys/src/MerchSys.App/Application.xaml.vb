@@ -88,6 +88,9 @@ Class Application
         _host = builder.Build()
         _host.Start()
 
+        ' Apply database migrations (EF Core 10 CLI cannot discover VB.NET migrations)
+        DatabaseInitializer.Initialize($"Data Source={DatabaseConfig.DatabasePath}")
+
         ' Initialise Notification.Wpf NotificationManager on the UI thread
         _host.Services.GetRequiredService(Of ILowStockNotifier)()
 

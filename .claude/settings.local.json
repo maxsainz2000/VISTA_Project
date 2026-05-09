@@ -30,7 +30,21 @@
       "Bash(dir \"C:\\\\Users\\\\Admin\\\\Documents\\\\VISTA_Project\\\\Plans\" /s /b /a-d)",
       "mcp__visualstudio__solution_info",
       "Bash(mkdir -p \"C:\\\\Users\\\\Admin\\\\Documents\\\\VISTA_Project\\\\.claude\\\\commands\")",
-      "Bash(mkdir -p \"C:\\\\Users\\\\Admin\\\\Documents\\\\VISTA_Project\\\\Pending_Tasks\")"
+      "Bash(mkdir -p \"C:\\\\Users\\\\Admin\\\\Documents\\\\VISTA_Project\\\\Pending_Tasks\")",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\Admin\\\\Documents\\\\VISTA_Project\\\\WPF_Applications\\\\MerchSys\\\\src\\\\MerchSys.POS\" -Recurse -File | ForEach-Object { $_.FullName })",
+      "PowerShell(dotnet tool list *)",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\Admin\\\\Documents\\\\VISTA_Project\\\\WPF_Applications\\\\MerchSys\\\\src\" -Recurse -Directory -Filter \"Migrations\" | ForEach-Object { $_.FullName })",
+      "PowerShell(dotnet tool install *)",
+      "PowerShell(dotnet add *)",
+      "PowerShell(dotnet ef database *)",
+      "Bash(dotnet ef *)",
+      "Bash(powershell *)",
+      "Bash(dotnet tool *)",
+      "Bash(where ildasm *)",
+      "Bash(where ilspycmd *)",
+      "Bash(sqlite3 --version)",
+      "Bash(where sqlite3 *)",
+      "Bash(Write-Host \"Deleted design_time.db\")"
     ]
   }
 }
