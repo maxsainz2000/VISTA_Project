@@ -90,3 +90,12 @@ Verify the MediatR event pipeline works end-to-end:
 ## Output Requirements
 
 Create progress report at `Progress/VISTA_Modules/Integration/INT-06-summary.md`.
+
+## Post-Completion Notes
+
+> **Added 2026-05-09** — Surfaced by `Progress/VISTA_Modules/Integration/INT-06-summary.md` execution findings.
+
+**Follow-up plans created for gaps identified during QA execution:**
+
+- **INT-07 (DI Registration Gaps):** 10 service interfaces (`IStockService`, `ICreditService`, `ICartService`, `IPaymentService`, `ISalesReturnService`, `IInventoryAuditService`, `IFinancialOverviewService`, `IIncomeStatementService`, `ISalesSummaryService`, `IWhatThisMeansService`) are not registered in the DI container. Blocks runtime navigation to POS, Accounting, and Inventory views, and prevents cross-module event handlers from resolving. See `Plans/VISTA_Modules/Integration/07-di-registration-gaps.md`.
+- **INT-08 (StockMovement Log Writes):** `StockService.AddStockBatchAsync` and `DeductStockFIFOAsync` do not write `StockMovement` records despite the entity and table existing (INT-05 deliverable). Impacts `VelocityService` and `StockoutEstimationService` accuracy. See `Plans/VISTA_Modules/Integration/08-stockmovement-writes.md`.

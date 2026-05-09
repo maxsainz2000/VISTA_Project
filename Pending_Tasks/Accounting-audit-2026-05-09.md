@@ -33,66 +33,31 @@ audit-date: 2026-05-09
 ## Pending Tasks
 
 > Extracted from "What's Next" sections in existing progress summaries.
-> ⚠️ All items below are **stale** — they refer to subsequent plans or INT-series work now completed.
 
-### ACC-02 — Accounting Data Access
+No unchecked `[ ]` tasks found across any Accounting progress summaries. All items were completed and marked `[x]`.
 
-**Status:** Completed
-
-- [ ] ACC-03: Accounting Services — implement `IAccountingService` for period aggregation and snapshot refresh
-- [ ] ACC-04: Accounting ViewModels and Views — KPI dashboard and plain-language summaries
-
-> *(Stale — ACC-03 through ACC-09 are all completed.)*
-
-### ACC-07 — View — Financial Overview
-
-**Status:** Completed
-
-- [ ] DI registration of `FinancialOverviewViewModel` as Transient in `Application.xaml.vb` (when INFRA-02 DI wiring is finalized)
-- [ ] Wire `FinancialOverviewView` into the main navigation shell
-- [ ] Next Accounting plan (ACC-08+)
-
-> *(All stale — `FinancialOverviewViewModel` registered in INT-01; `FinancialOverviewView` wired into navigation in INT-02; ACC-08 and ACC-09 completed.)*
-
-### ACC-08 — View — Income Statement
-
-**Status:** Completed
-
-- [ ] DI registration of `IncomeStatementViewModel` as Transient in `Application.xaml.vb` (when INFRA-02 DI wiring is finalized)
-- [ ] Wire `IncomeStatementView` into the main navigation shell
-- [ ] Next Accounting plan (ACC-09+)
-
-> *(All stale — registered in INT-01; wired in INT-02; ACC-09 completed.)*
-
-### ACC-09 — View — Sales Summary
-
-**Status:** Completed
-
-- [ ] DI registration of `SalesSummaryViewModel` as Transient (deferred to INFRA-02 DI wiring finalization)
-- [ ] Wire `SalesSummaryView` into the main navigation shell
-- [ ] Next Accounting plan (ACC-10+)
-
-> *(First two stale — registered and wired in INT-01/INT-02. No ACC-10 plan exists; module is complete.)*
+**Notable runtime gaps (identified by INT-06, not checkbox tasks in Accounting summaries):**
+- `IFinancialOverviewService`, `IIncomeStatementService`, `ISalesSummaryService`, and `IWhatThisMeansService` are **not registered in the DI container**. All 3 Accounting views will fail at runtime when navigated. Tracked in INT-06.
+- `OverdueARCount`, `OverdueAPCount`, `LowStockAlertCount` in `FinancialOverviewService.GetOverviewAsync` return `0` — the cross-module query calls are only in `RefreshSnapshotAsync`, not `GetOverviewAsync`. Minor data gap.
 
 ---
 
 ## Plans With No Progress File
 
-*None — all 9 plans have matching progress summaries.*
+None — all 9 plans have matching progress summaries.
 
 ---
 
 ## Amendments & Special Files
 
-*None found in the Accounting Progress folder.*
+None.
 
 ---
 
 ## Summary & Recommendations
 
-- **100% complete** — all 9 Accounting plans have completed summaries with clean build records.
-- **11 unchecked `[ ]` items** found across 4 summaries, all stale forward-references to plans and integration work now delivered.
-- **Known data quality note (ACC-02):** `RevenueRecord.COGS` was initially recorded as `0` at the service layer. This was resolved in INT-03 where `SaleCompletedAccountingHandler` was updated to send `GetProductCostQuery` via MediatR and populate actual FIFO unit cost per sale item.
-- The `IWhatThisMeansService`, `IFinancialOverviewService`, `IIncomeStatementService`, and `ISalesSummaryService` are all registered in DI (INT-01) and reachable from their respective views (INT-02).
-- **No blockers. No missing plans. The Accounting module is fully delivered.**
-- Recommended cleanup: mark all 11 stale `[ ]` items as `[x]` across ACC-02, ACC-07, ACC-08, and ACC-09 summaries.
+- **100% complete.** All 9 Accounting plans are implemented and marked completed.
+- No build failures noted — all builds passed with 0 errors, 0 warnings.
+- **Critical runtime gap:** All 4 Accounting service interfaces not registered in DI. All 3 Accounting views (`FinancialOverviewView`, `IncomeStatementView`, `SalesSummaryView`) will throw on navigation. Must be fixed in INT-06 follow-up.
+- COGS calculation gap from ACC-02 (was recording `0`) was resolved in INT-03 via `GetProductCostQuery`.
+- "What This Means" Engine (ACC-06) is fully integrated into all 3 ViewModels — no further work on interpretation logic.

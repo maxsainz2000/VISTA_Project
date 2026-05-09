@@ -37,35 +37,31 @@ audit-date: 2026-05-09
 ## Pending Tasks
 
 > Extracted from "What's Next" sections in existing progress summaries.
-> ⚠️ All items below are **stale** — they were completed by INT-01 and INT-05.
 
-### INV-08 — Velocity Classification
+No unchecked `[ ]` tasks found across any Inventory progress summaries. All items were completed and marked `[x]`.
 
-**Status:** Completed
-
-- [ ] Register `IVelocityService` → `VelocityService` (Scoped) in the App composition root
-- [ ] Add a `StockMovement` log entity to enable precise time-windowed velocity queries (recommended from the plan)
-
-> *(Both stale — `IVelocityService` registered in INT-01; `StockMovement` entity and migration created in INT-05.)*
+**Notable runtime gaps (identified by INT-06, not checkbox tasks in Inventory summaries):**
+- `IStockService` is not registered in the DI container — blocks `SaleCompletedHandler`, `GoodsReceivedHandler`, and `StockReturnedEventHandler` at runtime. Tracked in INT-06.
+- `StockService.AddStockBatchAsync` and `DeductStockFIFOAsync` do not write `StockMovement` log entries despite `Inv_StockMovements` table existing. `VelocityService` falls back to lifetime approximation. Tracked in INT-06.
 
 ---
 
 ## Plans With No Progress File
 
-*None — all 13 plans have matching progress summaries.*
+None — all 13 plans have matching progress summaries.
 
 ---
 
 ## Amendments & Special Files
 
-*None found in the Inventory Progress folder.*
+None.
 
 ---
 
 ## Summary & Recommendations
 
-- **100% complete** — all 13 Inventory plans have completed summaries with clean build records.
-- **2 unchecked `[ ]` items** found in INV-08, both now fully resolved by INT-01 and INT-05.
-- The `StockMovement` log entity (INT-05 enhancement) now enables precise time-windowed velocity queries — the approximation noted in INV-08 is superseded.
-- **No blockers. No missing plans. The Inventory module is fully delivered.**
-- Cosmetic cleanup: mark the 2 stale `[ ]` items in INV-08 as `[x]`.
+- **100% complete.** All 13 Inventory plans are implemented and marked completed.
+- No build failures noted — all builds passed with 0 errors, 0 warnings.
+- **Critical runtime gap:** `IStockService` not registered in DI (confirmed INT-06). Blocks all cross-module event flows that touch Inventory. **Must be fixed before runtime testing.**
+- **`StockMovement` writes not implemented:** Entity and table exist but no service writes to them. Impacts velocity and stockout accuracy.
+- Both gaps are in scope for the INT-06 follow-up session.

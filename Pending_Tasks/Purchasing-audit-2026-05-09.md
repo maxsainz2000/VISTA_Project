@@ -37,35 +37,32 @@ audit-date: 2026-05-09
 ## Pending Tasks
 
 > Extracted from "What's Next" sections in existing progress summaries.
-> ⚠️ All items below are **stale** — they refer to work completed in later plans.
 
-### PUR-06 — AP Tracking
+No unchecked `[ ]` tasks found across any Purchasing progress summaries. All documented next steps were completed and marked `[x]`, or were plain bullets (narrative notes, not tracked tasks).
 
-**Status:** Completed
-
-- [ ] PUR-07 and beyond (reorder engine, ViewModels)
-- [ ] DI registration of `IAccountsPayableService` / `AccountsPayableService` in `MerchSys.App` (deferred to a consolidation plan)
-
-> *(Both stale — PUR-07 through PUR-13 are completed; DI registration done in INT-01 via `AddPurchasingServices`.)*
+**Notable untracked notes (plain bullets, not `[ ]` tasks):**
+- **PUR-09:** Notes that `IPurchaseOrderService` originally did not persist `Notes` or `ExpectedDeliveryDate` — fixed in PUR-03-amendment.
+- **PUR-10:** Notes that `Notification.Wpf` `NotificationManager` is not yet wired for toast feedback; ViewModel uses `StatusMessage` instead.
+- **PUR-13:** References "PUR-14 and subsequent plans" — no PUR-14 plan file exists; likely a stale note.
 
 ---
 
 ## Plans With No Progress File
 
-*None — all 13 plans have matching progress summaries.*
+None — all 13 plans have matching progress summaries.
 
 ---
 
 ## Amendments & Special Files
 
-- `PUR-03-amendment.md` — Retrofitted `IPurchaseOrderService` to persist `Notes` and `ExpectedDeliveryDate` on draft create/update. Gap identified during PUR-09 (editor UI collected both fields but service had no path to save them). Status: completed.
+- `PUR-03-amendment.md` — Retrofitted `Notes` and `ExpectedDeliveryDate` optional parameters to `IPurchaseOrderService.CreateDraftAsync` and `UpdateDraftAsync`. Gap identified during PUR-09. Also updated `PurchaseOrderListViewModel` to pass these fields through to the service.
 
 ---
 
 ## Summary & Recommendations
 
-- **100% complete** — all 13 Purchasing plans have completed summaries with clean build records.
-- **2 unchecked `[ ]` items** found in PUR-06 — both are stale forward-references fully resolved by subsequent plans.
-- The PUR-03 amendment was properly handled: the gap identified in PUR-09 was retroactively fixed and documented.
-- **No blockers. No missing plans. The Purchasing module is fully delivered.**
-- Cosmetic cleanup: mark the 2 stale `[ ]` items in PUR-06 as `[x]`.
+- **100% complete.** All 13 Purchasing plans are implemented and marked completed.
+- No build failures noted — all builds passed with 0 errors, 0 warnings.
+- The PUR-03-amendment closed the only identified service gap (Notes/ExpectedDeliveryDate not persisted).
+- `Notification.Wpf` toast notifications are deferred to a future integration concern — low priority.
+- Module is fully stable and unblocks Integration plans.
