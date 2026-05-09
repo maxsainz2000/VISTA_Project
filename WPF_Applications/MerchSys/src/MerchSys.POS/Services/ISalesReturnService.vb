@@ -18,6 +18,12 @@ Namespace Services
         ''' <summary>Returns all return records processed within the given date range (inclusive).</summary>
         Function GetReturnHistoryAsync(startDate As DateTime, endDate As DateTime) As Task(Of List(Of SalesReturn))
 
+        ''' <summary>
+        ''' Returns the set of transaction IDs (from the provided list) that have at least one return,
+        ''' queried by OriginalTransactionId so date range of the return is irrelevant.
+        ''' </summary>
+        Function GetTransactionIdsWithReturnsAsync(transactionIds As List(Of Integer)) As Task(Of HashSet(Of Integer))
+
     End Interface
 
 End Namespace

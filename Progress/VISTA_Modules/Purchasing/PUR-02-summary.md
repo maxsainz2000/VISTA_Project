@@ -38,7 +38,7 @@ None. Applied known antipatterns from Agent Wiki:
 
 ## What's Next
 
-- [ ] PUR-03: Purchasing Services (PO lifecycle, GR recording, AP tracking)
+- [x] PUR-03: Purchasing Services (PO lifecycle, GR recording, AP tracking) — completed (plan PUR-03 delivered)
 
 ## Cross-References
 

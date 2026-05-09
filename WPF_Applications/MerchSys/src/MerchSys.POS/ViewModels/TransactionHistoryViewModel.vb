@@ -421,9 +421,10 @@ Namespace ViewModels
 
                 Dim results = Await _cartService.GetTransactionHistoryAsync(DateFrom.Date, endOfDay)
 
-                ' Load returns from DateFrom to now so recently-processed returns are captured
-                Dim allReturns = Await _returnService.GetReturnHistoryAsync(DateFrom.Date, DateTime.Now)
-                Dim txIdsWithReturns As New HashSet(Of Integer)(allReturns.Select(Function(r) r.OriginalTransactionId))
+                ' Query returns by the actual loaded transaction IDs so returns for old transactions
+                ' are found regardless of when the return was processed (Approach B, POS-11).
+                Dim txIds = results.Select(Function(t) t.Id).ToList()
+                Dim txIdsWithReturns = Await _returnService.GetTransactionIdsWithReturnsAsync(txIds)
 
                 ' Apply in-memory filters
                 Dim filtered = results.AsEnumerable()

@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.POS
 layer: Services
-last-updated: 2026-05-07
+last-updated: 2026-05-09
 ---
 
 # MerchSys.POS — Services
@@ -14,5 +14,6 @@ last-updated: 2026-05-07
 | `Services/PaymentService.vb`| `IPaymentService` / `PaymentService` | `ProcessPaymentAsync()`, `ValidatePayment()` | |
 | `Services/CreditService.vb` | `ICreditService` / `CreditService` | `GetAccountAsync()`, `ProcessCreditSaleAsync()`, `RecordPaymentAsync()` | |
 | `Services/ReceiptService.vb`| `IReceiptService` / `ReceiptService` | `GenerateReceiptAsync()`, `ReprintReceiptAsync()` | |
-| `Services/SalesReturnService.vb` | `ISalesReturnService` / `SalesReturnService` | `ProcessReturnAsync()`, `ValidateReturnEligibility()` | |
+| `Services/SalesReturnService.vb` | `ISalesReturnService` / `SalesReturnService` | `ProcessReturnAsync()`, `GetReturnsForTransactionAsync()`, `GetReturnHistoryAsync()`, `GetTransactionIdsWithReturnsAsync()` | |
 | `Services/DailySummaryService.vb` | `IDailySummaryService` / `DailySummaryService` | `GetDailySummaryAsync()`, `GetPeriodSummaryAsync()` | |
+

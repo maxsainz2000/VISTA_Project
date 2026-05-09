@@ -35,8 +35,8 @@ Implemented PUR-03: PO Lifecycle Service. Created the `IPurchaseOrderService` in
 
 ## What's Next
 
-- [ ] PUR-04: Goods Receipt Service (depends on PUR-03; reuses `SequentialNumberGenerator` for GR-YYYY-XXXX)
-- [ ] PUR-05: Reorder Engine
+- [x] PUR-04: Goods Receipt Service — completed (plan PUR-04 delivered)
+- [x] PUR-05: Reorder Engine — completed (plan PUR-05 delivered)
 
 ## Cross-References
 

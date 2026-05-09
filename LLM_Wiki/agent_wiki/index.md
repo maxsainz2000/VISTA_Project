@@ -18,3 +18,4 @@ All engineering learnings from debugging and error-fixing sessions. Check this i
 | [vbnet-list-count-property-shadows-linq-extension](antipatterns/vbnet-list-count-property-shadows-linq-extension.md) | antipattern | MerchSys.Inventory | vb-net, linq, list, BC32016, build-error | claude-code | 2026-05-04 |
 | [vbnet-lambda-param-shadows-local-variable](antipatterns/vbnet-lambda-param-shadows-local-variable.md) | antipattern | MerchSys.Purchasing | vb-net, lambda, BC36641, build-error | claude-code | 2026-05-04 |
 | [classlib-viewmodel-auto-refresh-timer](patterns/classlib-viewmodel-auto-refresh-timer.md) | pattern | MerchSys.Inventory | wpf, mvvm, viewmodel, classlib, timer, threading, vb-net | claude-code | 2026-05-04 |
+| [vbnet-reserved-keyword-enum-member](errors/vbnet-reserved-keyword-enum-member.md) | error-fix | MerchSys.Inventory | vb-net, enum, reserved-keyword, BC31001, BC30201, build-error | claude-code | 2026-05-09 |

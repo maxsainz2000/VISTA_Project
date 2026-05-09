@@ -119,6 +119,18 @@ Namespace Services
             Return returns
         End Function
 
+        Public Async Function GetTransactionIdsWithReturnsAsync(transactionIds As List(Of Integer)) As Task(Of HashSet(Of Integer)) Implements ISalesReturnService.GetTransactionIdsWithReturnsAsync
+            If transactionIds Is Nothing OrElse transactionIds.Count = 0 Then
+                Return New HashSet(Of Integer)()
+            End If
+            Dim ids = Await _context.SalesReturns _
+                .Where(Function(r) transactionIds.Contains(r.OriginalTransactionId)) _
+                .Select(Function(r) r.OriginalTransactionId) _
+                .Distinct() _
+                .ToListAsync()
+            Return New HashSet(Of Integer)(ids)
+        End Function
+
     End Class
 
 End Namespace

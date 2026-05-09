@@ -28,14 +28,22 @@ Namespace Services
                 OrderBy(Function(p) p.Name).
                 ToListAsync()
 
+            Dim windowStart As DateTime = DateTime.UtcNow.Date.AddDays(-daysToAnalyze)
+            Dim movementCounts = Await _db.StockMovements.
+                Where(Function(m) m.MovementType = MovementType.Sale AndAlso m.OccurredAt >= windowStart).
+                GroupBy(Function(m) m.ProductId).
+                Select(Function(g) New With {.ProductId = g.Key, .Total = g.Sum(Function(m) m.Quantity)}).
+                ToListAsync()
+            Dim movementLookup = movementCounts.ToDictionary(Function(x) x.ProductId, Function(x) x.Total)
+
             Dim results As New List(Of ProductVelocityDto)()
             For Each product In products
-                results.Add(ComputeVelocity(product, daysToAnalyze))
+                results.Add(ComputeVelocity(product, daysToAnalyze, movementLookup))
             Next
 
             _logger.LogInformation(
-                "Velocity classification complete: {Count} products analysed over {Days} days.",
-                results.Count, daysToAnalyze)
+                "Velocity classification complete: {Count} products analysed over {Days} days (time-windowed={UseWindow}).",
+                results.Count, daysToAnalyze, movementLookup.Count > 0)
 
             Return results
         End Function
@@ -51,20 +59,39 @@ Namespace Services
                 Throw New InvalidOperationException($"Product {productId} not found.")
             End If
 
-            Return ComputeVelocity(product, daysToAnalyze)
+            Dim windowStart As DateTime = DateTime.UtcNow.Date.AddDays(-daysToAnalyze)
+            Dim windowSales As Integer = Await _db.StockMovements.
+                Where(Function(m) m.ProductId = productId AndAlso
+                                  m.MovementType = MovementType.Sale AndAlso
+                                  m.OccurredAt >= windowStart).
+                SumAsync(Function(m) m.Quantity)
+
+            Dim lookup = If(windowSales > 0,
+                            New Dictionary(Of Integer, Integer) From {{productId, windowSales}},
+                            New Dictionary(Of Integer, Integer)())
+
+            Return ComputeVelocity(product, daysToAnalyze, lookup)
         End Function
 
-        Private Function ComputeVelocity(product As Product, daysToAnalyze As Integer) As ProductVelocityDto
+        Private Function ComputeVelocity(product As Product,
+                                         daysToAnalyze As Integer,
+                                         movementLookup As Dictionary(Of Integer, Integer)) As ProductVelocityDto
             Dim today As DateTime = DateTime.UtcNow.Date
 
             Dim batches As List(Of StockBatch) = product.StockBatches.ToList()
             Dim shrinkageRecords As List(Of ShrinkageRecord) = product.ShrinkageRecords.ToList()
 
-            ' StockBatch has no per-deduction timestamps. TotalDeducted uses lifetime batch totals
-            ' as the velocity numerator; daysToAnalyze provides the denominator for the daily rate.
-            Dim totalDeducted As Integer = batches.Sum(Function(b) b.QuantityReceived - b.QuantityRemaining)
-            Dim totalShrinkage As Integer = shrinkageRecords.Sum(Function(s) s.QuantityLost)
-            Dim totalUnitsSold As Integer = Math.Max(0, totalDeducted - totalShrinkage)
+            Dim totalUnitsSold As Integer
+            Dim windowSales As Integer = 0
+            If movementLookup.TryGetValue(product.Id, windowSales) Then
+                ' Prefer time-windowed sale movements when available
+                totalUnitsSold = windowSales
+            Else
+                ' Fall back to lifetime batch-total approximation
+                Dim totalDeducted As Integer = batches.Sum(Function(b) b.QuantityReceived - b.QuantityRemaining)
+                Dim totalShrinkage As Integer = shrinkageRecords.Sum(Function(s) s.QuantityLost)
+                totalUnitsSold = Math.Max(0, totalDeducted - totalShrinkage)
+            End If
 
             Dim avgDailySales As Decimal = 0D
             If daysToAnalyze > 0 Then

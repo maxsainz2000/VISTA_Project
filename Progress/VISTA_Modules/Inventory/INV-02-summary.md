@@ -42,8 +42,8 @@ Implemented the Inventory data access layer: `InventoryDbContext` DbSets, five E
 
 ## What's Next
 
-- [ ] INV-03: Inventory Services (FIFO deduction engine, shrinkage recording, alert evaluation)
-- [ ] EF Core migration scaffold once all module data-access plans are complete
+- [x] INV-03: Inventory Services — completed (plan INV-03 delivered)
+- [x] EF Core migration scaffold — completed (INT-04 delivered all module migrations)
 
 ## Cross-References
 

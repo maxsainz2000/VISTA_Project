@@ -1,6 +1,6 @@
 ---
 type: schema-map
-last-updated: 2026-05-07
+last-updated: 2026-05-09
 ---
 
 # Dependency Injection Registry
@@ -87,5 +87,6 @@ This page documents the composition root in `MerchSys.App`.
 | Interface | Implementation | Lifetime |
 |---|---|---|
 | `IEventBus` | `MediatR` | Transient (by MediatR default) |
+| `ISessionService` | `DefaultSessionService` | Singleton |
 | (Extension) | `AddModuleDbContexts()` | Registers all module DbContexts (Scoped) |
 | (Extension) | `AddMediatRServices()` | Registers MediatR and all module handlers |

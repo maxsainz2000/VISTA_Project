@@ -18,6 +18,7 @@ Namespace Data
         Public Property ShrinkageRecords As DbSet(Of ShrinkageRecord)
         Public Property StockAlertConfigs As DbSet(Of StockAlertConfig)
         Public Property ProductCategories As DbSet(Of ProductCategory)
+        Public Property StockMovements As DbSet(Of StockMovement)
 
         Public Sub New(options As DbContextOptions(Of InventoryDbContext))
             MyBase.New(options)

@@ -5,6 +5,7 @@ Imports MerchSys.App.Services
 Imports MerchSys.App.Startup
 Imports MerchSys.App.ViewModels
 Imports MerchSys.Inventory.Services
+Imports MerchSys.SharedKernel.Interfaces
 Imports MerchSys.Inventory.ViewModels
 Imports MerchSys.POS.Services
 Imports MerchSys.POS.ViewModels
@@ -20,6 +21,9 @@ Class Application
         Dim builder = Host.CreateDefaultBuilder()
 
         builder.ConfigureServices(Sub(services)
+
+                                      ' Infrastructure: Session
+                                      services.AddSingleton(Of ISessionService, DefaultSessionService)()
 
                                       ' Infrastructure: DbContexts
                                       services.AddModuleDbContexts()

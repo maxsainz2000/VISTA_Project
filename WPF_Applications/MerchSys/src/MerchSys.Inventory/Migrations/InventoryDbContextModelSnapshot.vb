@@ -131,6 +131,26 @@ Namespace Migrations
                 b.ToTable("Inv_StockAlertConfigs")
             End Sub)
 
+            modelBuilder.Entity("MerchSys.Inventory.Entities.StockMovement", Sub(b)
+                b.Property(Of Integer)("Id").
+                    ValueGeneratedOnAdd().
+                    HasColumnType("INTEGER")
+                b.Property(Of Integer)("ProductId").HasColumnType("INTEGER")
+                b.Property(Of String)("MovementType").
+                    IsRequired().
+                    HasMaxLength(20).
+                    HasColumnType("TEXT")
+                b.Property(Of Integer)("Quantity").HasColumnType("INTEGER")
+                b.Property(Of DateTime)("OccurredAt").HasColumnType("TEXT")
+                b.Property(Of DateTime)("CreatedAt").HasColumnType("TEXT")
+                b.Property(Of String)("CreatedBy").HasMaxLength(256).HasColumnType("TEXT")
+                b.Property(Of DateTime?)("ModifiedAt").HasColumnType("TEXT")
+                b.Property(Of String)("ModifiedBy").HasMaxLength(256).HasColumnType("TEXT")
+                b.HasKey("Id")
+                b.HasIndex("ProductId", "OccurredAt")
+                b.ToTable("Inv_StockMovements")
+            End Sub)
+
             modelBuilder.Entity("MerchSys.Inventory.Entities.Product", Sub(b)
                 b.HasOne("MerchSys.Inventory.Entities.ProductCategory", "Category").
                     WithMany("Products").
@@ -157,6 +177,14 @@ Namespace Migrations
             modelBuilder.Entity("MerchSys.Inventory.Entities.StockBatch", Sub(b)
                 b.HasOne("MerchSys.Inventory.Entities.Product", "Product").
                     WithMany("StockBatches").
+                    HasForeignKey("ProductId").
+                    OnDelete(DeleteBehavior.Restrict).
+                    IsRequired()
+            End Sub)
+
+            modelBuilder.Entity("MerchSys.Inventory.Entities.StockMovement", Sub(b)
+                b.HasOne("MerchSys.Inventory.Entities.Product", "Product").
+                    WithMany().
                     HasForeignKey("ProductId").
                     OnDelete(DeleteBehavior.Restrict).
                     IsRequired()

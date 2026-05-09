@@ -21,6 +21,7 @@ Namespace Data
                 ApplyIfPending(conn, "20260507100002_InitialInventory", AddressOf ApplyInventory)
                 ApplyIfPending(conn, "20260507100003_InitialPOS", AddressOf ApplyPOS)
                 ApplyIfPending(conn, "20260507100004_InitialAccounting", AddressOf ApplyAccounting)
+                ApplyIfPending(conn, "20260509100003_AddStockMovement", AddressOf ApplyStockMovement)
             End Using
         End Sub
 
@@ -514,6 +515,27 @@ Namespace Data
                 "(1,'Juan Dela Cruz','','','Farmer','0','0','0',0,0,NULL,NULL,'System','2026-01-01 00:00:00','System',NULL,NULL)," &
                 "(2,'Maria Santos','','','Farmer','500','500','0',1,0,NULL,NULL,'System','2026-01-01 00:00:00','System',NULL,NULL)," &
                 "(3,'Pedro Reyes','','','Farmer','0','0','0',0,0,NULL,NULL,'System','2026-01-01 00:00:00','System',NULL,NULL)")
+        End Sub
+
+        ' ── StockMovement (20260509100003) ───────────────────────────────────────
+
+        Private Sub ApplyStockMovement(conn As SqliteConnection)
+            Exec(conn,
+                "CREATE TABLE IF NOT EXISTS ""Inv_StockMovements"" (" &
+                """Id"" INTEGER NOT NULL CONSTRAINT ""PK_Inv_StockMovements"" PRIMARY KEY AUTOINCREMENT, " &
+                """ProductId"" INTEGER NOT NULL, " &
+                """MovementType"" TEXT NOT NULL, " &
+                """Quantity"" INTEGER NOT NULL, " &
+                """OccurredAt"" TEXT NOT NULL, " &
+                """CreatedBy"" TEXT NULL, " &
+                """CreatedAt"" TEXT NOT NULL, " &
+                """ModifiedBy"" TEXT NULL, " &
+                """ModifiedAt"" TEXT NULL, " &
+                "CONSTRAINT ""FK_Inv_StockMovements_ProductId"" FOREIGN KEY (""ProductId"") REFERENCES ""Inv_Products"" (""Id"") ON DELETE RESTRICT" &
+                ")")
+            Exec(conn,
+                "CREATE INDEX IF NOT EXISTS ""IX_Inv_StockMovements_ProductId_OccurredAt"" " &
+                "ON ""Inv_StockMovements"" (""ProductId"", ""OccurredAt"")")
         End Sub
 
         ' ── Accounting (20260507100004) ───────────────────────────────────────

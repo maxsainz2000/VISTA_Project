@@ -38,6 +38,7 @@ This page maps the EF Core entities across all modules to their SQLite/MariaDB t
 | `StockBatch` | `Inv_StockBatches` | PK `Id`, Index on `ProductId`+`ReceiptDate` |
 | `ShrinkageRecord` | `Inv_ShrinkageRecords` | PK `Id` |
 | `StockAlertConfig` | `Inv_StockAlertConfigs` | PK `Id` |
+| `StockMovement` | `Inv_StockMovements` | PK `Id`, Composite Index (`ProductId`, `OccurredAt`) |
 
 ## MerchSys.Accounting (`Acc_` prefix)
 | Entity | DB Table | Key Constraints |

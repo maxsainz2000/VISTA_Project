@@ -6,6 +6,7 @@ Imports MerchSys.POS.Data
 Imports MerchSys.POS.Entities
 Imports MerchSys.POS.Services
 Imports MerchSys.SharedKernel.Enums
+Imports MerchSys.SharedKernel.Interfaces
 
 Namespace ViewModels
 
@@ -28,6 +29,7 @@ Namespace ViewModels
 
         Private ReadOnly _creditService As ICreditService
         Private ReadOnly _context As POSDbContext
+        Private ReadOnly _session As ISessionService
 
         ' Unfiltered master list used for in-memory filtering
         Private _allAccounts As List(Of CreditAccount) = New List(Of CreditAccount)()
@@ -310,9 +312,10 @@ Namespace ViewModels
 
         ' ── Constructor ───────────────────────────────────────────────────────────
 
-        Public Sub New(creditService As ICreditService, context As POSDbContext)
+        Public Sub New(creditService As ICreditService, context As POSDbContext, session As ISessionService)
             _creditService = creditService
             _context = context
+            _session = session
 
             LoadDataCommand = New AsyncRelayCommand(AddressOf LoadDataAsync)
             SearchCommand = New RelayCommand(AddressOf ApplyFilter)
@@ -480,7 +483,7 @@ Namespace ViewModels
                     Case Else : method = PaymentMethod.Cash
                 End Select
 
-                Await _creditService.RecordPaymentAsync(targetId, amount, method, "Manager")
+                Await _creditService.RecordPaymentAsync(targetId, amount, method, _session.CurrentUsername)
 
                 IsPaymentDialogVisible = False
                 PaymentAmount = String.Empty
