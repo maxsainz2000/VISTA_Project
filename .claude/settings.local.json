@@ -44,7 +44,10 @@
       "Bash(where ilspycmd *)",
       "Bash(sqlite3 --version)",
       "Bash(where sqlite3 *)",
-      "Bash(Write-Host \"Deleted design_time.db\")"
+      "Bash(Write-Host \"Deleted design_time.db\")",
+      "mcp__visualstudio__debugger_launch_without_debugging",
+      "mcp__visualstudio__project_list",
+      "PowerShell($proc = Start-Process -FilePath \"dotnet\" -ArgumentList \"run --project WPF_Applications/MerchSys/src/MerchSys.App --no-build\" -WorkingDirectory \"C:\\\\Users\\\\Admin\\\\Documents\\\\VISTA_Project\" -PassThru -WindowStyle Normal; Start-Sleep -Seconds 8; if \\(-not $proc.HasExited\\) { Write-Output \"APP_RUNNING: Process $\\($proc.Id\\) started and is still running after 8s\"; $proc.Kill\\(\\); Write-Output \"Process terminated for test.\" } else { Write-Output \"APP_EXITED_EARLY: Exit code $\\($proc.ExitCode\\)\" })"
     ]
   }
 }
