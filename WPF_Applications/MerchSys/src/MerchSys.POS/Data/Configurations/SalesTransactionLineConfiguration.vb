@@ -17,6 +17,13 @@ Namespace Data.Configurations
             builder.Property(Function(l) l.UnitPrice).HasPrecision(18, 2)
             builder.Property(Function(l) l.DiscountAmount).HasPrecision(18, 2)
             builder.Property(Function(l) l.LineTotal).HasPrecision(18, 2)
+
+            ' VAT per-line columns (POS-14 extension via partial class)
+            builder.Property(Function(l) l.Treatment).HasColumnType("INTEGER")
+            builder.Property(Function(l) l.VatableAmount).HasPrecision(18, 2)
+            builder.Property(Function(l) l.VatExemptAmount).HasPrecision(18, 2)
+            builder.Property(Function(l) l.ZeroRatedAmount).HasPrecision(18, 2)
+            builder.Property(Function(l) l.OutputVat).HasPrecision(18, 2)
         End Sub
 
     End Class

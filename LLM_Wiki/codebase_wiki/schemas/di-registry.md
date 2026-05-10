@@ -14,8 +14,11 @@ This page documents the composition root in `MerchSys.App`.
 | `IPaymentService` | `PaymentService` | Scoped |
 | `ICreditService` | `CreditService` | Scoped |
 | `ISalesReturnService` | `SalesReturnService` | Scoped |
-| `IReceiptService` | `ReceiptService` | Scoped |
+| `IReceiptService` | `VatAwareReceiptService` | Scoped |
 | `IDailySummaryService` | `DailySummaryService` | Scoped |
+| `IReceiptIntegrityService` | `ReceiptIntegrityService` | Scoped |
+| `IVatCalculator` | `VatCalculator` | Scoped |
+| `VatConfigurationLoader` | `VatConfigurationLoader` | Singleton |
 | (none) | `SalesCartViewModel` | Transient |
 | (none) | `CreditManagementViewModel` | Transient |
 | (none) | `TransactionHistoryViewModel` | Transient |

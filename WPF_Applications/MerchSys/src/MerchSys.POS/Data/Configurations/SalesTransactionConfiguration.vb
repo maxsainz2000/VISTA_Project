@@ -28,6 +28,12 @@ Namespace Data.Configurations
             builder.Property(Function(s) s.CustomerName).HasMaxLength(200)
             builder.Property(Function(s) s.VoidReason).HasMaxLength(500)
 
+            ' VAT three-bucket columns (POS-14 extension via partial class)
+            builder.Property(Function(s) s.VatableSales).HasPrecision(18, 2)
+            builder.Property(Function(s) s.VatExemptSales).HasPrecision(18, 2)
+            builder.Property(Function(s) s.ZeroRatedSales).HasPrecision(18, 2)
+            builder.Property(Function(s) s.VatRateSnapshot).HasPrecision(5, 4)
+
             builder.HasMany(Function(s) s.Lines).
                 WithOne(Function(l) l.Transaction).
                 HasForeignKey(Function(l) l.TransactionId).

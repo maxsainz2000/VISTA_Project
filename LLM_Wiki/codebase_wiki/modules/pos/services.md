@@ -17,4 +17,6 @@ last-updated: 2026-05-10
 | `Services/SalesReturnService.vb` | `ISalesReturnService` / `SalesReturnService` | `ProcessReturnAsync()`, `GetReturnsForTransactionAsync()`, `GetReturnHistoryAsync()`, `GetTransactionIdsWithReturnsAsync()` | |
 | `Services/DailySummaryService.vb` | `IDailySummaryService` / `DailySummaryService` | `GetDailySummaryAsync()`, `GetWeeklySummaryAsync()`, `GetMonthlySummaryAsync()` | |
 | `src/MerchSys.POS/Services/IReceiptIntegrityService.vb`<br>`src/MerchSys.POS/Services/ReceiptIntegrityService.vb` | `IReceiptIntegrityService`<br>`ReceiptIntegrityService` | BIR-compliant hash chain generation, receipt validation, and gap-free sequence management. | `POSDbContext`, `IConfiguration`, `IMediator` |
-
+| `src/MerchSys.POS/Services/IVatCalculator.vb`<br>`src/MerchSys.POS/Services/VatCalculator.vb` | `IVatCalculator`<br>`VatCalculator` | Three-bucket VAT decomposition (Vatable, Exempt, Zero-Rated) for BIR compliance. | |
+| `src/MerchSys.POS/Services/VatConfigurationLoader.vb` | `VatConfigurationLoader` | Singleton cache for VAT settings with double-checked lazy loading and invalidation support. | `IServiceScopeFactory` |
+| `src/MerchSys.POS/Services/VatAwareReceiptService.vb` | `VatAwareReceiptService` | Decorator for `ReceiptService` that calculates and persists VAT breakdown for transactions. | `ReceiptService`, `IVatCalculator`, `VatConfigurationLoader` |

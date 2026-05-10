@@ -19,6 +19,7 @@ last-updated: 2026-05-03
 | `Entities/ReceiptIntegrity.vb` | `ReceiptIntegrity` | `AuditableEntity` | `ReceiptId`, `IntegrityHash`, `PreviousHash`, `RetentionExpiresAt` | `Pos_ReceiptIntegrity` |
 | `Entities/ReceiptSequence.vb` | `ReceiptSequence` | `AuditableEntity` | `Year`, `NextValue`, `RowVersion` | `Pos_ReceiptSequence` |
 | `Entities/OfficialReceiptArchive.vb` | `OfficialReceiptArchive` | N/A | `ArchivedAt`, `ArchivedHash` | `Pos_OfficialReceiptArchive` |
+| `Entities/VatConfiguration.vb` | `VatConfiguration` | `AuditableEntity` | `IsVatRegistered`, `VatRate`, `TIN`, `EffectiveFrom` | `Pos_VatConfiguration` |
 
 ## Value Objects / DTOs
-None documented for this layer.
+- **VAT Extensions:** `SalesTransaction` and `SalesTransactionLine` have partial class extensions in `Entities/Extensions/` adding BIR-required VAT decomposition fields.

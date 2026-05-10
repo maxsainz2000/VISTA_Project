@@ -24,6 +24,8 @@ Namespace Data
                 ApplyIfPending(conn, "20260509100003_AddStockMovement", AddressOf ApplyStockMovement)
                 ApplyIfPending(conn, "20260509100004_AddStockAuditRecords", AddressOf ApplyStockAuditRecords)
                 ApplyIfPending(conn, "20260510100005_AddSyncJournal", AddressOf ApplySyncJournal)
+                ApplyIfPending(conn, "20260510120000_AddBirRetentionConstraints", AddressOf ApplyBirRetentionConstraints)
+                ApplyIfPending(conn, "20260514100000_AddVatThreeBucketColumns", AddressOf ApplyVatThreeBucketColumns)
             End Using
         End Sub
 
@@ -665,6 +667,125 @@ Namespace Data
                 """ModifiedAt"" TEXT NULL" &
                 ")")
             Exec(conn, "CREATE UNIQUE INDEX IF NOT EXISTS ""IX_Acc_FinancialSnapshots_SnapshotDate"" ON ""Acc_FinancialSnapshots"" (""SnapshotDate"")")
+        End Sub
+
+        ' ── BIR Retention Constraints (20260510120000) ────────────────────────
+
+        Private Sub ApplyBirRetentionConstraints(conn As SqliteConnection)
+            Exec(conn,
+                "CREATE TABLE IF NOT EXISTS ""Pos_ReceiptSequence"" (" &
+                """Id"" INTEGER NOT NULL CONSTRAINT ""PK_Pos_ReceiptSequence"" PRIMARY KEY AUTOINCREMENT, " &
+                """Year"" INTEGER NOT NULL, " &
+                """NextValue"" INTEGER NOT NULL, " &
+                """RowVersion"" BLOB NOT NULL, " &
+                """CreatedBy"" TEXT NULL, " &
+                """CreatedAt"" TEXT NOT NULL, " &
+                """ModifiedBy"" TEXT NULL, " &
+                """ModifiedAt"" TEXT NULL" &
+                ")")
+            Exec(conn, "CREATE UNIQUE INDEX IF NOT EXISTS ""IX_Pos_ReceiptSequence_Year"" ON ""Pos_ReceiptSequence"" (""Year"")")
+
+            Exec(conn,
+                "CREATE TABLE IF NOT EXISTS ""Pos_ReceiptIntegrity"" (" &
+                """Id"" INTEGER NOT NULL CONSTRAINT ""PK_Pos_ReceiptIntegrity"" PRIMARY KEY AUTOINCREMENT, " &
+                """ReceiptId"" INTEGER NOT NULL, " &
+                """IntegrityHash"" TEXT NOT NULL, " &
+                """PreviousHash"" TEXT NOT NULL, " &
+                """RetentionExpiresAt"" TEXT NOT NULL, " &
+                """IsImmutable"" INTEGER NOT NULL, " &
+                """HashAlgorithm"" TEXT NOT NULL, " &
+                """CanonicalPayload"" TEXT NOT NULL, " &
+                """CreatedBy"" TEXT NULL, " &
+                """CreatedAt"" TEXT NOT NULL, " &
+                """ModifiedBy"" TEXT NULL, " &
+                """ModifiedAt"" TEXT NULL, " &
+                "CONSTRAINT ""FK_Pos_ReceiptIntegrity_Pos_OfficialReceipts_ReceiptId"" " &
+                "FOREIGN KEY (""ReceiptId"") REFERENCES ""Pos_OfficialReceipts"" (""Id"")" &
+                ")")
+            Exec(conn, "CREATE UNIQUE INDEX IF NOT EXISTS ""IX_Pos_ReceiptIntegrity_ReceiptId"" ON ""Pos_ReceiptIntegrity"" (""ReceiptId"")")
+            Exec(conn, "CREATE INDEX IF NOT EXISTS ""IX_Pos_ReceiptIntegrity_RetentionExpiresAt"" ON ""Pos_ReceiptIntegrity"" (""RetentionExpiresAt"")")
+
+            Exec(conn,
+                "CREATE TABLE IF NOT EXISTS ""Pos_OfficialReceiptArchive"" (" &
+                """Id"" INTEGER NOT NULL CONSTRAINT ""PK_Pos_OfficialReceiptArchive"" PRIMARY KEY AUTOINCREMENT, " &
+                """OriginalReceiptId"" INTEGER NOT NULL, " &
+                """TransactionId"" INTEGER NOT NULL, " &
+                """ReceiptNumber"" TEXT NOT NULL, " &
+                """BusinessName"" TEXT NOT NULL, " &
+                """BusinessAddress"" TEXT NULL, " &
+                """BusinessTIN"" TEXT NULL, " &
+                """IssueDate"" TEXT NOT NULL, " &
+                """Items"" TEXT NULL, " &
+                """TotalAmount"" TEXT NOT NULL, " &
+                """VatAmount"" TEXT NOT NULL, " &
+                """IsVatRegistered"" INTEGER NOT NULL, " &
+                """ArchivedAt"" TEXT NOT NULL, " &
+                """ArchivedHash"" TEXT NOT NULL, " &
+                """CreatedBy"" TEXT NULL, " &
+                """CreatedAt"" TEXT NOT NULL, " &
+                """ModifiedBy"" TEXT NULL, " &
+                """ModifiedAt"" TEXT NULL" &
+                ")")
+            Exec(conn, "CREATE INDEX IF NOT EXISTS ""IX_Pos_OfficialReceiptArchive_OriginalReceiptId"" ON ""Pos_OfficialReceiptArchive"" (""OriginalReceiptId"")")
+
+            Exec(conn,
+                "CREATE TRIGGER IF NOT EXISTS pos_receipts_no_update " &
+                "BEFORE UPDATE ON ""Pos_OfficialReceipts"" " &
+                "BEGIN " &
+                "SELECT RAISE(ABORT, 'BIR-immutable'); " &
+                "END")
+
+            Exec(conn,
+                "CREATE TRIGGER IF NOT EXISTS pos_receipts_no_delete " &
+                "BEFORE DELETE ON ""Pos_OfficialReceipts"" " &
+                "BEGIN " &
+                "SELECT RAISE(ABORT, 'BIR-immutable'); " &
+                "END")
+        End Sub
+
+        ' ── VAT Three-Bucket Columns (20260514100000) ─────────────────────────
+
+        Private Sub ApplyVatThreeBucketColumns(conn As SqliteConnection)
+            ' Extend Pos_SalesTransactions with VAT aggregate columns
+            Exec(conn, "ALTER TABLE ""Pos_SalesTransactions"" ADD COLUMN ""VatableSales"" TEXT NOT NULL DEFAULT '0'")
+            Exec(conn, "ALTER TABLE ""Pos_SalesTransactions"" ADD COLUMN ""VatExemptSales"" TEXT NOT NULL DEFAULT '0'")
+            Exec(conn, "ALTER TABLE ""Pos_SalesTransactions"" ADD COLUMN ""ZeroRatedSales"" TEXT NOT NULL DEFAULT '0'")
+            Exec(conn, "ALTER TABLE ""Pos_SalesTransactions"" ADD COLUMN ""VatRateSnapshot"" TEXT NOT NULL DEFAULT '0.12'")
+            Exec(conn, "ALTER TABLE ""Pos_SalesTransactions"" ADD COLUMN ""IsVatRegisteredSnapshot"" INTEGER NOT NULL DEFAULT 0")
+
+            ' Extend Pos_SalesTransactionLines with per-line VAT columns
+            Exec(conn, "ALTER TABLE ""Pos_SalesTransactionLines"" ADD COLUMN ""Treatment"" INTEGER NOT NULL DEFAULT 0")
+            Exec(conn, "ALTER TABLE ""Pos_SalesTransactionLines"" ADD COLUMN ""VatableAmount"" TEXT NOT NULL DEFAULT '0'")
+            Exec(conn, "ALTER TABLE ""Pos_SalesTransactionLines"" ADD COLUMN ""VatExemptAmount"" TEXT NOT NULL DEFAULT '0'")
+            Exec(conn, "ALTER TABLE ""Pos_SalesTransactionLines"" ADD COLUMN ""ZeroRatedAmount"" TEXT NOT NULL DEFAULT '0'")
+            Exec(conn, "ALTER TABLE ""Pos_SalesTransactionLines"" ADD COLUMN ""OutputVat"" TEXT NOT NULL DEFAULT '0'")
+
+            ' VAT configuration singleton (Id=1 enforced by CHECK constraint in EF config)
+            Exec(conn,
+                "CREATE TABLE IF NOT EXISTS ""Pos_VatConfiguration"" (" &
+                """Id"" INTEGER NOT NULL CONSTRAINT ""PK_Pos_VatConfiguration"" PRIMARY KEY, " &
+                """IsVatRegistered"" INTEGER NOT NULL, " &
+                """VatRate"" TEXT NOT NULL, " &
+                """NonVatPercentageTaxRate"" TEXT NOT NULL, " &
+                """EffectiveFrom"" TEXT NOT NULL, " &
+                """BusinessTIN"" TEXT NULL, " &
+                """BusinessName"" TEXT NULL, " &
+                """BusinessAddress"" TEXT NULL, " &
+                """CreatedBy"" TEXT NULL, " &
+                """CreatedAt"" TEXT NOT NULL, " &
+                """ModifiedBy"" TEXT NULL, " &
+                """ModifiedAt"" TEXT NULL, " &
+                "CONSTRAINT ""CK_Pos_VatConfiguration_SingleRow"" CHECK (""Id"" = 1)" &
+                ")")
+
+            ' Seed the singleton row (non-VAT-registered default; owner updates via settings UI)
+            Exec(conn,
+                "INSERT OR IGNORE INTO ""Pos_VatConfiguration"" " &
+                "(""Id"",""IsVatRegistered"",""VatRate"",""NonVatPercentageTaxRate"",""EffectiveFrom""," &
+                """BusinessTIN"",""BusinessName"",""BusinessAddress""," &
+                """CreatedBy"",""CreatedAt"",""ModifiedBy"",""ModifiedAt"") VALUES " &
+                "(1,0,'0.12','0.03','2026-01-01 00:00:00',NULL,'Villon Farm Supply',NULL," &
+                "'System','2026-01-01 00:00:00','System','2026-01-01 00:00:00')")
         End Sub
 
     End Module
