@@ -19,6 +19,6 @@ This page details the Service implementations specifically located within the **
 | `src/MerchSys.App/Services/MediatREventBus.vb` | `IEventBus`<br>`MediatREventBus` | Thin adapter that delegates `IEventBus.PublishAsync` to MediatR's `IMediator.Publish`. Keeps module code depending on the narrower `IEventBus` interface. |
 | `src/MerchSys.App/Services/WpfLowStockNotifier.vb` | `ILowStockNotifier`<br>`WpfLowStockNotifier` | WPF-specific implementation for low-stock alerts. Uses `Notification.Wpf`'s `NotificationManager` to display desktop toast notifications. Lives in the App layer to prevent WPF dependencies in the Inventory library. |
 | `src/MerchSys.App/Startup/MediatRConfig.vb` | `MediatRConfig` (Module) | Extension module (`AddMediatRServices`) that registers MediatR and all cross-module handler assemblies with the DI container. |
-| `src/MerchSys.App/Services/SyncOrchestrator.vb` | `SyncOrchestrator` | Iterates `ISyncableRepository` instances to synchronize local changes to MariaDB (INFRA-06 logic deferred). |
+| `src/MerchSys.App/Services/SyncOrchestrator.vb` | `SyncOrchestrator` | Iterates `ISyncableRepository` instances to synchronize local changes to MariaDB via the Conflict Resolver pipeline. |
 | `src/MerchSys.App/Services/SyncWorker.vb` | `SyncWorker` | `BackgroundService` that executes the dual-condition probe and triggers the orchestrator. |
 | `src/MerchSys.App/Services/DefaultNotificationService.vb` | `INotificationService`<br>`DefaultNotificationService` | Singleton that surfaces sync status changes to the UI shell. |

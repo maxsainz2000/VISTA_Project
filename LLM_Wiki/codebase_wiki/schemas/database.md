@@ -16,6 +16,7 @@ This page maps the EF Core entities across all modules to their SQLite/MariaDB t
 | `OfficialReceipt` | `Pos_OfficialReceipts` | PK `Id`, Unique Index on `ReceiptNumber`, Unique Index on `TransactionId` |
 | `CreditPayment` | `Pos_CreditPayments` | PK `Id`, Index on `CreditAccountId` |
 | `SalesReturn` | `Pos_SalesReturns` | PK `Id`, Index on `OriginalTransactionId` |
+| (Reserved) | `Pos_ReceiptIntegrity` | Central MariaDB only (reserved for INFRA-06) |
 
 ## MerchSys.Purchasing (`Pur_` prefix)
 | Entity | DB Table | Key Constraints |

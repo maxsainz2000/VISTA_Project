@@ -161,7 +161,7 @@ Namespace Services
             Dim accounts = Await _context.CreditAccounts _
                 .Where(Function(a) Not a.IsDeleted AndAlso
                                    a.CurrentBalance > 0D AndAlso
-                                   (a.LastTransactionDate Is Nothing OrElse a.LastTransactionDate < cutoff)) _
+                                   (a.LastTransactionDate Is Nothing OrElse a.LastTransactionDate.GetValueOrDefault() < cutoff)) _
                 .OrderByDescending(Function(a) a.CurrentBalance) _
                 .ToListAsync()
             Return accounts

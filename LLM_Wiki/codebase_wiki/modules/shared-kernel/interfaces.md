@@ -17,6 +17,7 @@ last-updated: 2026-05-10
 | `Interfaces/ISessionService.vb` | `ISessionService` | `CurrentUsername`, `CurrentRole` |
 | `Sync/ISyncProbe.vb` | `ISyncProbe` | `ProbeAsync() As Task(Of SyncProbeResult)` |
 | `Sync/ISyncableRepository.vb` | `ISyncableRepository` | `GetPendingChangesAsync()`, `MarkSyncedAsync(ids)` |
+| `Sync/ConflictResolver.vb` | `IConflictResolver` | `ResolveAsync(remoteSnapshot, localEntry) As Task(Of ResolutionDecision)` |
 
 ## Enums
 | File Path | Enum | Values |
@@ -25,4 +26,6 @@ last-updated: 2026-05-10
 | `Enums/PurchaseOrderStatus.vb` | `PurchaseOrderStatus` | `Draft`, `Submitted`, `Approved`, `PartiallyReceived`, `Completed`, `Cancelled` |
 | `Enums/UserRole.vb` | `UserRole` | `Manager`, `Owner`, `Cashier`, `StockClerk` |
 | `Sync/SyncStatus.vb` | `SyncStatus` | `Offline`, `Probing`, `Online`, `Syncing`, `Error` |
+| `Sync/ConflictResolution.vb` | `ConflictResolution` | `LastWriteWins`, `AppendOnly`, `Reject` |
+| `Sync/ConflictResolution.vb` | `SyncAction` | `Push`, `Skip`, `Reject` |
 

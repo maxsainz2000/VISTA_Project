@@ -11,7 +11,9 @@ Pinned package versions used across the solution.
 |---|---|---|
 | `MediatR` | Latest Stable | All modules |
 | `Microsoft.EntityFrameworkCore` | `10.x` | `SharedKernel`, `POS`, `Purchasing`, `Inventory`, `Accounting` |
+| `Microsoft.EntityFrameworkCore.Relational` | `10.x` | `SharedKernel` |
 | `Microsoft.EntityFrameworkCore.Sqlite` | `10.x` | `SharedKernel`, `POS`, `Purchasing`, `Inventory`, `Accounting` |
+| `Pomelo.EntityFrameworkCore.MySql` | `9.0.0` | `SharedKernel` |
 | `CommunityToolkit.Mvvm` | Latest Stable | `POS`, `Purchasing`, `Inventory`, `Accounting` |
 | `Microsoft.Extensions.DependencyInjection` | Latest Stable | `MerchSys.App` |
 | `Microsoft.Extensions.Hosting` | Latest Stable | `MerchSys.App` |

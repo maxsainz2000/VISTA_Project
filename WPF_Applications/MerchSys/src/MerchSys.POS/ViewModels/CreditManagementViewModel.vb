@@ -354,7 +354,7 @@ Namespace ViewModels
             Next
 
             Dim txns = Await _context.SalesTransactions _
-                .Where(Function(t) t.CustomerId = account.Id AndAlso
+                .Where(Function(t) t.CustomerId.HasValue AndAlso t.CustomerId.Value = account.Id AndAlso
                                    t.PaymentMethod = PaymentMethod.Credit AndAlso
                                    Not t.IsDeleted) _
                 .OrderByDescending(Function(t) t.TransactionDate) _

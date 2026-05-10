@@ -99,6 +99,8 @@ This page documents the composition root in `MerchSys.App`.
 | `ISessionService` | `DefaultSessionService` | Singleton |
 | `SyncOrchestrator` | `SyncOrchestrator` | Scoped |
 | `SyncWorker` | `SyncWorker` | Singleton (HostedService) |
+| `IConflictResolver` | `ConflictResolver` | Scoped |
+| `MariaDbSyncContext` | `MariaDbSyncContext` | Scoped |
 | `SyncJournalDbContext` | `SyncJournalDbContext` | Scoped |
 | (Extension) | `AddModuleDbContexts()` | Registers all module DbContexts (Scoped) |
 | (Extension) | `AddMediatRServices()` | Registers MediatR and all module handlers |

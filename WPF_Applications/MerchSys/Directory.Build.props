@@ -1,0 +1,8 @@
+<Project>
+  <PropertyGroup>
+    <!-- Suppress NU1608: Pomelo 9.x declares a constraint against EF Core <= 9.x but
+         the resolved EF Core 10.x is ABI-compatible at runtime for the APIs we use.
+         Remove this suppression once a Pomelo 10.x stable release is available. -->
+    <NoWarn>$(NoWarn);NU1608</NoWarn>
+  </PropertyGroup>
+</Project>
