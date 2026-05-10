@@ -25,6 +25,7 @@ This page details the WPF View implementations (XAML and code-behind) in the **M
 | `src/MerchSys.App/Views/Accounting/FinancialOverviewView.xaml`<br>`src/MerchSys.App/Views/Accounting/FinancialOverviewView.xaml.vb` | `FinancialOverviewView` | Primary Accounting dashboard. Features KPI cards, a 6-month trend chart, Top Products list, and an alerts panel. | `FinancialOverviewViewModel` (Constructor Injection) |
 | `src/MerchSys.App/Views/Accounting/IncomeStatementView.xaml`<br>`src/MerchSys.App/Views/Accounting/IncomeStatementView.xaml.vb` | `IncomeStatementView` | Income Statement (P&L) View. Features period switching (Monthly/Quarterly/Annual), a "What This Means" panel, and a detailed P&L layout with a per-product margins tab. | `IncomeStatementViewModel` (Constructor Injection) |
 | `src/MerchSys.App/Views/Accounting/SalesSummaryView.xaml`<br>`src/MerchSys.App/Views/Accounting/SalesSummaryView.xaml.vb` | `SalesSummaryView` | Sales Summary View. Displays daily/weekly/monthly sales breakdowns by payment method with KPI summary cards and "What This Means" interpretation. | `SalesSummaryViewModel` (Constructor Injection) |
+| `src/MerchSys.App/Views/Accounting/VatReturnView.xaml`<br>`src/MerchSys.App/Views/Accounting/VatReturnView.xaml.vb` | `VatReturnView` | Manager-only BIR VAT reporting interface. Supports generation, locking, and export of Forms 2550M/Q and 2551Q. | `VatReturnViewModel` (Constructor Injection) |
 
 ## Inventory Views
 

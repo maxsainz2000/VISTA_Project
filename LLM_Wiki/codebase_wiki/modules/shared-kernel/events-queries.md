@@ -29,3 +29,4 @@ last-updated: 2026-05-10
 | `Queries/GetTotalARQuery.vb` | `GetTotalARQuery` | `Decimal` | N/A | POS |
 | `Queries/GetTotalAPQuery.vb` | `GetTotalAPQuery` | `Decimal` | N/A | Purchasing |
 | `Queries/GetLowStockAlertCountQuery.vb` | `GetLowStockAlertCountQuery` | `Integer` | N/A | Inventory |
+| `Queries/GetVatConfigurationQuery.vb` | `GetVatConfigurationQuery` | `GetVatConfigurationResult` | N/A | POS |

@@ -14,3 +14,4 @@ This page details the MediatR Handlers for the **MerchSys.POS** module.
 | File Path | Class | Handles | Responsibilities |
 |---|---|---|---|
 | `src/MerchSys.POS/Handlers/GetTotalARQueryHandler.vb` | `GetTotalARQueryHandler` | `GetTotalARQuery` | Sums `CreditAccount.CurrentBalance` across all non-deleted accounts to provide total AR for Accounting. |
+| `src/MerchSys.POS/Handlers/GetVatConfigurationQueryHandler.vb` | `GetVatConfigurationQueryHandler` | `GetVatConfigurationQuery` | Provides VAT registration status and tax rates for reporting logic. |

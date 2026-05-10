@@ -16,4 +16,10 @@
     <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Reports\Templates\Form2550M.template" />
+    <EmbeddedResource Include="Reports\Templates\Form2550Q.template" />
+    <EmbeddedResource Include="Reports\Templates\Form2551Q.template" />
+  </ItemGroup>
+
 </Project>

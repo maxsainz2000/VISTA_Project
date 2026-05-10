@@ -23,9 +23,11 @@ Namespace Data
                 ApplyIfPending(conn, "20260507100004_InitialAccounting", AddressOf ApplyAccounting)
                 ApplyIfPending(conn, "20260509100003_AddStockMovement", AddressOf ApplyStockMovement)
                 ApplyIfPending(conn, "20260509100004_AddStockAuditRecords", AddressOf ApplyStockAuditRecords)
+                ApplyIfPending(conn, "20260510100000_AddVatLedgerColumns", AddressOf ApplyVatLedgerColumns)
                 ApplyIfPending(conn, "20260510100005_AddSyncJournal", AddressOf ApplySyncJournal)
                 ApplyIfPending(conn, "20260510120000_AddBirRetentionConstraints", AddressOf ApplyBirRetentionConstraints)
                 ApplyIfPending(conn, "20260514100000_AddVatThreeBucketColumns", AddressOf ApplyVatThreeBucketColumns)
+                ApplyIfPending(conn, "20260515100000_FixVatReturnAmendedIndex", AddressOf ApplyFixVatReturnAmendedIndex)
             End Using
         End Sub
 
@@ -741,6 +743,102 @@ Namespace Data
                 "BEGIN " &
                 "SELECT RAISE(ABORT, 'BIR-immutable'); " &
                 "END")
+        End Sub
+
+        ' ── VAT Ledger Columns & Return Tables (20260510100000) ─────────────────
+
+        Private Sub ApplyVatLedgerColumns(conn As SqliteConnection)
+            ' Add BIR three-bucket VAT columns to Acc_RevenueRecords
+            Exec(conn, "ALTER TABLE ""Acc_RevenueRecords"" ADD COLUMN ""VatableAmount"" TEXT NOT NULL DEFAULT '0'")
+            Exec(conn, "ALTER TABLE ""Acc_RevenueRecords"" ADD COLUMN ""VatExemptAmount"" TEXT NOT NULL DEFAULT '0'")
+            Exec(conn, "ALTER TABLE ""Acc_RevenueRecords"" ADD COLUMN ""ZeroRatedAmount"" TEXT NOT NULL DEFAULT '0'")
+            Exec(conn, "ALTER TABLE ""Acc_RevenueRecords"" ADD COLUMN ""OutputVat"" TEXT NOT NULL DEFAULT '0'")
+            Exec(conn, "ALTER TABLE ""Acc_RevenueRecords"" ADD COLUMN ""InputVat"" TEXT NOT NULL DEFAULT '0'")
+            Exec(conn, "ALTER TABLE ""Acc_RevenueRecords"" ADD COLUMN ""VatTreatment"" INTEGER NOT NULL DEFAULT 0")
+            Exec(conn, "UPDATE ""Acc_RevenueRecords"" SET ""VatableAmount"" = ""NetAmount"" WHERE ""VatableAmount"" = '0'")
+
+            ' Add BIR three-bucket VAT columns to Acc_ExpenseRecords
+            Exec(conn, "ALTER TABLE ""Acc_ExpenseRecords"" ADD COLUMN ""VatableAmount"" TEXT NOT NULL DEFAULT '0'")
+            Exec(conn, "ALTER TABLE ""Acc_ExpenseRecords"" ADD COLUMN ""VatExemptAmount"" TEXT NOT NULL DEFAULT '0'")
+            Exec(conn, "ALTER TABLE ""Acc_ExpenseRecords"" ADD COLUMN ""ZeroRatedAmount"" TEXT NOT NULL DEFAULT '0'")
+            Exec(conn, "ALTER TABLE ""Acc_ExpenseRecords"" ADD COLUMN ""OutputVat"" TEXT NOT NULL DEFAULT '0'")
+            Exec(conn, "ALTER TABLE ""Acc_ExpenseRecords"" ADD COLUMN ""InputVat"" TEXT NOT NULL DEFAULT '0'")
+            Exec(conn, "ALTER TABLE ""Acc_ExpenseRecords"" ADD COLUMN ""VatTreatment"" INTEGER NOT NULL DEFAULT 0")
+            Exec(conn, "UPDATE ""Acc_ExpenseRecords"" SET ""VatableAmount"" = ""Amount"" WHERE ""VatableAmount"" = '0'")
+
+            ' Create Acc_VatReturns
+            Exec(conn,
+                "CREATE TABLE IF NOT EXISTS ""Acc_VatReturns"" (" &
+                """Id"" INTEGER NOT NULL CONSTRAINT ""PK_Acc_VatReturns"" PRIMARY KEY AUTOINCREMENT, " &
+                """Year"" INTEGER NOT NULL, " &
+                """Period"" INTEGER NOT NULL, " &
+                """PeriodType"" INTEGER NOT NULL, " &
+                """FormType"" INTEGER NOT NULL, " &
+                """TotalVatableSales"" TEXT NOT NULL, " &
+                """TotalVatExemptSales"" TEXT NOT NULL, " &
+                """TotalZeroRatedSales"" TEXT NOT NULL, " &
+                """TotalOutputVat"" TEXT NOT NULL, " &
+                """TotalVatablePurchases"" TEXT NOT NULL, " &
+                """TotalInputVat"" TEXT NOT NULL, " &
+                """VatPayable"" TEXT NOT NULL, " &
+                """FilingStatus"" INTEGER NOT NULL, " &
+                """FiledAt"" TEXT NULL, " &
+                """FiledBy"" TEXT NULL, " &
+                """GeneratedAt"" TEXT NOT NULL, " &
+                """IsVatRegisteredSnapshot"" INTEGER NOT NULL, " &
+                """CreatedBy"" TEXT NULL, " &
+                """CreatedAt"" TEXT NOT NULL, " &
+                """ModifiedBy"" TEXT NULL, " &
+                """ModifiedAt"" TEXT NULL" &
+                ")")
+
+            Exec(conn,
+                "CREATE UNIQUE INDEX IF NOT EXISTS ""IX_Acc_VatReturns_Year_Period_PeriodType_FormType"" " &
+                "ON ""Acc_VatReturns"" (""Year"", ""Period"", ""PeriodType"", ""FormType"")")
+
+            ' Create Acc_VatReturnLines
+            Exec(conn,
+                "CREATE TABLE IF NOT EXISTS ""Acc_VatReturnLines"" (" &
+                """Id"" INTEGER NOT NULL CONSTRAINT ""PK_Acc_VatReturnLines"" PRIMARY KEY AUTOINCREMENT, " &
+                """VatReturnId"" INTEGER NOT NULL, " &
+                """SourceModule"" TEXT NOT NULL, " &
+                """SourceTable"" TEXT NOT NULL, " &
+                """SourceRowId"" INTEGER NOT NULL, " &
+                """TransactionDate"" TEXT NOT NULL, " &
+                """VatableAmount"" TEXT NOT NULL, " &
+                """VatExemptAmount"" TEXT NOT NULL, " &
+                """ZeroRatedAmount"" TEXT NOT NULL, " &
+                """OutputVat"" TEXT NOT NULL, " &
+                """InputVat"" TEXT NOT NULL, " &
+                """Treatment"" INTEGER NOT NULL, " &
+                """CreatedBy"" TEXT NULL, " &
+                """CreatedAt"" TEXT NOT NULL, " &
+                """ModifiedBy"" TEXT NULL, " &
+                """ModifiedAt"" TEXT NULL, " &
+                "CONSTRAINT ""FK_Acc_VatReturnLines_Acc_VatReturns_VatReturnId"" " &
+                "FOREIGN KEY (""VatReturnId"") REFERENCES ""Acc_VatReturns"" (""Id"") ON DELETE CASCADE" &
+                ")")
+
+            Exec(conn,
+                "CREATE INDEX IF NOT EXISTS ""IX_Acc_VatReturnLines_VatReturnId"" " &
+                "ON ""Acc_VatReturnLines"" (""VatReturnId"")")
+
+            Exec(conn,
+                "CREATE INDEX IF NOT EXISTS ""IX_Acc_VatReturnLines_SourceModule_SourceTable_SourceRowId"" " &
+                "ON ""Acc_VatReturnLines"" (""SourceModule"", ""SourceTable"", ""SourceRowId"")")
+        End Sub
+
+        ' ── Fix VAT Return Amended Index (20260515100000) ─────────────────────────
+
+        Private Sub ApplyFixVatReturnAmendedIndex(conn As SqliteConnection)
+            ' Replace the full unique index with a partial one that excludes Amended rows
+            ' (FilingStatus = 3), allowing AmendReturnAsync to create a second row
+            ' for the same period without a constraint violation.
+            Exec(conn, "DROP INDEX IF EXISTS ""IX_Acc_VatReturns_Year_Period_PeriodType_FormType""")
+            Exec(conn,
+                "CREATE UNIQUE INDEX IF NOT EXISTS ""IX_Acc_VatReturns_Year_Period_PeriodType_FormType_Active"" " &
+                "ON ""Acc_VatReturns"" (""Year"", ""Period"", ""PeriodType"", ""FormType"") " &
+                "WHERE ""FilingStatus"" != 3")
         End Sub
 
         ' ── VAT Three-Bucket Columns (20260514100000) ─────────────────────────

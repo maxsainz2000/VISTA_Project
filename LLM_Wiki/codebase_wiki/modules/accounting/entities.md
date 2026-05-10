@@ -19,6 +19,7 @@ This page details the Entities for the **MerchSys.Accounting** module.
 | `src/MerchSys.Accounting/Entities/FinancialSnapshot.vb` | `FinancialSnapshot` | `AuditableEntity` | Point-in-time KPI cache for AR, AP, and inventory valuation. |
 | `src/MerchSys.Accounting/Entities/VatReturn.vb` | `VatReturn` | `AuditableEntity` | Header for monthly/quarterly VAT or Percentage Tax filing periods. |
 | `src/MerchSys.Accounting/Entities/VatReturnLine.vb` | `VatReturnLine` | `AuditableEntity` | Audit traceability linking VAT return buckets to source ledger rows. |
+| `src/MerchSys.Accounting/Exceptions/VatReturnLockedException.vb` | `VatReturnLockedException` | `InvalidOperationException` | Exception thrown when attempting to generate or modify a VAT return for a locked/filed period. |
 
 > [!NOTE]
 > **Ledger VAT Extensions:** `RevenueRecord` and `ExpenseRecord` are extended via partial classes in `Entities/Extensions/LedgerVatExtensions.vb` to include BIR-compliant VAT columns without modifying the original source files.

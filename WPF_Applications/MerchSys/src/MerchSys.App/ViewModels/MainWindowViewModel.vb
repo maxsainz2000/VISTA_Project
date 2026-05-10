@@ -3,6 +3,8 @@ Imports CommunityToolkit.Mvvm.ComponentModel
 Imports CommunityToolkit.Mvvm.Input
 Imports Microsoft.Extensions.DependencyInjection
 Imports MerchSys.App.Models
+Imports MerchSys.SharedKernel.Enums
+Imports MerchSys.SharedKernel.Interfaces
 
 Namespace ViewModels
 
@@ -10,6 +12,7 @@ Namespace ViewModels
         Inherits ObservableObject
 
         Private ReadOnly _services As IServiceProvider
+        Private ReadOnly _session As ISessionService
         Private _activeItem As NavigationItem
 
         Private _currentView As Object
@@ -25,8 +28,9 @@ Namespace ViewModels
         Public ReadOnly Property NavigationGroups As ObservableCollection(Of NavigationGroup)
         Public ReadOnly Property NavigateCommand As RelayCommand(Of NavigationItem)
 
-        Public Sub New(services As IServiceProvider)
+        Public Sub New(services As IServiceProvider, session As ISessionService)
             _services = services
+            _session = session
             NavigationGroups = BuildNavigationGroups()
             NavigateCommand = New RelayCommand(Of NavigationItem)(AddressOf Navigate)
         End Sub
@@ -67,12 +71,21 @@ Namespace ViewModels
                     New NavigationItem With {.DisplayName = "Expiry Monitor", .ViewType = GetType(Views.Inventory.ExpiryMonitorView)},
                     New NavigationItem With {.DisplayName = "Shrinkage", .ViewType = GetType(Views.Inventory.ShrinkageView)}
                 }),
-                New NavigationGroup("Accounting", New List(Of NavigationItem) From {
-                    New NavigationItem With {.DisplayName = "Financial Overview", .ViewType = GetType(Views.Accounting.FinancialOverviewView)},
-                    New NavigationItem With {.DisplayName = "Income Statement", .ViewType = GetType(Views.Accounting.IncomeStatementView)},
-                    New NavigationItem With {.DisplayName = "Sales Summary", .ViewType = GetType(Views.Accounting.SalesSummaryView)}
-                })
+                New NavigationGroup("Accounting", BuildAccountingNavItems())
             }
+        End Function
+
+        Private Function BuildAccountingNavItems() As List(Of NavigationItem)
+            Dim items As New List(Of NavigationItem) From {
+                New NavigationItem With {.DisplayName = "Financial Overview", .ViewType = GetType(Views.Accounting.FinancialOverviewView)},
+                New NavigationItem With {.DisplayName = "Income Statement", .ViewType = GetType(Views.Accounting.IncomeStatementView)},
+                New NavigationItem With {.DisplayName = "Sales Summary", .ViewType = GetType(Views.Accounting.SalesSummaryView)}
+            }
+            ' VAT Return is Manager-only; Owner role is read-only KPI/report access only
+            If _session.CurrentRole = UserRole.Manager Then
+                items.Add(New NavigationItem With {.DisplayName = "VAT Return (BIR)", .ViewType = GetType(Views.Accounting.VatReturnView)})
+            End If
+            Return items
         End Function
 
     End Class

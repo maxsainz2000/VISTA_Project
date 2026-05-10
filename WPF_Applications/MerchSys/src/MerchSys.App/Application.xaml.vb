@@ -82,9 +82,12 @@ Class Application
                                       services.AddScoped(Of IIncomeStatementService, IncomeStatementService)()
                                       services.AddScoped(Of ISalesSummaryService, SalesSummaryService)()
                                       services.AddScoped(Of IWhatThisMeansService, WhatThisMeansService)()
+                                      services.AddScoped(Of IVatReportingService, VatReportingService)()
+                                      services.AddScoped(Of IVatReturnExporter, VatReturnExporter)()
                                       services.AddTransient(Of FinancialOverviewViewModel)()
                                       services.AddTransient(Of IncomeStatementViewModel)()
                                       services.AddTransient(Of SalesSummaryViewModel)()
+                                      services.AddTransient(Of VatReturnViewModel)()
 
                                       ' ── Views (UserControls) ──────────────────────────────
                                       services.AddTransient(Of Views.POS.SalesCartView)()
@@ -103,6 +106,7 @@ Class Application
                                       services.AddTransient(Of Views.Accounting.FinancialOverviewView)()
                                       services.AddTransient(Of Views.Accounting.IncomeStatementView)()
                                       services.AddTransient(Of Views.Accounting.SalesSummaryView)()
+                                      services.AddTransient(Of Views.Accounting.VatReturnView)()
 
                                       ' ── Shell ─────────────────────────────────────────────
                                       services.AddSingleton(Of MainWindowViewModel)()

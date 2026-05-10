@@ -63,9 +63,12 @@ This page documents the composition root in `MerchSys.App`.
 | `IIncomeStatementService` | `IncomeStatementService` | Scoped |
 | `ISalesSummaryService` | `SalesSummaryService` | Scoped |
 | `IWhatThisMeansService` | `WhatThisMeansService` | Scoped |
+| `IVatReportingService` | `VatReportingService` | Scoped |
+| `IVatReturnExporter` | `VatReturnExporter` | Scoped |
 | (none) | `FinancialOverviewViewModel` | Transient |
 | (none) | `IncomeStatementViewModel` | Transient |
 | (none) | `SalesSummaryViewModel` | Transient |
+| (none) | `VatReturnViewModel` | Transient |
 
 ## Views (UserControls)
 | View | Module | Lifetime |
@@ -86,6 +89,7 @@ This page documents the composition root in `MerchSys.App`.
 | `FinancialOverviewView` | Accounting | Transient |
 | `IncomeStatementView` | Accounting | Transient |
 | `SalesSummaryView` | Accounting | Transient |
+| `VatReturnView` | Accounting | Transient |
 
 ## Shell Components
 | Class | Lifetime | Description |

@@ -1,0 +1,37 @@
+BIR FORM 2550M — Monthly Value-Added Tax Declaration
+{{BusinessName}}
+TIN: {{BusinessTIN}}
+Period: {{PeriodDescription}}
+Generated: {{GeneratedAt}}
+Filing Status: {{FilingStatus}}
+================================================================================
+
+PART II: COMPUTATION OF TAX
+
+Sales/Receipts and Output Tax:
+  Line  1  Taxable Sales/Receipts (Net of VAT)         {{TotalVatableSales}}
+  Line  2  Zero-Rated Sales/Receipts                   {{TotalZeroRatedSales}}
+  Line  3  Exempt Sales/Receipts                       {{TotalVatExemptSales}}
+  Line  4  Total Gross Sales/Receipts                  {{TotalGrossSales}}
+  Line  5  Output Tax (12% of Line 1)                  {{TotalOutputVat}}
+  Line  6  Adjustments to Output Tax                   0.00
+  Line  7  Total Output Tax (Line 5 + Line 6)          {{TotalOutputVat}}
+
+Input Tax:
+  Line  8  Input Tax Carried Over from Previous Period 0.00
+  Line  9  Input Tax on Domestic Purchases             {{TotalInputVat}}
+  Line 10  Total Allowable Input Tax (Line 8 + Line 9) {{TotalInputVat}}
+
+Net VAT:
+  Line 11  VAT Payable/(Creditable) (Line 7 - Line 10) {{VatPayable}}
+
+Interest, Surcharge & Penalty:
+  Line 12  Surcharge                                   0.00
+  Line 13  Interest                                    0.00
+  Line 14  Compromise                                  0.00
+
+  Line 23  TOTAL AMOUNT DUE                            {{VatPayable}}
+
+================================================================================
+Filing Deadline: {{FilingDeadline}}
+{{WhatThisMeans}}

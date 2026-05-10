@@ -16,3 +16,4 @@ This page details the Views for the **MerchSys.Accounting** module.
 | `src/MerchSys.App/Views/Accounting/FinancialOverviewView.xaml` | `FinancialOverviewView` | `.xaml.vb` | Dashboard displaying KPIs, 6-month trends, top products, and actionable alerts. |
 | `src/MerchSys.App/Views/Accounting/IncomeStatementView.xaml` | `IncomeStatementView` | `.xaml.vb` | Displays the P&L statement supporting monthly, quarterly, and annual periods. |
 | `src/MerchSys.App/Views/Accounting/SalesSummaryView.xaml` | `SalesSummaryView` | `.xaml.vb` | Shows sales breakdown by payment method and daily performance over selected periods. |
+| `src/MerchSys.App/Views/Accounting/VatReturnView.xaml` | `VatReturnView` | `.xaml.vb` | Manager-only BIR VAT reporting interface. Supports generation, locking, and export of Forms 2550M/Q and 2551Q. |

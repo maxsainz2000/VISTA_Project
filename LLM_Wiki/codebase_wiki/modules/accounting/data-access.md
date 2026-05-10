@@ -28,5 +28,6 @@ This page details the Data Access layer for the **MerchSys.Accounting** module. 
 | `src/MerchSys.Accounting/Data/Configurations/VatReturnMap.vb` | `VatReturn` / `Acc_VatReturns`<br>`VatReturnLine` / `Acc_VatReturnLines` | Configures VAT return headers (composite unique index) and audit lines (cascade delete). |
 | `src/MerchSys.Accounting/Migrations/20260507100004_InitialAccounting.vb` | `InitialAccounting` | Manual EF Core migration (Sqlite) for 4 Accounting tables. |
 | `src/MerchSys.Accounting/Migrations/20260510100000_AddVatLedgerColumns.vb` | `AddVatLedgerColumns` | Manual migration adding 6 VAT columns to ledger tables and creating VAT return tables. |
+| `src/MerchSys.Accounting/Migrations/20260515100000_FixVatReturnAmendedIndex.vb` | `FixVatReturnAmendedIndex` | Replaces full unique index with partial unique index to allow amended returns. |
 | `src/MerchSys.Accounting/Migrations/AccountingDbContextModelSnapshot.vb` | `AccountingDbContextModelSnapshot` | EF Core model snapshot for the Accounting module. |
 
