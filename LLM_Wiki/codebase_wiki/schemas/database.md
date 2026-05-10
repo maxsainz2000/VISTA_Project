@@ -52,6 +52,12 @@ This page maps the EF Core entities across all modules to their SQLite/MariaDB t
 | `RevenueRecord` | `Acc_RevenueRecords` | PK `Id`, Index on `RecordDate`, Index on `ProductId` |
 | `ExpenseRecord` | `Acc_ExpenseRecords` | PK `Id` |
 | `FinancialSnapshot` | `Acc_FinancialSnapshots` | PK `Id`, Unique Index on `SnapshotDate` |
+| `VatReturn` | `Acc_VatReturns` | PK `Id`, Unique Index on `(Year, Period, PeriodType, FormType)` |
+| `VatReturnLine` | `Acc_VatReturnLines` | PK `Id`, FK `VatReturnId`, Index on `(SourceModule, SourceTable, SourceRowId)` |
+
+> [!NOTE]
+> **Ledger VAT Columns:** `Acc_RevenueRecords` and `Acc_ExpenseRecords` tables carry six additional columns for BIR compliance: `VatableAmount`, `VatExemptAmount`, `ZeroRatedAmount`, `OutputVat`, `InputVat`, and `VatTreatment`. These were added via migration `AddVatLedgerColumns` (ACC-10).
+
 
 ## Infrastructure / Shared (`Sync_` prefix)
 | Entity | DB Table | Key Constraints |

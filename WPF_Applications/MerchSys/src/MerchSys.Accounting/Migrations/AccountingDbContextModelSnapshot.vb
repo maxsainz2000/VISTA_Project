@@ -32,10 +32,16 @@ Namespace Migrations
                 b.Property(Of String)("Description").
                     HasMaxLength(500).
                     HasColumnType("TEXT")
+                b.Property(Of Decimal)("InputVat").
+                    HasPrecision(18, 2).
+                    HasColumnType("TEXT")
                 b.Property(Of DateTime?)("ModifiedAt").
                     HasColumnType("TEXT")
                 b.Property(Of String)("ModifiedBy").
                     HasMaxLength(256).
+                    HasColumnType("TEXT")
+                b.Property(Of Decimal)("OutputVat").
+                    HasPrecision(18, 2).
                     HasColumnType("TEXT")
                 b.Property(Of DateTime)("RecordDate").
                     HasColumnType("TEXT")
@@ -45,6 +51,17 @@ Namespace Migrations
                     HasColumnType("TEXT")
                 b.Property(Of Integer?)("SourceReferenceId").
                     HasColumnType("INTEGER")
+                b.Property(Of Integer)("VatTreatment").
+                    HasColumnType("INTEGER")
+                b.Property(Of Decimal)("VatableAmount").
+                    HasPrecision(18, 2).
+                    HasColumnType("TEXT")
+                b.Property(Of Decimal)("VatExemptAmount").
+                    HasPrecision(18, 2).
+                    HasColumnType("TEXT")
+                b.Property(Of Decimal)("ZeroRatedAmount").
+                    HasPrecision(18, 2).
+                    HasColumnType("TEXT")
                 b.HasKey("Id")
                 b.ToTable("Acc_ExpenseRecords")
             End Sub)
@@ -155,12 +172,18 @@ Namespace Migrations
                 b.Property(Of Decimal)("GrossProfit").
                     HasPrecision(18, 2).
                     HasColumnType("TEXT")
+                b.Property(Of Decimal)("InputVat").
+                    HasPrecision(18, 2).
+                    HasColumnType("TEXT")
                 b.Property(Of DateTime?)("ModifiedAt").
                     HasColumnType("TEXT")
                 b.Property(Of String)("ModifiedBy").
                     HasMaxLength(256).
                     HasColumnType("TEXT")
                 b.Property(Of Decimal)("NetAmount").
+                    HasPrecision(18, 2).
+                    HasColumnType("TEXT")
+                b.Property(Of Decimal)("OutputVat").
                     HasPrecision(18, 2).
                     HasColumnType("TEXT")
                 b.Property(Of Integer)("PaymentMethod").
@@ -180,11 +203,146 @@ Namespace Migrations
                 b.Property(Of Decimal)("VatAmount").
                     HasPrecision(18, 2).
                     HasColumnType("TEXT")
+                b.Property(Of Integer)("VatTreatment").
+                    HasColumnType("INTEGER")
+                b.Property(Of Decimal)("VatableAmount").
+                    HasPrecision(18, 2).
+                    HasColumnType("TEXT")
+                b.Property(Of Decimal)("VatExemptAmount").
+                    HasPrecision(18, 2).
+                    HasColumnType("TEXT")
+                b.Property(Of Decimal)("ZeroRatedAmount").
+                    HasPrecision(18, 2).
+                    HasColumnType("TEXT")
                 b.HasKey("Id")
                 b.HasIndex("ProductId")
                 b.HasIndex("RecordDate")
                 b.ToTable("Acc_RevenueRecords")
             End Sub)
+
+            modelBuilder.Entity("MerchSys.Accounting.Entities.VatReturn", Sub(b)
+                b.Property(Of Integer)("Id").
+                    ValueGeneratedOnAdd().
+                    HasColumnType("INTEGER")
+                b.Property(Of DateTime)("CreatedAt").
+                    HasColumnType("TEXT")
+                b.Property(Of String)("CreatedBy").
+                    HasMaxLength(256).
+                    HasColumnType("TEXT")
+                b.Property(Of DateTime?)("FiledAt").
+                    HasColumnType("TEXT")
+                b.Property(Of String)("FiledBy").
+                    HasMaxLength(256).
+                    HasColumnType("TEXT")
+                b.Property(Of Integer)("FilingStatus").
+                    HasColumnType("INTEGER")
+                b.Property(Of Integer)("FormType").
+                    HasColumnType("INTEGER")
+                b.Property(Of DateTime)("GeneratedAt").
+                    HasColumnType("TEXT")
+                b.Property(Of Boolean)("IsVatRegisteredSnapshot").
+                    HasColumnType("INTEGER")
+                b.Property(Of DateTime?)("ModifiedAt").
+                    HasColumnType("TEXT")
+                b.Property(Of String)("ModifiedBy").
+                    HasMaxLength(256).
+                    HasColumnType("TEXT")
+                b.Property(Of Integer)("Period").
+                    HasColumnType("INTEGER")
+                b.Property(Of Integer)("PeriodType").
+                    HasColumnType("INTEGER")
+                b.Property(Of Decimal)("TotalInputVat").
+                    HasPrecision(18, 2).
+                    HasColumnType("TEXT")
+                b.Property(Of Decimal)("TotalOutputVat").
+                    HasPrecision(18, 2).
+                    HasColumnType("TEXT")
+                b.Property(Of Decimal)("TotalVatablePurchases").
+                    HasPrecision(18, 2).
+                    HasColumnType("TEXT")
+                b.Property(Of Decimal)("TotalVatableSales").
+                    HasPrecision(18, 2).
+                    HasColumnType("TEXT")
+                b.Property(Of Decimal)("TotalVatExemptSales").
+                    HasPrecision(18, 2).
+                    HasColumnType("TEXT")
+                b.Property(Of Decimal)("TotalZeroRatedSales").
+                    HasPrecision(18, 2).
+                    HasColumnType("TEXT")
+                b.Property(Of Decimal)("VatPayable").
+                    HasPrecision(18, 2).
+                    HasColumnType("TEXT")
+                b.Property(Of Integer)("Year").
+                    HasColumnType("INTEGER")
+                b.HasKey("Id")
+                b.HasIndex({"Year", "Period", "PeriodType", "FormType"}).IsUnique()
+                b.ToTable("Acc_VatReturns")
+            End Sub)
+
+            modelBuilder.Entity("MerchSys.Accounting.Entities.VatReturnLine", Sub(b)
+                b.Property(Of Integer)("Id").
+                    ValueGeneratedOnAdd().
+                    HasColumnType("INTEGER")
+                b.Property(Of DateTime)("CreatedAt").
+                    HasColumnType("TEXT")
+                b.Property(Of String)("CreatedBy").
+                    HasMaxLength(256).
+                    HasColumnType("TEXT")
+                b.Property(Of Decimal)("InputVat").
+                    HasPrecision(18, 2).
+                    HasColumnType("TEXT")
+                b.Property(Of DateTime?)("ModifiedAt").
+                    HasColumnType("TEXT")
+                b.Property(Of String)("ModifiedBy").
+                    HasMaxLength(256).
+                    HasColumnType("TEXT")
+                b.Property(Of Decimal)("OutputVat").
+                    HasPrecision(18, 2).
+                    HasColumnType("TEXT")
+                b.Property(Of String)("SourceModule").
+                    IsRequired().
+                    HasMaxLength(50).
+                    HasColumnType("TEXT")
+                b.Property(Of Long)("SourceRowId").
+                    HasColumnType("INTEGER")
+                b.Property(Of String)("SourceTable").
+                    IsRequired().
+                    HasMaxLength(100).
+                    HasColumnType("TEXT")
+                b.Property(Of DateTime)("TransactionDate").
+                    HasColumnType("TEXT")
+                b.Property(Of Integer)("Treatment").
+                    HasColumnType("INTEGER")
+                b.Property(Of Decimal)("VatableAmount").
+                    HasPrecision(18, 2).
+                    HasColumnType("TEXT")
+                b.Property(Of Decimal)("VatExemptAmount").
+                    HasPrecision(18, 2).
+                    HasColumnType("TEXT")
+                b.Property(Of Integer)("VatReturnId").
+                    HasColumnType("INTEGER")
+                b.Property(Of Decimal)("ZeroRatedAmount").
+                    HasPrecision(18, 2).
+                    HasColumnType("TEXT")
+                b.HasKey("Id")
+                b.HasIndex("VatReturnId")
+                b.HasIndex({"SourceModule", "SourceTable", "SourceRowId"})
+                b.ToTable("Acc_VatReturnLines")
+            End Sub)
+
+            modelBuilder.Entity("MerchSys.Accounting.Entities.VatReturnLine", Sub(b)
+                b.HasOne("MerchSys.Accounting.Entities.VatReturn", "VatReturn").
+                    WithMany("Lines").
+                    HasForeignKey("VatReturnId").
+                    OnDelete(DeleteBehavior.Cascade).
+                    IsRequired()
+                b.Navigation("VatReturn")
+            End Sub)
+
+            modelBuilder.Entity("MerchSys.Accounting.Entities.VatReturn", Sub(b)
+                b.Navigation("Lines")
+            End Sub)
+
         End Sub
 
     End Class
