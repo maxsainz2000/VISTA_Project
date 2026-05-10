@@ -93,7 +93,7 @@ This page documents the composition root in `MerchSys.App`.
 ## Shared Services
 | Interface | Implementation | Lifetime |
 |---|---|---|
-| `IEventBus` | `MediatR` | Transient (by MediatR default) |
+| `IEventBus` | `MediatREventBus` | Scoped |
 | `ISessionService` | `DefaultSessionService` | Singleton |
 | (Extension) | `AddModuleDbContexts()` | Registers all module DbContexts (Scoped) |
 | (Extension) | `AddMediatRServices()` | Registers MediatR and all module handlers |

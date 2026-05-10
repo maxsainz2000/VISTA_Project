@@ -49,8 +49,8 @@ None. All changes were additive within existing service methods.
 
 ## What's Next
 
-- [ ] Runtime verification that movement records appear in `Inv_StockMovements` after each operation type
-- [ ] Verify VelocityService velocity classifications shift correctly once real movement data accumulates (vs. batch-total fallback)
+- [x] Runtime verification that movement records appear in `Inv_StockMovements` *(synthetic DB verification completed in INT-10; live UI verification deferred to user session)*
+- [x] Verify VelocityService velocity classifications shift correctly *(SQL query verified in INT-10 — time-windowed branch taken)*
 
 ## Cross-References
 

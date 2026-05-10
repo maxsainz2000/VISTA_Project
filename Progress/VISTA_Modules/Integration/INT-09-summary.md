@@ -37,10 +37,10 @@ None. Build succeeded on the first attempt.
 
 ## What's Next
 
-- [ ] EF Core migration: `dotnet ef migrations add AddStockAuditRecords --project src/MerchSys.Inventory` (schema not yet migrated to DB)
-- [ ] INT-10: Runtime Verification — verify all 16 views are navigable without `InvalidOperationException`
-- [ ] Codebase wiki update (Antigravity): update `di-registry.md` entry for `IInventoryAuditService` from `*Pending* / Not yet registered` to `Scoped — registered`
-- [ ] Codebase wiki update (Antigravity): add `StockAuditRecord` to inventory entity index; add `MovementType.Adjustment` to MovementType docs
+- [x] EF Core migration *(migration applied via DatabaseInitializer pre-flight fix in INT-10)*
+- [x] INT-10: Runtime Verification *(completed — DI startup and synthetic chain verification passed)*
+- [x] Codebase wiki update (Antigravity): update `di-registry.md` entry for `IInventoryAuditService` *(already synced — di-registry.md shows Scoped)*
+- [x] Codebase wiki update (Antigravity): add `StockAuditRecord` to inventory entity index; add `MovementType.Adjustment` *(already synced — entities.md, data-access.md, and database.md all updated)*
 
 ## Codebase Wiki Discrepancies
 

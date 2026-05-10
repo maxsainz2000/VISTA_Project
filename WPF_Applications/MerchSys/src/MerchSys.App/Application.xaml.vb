@@ -26,6 +26,9 @@ Class Application
                                       ' Infrastructure: Session
                                       services.AddSingleton(Of ISessionService, DefaultSessionService)()
 
+                                      ' Infrastructure: EventBus (MediatR adapter — required by POS services)
+                                      services.AddScoped(Of IEventBus, MediatREventBus)()
+
                                       ' Infrastructure: DbContexts
                                       services.AddModuleDbContexts()
 

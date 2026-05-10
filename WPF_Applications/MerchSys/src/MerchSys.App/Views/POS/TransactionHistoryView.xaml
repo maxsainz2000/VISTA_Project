@@ -597,8 +597,8 @@
                     </Grid>
 
                     <!-- Reason -->
-                    <TextBlock Margin="0,0,0,4">
-                        <Run Text="Reason" Style="{StaticResource FieldLabel}"/>
+                    <TextBlock Margin="0,0,0,4" FontSize="11" Foreground="#7F8C8D">
+                        <Run Text="Reason"/>
                         <Run Text=" *" Foreground="#E74C3C" FontWeight="Bold"/>
                     </TextBlock>
                     <TextBox Text="{Binding ReturnReason, UpdateSourceTrigger=PropertyChanged}"

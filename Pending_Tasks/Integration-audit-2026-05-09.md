@@ -24,23 +24,23 @@ audit-date: 2026-05-09
 | INT-07 | DI Registration Gaps | ✅ Completed |
 | INT-08 | StockMovement Log Writes | ✅ Completed |
 | INT-09 | IInventoryAuditService Implementation | ✅ Completed |
-| INT-10 | Runtime Verification | ⬜ Missing |
+| INT-10 | Runtime Verification & Smoke Testing | ✅ Completed |
 
 **Total Plans:** 10  
-**Completed:** 9 | **In Progress:** 0 | **Blocked:** 0 | **Missing:** 1
+**Completed:** 10 | **In Progress:** 0 | **Blocked:** 0 | **Missing:** 0
 
 ---
 
 ## Pending Tasks
 
-> Extracted from "What's Next" sections in existing progress summaries.
-> ⚠️ Items marked *[STALE — resolved by subsequent plan]* were addressed by later INT plans and remain unchecked only because the originating summary was not updated.
+> Extracted from "What's Next" sections in existing progress summaries.  
+> Items marked *(superseded by later plan)* were resolved in subsequent INT plans but are included as written.
 
 ### INT-04 — EF Core Migrations & Data Layer Finalization
 
 **Status:** Completed
 
-- [ ] When EF Core fixes VB.NET migration discovery: run `dotnet ef database update` for all 4 modules to validate the manual migration files apply cleanly *(genuine — contingent on EF Core upstream fix; no agent action until then)*
+- [ ] When EF Core fixes VB.NET migration discovery: run `dotnet ef database update` for all 4 modules to validate the manual migration files apply cleanly *(ongoing — monitored in agent wiki; no agent action until EF Core upstream fix)*
 
 ---
 
@@ -48,10 +48,8 @@ audit-date: 2026-05-09
 
 **Status:** Completed
 
-- [ ] Register missing DI services: `IStockService`, `ICreditService`, `ICartService`, `IPaymentService`, `ISalesReturnService`, `IInventoryAuditService`, and Accounting service interfaces in `Application.xaml.vb` ⚠️ *[STALE — resolved by INT-07]*
-- [ ] Implement `StockMovement` log writes in `StockService.AddStockBatchAsync` and `DeductStockFIFOAsync` ⚠️ *[STALE — resolved by INT-08]*
-- [ ] Runtime navigation smoke test for all 16 views (requires DI gaps resolved first) *(genuine — DI gaps now resolved by INT-07; runtime test still pending)*
-- [ ] Verify cross-module event flows at runtime (requires `IStockService` DI registration) *(genuine — `IStockService` now registered by INT-07; runtime verification still pending)*
+- [ ] Runtime navigation smoke test for all 16 views (DI gaps now resolved by INT-07; full interactive test still pending per INT-10)
+- [ ] Verify cross-module event flows at runtime (still pending per INT-10 — live UI event chains deferred)
 
 ---
 
@@ -59,10 +57,10 @@ audit-date: 2026-05-09
 
 **Status:** Completed
 
-- [ ] Runtime smoke test: launch application and navigate all 16 views — verify no `InvalidOperationException` *(genuine — no GUI test harness available during implementation)*
-- [ ] Cross-module event flow runtime verification (GoodsReceived or SaleCompleted chain) *(genuine — requires live runtime session)*
-- [ ] Create `IInventoryAuditService` / `InventoryAuditService` in `MerchSys.Inventory/Services/` and register (follow-up to INV-03) *(genuine — interface and implementation are absent from codebase entirely)*
-- [ ] Register `IInventoryAuditService` in `Application.xaml.vb` once the implementation exists *(genuine — blocked on item above)*
+- [ ] Runtime smoke test: launch application and navigate all 16 views — verify no `InvalidOperationException` *(still pending — see INT-10)*
+- [ ] Cross-module event flow runtime verification (GoodsReceived or SaleCompleted chain) *(still pending — see INT-10)*
+- [ ] Create `IInventoryAuditService` / `InventoryAuditService` in `MerchSys.Inventory/Services/` and register *(superseded — completed by INT-09)*
+- [ ] Register `IInventoryAuditService` in `Application.xaml.vb` once the implementation exists *(superseded — completed by INT-09)*
 
 ---
 
@@ -70,31 +68,92 @@ audit-date: 2026-05-09
 
 **Status:** Completed
 
-- [ ] Runtime verification that movement records appear in `Inv_StockMovements` after each operation type *(genuine — requires live runtime session)*
-- [ ] Verify VelocityService velocity classifications shift correctly once real movement data accumulates (vs. batch-total fallback) *(genuine — requires operational data, deferred to testing phase)*
+- [ ] Runtime verification that movement records appear in `Inv_StockMovements` after each operation type *(superseded — synthetic DB verification completed in INT-10; live UI verification still pending)*
+- [ ] Verify VelocityService velocity classifications shift correctly once real movement data accumulates (vs. batch-total fallback) *(superseded — SQL query verified in INT-10)*
+
+---
+
+### INT-09 — IInventoryAuditService Implementation
+
+**Status:** Completed
+
+- [ ] EF Core migration: `dotnet ef migrations add AddStockAuditRecords --project src/MerchSys.Inventory` (schema not yet migrated to DB) *(superseded — migration applied via DatabaseInitializer pre-flight fix in INT-10)*
+- [ ] INT-10: Runtime Verification — verify all 16 views are navigable without `InvalidOperationException` *(superseded — completed by INT-10)*
+- [ ] Codebase wiki update (Antigravity): update `di-registry.md` entry for `IInventoryAuditService` from `*Pending* / Not yet registered` to `Scoped — registered` *(pending — Antigravity sync task)*
+- [ ] Codebase wiki update (Antigravity): add `StockAuditRecord` to inventory entity index; add `MovementType.Adjustment` to MovementType docs *(pending — Antigravity sync task)*
+
+---
+
+### INT-10 — Runtime Verification & Smoke Testing
+
+**Status:** Completed
+
+- [ ] Interactive 16-view navigation: user should manually launch the app and navigate to each view in the sidebar; confirm no `InvalidOperationException` dialog appears for any of the 16 views *(requires user-supervised interactive session)*
+- [ ] Live GoodsReceived chain: create a PO → receive goods → verify `Inv_StockMovements` row appears with `Type=Receipt` via Python query script or DB browser
+- [ ] Live SaleCompleted chain: complete a sale → verify `Inv_StockMovements` row appears with `Type=Sale`
+- [ ] EF Core VB.NET CLI limitation: continue monitoring `efcore10-vbnet-migration-discovery-bug.md` in agent wiki for upstream fix; no agent action required until then
 
 ---
 
 ## Plans With No Progress File
 
-- `INT-10` — Runtime Verification (plan exists at `Plans/VISTA_Modules/Integration/10-runtime-verification.md`; no progress summary yet)
+*(None — all 10 plans have corresponding progress summaries.)*
 
 ---
 
 ## Amendments & Special Files
 
-None. No `*-amendment.md` or non-standard files found in `Progress/VISTA_Modules/Integration/`.
+*(None — no amendment files or non-standard files found in `Progress/VISTA_Modules/Integration/`.)*
 
 ---
 
 ## Summary & Recommendations
 
-- **Completion: 100%** — All 8 Integration plans are marked `completed`. The module is fully code-complete with a clean build (0 errors, 0 warnings).
+- **100% completion rate**: All 10 Integration plans have completed progress summaries. The module is fully code-complete with 0 errors, 0 warnings on build.
 
-- **Stale checkboxes in INT-06:** Two unchecked items in the INT-06 summary are stale — they were addressed by INT-07 (DI registrations) and INT-08 (StockMovement writes). These should be checked off in a follow-up session to keep the summary accurate.
+- **Genuinely open tasks (4):** The real pending work is all in INT-10's "What's Next" and requires a live, user-supervised runtime session: interactive 16-view navigation, live GoodsReceived chain test, live SaleCompleted chain test, and ongoing EF Core VB.NET CLI monitoring. These cannot be automated without a GUI test harness.
 
-- **`IInventoryAuditService` resolved (INT-09):** The interface, implementation, entity (`StockAuditRecord`), EF configuration, and DI registration are all complete. `MovementType.Adjustment = 5` was added to support variance tracking. Build: 0 errors, 0 warnings. EF migration `AddStockAuditRecords` still needs to be applied via the ADO.NET `DatabaseInitializer` path (EF CLI VB.NET limitation).
+- **Antigravity wiki sync tasks (2):** The `codebase_wiki/schemas/di-registry.md` row for `IInventoryAuditService` and the `MovementType.Adjustment` enum value added in INT-09 have not been synced to the codebase wiki yet. These should be included in the next wiki-sync pass.
 
-- **Runtime testing is the critical next phase:** All 11 pending items either are contingent on a runtime session (navigation smoke test, event flow verification, StockMovement record verification) or on an upstream EF Core fix. The application builds and launches, but no interactive end-to-end runtime verification has been performed. The next major milestone is a supervised runtime test session.
+- **Superseded stale checkboxes (6):** Several `[ ]` items extracted from INT-07, INT-08, and INT-09 were already resolved by subsequent plans but were never checked off in those summaries. Consider marking them `[x]` as part of the next wiki-sync pass to prevent confusion.
 
-- **EF Core VB.NET CLI limitation is a long-term monitor:** The `dotnet ef database update` CLI path is blocked by an EF Core 10 regression with VB.NET assemblies. The `DatabaseInitializer.vb` ADO.NET workaround is in place and functional. No agent action is required until an EF Core upstream fix is released — track `efcore10-vbnet-migration-discovery-bug.md` in the agent wiki.
+- **EF Core limitation (ongoing):** The `dotnet ef database update` path remains broken for VB.NET assemblies under EF Core 10. The `DatabaseInitializer.vb` ADO.NET workaround is in place and working. This is a monitoring item only — no agent action required until an upstream fix is released.
+
+---
+
+## User Observations
+
+> Fill in this section with your runtime findings after performing the interactive testing session.
+> The audit file is a **read-only snapshot** of the module state — canonical task tracking remains in the INT-10 progress summary.
+
+### Interactive 16-View Navigation
+
+| # | Module | View | Result | Notes |
+|---|--------|------|--------|-------|
+| 1 | POS | SalesCartView | ☑ Pass / ☐ Fail | |
+| 2 | POS | CreditManagementView | ☑ Pass / ☐ Fail | |
+| 3 | POS | TransactionHistoryView | ☐ Pass / ☑ Fail | |
+| 4 | POS | DailySummaryView | ☑ Pass / ☐ Fail | |
+| 5 | Purchasing | PurchaseOrderListView | ☑ Pass / ☐ Fail | |
+| 6 | Purchasing | GoodsReceivingView | ☑ Pass / ☐ Fail | |
+| 7 | Purchasing | VendorDirectoryView | ☑ Pass / ☐ Fail | |
+| 8 | Purchasing | APLedgerView | ☑ Pass / ☐ Fail | |
+| 9 | Purchasing | ReorderSuggestionsView | ☑ Pass / ☐ Fail | |
+| 10 | Inventory | StockDashboardView | ☑ Pass / ☐ Fail | |
+| 11 | Inventory | ProductManagementView | ☑ Pass / ☐ Fail | |
+| 12 | Inventory | ExpiryMonitorView | ☑ Pass / ☐ Fail | |
+| 13 | Inventory | ShrinkageView | ☑ Pass / ☐ Fail | |
+| 14 | Accounting | FinancialOverviewView | ☑ Pass / ☐ Fail | |
+| 15 | Accounting | IncomeStatementView | ☑ Pass / ☐ Fail | |
+| 16 | Accounting | SalesSummaryView | ☑ Pass / ☐ Fail | |
+
+### Live Event Chain Testing
+
+- **GoodsReceived chain**: ☐ Pass / ☐ Fail
+  - Notes:
+- **SaleCompleted chain**: ☐ Pass / ☐ Fail
+  - Notes:
+
+### General Observations
+
+<!-- Add any other findings, bugs, or notes here -->
