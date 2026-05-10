@@ -20,7 +20,7 @@ Configures the `PurchasingDbContext` with EF Core entity configurations for all 
 | `src/MerchSys.Purchasing/Data/PurchasingDbContext.vb` | `PurchasingDbContext` | Contains DbSets: `Vendors`, `PurchaseOrders`, `PurchaseOrderLines`, `GoodsReceipts`, `GoodsReceiptLines`, `AccountsPayableEntries`, `ReorderConfigs`, `ReorderSuggestions`, `PriceChangeAlerts`. |
 | `src/MerchSys.Purchasing/Data/PurchasingDbContextFactory.vb` | `PurchasingDbContextFactory` | `IDesignTimeDbContextFactory(Of PurchasingDbContext)` implementation for EF CLI design-time support. |
 | `src/MerchSys.Purchasing/Data/Configurations/VendorConfiguration.vb` | `VendorConfiguration` | Table: `Pur_Vendors`. Unique index on Name, cascade Restrict to PurchaseOrders. |
-| `src/MerchSys.Purchasing/Data/Configurations/PurchaseOrderConfiguration.vb" | `PurchaseOrderConfiguration` | Table: `Pur_PurchaseOrders`. Unique index on OrderNumber, cascade delete to Lines and GoodsReceipts. |
+| `src/MerchSys.Purchasing/Data/Configurations/PurchaseOrderConfiguration.vb` | `PurchaseOrderConfiguration` | Table: `Pur_PurchaseOrders`. Unique index on OrderNumber, cascade delete to Lines and GoodsReceipts. |
 | `src/MerchSys.Purchasing/Data/Configurations/PurchaseOrderLineConfiguration.vb` | `PurchaseOrderLineConfiguration` | Table: `Pur_PurchaseOrderLines`. UnitCost precision(18,4), LineTotal precision(18,2). |
 | `src/MerchSys.Purchasing/Data/Configurations/GoodsReceiptConfiguration.vb` | `GoodsReceiptConfiguration` | Table: `Pur_GoodsReceipts`. Unique index on ReceiptNumber, cascade delete to Lines. |
 | `src/MerchSys.Purchasing/Data/Configurations/GoodsReceiptLineConfiguration.vb` | `GoodsReceiptLineConfiguration` | Table: `Pur_GoodsReceiptLines`. UnitCost precision(18,4). |

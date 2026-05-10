@@ -1,7 +1,8 @@
 ---
 type: module-index
 module: MerchSys.SharedKernel
-last-updated: 2026-05-09
+last-updated: 2026-05-10
+last-audited: 2026-05-10
 plans-completed: [INFRA-02, INT-05]
 file-count: 20
 ---
