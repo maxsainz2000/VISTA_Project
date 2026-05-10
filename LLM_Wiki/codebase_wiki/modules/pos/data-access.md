@@ -18,7 +18,8 @@ This page details the Data Access layer for the **MerchSys.POS** module. Provide
 
 | File Path | Class / Interface | Responsibilities / Notes |
 |---|---|---|
-| `src/MerchSys.POS/Data/POSDbContext.vb` | `POSDbContext` | Entry point for persistence; exposes DbSets for `CreditAccounts`, `SalesTransactions`, `SalesTransactionLines`, `OfficialReceipts`, `CreditPayments`, `SalesReturns`. |
+| `src/MerchSys.POS/Data/POSDbContext.vb` | `POSDbContext` | Entry point for persistence; exposes DbSets for `CreditAccounts`, `SalesTransactions`, `SalesTransactionLines`, `OfficialReceipts`, `CreditPayments`, `SalesReturns`, `ReceiptIntegrity`, `ReceiptSequence`, `OfficialReceiptArchive`. |
+| `src/MerchSys.POS/Data/Interceptors/ImmutableReceiptInterceptor.vb` | `ImmutableReceiptInterceptor` | `SaveChangesInterceptor` | Blocks UPDATE/DELETE operations on receipts to ensure BIR compliance. |
 | `src/MerchSys.POS/Data/POSDbContextFactory.vb` | `POSDbContextFactory` | `IDesignTimeDbContextFactory(Of POSDbContext)` implementation for EF CLI design-time support. |
 | `src/MerchSys.POS/Data/Configurations/CreditAccountConfiguration.vb` | `CreditAccountConfiguration` | Configures `CreditAccount` entity. |
 | `src/MerchSys.POS/Data/Configurations/CreditPaymentConfiguration.vb` | `CreditPaymentConfiguration` | Configures `CreditPayment` entity. |
@@ -26,6 +27,11 @@ This page details the Data Access layer for the **MerchSys.POS** module. Provide
 | `src/MerchSys.POS/Data/Configurations/SalesReturnConfiguration.vb` | `SalesReturnConfiguration` | Configures `SalesReturn` entity. |
 | `src/MerchSys.POS/Data/Configurations/SalesTransactionConfiguration.vb` | `SalesTransactionConfiguration` | Configures `SalesTransaction` entity. |
 | `src/MerchSys.POS/Data/Configurations/SalesTransactionLineConfiguration.vb` | `SalesTransactionLineConfiguration` | Configures `SalesTransactionLine` entity. |
+| `src/MerchSys.POS/Data/Configurations/ReceiptIntegrityConfiguration.vb` | `ReceiptIntegrityConfiguration` | Configures `ReceiptIntegrity` entity. |
+| `src/MerchSys.POS/Data/Configurations/ReceiptSequenceConfiguration.vb` | `ReceiptSequenceConfiguration` | Configures `ReceiptSequence` entity. |
+| `src/MerchSys.POS/Data/Configurations/OfficialReceiptArchiveConfiguration.vb` | `OfficialReceiptArchiveConfiguration` | Configures `OfficialReceiptArchive` entity. |
 | `src/MerchSys.POS/Data/SeedData/POSSeedData.vb` | `POSSeedData` | Contains initial seed data for the POS module. |
 | `src/MerchSys.POS/Migrations/20260507100003_InitialPOS.vb` | `InitialPOS` | Manual EF Core migration (Sqlite) for 6 POS tables and seed data. |
+| `src/MerchSys.POS/Migrations/20260510120000_AddBirRetentionConstraints.vb` | `AddBirRetentionConstraints` | Manual EF Core migration for BIR compliance tables and SQLite triggers. |
 | `src/MerchSys.POS/Migrations/POSDbContextModelSnapshot.vb` | `POSDbContextModelSnapshot` | EF Core model snapshot for the POS module. |
+| `src/MerchSys.POS/Tests/Pos.SequenceConcurrencyHarness.vb` | `Pos.SequenceConcurrencyHarness` | Debug-only harness for stress-testing gap-free sequence generation. |

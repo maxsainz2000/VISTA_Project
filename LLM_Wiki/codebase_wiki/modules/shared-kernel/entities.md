@@ -24,3 +24,8 @@ last-updated: 2026-05-10
 | `Data/AuditInterceptor.vb` | `AuditInterceptor` | `SaveChangesInterceptor` | Intercepts saves to update IAuditable fields |
 | `Sync/SyncJournalDbContext.vb` | `SyncJournalDbContext` | `BaseDbContext` | Context for the `Sync_Journal` table. |
 | `Sync/MariaDbSyncContext.vb` | `MariaDbSyncContext` | `DbContext` (Pomelo) | Remote MariaDB context for data transmission. |
+
+## Common Exceptions
+| File Path | Class | Inherits | Description |
+|---|---|---|---|
+| `Exceptions/ImmutableEntityException.vb` | `ImmutableEntityException` | `Exception` | Thrown when attempting to modify/delete BIR-immutable records. |

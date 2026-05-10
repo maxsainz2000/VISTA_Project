@@ -209,6 +209,76 @@ Namespace Migrations
                     HasForeignKey("OriginalTransactionId").
                     IsRequired()
             End Sub)
+
+            modelBuilder.Entity("MerchSys.POS.Entities.ReceiptSequence", Sub(b)
+                b.Property(Of Integer)("Id").
+                    ValueGeneratedOnAdd().
+                    HasColumnType("INTEGER")
+                b.Property(Of DateTime)("CreatedAt").HasColumnType("TEXT")
+                b.Property(Of String)("CreatedBy").HasMaxLength(256).HasColumnType("TEXT")
+                b.Property(Of DateTime?)("ModifiedAt").HasColumnType("TEXT")
+                b.Property(Of String)("ModifiedBy").HasMaxLength(256).HasColumnType("TEXT")
+                b.Property(Of Integer)("NextValue").HasColumnType("INTEGER")
+                b.Property(Of Byte())("RowVersion").IsRequired().IsConcurrencyToken().HasColumnType("BLOB")
+                b.Property(Of Integer)("Year").HasColumnType("INTEGER")
+                b.HasKey("Id")
+                b.HasIndex("Year").IsUnique()
+                b.ToTable("Pos_ReceiptSequence")
+            End Sub)
+
+            modelBuilder.Entity("MerchSys.POS.Entities.ReceiptIntegrity", Sub(b)
+                b.Property(Of Integer)("Id").
+                    ValueGeneratedOnAdd().
+                    HasColumnType("INTEGER")
+                b.Property(Of String)("CanonicalPayload").IsRequired().HasMaxLength(8000).HasColumnType("TEXT")
+                b.Property(Of DateTime)("CreatedAt").HasColumnType("TEXT")
+                b.Property(Of String)("CreatedBy").HasMaxLength(256).HasColumnType("TEXT")
+                b.Property(Of String)("HashAlgorithm").IsRequired().HasMaxLength(20).HasColumnType("TEXT")
+                b.Property(Of String)("IntegrityHash").IsRequired().HasMaxLength(64).HasColumnType("TEXT")
+                b.Property(Of Boolean)("IsImmutable").HasColumnType("INTEGER")
+                b.Property(Of DateTime?)("ModifiedAt").HasColumnType("TEXT")
+                b.Property(Of String)("ModifiedBy").HasMaxLength(256).HasColumnType("TEXT")
+                b.Property(Of String)("PreviousHash").IsRequired().HasMaxLength(64).HasColumnType("TEXT")
+                b.Property(Of Integer)("ReceiptId").HasColumnType("INTEGER")
+                b.Property(Of DateTime)("RetentionExpiresAt").HasColumnType("TEXT")
+                b.HasKey("Id")
+                b.HasIndex("ReceiptId").IsUnique()
+                b.HasIndex("RetentionExpiresAt")
+                b.ToTable("Pos_ReceiptIntegrity")
+            End Sub)
+
+            modelBuilder.Entity("MerchSys.POS.Entities.OfficialReceiptArchive", Sub(b)
+                b.Property(Of Integer)("Id").
+                    ValueGeneratedOnAdd().
+                    HasColumnType("INTEGER")
+                b.Property(Of String)("ArchivedHash").IsRequired().HasMaxLength(64).HasColumnType("TEXT")
+                b.Property(Of DateTime)("ArchivedAt").HasColumnType("TEXT")
+                b.Property(Of String)("BusinessAddress").HasMaxLength(500).HasColumnType("TEXT")
+                b.Property(Of String)("BusinessName").IsRequired().HasMaxLength(200).HasColumnType("TEXT")
+                b.Property(Of String)("BusinessTIN").HasMaxLength(50).HasColumnType("TEXT")
+                b.Property(Of DateTime)("CreatedAt").HasColumnType("TEXT")
+                b.Property(Of String)("CreatedBy").HasMaxLength(256).HasColumnType("TEXT")
+                b.Property(Of DateTime)("IssueDate").HasColumnType("TEXT")
+                b.Property(Of Boolean)("IsVatRegistered").HasColumnType("INTEGER")
+                b.Property(Of String)("Items").HasMaxLength(4000).HasColumnType("TEXT")
+                b.Property(Of DateTime?)("ModifiedAt").HasColumnType("TEXT")
+                b.Property(Of String)("ModifiedBy").HasMaxLength(256).HasColumnType("TEXT")
+                b.Property(Of Integer)("OriginalReceiptId").HasColumnType("INTEGER")
+                b.Property(Of String)("ReceiptNumber").IsRequired().HasMaxLength(20).HasColumnType("TEXT")
+                b.Property(Of Decimal)("TotalAmount").HasPrecision(18, 2).HasColumnType("TEXT")
+                b.Property(Of Integer)("TransactionId").HasColumnType("INTEGER")
+                b.Property(Of Decimal)("VatAmount").HasPrecision(18, 2).HasColumnType("TEXT")
+                b.HasKey("Id")
+                b.HasIndex("OriginalReceiptId")
+                b.ToTable("Pos_OfficialReceiptArchive")
+            End Sub)
+
+            modelBuilder.Entity("MerchSys.POS.Entities.ReceiptIntegrity", Sub(b)
+                b.HasOne("MerchSys.POS.Entities.OfficialReceipt", "Receipt").
+                    WithOne().
+                    HasForeignKey("MerchSys.POS.Entities.ReceiptIntegrity", "ReceiptId").
+                    IsRequired()
+            End Sub)
         End Sub
 
     End Class

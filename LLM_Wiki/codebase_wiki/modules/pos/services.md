@@ -16,4 +16,5 @@ last-updated: 2026-05-10
 | `Services/ReceiptService.vb`| `IReceiptService` / `ReceiptService` | `GenerateReceiptAsync()`, `GetReceiptAsync()`, `GetReceiptByTransactionAsync()`, `PrintReceiptAsync()` | |
 | `Services/SalesReturnService.vb` | `ISalesReturnService` / `SalesReturnService` | `ProcessReturnAsync()`, `GetReturnsForTransactionAsync()`, `GetReturnHistoryAsync()`, `GetTransactionIdsWithReturnsAsync()` | |
 | `Services/DailySummaryService.vb` | `IDailySummaryService` / `DailySummaryService` | `GetDailySummaryAsync()`, `GetWeeklySummaryAsync()`, `GetMonthlySummaryAsync()` | |
+| `src/MerchSys.POS/Services/IReceiptIntegrityService.vb`<br>`src/MerchSys.POS/Services/ReceiptIntegrityService.vb` | `IReceiptIntegrityService`<br>`ReceiptIntegrityService` | BIR-compliant hash chain generation, receipt validation, and gap-free sequence management. | `POSDbContext`, `IConfiguration`, `IMediator` |
 
