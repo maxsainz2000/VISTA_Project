@@ -15,6 +15,9 @@ last-updated: 2026-05-10
 | `Events/SaleCompletedEvent.vb` | `SaleCompletedEvent` | `INotification` | `TransactionId`, `TransactionDate`, `PaymentMethod`, `TotalAmount`, `CustomerId`, `Items` | POS |
 | `Events/ShrinkageRecordedEvent.vb`| `ShrinkageRecordedEvent`| `INotification` | `ProductId`, `ProductName`, `QuantityLost`, `UnitCost`, `TotalValue`, `Reason`, `RecordedDate` | Inventory |
 | `Events/StockReturnedEvent.vb` | `StockReturnedEvent` | `INotification` | `ReturnId`, `OriginalTransactionId`, `ReturnDate`, `ProductId`, `ProductName`, `QuantityReturned`, `UnitPrice` | POS |
+| `Events/SaleCompletedWithVatEvent.vb` | `SaleCompletedWithVatEvent` | `INotification` | `TransactionId`, `VatableSales`, `VatExemptSales`, `ZeroRatedSales`, `OutputVat`, `Items` | POS-14 |
+| `Events/GoodsReceivedWithVatEvent.vb` | `GoodsReceivedWithVatEvent` | `INotification` | `PurchaseOrderId`, `VatableInput`, `VatExemptInput`, `ZeroRatedInput`, `InputVat`, `Items` | Purchasing |
+| `Events/ReceiptTamperDetectedEvent.vb` | `ReceiptTamperDetectedEvent` | `INotification` | `ReceiptId`, `ReceiptNumber`, `ExpectedHash`, `ActualHash`, `DetectedAt` | POS-13 |
 
 ## MediatR Queries
 | File Path | Query Class | Result Type | Properties | Handled By |

@@ -28,4 +28,5 @@ last-updated: 2026-05-10
 | `Sync/SyncStatus.vb` | `SyncStatus` | `Offline`, `Probing`, `Online`, `Syncing`, `Error` |
 | `Sync/ConflictResolution.vb` | `ConflictResolution` | `LastWriteWins`, `AppendOnly`, `Reject` |
 | `Sync/ConflictResolution.vb` | `SyncAction` | `Push`, `Skip`, `Reject` |
+| `Enums/VatTreatment.vb` | `VatTreatment` | `Vatable`, `Exempt`, `ZeroRated` |
 
