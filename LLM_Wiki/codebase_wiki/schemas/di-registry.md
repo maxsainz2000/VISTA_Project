@@ -1,6 +1,6 @@
 ---
 type: schema-map
-last-updated: 2026-05-09
+last-updated: 2026-05-10
 ---
 
 # Dependency Injection Registry
@@ -94,6 +94,11 @@ This page documents the composition root in `MerchSys.App`.
 | Interface | Implementation | Lifetime |
 |---|---|---|
 | `IEventBus` | `MediatREventBus` | Scoped |
+| `INotificationService` | `DefaultNotificationService` | Singleton |
+| `ISyncProbe` | `DualConditionSyncProbe` | Singleton |
 | `ISessionService` | `DefaultSessionService` | Singleton |
+| `SyncOrchestrator` | `SyncOrchestrator` | Scoped |
+| `SyncWorker` | `SyncWorker` | Singleton (HostedService) |
+| `SyncJournalDbContext` | `SyncJournalDbContext` | Scoped |
 | (Extension) | `AddModuleDbContexts()` | Registers all module DbContexts (Scoped) |
 | (Extension) | `AddMediatRServices()` | Registers MediatR and all module handlers |

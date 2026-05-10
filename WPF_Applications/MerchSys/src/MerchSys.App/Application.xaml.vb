@@ -35,6 +35,9 @@ Class Application
                                       ' Infrastructure: MediatR (all module handler assemblies)
                                       services.AddMediatRServices()
 
+                                      ' Infrastructure: Sync worker & probe
+                                      services.AddSyncServices($"Data Source={DatabaseConfig.DatabasePath}")
+
                                       ' ── Purchasing ────────────────────────────────────────
                                       services.AddPurchasingServices()
 

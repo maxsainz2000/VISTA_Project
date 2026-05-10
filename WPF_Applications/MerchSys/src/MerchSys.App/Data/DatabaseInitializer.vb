@@ -23,6 +23,7 @@ Namespace Data
                 ApplyIfPending(conn, "20260507100004_InitialAccounting", AddressOf ApplyAccounting)
                 ApplyIfPending(conn, "20260509100003_AddStockMovement", AddressOf ApplyStockMovement)
                 ApplyIfPending(conn, "20260509100004_AddStockAuditRecords", AddressOf ApplyStockAuditRecords)
+                ApplyIfPending(conn, "20260510100005_AddSyncJournal", AddressOf ApplySyncJournal)
             End Using
         End Sub
 
@@ -562,6 +563,30 @@ Namespace Data
             Exec(conn,
                 "CREATE INDEX IF NOT EXISTS ""IX_Inv_StockAuditRecords_ProductId"" " &
                 "ON ""Inv_StockAuditRecords"" (""ProductId"")")
+        End Sub
+
+        ' ── SyncJournal (20260510100005) ─────────────────────────────────────
+
+        Private Sub ApplySyncJournal(conn As SqliteConnection)
+            Exec(conn,
+                "CREATE TABLE IF NOT EXISTS ""Sync_Journal"" (" &
+                """Id"" INTEGER NOT NULL CONSTRAINT ""PK_Sync_Journal"" PRIMARY KEY AUTOINCREMENT, " &
+                """TableName"" TEXT NOT NULL, " &
+                """RowId"" INTEGER NOT NULL, " &
+                """Operation"" TEXT NOT NULL, " &
+                """Payload"" TEXT NULL, " &
+                """AttemptCount"" INTEGER NOT NULL DEFAULT 0, " &
+                """LastError"" TEXT NULL, " &
+                """SyncedAt"" TEXT NULL, " &
+                """ModuleName"" TEXT NOT NULL, " &
+                """CreatedBy"" TEXT NULL, " &
+                """CreatedAt"" TEXT NOT NULL, " &
+                """ModifiedBy"" TEXT NULL, " &
+                """ModifiedAt"" TEXT NULL" &
+                ")")
+            Exec(conn,
+                "CREATE INDEX IF NOT EXISTS ""IX_Sync_Journal_ModuleName_SyncedAt"" " &
+                "ON ""Sync_Journal"" (""ModuleName"", ""SyncedAt"")")
         End Sub
 
         ' ── Accounting (20260507100004) ───────────────────────────────────────

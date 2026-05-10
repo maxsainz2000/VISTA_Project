@@ -1,6 +1,6 @@
 ---
 type: schema-map
-last-updated: 2026-05-09
+last-updated: 2026-05-10
 ---
 
 # Database Schema Mapping
@@ -48,4 +48,10 @@ This page maps the EF Core entities across all modules to their SQLite/MariaDB t
 | `RevenueRecord` | `Acc_RevenueRecords` | PK `Id`, Index on `RecordDate`, Index on `ProductId` |
 | `ExpenseRecord` | `Acc_ExpenseRecords` | PK `Id` |
 | `FinancialSnapshot` | `Acc_FinancialSnapshots` | PK `Id`, Unique Index on `SnapshotDate` |
+
+## Infrastructure / Shared (`Sync_` prefix)
+| Entity | DB Table | Key Constraints |
+|---|---|---|
+| `SyncJournal` | `Sync_Journal` | PK `Id`, Composite Index (`ModuleName`, `SyncedAt`) |
+
 
