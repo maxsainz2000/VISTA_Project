@@ -102,3 +102,4 @@ last-updated: YYYY-MM-DD
 | "Lint" or "Audit" | Follow `_system/workflow-lint.md` |
 | Source contradicts existing claim | Follow `_system/workflow-contradictions.md` |
 | "Does codebase_wiki directly mirrors..." | Follow `_system/workflow-code-wiki-audit.md` |
+| "What features are present in the @[LLM_Wiki/wiki] but not implemented in the @[LLM_Wiki/codebase_wiki]" | Follow `_system/workflow-feature-gap.md` |
