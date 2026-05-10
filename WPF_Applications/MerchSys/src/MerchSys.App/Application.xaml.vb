@@ -13,6 +13,7 @@ Imports MerchSys.Accounting.Services
 Imports MerchSys.Accounting.ViewModels
 Imports MerchSys.Purchasing.Extensions
 Imports MerchSys.Purchasing.ViewModels
+Imports MerchSys.Accounting.Services.Insights
 
 Class Application
 
@@ -78,7 +79,15 @@ Class Application
                                       services.AddTransient(Of DailySummaryViewModel)()
 
                                       ' ── Accounting ────────────────────────────────────────
-                                      services.AddScoped(Of IFinancialOverviewService, FinancialOverviewService)()
+                                      ' ACC-12: register concrete FinancialOverviewService so the decorator can resolve it
+                                      services.AddScoped(Of FinancialOverviewService)()
+                                      services.AddScoped(Of IFinancialOverviewService)(Function(sp)
+                                                                                           Dim inner = sp.GetRequiredService(Of FinancialOverviewService)()
+                                                                                           Dim providers = sp.GetServices(Of IKpiProvider)()
+                                                                                           Return New VatEnrichedFinancialOverviewService(inner, providers)
+                                                                                       End Function)
+                                      services.AddScoped(Of IKpiProvider, VatPayableKpiProvider)()
+                                      services.AddScoped(Of IFinancialInsightProvider, VatPayableInsightProvider)()
                                       services.AddScoped(Of IIncomeStatementService, IncomeStatementService)()
                                       services.AddScoped(Of ISalesSummaryService, SalesSummaryService)()
                                       services.AddScoped(Of IWhatThisMeansService, WhatThisMeansService)()
@@ -107,6 +116,7 @@ Class Application
                                       services.AddTransient(Of Views.Accounting.IncomeStatementView)()
                                       services.AddTransient(Of Views.Accounting.SalesSummaryView)()
                                       services.AddTransient(Of Views.Accounting.VatReturnView)()
+                                      services.AddTransient(Of Views.Accounting.Components.VatPayableTile)()
 
                                       ' ── Shell ─────────────────────────────────────────────
                                       services.AddSingleton(Of MainWindowViewModel)()

@@ -1,3 +1,5 @@
+Imports MerchSys.Accounting.Services.Insights
+
 Namespace Services
 
     Public Class WhatThisMeansService
@@ -5,6 +7,12 @@ Namespace Services
 
         Private Const CreditWarningThreshold As Decimal = 30D
         Private Const MarginDropWarningThreshold As Decimal = 3D
+
+        Private ReadOnly _insightProviders As IEnumerable(Of IFinancialInsightProvider)
+
+        Public Sub New(insightProviders As IEnumerable(Of IFinancialInsightProvider))
+            _insightProviders = insightProviders
+        End Sub
 
         Public Function GenerateOverviewInterpretation(data As FinancialOverviewDto) As String _
             Implements IWhatThisMeansService.GenerateOverviewInterpretation
@@ -31,6 +39,13 @@ Namespace Services
             If data.LowStockAlertCount > 0 Then
                 sb.AppendLine($"You have {data.LowStockAlertCount} product{Plural(data.LowStockAlertCount)} running low on stock. Consider reordering soon.")
             End If
+
+            For Each provider In _insightProviders
+                Dim insight = provider.GenerateInsight(data)
+                If Not String.IsNullOrEmpty(insight) Then
+                    sb.AppendLine(insight)
+                End If
+            Next
 
             Return sb.ToString().Trim()
         End Function

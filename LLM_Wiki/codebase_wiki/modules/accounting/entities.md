@@ -22,5 +22,7 @@ This page details the Entities for the **MerchSys.Accounting** module.
 | `src/MerchSys.Accounting/Exceptions/VatReturnLockedException.vb` | `VatReturnLockedException` | `InvalidOperationException` | Exception thrown when attempting to generate or modify a VAT return for a locked/filed period. |
 
 > [!NOTE]
-> **Ledger VAT Extensions:** `RevenueRecord` and `ExpenseRecord` are extended via partial classes in `Entities/Extensions/LedgerVatExtensions.vb` to include BIR-compliant VAT columns without modifying the original source files.
+> **Ledger VAT Extensions:** `RevenueRecord` and `ExpenseRecord` are extended via partial classes in `Entities/Extensions/LedgerVatExtensions.vb` to include BIR-compliant VAT columns.
+> 
+> **Dashboard VAT Extensions:** `FinancialOverviewDto` (Services) is extended via partial classes in `ViewModels/Extensions/FinancialOverviewVatExtension.vb` to include VAT-specific KPI fields (`VatPayable`, `VatFilingDueDate`, etc.) for the dashboard.
 

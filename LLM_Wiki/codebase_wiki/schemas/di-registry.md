@@ -59,7 +59,9 @@ This page documents the composition root in `MerchSys.App`.
 ## Accounting Services
 | Interface | Implementation | Lifetime |
 |---|---|---|
-| `IFinancialOverviewService` | `FinancialOverviewService` | Scoped |
+| `IFinancialOverviewService` | `VatEnrichedFinancialOverviewService` (Decorating `FinancialOverviewService`) | Scoped |
+| `IKpiProvider` | `VatPayableKpiProvider` | Scoped |
+| `IFinancialInsightProvider` | `VatPayableInsightProvider` | Scoped |
 | `IIncomeStatementService` | `IncomeStatementService` | Scoped |
 | `ISalesSummaryService` | `SalesSummaryService` | Scoped |
 | `IWhatThisMeansService` | `WhatThisMeansService` | Scoped |
@@ -90,6 +92,7 @@ This page documents the composition root in `MerchSys.App`.
 | `IncomeStatementView` | Accounting | Transient |
 | `SalesSummaryView` | Accounting | Transient |
 | `VatReturnView` | Accounting | Transient |
+| `VatPayableTile` | Accounting | Transient |
 
 ## Shell Components
 | Class | Lifetime | Description |

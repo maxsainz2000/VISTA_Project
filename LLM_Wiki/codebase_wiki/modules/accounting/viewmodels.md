@@ -27,3 +27,4 @@ This page details the ViewModel implementations for the **MerchSys.Accounting** 
 | `src/MerchSys.Accounting/ViewModels/SalesSummaryViewModel.vb` | `SalesSummaryPeriodType` | Enum: `Daily`, `Weekly`, `Monthly`. |
 | `src/MerchSys.Accounting/ViewModels/VatReturnViewModel.vb` | `VatReturnLineRow` | DTO for DataGrid display of VAT return line items. |
 | `src/MerchSys.Accounting/ViewModels/VatReturnViewModel.vb` | `ExportReadyEventArgs` | Custom event args containing the `MemoryStream` and suggested filename for exports. |
+| `src/MerchSys.Accounting/ViewModels/Extensions/FinancialOverviewVatExtension.vb` | `FinancialOverviewViewModel` | Partial class extension. Adds observable VAT properties and hooks into the `OnPropertyChanged` (IsBusy) cycle to trigger VAT data enrichment from the service. |
