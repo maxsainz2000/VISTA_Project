@@ -28,6 +28,7 @@ Namespace Data
                 ApplyIfPending(conn, "20260510120000_AddBirRetentionConstraints", AddressOf ApplyBirRetentionConstraints)
                 ApplyIfPending(conn, "20260514100000_AddVatThreeBucketColumns", AddressOf ApplyVatThreeBucketColumns)
                 ApplyIfPending(conn, "20260515100000_FixVatReturnAmendedIndex", AddressOf ApplyFixVatReturnAmendedIndex)
+                ApplyIfPending(conn, "20260516100000_AddTamperAuditLog", AddressOf ApplyTamperAuditLog)
             End Using
         End Sub
 
@@ -839,6 +840,45 @@ Namespace Data
                 "CREATE UNIQUE INDEX IF NOT EXISTS ""IX_Acc_VatReturns_Year_Period_PeriodType_FormType_Active"" " &
                 "ON ""Acc_VatReturns"" (""Year"", ""Period"", ""PeriodType"", ""FormType"") " &
                 "WHERE ""FilingStatus"" != 3")
+        End Sub
+
+        ' ── Tamper Audit Log (20260516100000) ────────────────────────────────
+
+        Private Sub ApplyTamperAuditLog(conn As SqliteConnection)
+            Exec(conn,
+                "CREATE TABLE IF NOT EXISTS ""Acc_TamperAuditLog"" (" &
+                """Id"" INTEGER NOT NULL CONSTRAINT ""PK_Acc_TamperAuditLog"" PRIMARY KEY AUTOINCREMENT, " &
+                """DetectedAt"" TEXT NOT NULL, " &
+                """ReceiptId"" INTEGER NOT NULL, " &
+                """ReceiptNumber"" TEXT NOT NULL, " &
+                """TamperKind"" TEXT NOT NULL, " &
+                """DetectedByService"" TEXT NOT NULL, " &
+                """ExpectedValue"" TEXT NULL, " &
+                """ActualValue"" TEXT NULL, " &
+                """AdditionalContextJson"" TEXT NULL, " &
+                """MachineName"" TEXT NOT NULL, " &
+                """OperatingUser"" TEXT NOT NULL, " &
+                """CreatedAt"" TEXT NOT NULL, " &
+                """CreatedBy"" TEXT NOT NULL" &
+                ")")
+
+            Exec(conn,
+                "CREATE INDEX IF NOT EXISTS ""IX_Acc_TamperAuditLog_DetectedAt_TamperKind"" " &
+                "ON ""Acc_TamperAuditLog"" (""DetectedAt"", ""TamperKind"")")
+
+            Exec(conn,
+                "CREATE TRIGGER IF NOT EXISTS acc_tamper_audit_no_update " &
+                "BEFORE UPDATE ON ""Acc_TamperAuditLog"" " &
+                "BEGIN " &
+                "SELECT RAISE(ABORT, 'tamper-audit-immutable'); " &
+                "END")
+
+            Exec(conn,
+                "CREATE TRIGGER IF NOT EXISTS acc_tamper_audit_no_delete " &
+                "BEFORE DELETE ON ""Acc_TamperAuditLog"" " &
+                "BEGIN " &
+                "SELECT RAISE(ABORT, 'tamper-audit-immutable'); " &
+                "END")
         End Sub
 
         ' ── VAT Three-Bucket Columns (20260514100000) ─────────────────────────

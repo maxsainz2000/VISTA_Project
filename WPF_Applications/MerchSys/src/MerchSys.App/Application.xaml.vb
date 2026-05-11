@@ -78,6 +78,7 @@ Class Application
                                       services.AddScoped(Of IWhatThisMeansService, WhatThisMeansService)()
                                       services.AddScoped(Of IVatReportingService, VatReportingService)()
                                       services.AddScoped(Of IVatReturnExporter, VatReturnExporter)()
+                                      services.AddScoped(Of ITamperAuditQueryService, TamperAuditQueryService)()
                                       services.AddTransient(Of FinancialOverviewViewModel)()
                                       services.AddTransient(Of IncomeStatementViewModel)()
                                       services.AddTransient(Of SalesSummaryViewModel)()

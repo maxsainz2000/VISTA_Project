@@ -330,6 +330,55 @@ Namespace Migrations
                 b.ToTable("Acc_VatReturnLines")
             End Sub)
 
+            modelBuilder.Entity("MerchSys.Accounting.Entities.TamperAuditEntry", Sub(b)
+                b.Property(Of Long)("Id").
+                    ValueGeneratedOnAdd().
+                    HasColumnType("INTEGER")
+                b.Property(Of DateTime)("DetectedAt").
+                    IsRequired().
+                    HasColumnType("TEXT")
+                b.Property(Of Long)("ReceiptId").
+                    HasColumnType("INTEGER")
+                b.Property(Of String)("ReceiptNumber").
+                    IsRequired().
+                    HasMaxLength(50).
+                    HasColumnType("TEXT")
+                b.Property(Of String)("TamperKind").
+                    IsRequired().
+                    HasMaxLength(50).
+                    HasColumnType("TEXT")
+                b.Property(Of String)("DetectedByService").
+                    IsRequired().
+                    HasMaxLength(200).
+                    HasColumnType("TEXT")
+                b.Property(Of String)("ExpectedValue").
+                    HasMaxLength(512).
+                    HasColumnType("TEXT")
+                b.Property(Of String)("ActualValue").
+                    HasMaxLength(512).
+                    HasColumnType("TEXT")
+                b.Property(Of String)("AdditionalContextJson").
+                    HasColumnType("TEXT")
+                b.Property(Of String)("MachineName").
+                    IsRequired().
+                    HasMaxLength(256).
+                    HasColumnType("TEXT")
+                b.Property(Of String)("OperatingUser").
+                    IsRequired().
+                    HasMaxLength(256).
+                    HasColumnType("TEXT")
+                b.Property(Of DateTime)("CreatedAt").
+                    IsRequired().
+                    HasColumnType("TEXT")
+                b.Property(Of String)("CreatedBy").
+                    IsRequired().
+                    HasMaxLength(256).
+                    HasColumnType("TEXT")
+                b.HasKey("Id")
+                b.HasIndex({"DetectedAt", "TamperKind"}).HasDatabaseName("IX_Acc_TamperAuditLog_DetectedAt_TamperKind")
+                b.ToTable("Acc_TamperAuditLog")
+            End Sub)
+
             modelBuilder.Entity("MerchSys.Accounting.Entities.VatReturnLine", Sub(b)
                 b.HasOne("MerchSys.Accounting.Entities.VatReturn", "VatReturn").
                     WithMany("Lines").

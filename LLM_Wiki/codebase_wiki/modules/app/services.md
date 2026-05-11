@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.App
 layer: Services
-last-updated: 2026-05-10
+last-updated: 2026-05-11
 ---
 
 # MerchSys.App — Services

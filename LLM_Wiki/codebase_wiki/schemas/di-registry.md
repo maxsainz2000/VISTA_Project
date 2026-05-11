@@ -69,6 +69,7 @@ This page documents the composition root in `MerchSys.App`.
 | `IWhatThisMeansService` | `WhatThisMeansService` | Scoped |
 | `IVatReportingService` | `VatReportingService` | Scoped |
 | `IVatReturnExporter` | `VatReturnExporter` | Scoped |
+| `ITamperAuditQueryService` | `TamperAuditQueryService` | Scoped |
 | (none) | `FinancialOverviewViewModel` | Transient |
 | (none) | `IncomeStatementViewModel` | Transient |
 | (none) | `SalesSummaryViewModel` | Transient |
