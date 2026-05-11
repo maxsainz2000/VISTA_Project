@@ -14,19 +14,27 @@ Namespace Services
         Private Const Separator As String = "----------------------------------------"
 
         Private ReadOnly _context As POSDbContext
+        Private ReadOnly _receiptIntegrity As IReceiptIntegrityService
         Private ReadOnly _businessName As String
         Private ReadOnly _businessAddress As String
         Private ReadOnly _businessTIN As String
         Private ReadOnly _isVatRegistered As Boolean
 
-        Public Sub New(context As POSDbContext, configuration As IConfiguration)
+        Public Sub New(context As POSDbContext, configuration As IConfiguration, receiptIntegrity As IReceiptIntegrityService)
             _context = context
+            _receiptIntegrity = receiptIntegrity
             _businessName = If(configuration("POS:BusinessName"), "Villon Farm Supply")
             _businessAddress = If(configuration("POS:BusinessAddress"), "")
             _businessTIN = If(configuration("POS:BusinessTIN"), "")
             _isVatRegistered = String.Equals(configuration("POS:IsVatRegistered"), "true", StringComparison.OrdinalIgnoreCase)
         End Sub
 
+        ''' <summary>
+        ''' Generates a BIR-compliant Official Receipt for <paramref name="transactionId"/>.
+        ''' Receipt numbering is delegated to <see cref="IReceiptIntegrityService.GetNextReceiptNumberAsync"/>
+        ''' (POS-13) which uses a row-locked serializable-isolation sequence to guarantee gap-free,
+        ''' monotonic, concurrency-safe receipt numbers.
+        ''' </summary>
         Public Async Function GenerateReceiptAsync(transactionId As Integer) As Task(Of OfficialReceipt) Implements IReceiptService.GenerateReceiptAsync
             Dim existing = Await _context.OfficialReceipts.
                 FirstOrDefaultAsync(Function(r) r.TransactionId = transactionId)
@@ -41,7 +49,7 @@ Namespace Services
                 Throw New InvalidOperationException($"Transaction {transactionId} not found.")
             End If
 
-            Dim receiptNumber = Await GenerateReceiptNumberAsync()
+            Dim receiptNumber = Await _receiptIntegrity.GetNextReceiptNumberAsync(DateTime.Now.Year)
             Dim now = DateTime.UtcNow
 
             Dim vatableAmount As Decimal = 0D
@@ -98,13 +106,6 @@ Namespace Services
         End Function
 
         ' --- Private Helpers ---
-
-        Private Async Function GenerateReceiptNumberAsync() As Task(Of String)
-            Dim year = DateTime.Now.Year
-            Dim count = Await _context.OfficialReceipts.
-                CountAsync(Function(r) r.IssueDate.Year = year) + 1
-            Return $"OR-{year}-{count:D4}"
-        End Function
 
         Private Shared Function BuildItemsSnapshot(transaction As SalesTransaction) As String
             Dim sb As New StringBuilder()

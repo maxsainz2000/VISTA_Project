@@ -1,6 +1,6 @@
 ---
 type: schema-map
-last-updated: 2026-05-10
+last-updated: 2026-05-11
 ---
 
 # Dependency Injection Registry
@@ -23,6 +23,7 @@ This page documents the composition root in `MerchSys.App`.
 | (none) | `CreditManagementViewModel` | Transient |
 | (none) | `TransactionHistoryViewModel` | Transient |
 | (none) | `DailySummaryViewModel` | Transient |
+| `(Extension)` | `AddPosModule()` | Scoped | Registers all POS services and ViewModels (`PosServiceRegistration.vb`). |
 
 ## Inventory Services
 | Interface | Implementation | Lifetime |

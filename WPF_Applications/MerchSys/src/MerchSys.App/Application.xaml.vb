@@ -7,8 +7,6 @@ Imports MerchSys.App.ViewModels
 Imports MerchSys.Inventory.Services
 Imports MerchSys.SharedKernel.Interfaces
 Imports MerchSys.Inventory.ViewModels
-Imports MerchSys.POS.Services
-Imports MerchSys.POS.ViewModels
 Imports MerchSys.Accounting.Services
 Imports MerchSys.Accounting.ViewModels
 Imports MerchSys.Purchasing.Extensions
@@ -63,20 +61,7 @@ Class Application
                                       services.AddTransient(Of ShrinkageViewModel)()
 
                                       ' ── POS ───────────────────────────────────────────────
-                                      services.AddScoped(Of ICartService, CartService)()
-                                      services.AddScoped(Of IPaymentService, PaymentService)()
-                                      services.AddScoped(Of ICreditService, CreditService)()
-                                      services.AddScoped(Of ISalesReturnService, SalesReturnService)()
-                                      services.AddScoped(Of IReceiptIntegrityService, ReceiptIntegrityService)()
-                                      services.AddScoped(Of ReceiptService)()
-                                      services.AddScoped(Of IReceiptService, VatAwareReceiptService)()
-                                      services.AddScoped(Of IVatCalculator, VatCalculator)()
-                                      services.AddSingleton(Of VatConfigurationLoader)()
-                                      services.AddScoped(Of IDailySummaryService, DailySummaryService)()
-                                      services.AddTransient(Of SalesCartViewModel)()
-                                      services.AddTransient(Of CreditManagementViewModel)()
-                                      services.AddTransient(Of TransactionHistoryViewModel)()
-                                      services.AddTransient(Of DailySummaryViewModel)()
+                                      services.AddPosModule()
 
                                       ' ── Accounting ────────────────────────────────────────
                                       ' ACC-12: register concrete FinancialOverviewService so the decorator can resolve it
