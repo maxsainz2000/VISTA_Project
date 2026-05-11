@@ -81,7 +81,7 @@ Namespace ViewModels
                 New NavigationItem With {.DisplayName = "Income Statement", .ViewType = GetType(Views.Accounting.IncomeStatementView)},
                 New NavigationItem With {.DisplayName = "Sales Summary", .ViewType = GetType(Views.Accounting.SalesSummaryView)}
             }
-            ' VAT Return is Manager-only; Owner role is read-only KPI/report access only
+            ' INT-02 convention (type-based NavigationItem); view source ACC-11; Manager-only per BIR access rules
             If _session.CurrentRole = UserRole.Manager Then
                 items.Add(New NavigationItem With {.DisplayName = "VAT Return (BIR)", .ViewType = GetType(Views.Accounting.VatReturnView)})
             End If
