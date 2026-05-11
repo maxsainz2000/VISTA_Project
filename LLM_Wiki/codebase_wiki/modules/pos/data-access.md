@@ -18,7 +18,8 @@ This page details the Data Access layer for the **MerchSys.POS** module. Provide
 
 | File Path | Class / Interface | Responsibilities / Notes |
 |---|---|---|
-| `src/MerchSys.POS/Data/POSDbContext.vb` | `POSDbContext` | Entry point for persistence; exposes DbSets for `CreditAccounts`, `SalesTransactions`, `SalesTransactionLines`, `OfficialReceipts`, `CreditPayments`, `SalesReturns`, `ReceiptIntegrity`, `ReceiptSequence`, `OfficialReceiptArchive`. |
+| `src/MerchSys.POS/Data/POSDbContext.vb` | `POSDbContext` | Entry point for persistence for all POS entities. |
+| `src/MerchSys.POS/Data/PosSyncableRepository.vb` | `PosSyncableRepository` | `ISyncableRepository` implementation that journals changes to `Sync_Journal` on save. |
 | `src/MerchSys.POS/Data/Interceptors/ImmutableReceiptInterceptor.vb` | `ImmutableReceiptInterceptor` | `SaveChangesInterceptor` | Blocks UPDATE/DELETE operations on receipts to ensure BIR compliance. |
 | `src/MerchSys.POS/Data/POSDbContextFactory.vb` | `POSDbContextFactory` | `IDesignTimeDbContextFactory(Of POSDbContext)` implementation for EF CLI design-time support. |
 | `src/MerchSys.POS/Data/Configurations/CreditAccountConfiguration.vb` | `CreditAccountConfiguration` | Configures `CreditAccount` entity. |

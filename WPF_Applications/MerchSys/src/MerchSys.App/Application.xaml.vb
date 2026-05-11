@@ -37,6 +37,9 @@ Class Application
                                       ' Infrastructure: Sync worker & probe
                                       services.AddSyncServices($"Data Source={DatabaseConfig.DatabasePath}")
 
+                                      ' Infrastructure: per-module syncable repositories (INFRA-09)
+                                      services.AddSyncableRepositories()
+
                                       ' ── Purchasing ────────────────────────────────────────
                                       services.AddPurchasingServices()
 

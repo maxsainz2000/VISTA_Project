@@ -21,7 +21,8 @@ This page details the Data Access layer for the **MerchSys.Accounting** module. 
 | `src/MerchSys.Accounting/Data/AccountingDbContext.vb` | `AccountingDbContext` | Entry point for persistence; exposes DbSets for all accounting entities. |
 | `src/MerchSys.Accounting/Data/AccountingDbContextVatExtension.vb` | `AccountingDbContext` | Partial-class extension adding `VatReturns` and `VatReturnLines` DbSets. |
 | `src/MerchSys.Accounting/Data/AccountingDbContextTamperExtension.vb` | `AccountingDbContext` | Partial-class extension adding `TamperAuditEntries` DbSet. |
-| `src/MerchSys.Accounting/Data/AccountingDbContextFactory.vb` | `AccountingDbContextFactory` | `IDesignTimeDbContextFactory(Of AccountingDbContext)` implementation for EF CLI design-time support. |
+| `src/MerchSys.Accounting/Data/AccountingSyncableRepository.vb` | `AccountingSyncableRepository` | `ISyncableRepository` implementation that journals changes to `Sync_Journal` on save. |
+| `src/MerchSys.Accounting/Data/AccountingDbContextFactory.vb` | `AccountingDbContextFactory` | `IDesignTimeDbContextFactory(Of AccountingDbContext)` implementation for EF CLI. |
 | `src/MerchSys.Accounting/Data/Configurations/FinancialPeriodConfiguration.vb` | `FinancialPeriod` / `Acc_FinancialPeriods` | Configures P&L summaries with decimal precision (18,2) and GrossMargin (10,4). |
 | `src/MerchSys.Accounting/Data/Configurations/RevenueRecordConfiguration.vb` | `RevenueRecord` / `Acc_RevenueRecords` | Configures revenue tracking; includes indexes on `ProductId` and `RecordDate`. |
 | `src/MerchSys.Accounting/Data/Configurations/ExpenseRecordConfiguration.vb` | `ExpenseRecord` / `Acc_ExpenseRecords` | Configures expense records; enforces required Category with max length 50. |

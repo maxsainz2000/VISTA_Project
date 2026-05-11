@@ -1,4 +1,5 @@
 Imports MerchSys.SharedKernel.Entities
+Imports MerchSys.SharedKernel.Persistence
 
 Namespace Sync
 
@@ -11,6 +12,7 @@ Namespace Sync
     ''' without taking a dependency on another module's DbContext.
     ''' </para>
     ''' </summary>
+    <NoSync>
     Public Class SyncJournal
         Inherits AuditableEntity
 

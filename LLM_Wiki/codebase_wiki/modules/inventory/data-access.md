@@ -17,8 +17,9 @@ Configures the `InventoryDbContext` with EF Core entity configurations for all I
 
 | File Path | Class / Interface | Responsibilities / Notes |
 |---|---|---|
-| `src/MerchSys.Inventory/Data/InventoryDbContext.vb` | `InventoryDbContext` | Contains DbSets: `Products`, `StockBatches`, `ShrinkageRecords`, `StockAlertConfigs`, `ProductCategories`, `StockMovements`, `StockAuditRecords`. |
-| `src/MerchSys.Inventory/Data/InventoryDbContextFactory.vb` | `InventoryDbContextFactory` | `IDesignTimeDbContextFactory(Of InventoryDbContext)` implementation for EF CLI design-time support. |
+| `src/MerchSys.Inventory/Data/InventoryDbContext.vb` | `InventoryDbContext` | Contains DbSets for all Inventory entities. |
+| `src/MerchSys.Inventory/Data/InventorySyncableRepository.vb` | `InventorySyncableRepository` | `ISyncableRepository` implementation that journals changes to `Sync_Journal` on save. |
+| `src/MerchSys.Inventory/Data/InventoryDbContextFactory.vb` | `InventoryDbContextFactory` | `IDesignTimeDbContextFactory(Of InventoryDbContext)` implementation for EF CLI. |
 | `src/MerchSys.Inventory/Data/Configurations/ProductConfiguration.vb` | `ProductConfiguration` | Table: `Inv_Products`. Name max 200, Sku max 50 unique index, RetailPrice precision(18,2). |
 | `src/MerchSys.Inventory/Data/Configurations/StockBatchConfiguration.vb` | `StockBatchConfiguration` | Table: `Inv_StockBatches`. UnitCost precision(18,4). Index on ProductId + ReceiptDate for FIFO. |
 | `src/MerchSys.Inventory/Data/Configurations/ShrinkageRecordConfiguration.vb` | `ShrinkageRecordConfiguration` | Table: `Inv_ShrinkageRecords`. UnitCost precision(18,4), TotalValue precision(18,2), Reason max 50. |

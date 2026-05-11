@@ -16,7 +16,9 @@ last-updated: 2026-05-10
 | `Interfaces/INotificationService.vb` | `INotificationService` | `NotifySyncStatusChanged(status)`, `CurrentStatus` |
 | `Interfaces/ISessionService.vb` | `ISessionService` | `CurrentUsername`, `CurrentRole` |
 | `Sync/ISyncProbe.vb` | `ISyncProbe` | `ProbeAsync() As Task(Of SyncProbeResult)` |
-| `Sync/ISyncableRepository.vb` | `ISyncableRepository` | `GetPendingChangesAsync()`, `MarkSyncedAsync(ids)` |
+| `Sync/ISyncableRepository.vb` | `ISyncableRepository` | `GetPendingChangesAsync()`, `MarkSyncedAsync(ids)`. (Consumer-side). |
+| `Persistence/ISyncableRepository.vb` | `ISyncableRepository(Of TContext)` | `SaveChangesWithJournalAsync(token)`, `GetTrackedChangeDescriptors()`. (Producer-side). |
+| `Persistence/SyncableRepositoryCore.vb` | `SyncableRepositoryCore` | Static helper (Module) for change-capture and journal mapping. |
 | `Sync/ConflictResolver.vb` | `IConflictResolver` | `ResolveAsync(remoteSnapshot, localEntry) As Task(Of ResolutionDecision)` |
 
 ## Enums

@@ -106,6 +106,15 @@ This page documents the composition root in `MerchSys.App`.
 | `MainWindowViewModel` | Singleton | Main navigation hub and state manager for the shell. |
 | `MainWindow` | Singleton | Main application window. |
 
+## Syncable Repositories
+| Interface | Implementation | Lifetime |
+|---|---|---|
+| `ISyncableRepository(Of PurchasingDbContext)` | `PurchasingSyncableRepository` | Scoped |
+| `ISyncableRepository(Of InventoryDbContext)` | `InventorySyncableRepository` | Scoped |
+| `ISyncableRepository(Of PosDbContext)` | `PosSyncableRepository` | Scoped |
+| `ISyncableRepository(Of AccountingDbContext)` | `AccountingSyncableRepository` | Scoped |
+| (Extension) | `AddSyncableRepositories()` | Scoped | Registers all four repositories (`SyncableRepositoryRegistration.vb`). |
+
 ## Shared Services
 | Interface | Implementation | Lifetime |
 |---|---|---|

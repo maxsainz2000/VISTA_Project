@@ -13,7 +13,9 @@ last-updated: 2026-05-10
 | `Entities/BaseEntity.vb` | `BaseEntity` | N/A | `Id As Guid` |
 | `Entities/AuditableEntity.vb` | `AuditableEntity` | `BaseEntity`, `IAuditable` | `CreatedBy`, `CreatedAt`, `ModifiedBy`, `ModifiedAt` |
 | `Entities/SoftDeletableEntity.vb` | `SoftDeletableEntity` | `AuditableEntity`, `ISoftDeletable` | `IsDeleted`, `DeletedBy`, `DeletedAt` |
-| `Sync/SyncJournal.vb` | `SyncJournal` | `AuditableEntity` | `TableName`, `RowId`, `Operation`, `Payload`, `SyncedAt` |
+| `Sync/SyncJournal.vb` | `SyncJournal` | `AuditableEntity` | `TableName`, `RowId`, `Operation`, `Payload`, `SyncedAt`. Marked `<NoSync>`. |
+| `Persistence/NoSyncAttribute.vb` | `NoSyncAttribute` | `Attribute` | Applied to entities that must never be journalled for sync. |
+| `Persistence/SyncJournalDescriptor.vb` | `SyncJournalDescriptor` | N/A | DTO capturing one EF change event for journalling. |
 | `Sync/ConflictResolution.vb` | `RemoteRowSnapshot` | N/A | `Exists`, `ModifiedAt` |
 | `Sync/ConflictResolution.vb` | `ResolutionDecision` | N/A | `Action`, `Reason` |
 

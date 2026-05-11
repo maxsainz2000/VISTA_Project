@@ -1,3 +1,5 @@
+Imports MerchSys.SharedKernel.Persistence
+
 Namespace Entities
 
     ''' <summary>
@@ -6,6 +8,11 @@ Namespace Entities
     ''' as required by NIRC §113 (issuance controls) and §235 (10-year tamper-proof preservation).
     ''' Once persisted, this record is itself immutable (enforced by <c>ImmutableReceiptInterceptor</c>).
     ''' </summary>
+    ''' <remarks>
+    ''' Excluded from <c>Sync_Journal</c> appending — the integrity chain is local-only until
+    ''' a future plan defines central retention semantics.
+    ''' </remarks>
+    <NoSync>
     Public Class ReceiptIntegrity
         Inherits MerchSys.SharedKernel.Entities.AuditableEntity
 
