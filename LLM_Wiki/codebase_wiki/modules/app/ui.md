@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.App
 layer: UI
-last-updated: 2026-05-09
+last-updated: 2026-05-11
 ---
 
 # MerchSys.App — UI (Views)
@@ -54,3 +54,8 @@ This page details the WPF View implementations (XAML and code-behind) in the **M
 | `src/MerchSys.App/Views/Purchasing/PurchaseOrderListView.xaml`<br>`src/MerchSys.App/Views/Purchasing/PurchaseOrderListView.xaml.vb` | `PurchaseOrderListView` | Active and historical purchase orders tracking. | `PurchaseOrderListViewModel` (Constructor Injection) |
 | `src/MerchSys.App/Views/Purchasing/ReorderSuggestionsView.xaml`<br>`src/MerchSys.App/Views/Purchasing/ReorderSuggestionsView.xaml.vb` | `ReorderSuggestionsView` | Automated reorder suggestions based on velocity. | `ReorderSuggestionsViewModel` (Constructor Injection) |
 | `src/MerchSys.App/Views/Purchasing/VendorDirectoryView.xaml`<br>`src/MerchSys.App/Views/Purchasing/VendorDirectoryView.xaml.vb` | `VendorDirectoryView` | Vendor catalog and contact management. | `VendorListViewModel` (Constructor Injection) |
+## SQL Resources
+
+| File Path | Description |
+|---|---|
+| `src/MerchSys.App/Resources/Sql/ReceiptIntegrityTriggerVerification.sql` | Diagnostic bundle for MariaDB triggers. Includes trigger inventory and five negative-path probes (BIR compliance). |

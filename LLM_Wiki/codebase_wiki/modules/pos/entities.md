@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.POS
 layer: Entities
-last-updated: 2026-05-03
+last-updated: 2026-05-11
 ---
 
 # MerchSys.POS — Entities

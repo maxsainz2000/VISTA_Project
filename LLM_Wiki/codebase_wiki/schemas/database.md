@@ -1,6 +1,6 @@
 ---
 type: schema-map
-last-updated: 2026-05-10
+last-updated: 2026-05-11
 ---
 
 # Database Schema Mapping
@@ -58,6 +58,13 @@ This page maps the EF Core entities across all modules to their SQLite/MariaDB t
 
 > [!NOTE]
 > **Ledger VAT Columns:** `Acc_RevenueRecords` and `Acc_ExpenseRecords` tables carry six additional columns for BIR compliance: `VatableAmount`, `VatExemptAmount`, `ZeroRatedAmount`, `OutputVat`, `InputVat`, and `VatTreatment`. These were added via migration `AddVatLedgerColumns` (ACC-10).
+
+> [!IMPORTANT]
+> **MariaDB Append-Only Triggers (INFRA-08):** To ensure end-to-end tamper-evidence, the following MariaDB tables on the central server are protected by `BEFORE UPDATE` and `BEFORE DELETE` triggers that raise SQLSTATE `45000`:
+> - `Pos_ReceiptIntegrity`
+> - `Pos_OfficialReceipts`
+> - `Pos_OfficialReceiptArchive`
+> These triggers enforce immutability for issued/synced rows, mirroring the SQLite local enforcement (POS-13).
 
 
 ## Infrastructure / Shared (`Sync_` prefix)
