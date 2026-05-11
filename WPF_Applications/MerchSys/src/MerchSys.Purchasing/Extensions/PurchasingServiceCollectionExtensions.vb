@@ -1,5 +1,6 @@
 Imports Microsoft.Extensions.DependencyInjection
 Imports MerchSys.Purchasing.Services
+Imports MerchSys.Purchasing.Services.Vat
 Imports System.Runtime.CompilerServices
 
 Namespace Extensions
@@ -8,6 +9,7 @@ Namespace Extensions
 
         <Extension()>
         Public Function AddPurchasingServices(services As IServiceCollection) As IServiceCollection
+            services.AddScoped(Of GoodsReceiptVatCalculator)()
             services.AddScoped(Of IPurchaseOrderService, PurchaseOrderService)()
             services.AddScoped(Of IPriceChangeService, PriceChangeService)()
             services.AddScoped(Of IGoodsReceivingService, GoodsReceivingService)()

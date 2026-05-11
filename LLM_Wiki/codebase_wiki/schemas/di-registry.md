@@ -54,6 +54,7 @@ This page documents the composition root in `MerchSys.App`.
 | `IVendorService` | `VendorService` | Scoped |
 | `IAccountsPayableService` | `AccountsPayableService` | Scoped |
 | `IReorderService` | `ReorderService` | Scoped |
+| (none) | `GoodsReceiptVatCalculator` | Scoped |
 | (none) | `PurchaseOrderListViewModel` | Transient |
 | (none) | `GoodsReceivingViewModel` | Transient |
 | (none) | `VendorListViewModel` | Transient |
