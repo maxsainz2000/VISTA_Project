@@ -1,0 +1,28 @@
+<UserControl x:Class="Views.Shell.SyncStatusIndicator"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:converters="clr-namespace:MerchSys.App.Converters"
+             mc:Ignorable="d"
+             d:DesignHeight="24" d:DesignWidth="320">
+
+    <UserControl.Resources>
+        <converters:SeverityToBrushConverter x:Key="SeverityToBrushConverter"/>
+    </UserControl.Resources>
+
+    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0"
+                ToolTip="{Binding TooltipText}">
+
+        <Ellipse Width="10" Height="10" Margin="0,0,6,0"
+                 Fill="{Binding Severity, Converter={StaticResource SeverityToBrushConverter}}"/>
+
+        <TextBlock Text="{Binding DisplayLabel}" Margin="0,0,8,0"
+                   Foreground="#BDC3C7" FontSize="11" VerticalAlignment="Center"/>
+
+        <TextBlock Text="{Binding LastSyncDisplay}" Opacity="0.6"
+                   Foreground="#BDC3C7" FontSize="11" VerticalAlignment="Center"/>
+
+    </StackPanel>
+
+</UserControl>

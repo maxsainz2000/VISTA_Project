@@ -4,6 +4,7 @@ Imports MerchSys.App.Data
 Imports MerchSys.App.Services
 Imports MerchSys.App.Startup
 Imports MerchSys.App.ViewModels
+Imports MerchSys.App.ViewModels.Shell
 Imports MerchSys.Inventory.Services
 Imports MerchSys.SharedKernel.Interfaces
 Imports MerchSys.Inventory.ViewModels
@@ -109,6 +110,8 @@ Class Application
                                       services.AddTransient(Of Views.Accounting.Components.VatPayableTile)()
 
                                       ' ── Shell ─────────────────────────────────────────────
+                                      services.AddSingleton(Of SyncStatusIndicatorViewModel)()
+                                      services.AddSingleton(Of Views.Shell.SyncStatusIndicator)()
                                       services.AddSingleton(Of MainWindowViewModel)()
                                       services.AddSingleton(Of MainWindow)()
 

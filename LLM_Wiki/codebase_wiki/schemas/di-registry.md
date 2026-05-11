@@ -100,12 +100,16 @@ This page documents the composition root in `MerchSys.App`.
 | `SalesSummaryView` | Accounting | Transient |
 | `VatReturnView` | Accounting | Transient |
 | `VatPayableTile` | Accounting | Transient |
+| `SyncStatusIndicator` | (Shell) | Singleton |
+
 
 ## Shell Components
 | Class | Lifetime | Description |
 |---|---|---|
 | `MainWindowViewModel` | Singleton | Main navigation hub and state manager for the shell. |
 | `MainWindow` | Singleton | Main application window. |
+| `SyncStatusIndicatorViewModel` | Singleton | VM for the sync status shell indicator. |
+
 
 ## Syncable Repositories
 | Interface | Implementation | Lifetime |

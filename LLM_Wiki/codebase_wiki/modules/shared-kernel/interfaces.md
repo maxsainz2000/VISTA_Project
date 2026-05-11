@@ -13,7 +13,7 @@ last-updated: 2026-05-10
 | `Interfaces/IAuditable.vb` | `IAuditable` | `CreatedBy`, `CreatedAt`, `ModifiedBy`, `ModifiedAt` |
 | `Interfaces/ISoftDeletable.vb` | `ISoftDeletable` | `IsDeleted`, `DeletedBy`, `DeletedAt` |
 | `Interfaces/IEventBus.vb` | `IEventBus` | `PublishAsync(Of T As INotification)(event As T)` |
-| `Interfaces/INotificationService.vb` | `INotificationService` | `NotifySyncStatusChanged(status)`, `CurrentStatus` |
+| `Interfaces/INotificationService.vb` | `INotificationService` | `SyncStatusChanged` (Event), `CurrentSyncStatus`, `LastSuccessfulPushAt` |
 | `Interfaces/ISessionService.vb` | `ISessionService` | `CurrentUsername`, `CurrentRole` |
 | `Sync/ISyncProbe.vb` | `ISyncProbe` | `ProbeAsync() As Task(Of SyncProbeResult)` |
 | `Sync/ISyncableRepository.vb` | `ISyncableRepository` | `GetPendingChangesAsync()`, `MarkSyncedAsync(ids)`. (Consumer-side). |

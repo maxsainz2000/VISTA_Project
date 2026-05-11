@@ -17,6 +17,10 @@ This page details the WPF View implementations (XAML and code-behind) in the **M
 | `src/MerchSys.App/MainWindow.xaml`<br>`src/MerchSys.App/MainWindow.xaml.vb` | `MainWindow` | Main application shell with grouped sidebar navigation and a dynamic content area. | `MainWindowViewModel` (Constructor Injection) |
 | `src/MerchSys.App/ViewModels/MainWindowViewModel.vb` | `MainWindowViewModel` | MVVM hub for the shell. Manages `NavigationGroups`, `CurrentView` state, and navigation commands. | `IServiceProvider` (Constructor Injection) |
 | `src/MerchSys.App/Models/NavigationItem.vb` | `NavigationItem`, `NavigationGroup` | POCO models representing navigation nodes and their parent groups. `NavigationItem` is observable for `IsActive` state. | (none) |
+| `src/MerchSys.App/Views/Shell/SyncStatusIndicator.xaml`<br>`...Indicator.xaml.vb` | `SyncStatusIndicator` | Status bar component displaying sync state (Online/Offline/Syncing) and relative "Last Sync" time. | `SyncStatusIndicatorViewModel` (Manual/Resource) |
+| `src/MerchSys.App/ViewModels/Shell/SyncStatusIndicatorViewModel.vb` | `SyncStatusIndicatorViewModel` | VM for sync status. Derives `Severity` (Healthy/Idle/Warning/Critical) from `INotificationService` events. | `INotificationService` (Constructor Injection) |
+| `src/MerchSys.App/Converters/SeverityToBrushConverter.vb` | `SeverityToBrushConverter` | XAML Converter mapping `IndicatorSeverity` to `SolidColorBrush`. | (none) |
+
 
 ## Accounting Views
 

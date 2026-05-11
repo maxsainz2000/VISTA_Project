@@ -22,4 +22,4 @@ This page details the Service implementations specifically located within the **
 | `src/MerchSys.App/Startup/SyncableRepositoryRegistration.vb` | `SyncableRepositoryRegistration` (Module) | Extension module (`AddSyncableRepositories`) that registers all module-specific `ISyncableRepository` implementations. |
 | `src/MerchSys.App/Services/SyncOrchestrator.vb` | `SyncOrchestrator` | Iterates `ISyncableRepository` instances to synchronize local changes to MariaDB via the Conflict Resolver pipeline. |
 | `src/MerchSys.App/Services/SyncWorker.vb` | `SyncWorker` | `BackgroundService` that executes the dual-condition probe and triggers the orchestrator. |
-| `src/MerchSys.App/Services/DefaultNotificationService.vb` | `INotificationService`<br>`DefaultNotificationService` | Singleton that surfaces sync status changes to the UI shell. |
+| `src/MerchSys.App/Services/DefaultNotificationService.vb` | `INotificationService`<br>`DefaultNotificationService` | Singleton that surfaces sync status changes and tracks `LastSuccessfulPushAt` for the UI shell. |

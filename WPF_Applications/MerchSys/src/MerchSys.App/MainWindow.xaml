@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:shell="clr-namespace:MerchSys.App.Views.Shell"
         mc:Ignorable="d"
         Title="VISTA — Villon Integrated Supply and Trade Application"
         Height="768" Width="1280"
@@ -50,6 +51,11 @@
     </Window.Resources>
 
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <!-- INFRA-10: status bar row added; no status area existed prior to this plan -->
+            <RowDefinition Height="24"/>
+        </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="220"/>
             <ColumnDefinition Width="*"/>
@@ -58,7 +64,7 @@
         <!-- ═══════════════════════════════════════════════════════════
              SIDEBAR
              ═══════════════════════════════════════════════════════════ -->
-        <Border Grid.Column="0" Background="#2C3E50">
+        <Border Grid.Row="0" Grid.Column="0" Background="#2C3E50">
             <DockPanel>
 
                 <!-- App title -->
@@ -114,9 +120,16 @@
         <!-- ═══════════════════════════════════════════════════════════
              MAIN CONTENT AREA
              ═══════════════════════════════════════════════════════════ -->
-        <ContentControl Grid.Column="1"
+        <ContentControl Grid.Row="0" Grid.Column="1"
                         Content="{Binding CurrentView}"
                         Background="#F5F6FA"/>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             STATUS BAR (INFRA-10)
+             ═══════════════════════════════════════════════════════════ -->
+        <Border Grid.Row="1" Grid.ColumnSpan="2" Background="#1A252F">
+            <shell:SyncStatusIndicator DataContext="{Binding SyncStatusIndicator}"/>
+        </Border>
 
     </Grid>
 </Window>

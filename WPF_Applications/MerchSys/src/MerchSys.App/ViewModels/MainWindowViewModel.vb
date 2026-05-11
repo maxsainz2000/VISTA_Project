@@ -3,6 +3,7 @@ Imports CommunityToolkit.Mvvm.ComponentModel
 Imports CommunityToolkit.Mvvm.Input
 Imports Microsoft.Extensions.DependencyInjection
 Imports MerchSys.App.Models
+Imports MerchSys.App.ViewModels.Shell
 Imports MerchSys.SharedKernel.Enums
 Imports MerchSys.SharedKernel.Interfaces
 
@@ -14,6 +15,8 @@ Namespace ViewModels
         Private ReadOnly _services As IServiceProvider
         Private ReadOnly _session As ISessionService
         Private _activeItem As NavigationItem
+
+        Public ReadOnly Property SyncStatusIndicator As SyncStatusIndicatorViewModel
 
         Private _currentView As Object
         Public Property CurrentView As Object
@@ -28,9 +31,11 @@ Namespace ViewModels
         Public ReadOnly Property NavigationGroups As ObservableCollection(Of NavigationGroup)
         Public ReadOnly Property NavigateCommand As RelayCommand(Of NavigationItem)
 
-        Public Sub New(services As IServiceProvider, session As ISessionService)
+        Public Sub New(services As IServiceProvider, session As ISessionService,
+                       syncStatusIndicator As SyncStatusIndicatorViewModel)
             _services = services
             _session = session
+            SyncStatusIndicator = syncStatusIndicator
             NavigationGroups = BuildNavigationGroups()
             NavigateCommand = New RelayCommand(Of NavigationItem)(AddressOf Navigate)
         End Sub
