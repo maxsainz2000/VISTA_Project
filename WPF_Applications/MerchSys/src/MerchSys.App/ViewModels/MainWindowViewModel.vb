@@ -52,12 +52,7 @@ Namespace ViewModels
 
         Private Function BuildNavigationGroups() As ObservableCollection(Of NavigationGroup)
             Return New ObservableCollection(Of NavigationGroup) From {
-                New NavigationGroup("Point of Sale", New List(Of NavigationItem) From {
-                    New NavigationItem With {.DisplayName = "Sales Cart", .ViewType = GetType(Views.POS.SalesCartView)},
-                    New NavigationItem With {.DisplayName = "Credit Management", .ViewType = GetType(Views.POS.CreditManagementView)},
-                    New NavigationItem With {.DisplayName = "Transaction History", .ViewType = GetType(Views.POS.TransactionHistoryView)},
-                    New NavigationItem With {.DisplayName = "Daily Summary", .ViewType = GetType(Views.POS.DailySummaryView)}
-                }),
+                New NavigationGroup("Point of Sale", BuildPosNavItems()),
                 New NavigationGroup("Purchasing", New List(Of NavigationItem) From {
                     New NavigationItem With {.DisplayName = "Purchase Orders", .ViewType = GetType(Views.Purchasing.PurchaseOrderListView)},
                     New NavigationItem With {.DisplayName = "Goods Receiving", .ViewType = GetType(Views.Purchasing.GoodsReceivingView)},
@@ -73,6 +68,20 @@ Namespace ViewModels
                 }),
                 New NavigationGroup("Accounting", BuildAccountingNavItems())
             }
+        End Function
+
+        Private Function BuildPosNavItems() As List(Of NavigationItem)
+            Dim items As New List(Of NavigationItem) From {
+                New NavigationItem With {.DisplayName = "Sales Cart", .ViewType = GetType(Views.POS.SalesCartView)},
+                New NavigationItem With {.DisplayName = "Credit Management", .ViewType = GetType(Views.POS.CreditManagementView)},
+                New NavigationItem With {.DisplayName = "Transaction History", .ViewType = GetType(Views.POS.TransactionHistoryView)},
+                New NavigationItem With {.DisplayName = "Daily Summary", .ViewType = GetType(Views.POS.DailySummaryView)}
+            }
+            ' INT-02 convention (type-based NavigationItem); Manager-only per OWASP DA financial config access rules
+            If _session.CurrentRole = UserRole.Manager Then
+                items.Add(New NavigationItem With {.DisplayName = "VAT Settings", .ViewType = GetType(Views.POS.VatSettingsView)})
+            End If
+            Return items
         End Function
 
         Private Function BuildAccountingNavItems() As List(Of NavigationItem)

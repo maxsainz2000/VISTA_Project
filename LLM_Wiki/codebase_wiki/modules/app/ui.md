@@ -44,6 +44,7 @@ This page details the WPF View implementations (XAML and code-behind) in the **M
 | `src/MerchSys.App/Views/POS/DailySummaryView.xaml`<br>`src/MerchSys.App/Views/POS/DailySummaryView.xaml.vb` | `DailySummaryView` | Daily cash drawer and sales summary tracking. | `DailySummaryViewModel` (Constructor Injection) |
 | `src/MerchSys.App/Views/POS/SalesCartView.xaml`<br>`src/MerchSys.App/Views/POS/SalesCartView.xaml.vb` | `SalesCartView` | Primary point-of-sale checkout interface. | `SalesCartViewModel` (Constructor Injection) |
 | `src/MerchSys.App/Views/POS/TransactionHistoryView.xaml`<br>`src/MerchSys.App/Views/POS/TransactionHistoryView.xaml.vb` | `TransactionHistoryView` | Past transactions viewer with refund processing. | `TransactionHistoryViewModel` (Constructor Injection) |
+| `src/MerchSys.App/Views/POS/VatSettingsView.xaml`<br>`src/MerchSys.App/Views/POS/VatSettingsView.xaml.vb` | `VatSettingsView` | Two-column BIR registration form for managing VAT rates, TIN, and business info. Manager-only access. | `VatSettingsViewModel` (Constructor Injection) |
 
 ## Purchasing Views
 

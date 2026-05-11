@@ -19,3 +19,4 @@ All engineering learnings from debugging and error-fixing sessions. Check this i
 | [vbnet-lambda-param-shadows-local-variable](antipatterns/vbnet-lambda-param-shadows-local-variable.md) | antipattern | MerchSys.Purchasing | vb-net, lambda, BC36641, build-error | claude-code | 2026-05-04 |
 | [classlib-viewmodel-auto-refresh-timer](patterns/classlib-viewmodel-auto-refresh-timer.md) | pattern | MerchSys.Inventory | wpf, mvvm, viewmodel, classlib, timer, threading, vb-net | claude-code | 2026-05-04 |
 | [vbnet-reserved-keyword-enum-member](errors/vbnet-reserved-keyword-enum-member.md) | error-fix | MerchSys.Inventory | vb-net, enum, reserved-keyword, BC31001, BC30201, build-error | claude-code | 2026-05-09 |
+| [vbnet-err-builtin-shadows-loop-variable](antipatterns/vbnet-err-builtin-shadows-loop-variable.md) | antipattern | MerchSys.POS | vb-net, reserved-keyword, for-each, BC30068, BC30311, build-error | claude-code | 2026-05-11 |

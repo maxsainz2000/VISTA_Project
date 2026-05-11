@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.POS
 layer: UI
-last-updated: 2026-05-03
+last-updated: 2026-05-11
 ---
 
 # MerchSys.POS — User Interface
@@ -14,3 +14,4 @@ last-updated: 2026-05-03
 | `CreditManagementViewModel.vb`| `CreditManagementView.xaml` | `SearchCustomerCommand`, `RecordPaymentCommand` |
 | `TransactionHistoryViewModel.vb`| `TransactionHistoryView.xaml`| `LoadTransactionsCommand`, `ProcessReturnCommand` |
 | `DailySummaryViewModel.vb` | `DailySummaryView.xaml` | `LoadCommand` (Daily/Weekly/Monthly) |
+| `VatSettingsViewModel.vb` | `VatSettingsView.xaml` | `SaveCommand`, `ReloadCommand`; includes manager-only TIN validation logic. |

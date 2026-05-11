@@ -20,10 +20,12 @@ This page documents the composition root in `MerchSys.App`.
 | `IReceiptBodyComposer` | `BirCompliantReceiptBodyComposer` | Scoped |
 | `IVatCalculator` | `VatCalculator` | Scoped |
 | `VatConfigurationLoader` | `VatConfigurationLoader` | Singleton |
+| `IVatConfigurationWriter` | `VatConfigurationWriter` | Scoped |
 | (none) | `SalesCartViewModel` | Transient |
 | (none) | `CreditManagementViewModel` | Transient |
 | (none) | `TransactionHistoryViewModel` | Transient |
 | (none) | `DailySummaryViewModel` | Transient |
+| (none) | `VatSettingsViewModel` | Transient |
 | `(Extension)` | `AddPosModule()` | Scoped | Registers all POS services and ViewModels (`PosServiceRegistration.vb`). |
 
 ## Inventory Services
@@ -82,6 +84,7 @@ This page documents the composition root in `MerchSys.App`.
 | `CreditManagementView` | POS | Transient |
 | `TransactionHistoryView` | POS | Transient |
 | `DailySummaryView` | POS | Transient |
+| `VatSettingsView` | POS | Transient |
 | `PurchaseOrderListView` | Purchasing | Transient |
 | `GoodsReceivingView` | Purchasing | Transient |
 | `VendorDirectoryView` | Purchasing | Transient |

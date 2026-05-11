@@ -19,10 +19,12 @@ Namespace Startup
             services.AddScoped(Of IVatCalculator, VatCalculator)()
             services.AddSingleton(Of VatConfigurationLoader)()
             services.AddScoped(Of IDailySummaryService, DailySummaryService)()
+            services.AddScoped(Of IVatConfigurationWriter, VatConfigurationWriter)()
             services.AddTransient(Of SalesCartViewModel)()
             services.AddTransient(Of CreditManagementViewModel)()
             services.AddTransient(Of TransactionHistoryViewModel)()
             services.AddTransient(Of DailySummaryViewModel)()
+            services.AddTransient(Of VatSettingsViewModel)()
         End Sub
 
     End Module

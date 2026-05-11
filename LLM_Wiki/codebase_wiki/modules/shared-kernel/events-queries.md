@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.SharedKernel
 layer: Events & Queries
-last-updated: 2026-05-10
+last-updated: 2026-05-11
 ---
 
 # MerchSys.SharedKernel — Events & Queries
@@ -18,6 +18,7 @@ last-updated: 2026-05-10
 | `Events/SaleCompletedWithVatEvent.vb` | `SaleCompletedWithVatEvent` | `INotification` | `TransactionId`, `VatableSales`, `VatExemptSales`, `ZeroRatedSales`, `OutputVat`, `Items` | POS-14 |
 | `Events/GoodsReceivedWithVatEvent.vb` | `GoodsReceivedWithVatEvent` | `INotification` | `PurchaseOrderId`, `VatableInput`, `VatExemptInput`, `ZeroRatedInput`, `InputVat`, `Items` | Purchasing |
 | `Events/ReceiptTamperDetectedEvent.vb` | `ReceiptTamperDetectedEvent` | `INotification` | `ReceiptId`, `ReceiptNumber`, `ExpectedHash`, `ActualHash`, `DetectedAt` | POS-13 |
+| `Events/VatConfigurationChangedEvent.vb` | `VatConfigurationChangedEvent` | `INotification` | `OccurredAt`, `IsVatRegistered`, `PreviousIsVatRegistered` | POS-17 |
 
 ## MediatR Queries
 | File Path | Query Class | Result Type | Properties | Handled By |
