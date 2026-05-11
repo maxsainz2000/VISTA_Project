@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.Accounting
 layer: Services
-last-updated: 2026-05-06
+last-updated: 2026-05-11
 ---
 
 # MerchSys.Accounting — Services

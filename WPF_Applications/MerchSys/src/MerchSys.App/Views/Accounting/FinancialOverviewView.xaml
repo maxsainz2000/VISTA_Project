@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vatTiles="clr-namespace:MerchSys.App.Views.Accounting.Components"
              mc:Ignorable="d"
              d:DesignHeight="768" d:DesignWidth="1280"
              Background="#F5F6FA">
@@ -123,6 +124,7 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
             <Border Grid.Column="0" Style="{StaticResource KpiCard}">
@@ -173,13 +175,15 @@
                 </StackPanel>
             </Border>
 
-            <Border Grid.Column="6" Style="{StaticResource KpiCard}" Margin="0">
+            <Border Grid.Column="6" Style="{StaticResource KpiCard}">
                 <StackPanel>
                     <TextBlock Text="{Binding InventoryValue, StringFormat='₱{0:N0}'}"
                                Style="{StaticResource KpiValue}" Foreground="#8E44AD"/>
                     <TextBlock Text="Inventory Value" Style="{StaticResource KpiLabel}"/>
                 </StackPanel>
             </Border>
+
+            <vatTiles:VatPayableTile Grid.Column="7" Margin="0"/>
         </Grid>
 
         <!-- ═══════════════════════════════════════════════════════════
