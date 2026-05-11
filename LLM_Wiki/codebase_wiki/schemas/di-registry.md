@@ -17,6 +17,7 @@ This page documents the composition root in `MerchSys.App`.
 | `IReceiptService` | `VatAwareReceiptService` | Scoped |
 | `IDailySummaryService` | `DailySummaryService` | Scoped |
 | `IReceiptIntegrityService` | `ReceiptIntegrityService` | Scoped |
+| `IReceiptBodyComposer` | `BirCompliantReceiptBodyComposer` | Scoped |
 | `IVatCalculator` | `VatCalculator` | Scoped |
 | `VatConfigurationLoader` | `VatConfigurationLoader` | Singleton |
 | (none) | `SalesCartViewModel` | Transient |

@@ -13,6 +13,7 @@ Namespace Startup
             services.AddScoped(Of ICreditService, CreditService)()
             services.AddScoped(Of ISalesReturnService, SalesReturnService)()
             services.AddScoped(Of IReceiptIntegrityService, ReceiptIntegrityService)()
+            services.AddScoped(Of IReceiptBodyComposer, BirCompliantReceiptBodyComposer)()
             services.AddScoped(Of ReceiptService)()
             services.AddScoped(Of IReceiptService, VatAwareReceiptService)()
             services.AddScoped(Of IVatCalculator, VatCalculator)()
