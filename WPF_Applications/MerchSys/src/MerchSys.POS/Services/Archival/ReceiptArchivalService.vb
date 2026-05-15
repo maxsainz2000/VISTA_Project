@@ -160,16 +160,9 @@ Namespace Services.Archival
             sw As Stopwatch,
             cancellationToken As CancellationToken) As Task(Of ReceiptArchivalBatchResult)
 
-            ' Keep the connection alive across the temp-table flag + transaction so the
-            ' session-scoped temp table persists for the duration of the batch.
+            ' Keep the connection alive across the session flag + transaction so a single
+            ' connection context spans the flag set, deletes, and flag clear.
             Await db.Database.OpenConnectionAsync(cancellationToken)
-
-            ' Establish temp table for the archival session flag checked by the
-            ' pos_receipts_no_delete trigger.  See migration 20260515140000 for trigger text.
-            Await db.Database.ExecuteSqlRawAsync(
-                "CREATE TEMP TABLE IF NOT EXISTS archival_session " &
-                "(key TEXT NOT NULL PRIMARY KEY, value INTEGER NOT NULL)",
-                cancellationToken)
 
             Dim transaction = Await db.Database.BeginTransactionAsync(cancellationToken)
             Dim batchEx As Exception = Nothing
@@ -236,11 +229,12 @@ Namespace Services.Archival
                 Await db.SaveChangesAsync(cancellationToken)
 
                 ' ── 3. Set archival session flag so the DELETE trigger allows the ops ─
-                ' The trigger pos_receipts_no_delete reads this temp-table flag before
-                ' deciding whether to RAISE(ABORT). Absent the flag, DELETE still fails.
+                ' The trigger pos_receipts_no_delete reads Pos_ArchivalSession before deciding
+                ' whether to RAISE(ABORT).  The 5-minute TTL provides crash-safety: if the
+                ' service terminates mid-batch the flag expires and the trigger re-engages.
                 Await db.Database.ExecuteSqlRawAsync(
-                    "INSERT OR REPLACE INTO archival_session (key, value) " &
-                    "VALUES ('archival_in_progress', 1)",
+                    "INSERT OR REPLACE INTO ""Pos_ArchivalSession"" (key, value, expires_at) " &
+                    "VALUES ('archival_in_progress', 1, datetime('now', '+5 minutes'))",
                     cancellationToken)
 
                 ' ── 4. Delete source rows (bypasses ImmutableReceiptInterceptor via raw SQL) ─
@@ -261,7 +255,7 @@ Namespace Services.Archival
 
                 ' ── 5. Clear session flag ─────────────────────────────────────
                 Await db.Database.ExecuteSqlRawAsync(
-                    "DELETE FROM archival_session WHERE key = 'archival_in_progress'",
+                    "DELETE FROM ""Pos_ArchivalSession"" WHERE key = 'archival_in_progress'",
                     cancellationToken)
 
                 Await transaction.CommitAsync(cancellationToken)

@@ -21,6 +21,7 @@ This page maps the EF Core entities across all modules to their SQLite/MariaDB t
 | `OfficialReceiptArchive` | `Pos_OfficialReceiptArchive` | PK `Id`, Index on `OriginalReceiptId` |
 | `ReceiptIntegrityArchive` | `Pos_ReceiptIntegrityArchive` | PK `Id`, Index on `ReceiptId` |
 | `VatConfiguration` | `Pos_VatConfiguration` | PK `Id`, Seed row Id=1 enforced by constraint |
+| N/A | `Pos_ArchivalSession` | PK `key`, stores session-aware trigger flags with TTL (INT-12) |
 
 ## MerchSys.Purchasing (`Pur_` prefix)
 | Entity | DB Table | Key Constraints |

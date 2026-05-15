@@ -942,17 +942,31 @@ Namespace Data
                 "SELECT RAISE(ABORT, 'BIR-archive-immutable'); " &
                 "END")
 
-            ' Amend pos_receipts_no_delete to allow DELETE when archival session flag is set.
+            ' Persistent archival-session flag table.
+            ' SQLite prohibits trigger WHEN clauses from referencing temp.* objects, so the session
+            ' flag is stored here instead of a TEMP TABLE.  A TTL column (expires_at) provides
+            ' crash-safety: if ReceiptArchivalService terminates mid-batch the flag expires and
+            ' the trigger re-engages automatically within 5 minutes.
+            Exec(conn,
+                "CREATE TABLE IF NOT EXISTS ""Pos_ArchivalSession"" (" &
+                """key"" TEXT NOT NULL PRIMARY KEY, " &
+                """value"" INTEGER NOT NULL, " &
+                """expires_at"" TEXT NOT NULL" &
+                ")")
+
+            ' Amend pos_receipts_no_delete to allow DELETE only when a valid (non-expired)
+            ' archival session is active in Pos_ArchivalSession.
             ' BEFORE: unconditional RAISE(ABORT, 'BIR-immutable') on any DELETE.
-            ' AFTER:  RAISE fires only when temp.archival_session.archival_in_progress != 1.
-            ' A normal session never sets the flag, so the trigger still blocks all non-archival deletes.
+            ' AFTER:  RAISE fires only when no live archival-session row is present.
+            ' A normal session never inserts into Pos_ArchivalSession, so all non-archival
+            ' deletes are still blocked unconditionally.
             Exec(conn, "DROP TRIGGER IF EXISTS pos_receipts_no_delete")
 
             Exec(conn,
                 "CREATE TRIGGER IF NOT EXISTS pos_receipts_no_delete " &
                 "BEFORE DELETE ON ""Pos_OfficialReceipts"" " &
-                "WHEN (SELECT COALESCE((SELECT value FROM temp.archival_session " &
-                "WHERE key = 'archival_in_progress'), 0) = 0) " &
+                "WHEN (SELECT COALESCE((SELECT value FROM ""Pos_ArchivalSession"" " &
+                "WHERE key = 'archival_in_progress' AND expires_at > datetime('now')), 0) = 0) " &
                 "BEGIN " &
                 "SELECT RAISE(ABORT, 'BIR-immutable'); " &
                 "END")

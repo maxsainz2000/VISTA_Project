@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.App
 layer: Services
-last-updated: 2026-05-11
+last-updated: 2026-05-15
 ---
 
 # MerchSys.App — Services
@@ -23,3 +23,9 @@ This page details the Service implementations specifically located within the **
 | `src/MerchSys.App/Services/SyncOrchestrator.vb` | `SyncOrchestrator` | Iterates `ISyncableRepository` instances to synchronize local changes to MariaDB via the Conflict Resolver pipeline. |
 | `src/MerchSys.App/Services/SyncWorker.vb` | `SyncWorker` | `BackgroundService` that executes the dual-condition probe and triggers the orchestrator. |
 | `src/MerchSys.App/Services/DefaultNotificationService.vb` | `INotificationService`<br>`DefaultNotificationService` | Singleton that surfaces sync status changes and tracks `LastSuccessfulPushAt` for the UI shell. |
+
+## Debug & Utilities
+| File Path | Class | Description |
+|---|---|---|
+| `src/MerchSys.App/Debug/EventChainVerificationHarness.vb` | `EventChainVerificationHarness` | Orchestrates end-to-end event chain verification (GoodsReceived and SaleCompleted) against a scratch SQLite DB. |
+| `src/MerchSys.App/Debug/EventChainReport.vb` | `EventChainReport` | Markdown report generator for the event chain verification results. |

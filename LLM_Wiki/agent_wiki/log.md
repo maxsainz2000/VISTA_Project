@@ -4,6 +4,8 @@ Chronological record of all agent contributions to the Agent Wiki.
 
 <!-- Append new entries at the top. Format: ## [YYYY-MM-DD] agent | action | description -->
 
+## [2026-05-15] claude-code | added antipattern | VB.NET `cstr` variable name collides with `CStr()` conversion keyword (BC30183) — use `connStr` or any non-conversion-function name
+## [2026-05-15] claude-code | added antipattern | `Console.WriteLine` resolves to `Microsoft.Extensions.Logging.Console` when MEL is imported — qualify as `System.Console.WriteLine`
 ## [2026-05-11] claude-code | added antipattern | WPF VB.NET `clr-namespace` in xmlns must include the RootNamespace prefix (MC3074) — discovered during ACC-14 VatPayableTile placement
 ## [2026-05-09] claude-code | added error-fix | EF Core 10 CLI cannot discover VB.NET migration classes — use manual migration files + DatabaseInitializer workaround
 ## [2026-05-04] claude-code | added antipattern | VB.NET lambda parameter name conflicts with local variable in same method causes BC36641 — use distinct names for lambda params
