@@ -1,3 +1,6 @@
+# Production secrets — never commit the real file; only the .template is tracked
+appsettings.Production.json
+
 # Visual Studio / .NET
 bin/
 obj/

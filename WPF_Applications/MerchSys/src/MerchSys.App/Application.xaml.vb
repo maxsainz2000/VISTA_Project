@@ -1,5 +1,6 @@
 Imports Microsoft.Extensions.DependencyInjection
 Imports Microsoft.Extensions.Hosting
+Imports MerchSys.App.Configuration
 Imports MerchSys.App.Data
 Imports MerchSys.App.Services
 Imports MerchSys.App.Startup
@@ -20,6 +21,12 @@ Class Application
 
     Private Sub Application_Startup(sender As Object, e As StartupEventArgs)
         Dim builder = Host.CreateDefaultBuilder()
+
+        ' Overlay user-level production config (%LOCALAPPDATA%\VISTA\appsettings.Production.json)
+        ' on top of the committed appsettings.json defaults. File is optional; missing = local-only mode.
+        builder.ConfigureAppConfiguration(Sub(ctx, cfg)
+                                              cfg.AddProductionOverlay()
+                                          End Sub)
 
         builder.ConfigureServices(Sub(services)
 
