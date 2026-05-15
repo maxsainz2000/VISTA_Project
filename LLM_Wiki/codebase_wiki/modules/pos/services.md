@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.POS
 layer: Services
-last-updated: 2026-05-11
+last-updated: 2026-05-15
 ---
 
 # MerchSys.POS — Services
@@ -22,6 +22,7 @@ last-updated: 2026-05-11
 | `src/MerchSys.POS/Services/IVatConfigurationWriter.vb`<br>`src/MerchSys.POS/Services/VatConfigurationWriter.vb` | `IVatConfigurationWriter`<br>`VatConfigurationWriter` | Manager-only service for updating VAT registration settings, TIN, and rates; triggers cache invalidation. | `POSDbContext`, `VatConfigurationLoader`, `IMediator` |
 | `src/MerchSys.POS/Services/VatAwareReceiptService.vb` | `VatAwareReceiptService` | Decorator for `ReceiptService` that calculates and persists VAT breakdown for transactions. | `ReceiptService`, `IVatCalculator`, `VatConfigurationLoader` |
 | `src/MerchSys.POS/Services/ReceiptFormatting/IReceiptBodyComposer.vb`<br>`src/MerchSys.POS/Services/ReceiptFormatting/BirCompliantReceiptBodyComposer.vb` | `IReceiptBodyComposer`<br>`BirCompliantReceiptBodyComposer` | Composes BIR-compliant receipt body text with three-bucket VAT disclosure (VATable, Exempt, Zero-Rated) and Output VAT. | `POSDbContext`, `VatConfigurationLoader` |
+| `src/MerchSys.POS/Services/Archival/IReceiptArchivalService.vb`<br>`src/MerchSys.POS/Services/Archival/ReceiptArchivalService.vb` | `IReceiptArchivalService`<br>`ReceiptArchivalService` | Background service for transactional archival of expired receipts and integrity logs to cold storage. | `IServiceScopeFactory`, `POSDbContext`, `IOptions(Of ReceiptArchivalOptions)` |
  
 +## Debug & Utilities
 +| File Path | Class | Description |

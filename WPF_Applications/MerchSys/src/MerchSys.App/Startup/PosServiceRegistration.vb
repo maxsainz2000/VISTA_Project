@@ -1,5 +1,7 @@
 Imports Microsoft.Extensions.DependencyInjection
+Imports Microsoft.Extensions.Hosting
 Imports MerchSys.POS.Services
+Imports MerchSys.POS.Services.Archival
 Imports MerchSys.POS.ViewModels
 
 Namespace Startup
@@ -20,6 +22,12 @@ Namespace Startup
             services.AddSingleton(Of VatConfigurationLoader)()
             services.AddScoped(Of IDailySummaryService, DailySummaryService)()
             services.AddScoped(Of IVatConfigurationWriter, VatConfigurationWriter)()
+
+            ' Receipt archival background service (POS-16)
+            services.AddOptions(Of ReceiptArchivalOptions)().BindConfiguration("Receipts:Archival")
+            services.AddHostedService(Of ReceiptArchivalService)()
+            services.AddScoped(Of IReceiptArchivalService, ReceiptArchivalService)()
+
             services.AddTransient(Of SalesCartViewModel)()
             services.AddTransient(Of CreditManagementViewModel)()
             services.AddTransient(Of TransactionHistoryViewModel)()

@@ -29,6 +29,7 @@ Namespace Data
                 ApplyIfPending(conn, "20260514100000_AddVatThreeBucketColumns", AddressOf ApplyVatThreeBucketColumns)
                 ApplyIfPending(conn, "20260515100000_FixVatReturnAmendedIndex", AddressOf ApplyFixVatReturnAmendedIndex)
                 ApplyIfPending(conn, "20260516100000_AddTamperAuditLog", AddressOf ApplyTamperAuditLog)
+                ApplyIfPending(conn, "20260515140000_AddReceiptIntegrityArchive", AddressOf ApplyAddReceiptIntegrityArchive)
             End Using
         End Sub
 
@@ -878,6 +879,82 @@ Namespace Data
                 "BEFORE DELETE ON ""Acc_TamperAuditLog"" " &
                 "BEGIN " &
                 "SELECT RAISE(ABORT, 'tamper-audit-immutable'); " &
+                "END")
+        End Sub
+
+        ' ── Receipt Integrity Archive (20260515140000) ───────────────────────
+
+        Private Sub ApplyAddReceiptIntegrityArchive(conn As SqliteConnection)
+            Exec(conn,
+                "CREATE TABLE IF NOT EXISTS ""Pos_ReceiptIntegrityArchive"" (" &
+                """Id"" INTEGER NOT NULL CONSTRAINT ""PK_Pos_ReceiptIntegrityArchive"" PRIMARY KEY AUTOINCREMENT, " &
+                """OriginalIntegrityId"" INTEGER NOT NULL, " &
+                """ReceiptId"" INTEGER NOT NULL, " &
+                """IntegrityHash"" TEXT NOT NULL, " &
+                """PreviousHash"" TEXT NOT NULL, " &
+                """RetentionExpiresAt"" TEXT NOT NULL, " &
+                """IsImmutable"" INTEGER NOT NULL, " &
+                """HashAlgorithm"" TEXT NOT NULL, " &
+                """CanonicalPayload"" TEXT NOT NULL, " &
+                """ArchivedAt"" TEXT NOT NULL, " &
+                """ArchivedByService"" TEXT NOT NULL, " &
+                """CreatedBy"" TEXT NULL, " &
+                """CreatedAt"" TEXT NOT NULL, " &
+                """ModifiedBy"" TEXT NULL, " &
+                """ModifiedAt"" TEXT NULL" &
+                ")")
+
+            Exec(conn,
+                "CREATE INDEX IF NOT EXISTS ""IX_Pos_ReceiptIntegrityArchive_ReceiptId"" " &
+                "ON ""Pos_ReceiptIntegrityArchive"" (""ReceiptId"")")
+
+            Exec(conn,
+                "CREATE INDEX IF NOT EXISTS ""IX_Pos_ReceiptIntegrityArchive_OriginalIntegrityId"" " &
+                "ON ""Pos_ReceiptIntegrityArchive"" (""OriginalIntegrityId"")")
+
+            ' INSERT-only triggers on Pos_ReceiptIntegrityArchive
+            Exec(conn,
+                "CREATE TRIGGER IF NOT EXISTS pos_integrity_archive_no_update " &
+                "BEFORE UPDATE ON ""Pos_ReceiptIntegrityArchive"" " &
+                "BEGIN " &
+                "SELECT RAISE(ABORT, 'BIR-archive-immutable'); " &
+                "END")
+
+            Exec(conn,
+                "CREATE TRIGGER IF NOT EXISTS pos_integrity_archive_no_delete " &
+                "BEFORE DELETE ON ""Pos_ReceiptIntegrityArchive"" " &
+                "BEGIN " &
+                "SELECT RAISE(ABORT, 'BIR-archive-immutable'); " &
+                "END")
+
+            ' INSERT-only triggers on Pos_OfficialReceiptArchive (missed in POS-13)
+            Exec(conn,
+                "CREATE TRIGGER IF NOT EXISTS pos_receipt_archive_no_update " &
+                "BEFORE UPDATE ON ""Pos_OfficialReceiptArchive"" " &
+                "BEGIN " &
+                "SELECT RAISE(ABORT, 'BIR-archive-immutable'); " &
+                "END")
+
+            Exec(conn,
+                "CREATE TRIGGER IF NOT EXISTS pos_receipt_archive_no_delete " &
+                "BEFORE DELETE ON ""Pos_OfficialReceiptArchive"" " &
+                "BEGIN " &
+                "SELECT RAISE(ABORT, 'BIR-archive-immutable'); " &
+                "END")
+
+            ' Amend pos_receipts_no_delete to allow DELETE when archival session flag is set.
+            ' BEFORE: unconditional RAISE(ABORT, 'BIR-immutable') on any DELETE.
+            ' AFTER:  RAISE fires only when temp.archival_session.archival_in_progress != 1.
+            ' A normal session never sets the flag, so the trigger still blocks all non-archival deletes.
+            Exec(conn, "DROP TRIGGER IF EXISTS pos_receipts_no_delete")
+
+            Exec(conn,
+                "CREATE TRIGGER IF NOT EXISTS pos_receipts_no_delete " &
+                "BEFORE DELETE ON ""Pos_OfficialReceipts"" " &
+                "WHEN (SELECT COALESCE((SELECT value FROM temp.archival_session " &
+                "WHERE key = 'archival_in_progress'), 0) = 0) " &
+                "BEGIN " &
+                "SELECT RAISE(ABORT, 'BIR-immutable'); " &
                 "END")
         End Sub
 

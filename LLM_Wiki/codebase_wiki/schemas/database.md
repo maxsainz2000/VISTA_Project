@@ -1,6 +1,6 @@
 ---
 type: schema-map
-last-updated: 2026-05-11
+last-updated: 2026-05-15
 ---
 
 # Database Schema Mapping
@@ -19,6 +19,7 @@ This page maps the EF Core entities across all modules to their SQLite/MariaDB t
 | `ReceiptIntegrity` | `Pos_ReceiptIntegrity` | PK `Id`, Unique Index on `ReceiptId`, FK to `Pos_OfficialReceipts` |
 | `ReceiptSequence` | `Pos_ReceiptSequence` | PK `Id`, Unique Index on `Year`, RowVersion token |
 | `OfficialReceiptArchive` | `Pos_OfficialReceiptArchive` | PK `Id`, Index on `OriginalReceiptId` |
+| `ReceiptIntegrityArchive` | `Pos_ReceiptIntegrityArchive` | PK `Id`, Index on `ReceiptId` |
 | `VatConfiguration` | `Pos_VatConfiguration` | PK `Id`, Seed row Id=1 enforced by constraint |
 
 ## MerchSys.Purchasing (`Pur_` prefix)

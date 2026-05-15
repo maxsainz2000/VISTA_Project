@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.POS
 layer: Entities
-last-updated: 2026-05-11
+last-updated: 2026-05-15
 ---
 
 # MerchSys.POS — Entities
@@ -20,6 +20,7 @@ last-updated: 2026-05-11
 | `Entities/ReceiptSequence.vb` | `ReceiptSequence` | `AuditableEntity` | `Year`, `NextValue`, `RowVersion` | `Pos_ReceiptSequence` |
 | `Entities/OfficialReceiptArchive.vb` | `OfficialReceiptArchive` | N/A | `ArchivedAt`, `ArchivedHash` | `Pos_OfficialReceiptArchive` |
 | `Entities/VatConfiguration.vb` | `VatConfiguration` | `AuditableEntity` | `IsVatRegistered`, `VatRate`, `TIN`, `EffectiveFrom` | `Pos_VatConfiguration` |
+| `Entities/ReceiptIntegrityArchive.vb` | `ReceiptIntegrityArchive` | N/A | `ReceiptId`, `IntegrityHash`, `ArchivedAt`, `ArchivedByService` | `Pos_ReceiptIntegrityArchive` |
 
 ## Value Objects / DTOs
 - **VAT Extensions:** `SalesTransaction` and `SalesTransactionLine` have partial class extensions in `Entities/Extensions/` adding BIR-required VAT decomposition fields.

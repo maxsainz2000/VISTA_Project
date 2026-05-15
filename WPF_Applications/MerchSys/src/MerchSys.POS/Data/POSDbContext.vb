@@ -26,6 +26,7 @@ Namespace Data
         Public Property ReceiptIntegrities As DbSet(Of ReceiptIntegrity)
         Public Property ReceiptSequences As DbSet(Of ReceiptSequence)
         Public Property OfficialReceiptArchives As DbSet(Of OfficialReceiptArchive)
+        Public Property ReceiptIntegrityArchives As DbSet(Of ReceiptIntegrityArchive)
         Public Property VatConfigurations As DbSet(Of VatConfiguration)
 
         Public Sub New(options As DbContextOptions(Of POSDbContext))

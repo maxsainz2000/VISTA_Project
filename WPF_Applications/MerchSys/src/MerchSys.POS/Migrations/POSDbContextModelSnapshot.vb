@@ -279,6 +279,30 @@ Namespace Migrations
                     HasForeignKey("MerchSys.POS.Entities.ReceiptIntegrity", "ReceiptId").
                     IsRequired()
             End Sub)
+
+            modelBuilder.Entity("MerchSys.POS.Entities.ReceiptIntegrityArchive", Sub(b)
+                b.Property(Of Integer)("Id").
+                    ValueGeneratedOnAdd().
+                    HasColumnType("INTEGER")
+                b.Property(Of Integer)("OriginalIntegrityId").HasColumnType("INTEGER")
+                b.Property(Of Integer)("ReceiptId").HasColumnType("INTEGER")
+                b.Property(Of String)("IntegrityHash").IsRequired().HasMaxLength(64).HasColumnType("TEXT")
+                b.Property(Of String)("PreviousHash").IsRequired().HasMaxLength(64).HasColumnType("TEXT")
+                b.Property(Of DateTime)("RetentionExpiresAt").HasColumnType("TEXT")
+                b.Property(Of Boolean)("IsImmutable").HasColumnType("INTEGER")
+                b.Property(Of String)("HashAlgorithm").IsRequired().HasMaxLength(20).HasColumnType("TEXT")
+                b.Property(Of String)("CanonicalPayload").IsRequired().HasMaxLength(8000).HasColumnType("TEXT")
+                b.Property(Of DateTime)("ArchivedAt").HasColumnType("TEXT")
+                b.Property(Of String)("ArchivedByService").IsRequired().HasMaxLength(100).HasColumnType("TEXT")
+                b.Property(Of DateTime)("CreatedAt").HasColumnType("TEXT")
+                b.Property(Of String)("CreatedBy").HasMaxLength(256).HasColumnType("TEXT")
+                b.Property(Of DateTime?)("ModifiedAt").HasColumnType("TEXT")
+                b.Property(Of String)("ModifiedBy").HasMaxLength(256).HasColumnType("TEXT")
+                b.HasKey("Id")
+                b.HasIndex("ReceiptId")
+                b.HasIndex("OriginalIntegrityId")
+                b.ToTable("Pos_ReceiptIntegrityArchive")
+            End Sub)
         End Sub
 
     End Class

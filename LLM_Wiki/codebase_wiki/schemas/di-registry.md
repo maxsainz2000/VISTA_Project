@@ -1,6 +1,6 @@
 ---
 type: schema-map
-last-updated: 2026-05-11
+last-updated: 2026-05-15
 ---
 
 # Dependency Injection Registry
@@ -21,6 +21,9 @@ This page documents the composition root in `MerchSys.App`.
 | `IVatCalculator` | `VatCalculator` | Scoped |
 | `VatConfigurationLoader` | `VatConfigurationLoader` | Singleton |
 | `IVatConfigurationWriter` | `VatConfigurationWriter` | Scoped |
+| `IReceiptArchivalService` | `ReceiptArchivalService` | Scoped |
+| (none) | `ReceiptArchivalService` | Singleton (HostedService) |
+| `IOptions(Of ReceiptArchivalOptions)` | (Configuration) | Singleton |
 | (none) | `SalesCartViewModel` | Transient |
 | (none) | `CreditManagementViewModel` | Transient |
 | (none) | `TransactionHistoryViewModel` | Transient |
