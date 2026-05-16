@@ -183,6 +183,10 @@
                 </StackPanel>
             </Border>
 
+            <!-- VAT Payable tile: DataContext inherited from parent; VAT data supplied by
+                 VatEnrichedFinancialOverviewService (decorator over FinancialOverviewService).
+                 Click → NavigateToVatReturnCommand → FinancialOverviewViewModel.NavigateToVatReturnRequested
+                 → OnNavigateToVatReturnRequested in code-behind (type-based NavigationItem lookup). -->
             <vatTiles:VatPayableTile Grid.Column="7" Margin="0"/>
         </Grid>
 
