@@ -13,13 +13,12 @@ Namespace Data.Configurations
         Implements IEntityTypeConfiguration(Of VatConfiguration)
 
         Public Sub Configure(builder As EntityTypeBuilder(Of VatConfiguration)) Implements IEntityTypeConfiguration(Of VatConfiguration).Configure
-            builder.ToTable("Pos_VatConfiguration")
+            ' Database-level singleton guard: only Id = 1 may ever be inserted.
+            builder.ToTable("Pos_VatConfiguration",
+                            Sub(t) t.HasCheckConstraint("CK_Pos_VatConfiguration_SingleRow", """Id"" = 1"))
 
             ' Never auto-generate Id — the single row is always inserted with Id = 1.
             builder.Property(Function(v) v.Id).ValueGeneratedNever()
-
-            ' Database-level singleton guard: only Id = 1 may ever be inserted.
-            builder.HasCheckConstraint("CK_Pos_VatConfiguration_SingleRow", """Id"" = 1")
 
             builder.Property(Function(v) v.VatRate).HasPrecision(5, 4)
             builder.Property(Function(v) v.NonVatPercentageTaxRate).HasPrecision(5, 4)

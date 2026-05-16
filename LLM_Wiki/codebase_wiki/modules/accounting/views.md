@@ -19,3 +19,4 @@ This page details the Views for the **MerchSys.Accounting** module.
 | `src/MerchSys.App/Views/Accounting/VatReturnView.xaml` | `VatReturnView` | `.xaml.vb` | Manager-only BIR VAT reporting interface. Supports generation, locking, and export of Forms 2550M/Q and 2551Q. |
 | `src/MerchSys.App/Views/Accounting/Components/VatPayableTile.xaml` | `VatPayableTile` | `.xaml.vb` | KPI tile for the dashboard displaying current VAT liability and filing deadline with severity-based styling. |
 | `src/MerchSys.Accounting/Debug/VatTileSmokeHarness.vb` | `VatTileSmokeHarness` | (Harness) | `#If DEBUG`-gated E2E smoke harness for VAT tile logic; seeds scratch DB and verifies computed payable values. |
+| `src/MerchSys.App/Views/Accounting/TamperAuditReportView.xaml` | `TamperAuditReportView` | `.xaml.vb` | Read-only compliance view allowing Manager and Owner roles to review filterable receipt tamper incidents. |

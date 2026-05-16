@@ -80,6 +80,7 @@ This page documents the composition root in `MerchSys.App`.
 | (none) | `IncomeStatementViewModel` | Transient |
 | (none) | `SalesSummaryViewModel` | Transient |
 | (none) | `VatReturnViewModel` | Transient |
+| (none) | `TamperAuditReportViewModel` | Transient |
 
 ## Views (UserControls)
 | View | Module | Lifetime |
@@ -103,6 +104,7 @@ This page documents the composition root in `MerchSys.App`.
 | `SalesSummaryView` | Accounting | Transient |
 | `VatReturnView` | Accounting | Transient |
 | `VatPayableTile` | Accounting | Transient |
+| `TamperAuditReportView` | Accounting | Transient |
 | `SyncStatusIndicator` | (Shell) | Singleton |
 
 

@@ -103,7 +103,8 @@ Namespace ViewModels
             Dim items As New List(Of NavigationItem) From {
                 New NavigationItem With {.DisplayName = "Financial Overview", .ViewType = GetType(Views.Accounting.FinancialOverviewView)},
                 New NavigationItem With {.DisplayName = "Income Statement", .ViewType = GetType(Views.Accounting.IncomeStatementView)},
-                New NavigationItem With {.DisplayName = "Sales Summary", .ViewType = GetType(Views.Accounting.SalesSummaryView)}
+                New NavigationItem With {.DisplayName = "Sales Summary", .ViewType = GetType(Views.Accounting.SalesSummaryView)},
+                New NavigationItem With {.DisplayName = "Tamper Audit Report", .ViewType = GetType(Views.Accounting.TamperAuditReportView)}
             }
             ' INT-02 convention (type-based NavigationItem); view source ACC-11; Manager-only per BIR access rules
             If _session.CurrentRole = UserRole.Manager Then

@@ -94,6 +94,7 @@ Class Application
                                       services.AddTransient(Of IncomeStatementViewModel)()
                                       services.AddTransient(Of SalesSummaryViewModel)()
                                       services.AddTransient(Of VatReturnViewModel)()
+                                      services.AddTransient(Of TamperAuditReportViewModel)()
 
                                       ' ── Views (UserControls) ──────────────────────────────
                                       services.AddTransient(Of Views.POS.SalesCartView)()
@@ -114,6 +115,7 @@ Class Application
                                       services.AddTransient(Of Views.Accounting.IncomeStatementView)()
                                       services.AddTransient(Of Views.Accounting.SalesSummaryView)()
                                       services.AddTransient(Of Views.Accounting.VatReturnView)()
+                                      services.AddTransient(Of Views.Accounting.TamperAuditReportView)()
                                       services.AddTransient(Of Views.Accounting.Components.VatPayableTile)()
 
                                       ' ── Shell ─────────────────────────────────────────────
