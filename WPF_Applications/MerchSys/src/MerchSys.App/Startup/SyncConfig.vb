@@ -5,6 +5,7 @@ Imports Microsoft.Extensions.Hosting
 Imports Microsoft.Extensions.Logging
 Imports MerchSys.App.Configuration
 Imports MerchSys.App.Services
+Imports MerchSys.App.Services.Sync
 Imports MerchSys.SharedKernel.Interfaces
 Imports MerchSys.SharedKernel.Sync
 
@@ -35,6 +36,7 @@ Namespace Startup
             services.AddSingleton(Of ISyncProbe, DualConditionSyncProbe)()
             services.AddSingleton(Of INotificationService, DefaultNotificationService)()
             services.AddScoped(Of IConflictResolver, ConflictResolver)()
+            services.AddScoped(Of ISyncTransmitter, MariaDbSyncTransmitter)()
             services.AddScoped(Of SyncOrchestrator)()
             services.AddHostedService(Of SyncWorker)()
         End Sub

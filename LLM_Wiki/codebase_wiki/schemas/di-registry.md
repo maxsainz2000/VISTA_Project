@@ -135,6 +135,7 @@ This page documents the composition root in `MerchSys.App`.
 | `ISyncProbe` | `DualConditionSyncProbe` | Singleton |
 | `ISessionService` | `DefaultSessionService` | Singleton |
 | `SyncOrchestrator` | `SyncOrchestrator` | Scoped |
+| `ISyncTransmitter` | `MariaDbSyncTransmitter` | Scoped |
 | `SyncWorker` | `SyncWorker` | Singleton (HostedService) |
 | `IConflictResolver` | `ConflictResolver` | Scoped |
 | `MariaDbSyncContext` | `MariaDbSyncContext` | Scoped |

@@ -1,18 +1,21 @@
 Imports System.Threading
 Imports Microsoft.Extensions.Logging
 Imports Microsoft.Extensions.Options
+Imports MerchSys.App.Services.Sync
 Imports MerchSys.SharedKernel.Interfaces
 Imports MerchSys.SharedKernel.Sync
-Imports MerchSys.SharedKernel.Sync.SyncMaps
 
 Namespace Services
 
+    ' Replaces the INFRA-05 placeholder stub: actual data transmission is now delegated to
+    ' ISyncTransmitter (MariaDbSyncTransmitter) rather than inline per-entry SaveChangesAsync calls.
     Public Class SyncOrchestrator
 
         Private ReadOnly _repositories As IEnumerable(Of ISyncableRepository)
         Private ReadOnly _mariaDb As MariaDbSyncContext
         Private ReadOnly _journalDb As SyncJournalDbContext
         Private ReadOnly _conflictResolver As IConflictResolver
+        Private ReadOnly _transmitter As ISyncTransmitter
         Private ReadOnly _notifications As INotificationService
         Private ReadOnly _settings As IOptionsMonitor(Of SyncSettings)
         Private ReadOnly _logger As ILogger(Of SyncOrchestrator)
@@ -26,6 +29,7 @@ Namespace Services
                        mariaDb As MariaDbSyncContext,
                        journalDb As SyncJournalDbContext,
                        conflictResolver As IConflictResolver,
+                       transmitter As ISyncTransmitter,
                        notifications As INotificationService,
                        settings As IOptionsMonitor(Of SyncSettings),
                        logger As ILogger(Of SyncOrchestrator))
@@ -33,6 +37,7 @@ Namespace Services
             _mariaDb = mariaDb
             _journalDb = journalDb
             _conflictResolver = conflictResolver
+            _transmitter = transmitter
             _notifications = notifications
             _settings = settings
             _logger = logger
@@ -40,9 +45,10 @@ Namespace Services
 
         ''' <summary>
         ''' Iterates registered module repositories in dependency order (Purchasing → Inventory →
-        ''' POS → Accounting), applies conflict resolution, and pushes pending journal entries to
-        ''' the central MariaDB instance. Stops on the first module-level error so that subsequent
-        ''' modules retry on the next probe cycle.
+        ''' POS → Accounting), applies conflict resolution, batches resolved entries via
+        ''' <see cref="ISyncTransmitter"/>, and marks successfully transmitted rows as synced.
+        ''' Stops on the first module-level error so that subsequent modules retry on the next
+        ''' probe cycle.
         ''' </summary>
         Public Async Function RunAsync(cancellationToken As CancellationToken) As Task
             Dim ordered = _repositories.
@@ -79,12 +85,21 @@ Namespace Services
                 Take(batchSize).
                 ToList()
 
-            Dim syncedIds As New List(Of Long)
+            If actionable.Count = 0 Then Return
 
+            ' Build a lookup so we can retrieve the original entity when processing TransmitResult errors.
+            Dim entryById As New Dictionary(Of Long, SyncJournal)()
+            For Each entry In actionable
+                entryById(CLng(entry.Id)) = entry
+            Next
+
+            Dim toTransmit As New List(Of SyncJournal)()
+            Dim toSkip As New List(Of Long)()
+
+            ' ── Phase 1: conflict resolution (per-entry, requires remote snapshot) ────────
             For Each entry In actionable
                 If cancellationToken.IsCancellationRequested Then Exit For
 
-                ' Collected outside Try/Catch because Await is not permitted inside Catch in VB.NET.
                 Dim pendingFailureReason As String = Nothing
 
                 Try
@@ -93,24 +108,24 @@ Namespace Services
 
                     Select Case decision.Action
                         Case SyncAction.Push
-                            Await PushEntryAsync(entry, cancellationToken)
-                            syncedIds.Add(CLng(entry.Id))
-                            _logger.LogDebug("Sync: pushed {Table}/{Id} — {Reason}",
+                            toTransmit.Add(entry)
+                            _logger.LogDebug("Sync: queued {Table}/{Id} for transmission — {Reason}",
                                              entry.TableName, entry.RowId, decision.Reason)
 
                         Case SyncAction.Skip
-                            syncedIds.Add(CLng(entry.Id))
+                            toSkip.Add(CLng(entry.Id))
                             _logger.LogDebug("Sync: skipped {Table}/{Id} — {Reason}",
                                              entry.TableName, entry.RowId, decision.Reason)
 
                         Case SyncAction.Reject
+                            pendingFailureReason = decision.Reason
                             _logger.LogWarning("Sync: rejected {Table}/{Id} — {Reason}",
                                                entry.TableName, entry.RowId, decision.Reason)
-                            pendingFailureReason = decision.Reason
                     End Select
 
                 Catch ex As Exception When Not TypeOf ex Is OperationCanceledException
-                    _logger.LogError(ex, "Sync: failed to process {Table}/{Id}", entry.TableName, entry.RowId)
+                    _logger.LogError(ex, "Sync: conflict resolution failed for {Table}/{Id}",
+                                     entry.TableName, entry.RowId)
                     pendingFailureReason = ex.Message
                 End Try
 
@@ -119,32 +134,42 @@ Namespace Services
                 End If
             Next
 
+            ' ── Phase 2: batch transmission via ISyncTransmitter ─────────────────────────
+            Dim transmitSuccessIds As New List(Of Long)()
+            If toTransmit.Count > 0 Then
+                Dim result = Await _transmitter.TransmitBatchAsync(toTransmit, cancellationToken)
+
+                Dim failedIds As New HashSet(Of Long)(result.Errors.Select(Function(e) e.EntryId))
+
+                For Each entry In toTransmit
+                    If Not failedIds.Contains(CLng(entry.Id)) Then
+                        transmitSuccessIds.Add(CLng(entry.Id))
+                    End If
+                Next
+
+                For Each txErr In result.Errors
+                    Dim failedEntry As SyncJournal = Nothing
+                    If entryById.TryGetValue(txErr.EntryId, failedEntry) Then
+                        Await IncrementAttemptAsync(failedEntry, txErr.Message)
+                    End If
+                Next
+
+                If result.FailedCount > 0 Then
+                    _logger.LogWarning("Sync: {Module} — {Failed} of {Total} entries failed transmission",
+                                       repo.ModuleName, result.FailedCount, toTransmit.Count)
+                End If
+            End If
+
+            ' ── Phase 3: mark synced (successful transmits + conflict-skipped entries) ───
+            Dim syncedIds = transmitSuccessIds.Concat(toSkip).ToList()
             If syncedIds.Count > 0 Then
                 Await repo.MarkSyncedAsync(syncedIds)
-                _logger.LogInformation("Sync: {Module} marked {Count} entries as synced", repo.ModuleName, syncedIds.Count)
-            End If
-        End Function
-
-        Private Async Function PushEntryAsync(entry As SyncJournal, cancellationToken As CancellationToken) As Task
-            Dim remoteEntity = ToRemoteEntity(entry)
-            If remoteEntity Is Nothing Then
-                _logger.LogWarning("Sync: no SyncMap found for table {Table}; skipping", entry.TableName)
-                Return
+                _logger.LogInformation("Sync: {Module} — {Synced} entries marked synced ({Transmitted} transmitted, {Skipped} skipped)",
+                                       repo.ModuleName, syncedIds.Count, transmitSuccessIds.Count, toSkip.Count)
             End If
 
-            Select Case entry.Operation
-                Case "INSERT"
-                    _mariaDb.Add(remoteEntity)
-                Case "UPDATE"
-                    _mariaDb.Update(remoteEntity)
-                Case Else
-                    _logger.LogWarning("Sync: unhandled operation '{Op}' for {Table}; skipping",
-                                       entry.Operation, entry.TableName)
-                    Return
-            End Select
-
-            Await _mariaDb.SaveChangesAsync(cancellationToken)
-            _mariaDb.ChangeTracker.Clear()
+            Dim hasErrors = toTransmit.Count > 0 AndAlso transmitSuccessIds.Count < toTransmit.Count
+            _notifications.NotifySyncStatusChanged(If(hasErrors, SyncStatus.[Error], SyncStatus.Online))
         End Function
 
         Private Async Function IncrementAttemptAsync(entry As SyncJournal, errorMessage As String) As Task
@@ -157,19 +182,6 @@ Namespace Services
             Catch ex As Exception
                 _logger.LogError(ex, "Sync: failed to update journal for {Table}/{Id}", entry.TableName, entry.Id)
             End Try
-        End Function
-
-        Private Shared Function ToRemoteEntity(entry As SyncJournal) As Object
-            If entry.TableName.StartsWith("Pur_", StringComparison.OrdinalIgnoreCase) Then
-                Return PurchasingSyncMap.ToRemote(entry)
-            ElseIf entry.TableName.StartsWith("Inv_", StringComparison.OrdinalIgnoreCase) Then
-                Return InventorySyncMap.ToRemote(entry)
-            ElseIf entry.TableName.StartsWith("Pos_", StringComparison.OrdinalIgnoreCase) Then
-                Return PosSyncMap.ToRemote(entry)
-            ElseIf entry.TableName.StartsWith("Acc_", StringComparison.OrdinalIgnoreCase) Then
-                Return AccountingSyncMap.ToRemote(entry)
-            End If
-            Return Nothing
         End Function
 
         Private Shared Function IndexOf(moduleName As String) As Integer
