@@ -33,3 +33,4 @@ This page details the Service implementations specifically located within the **
 |---|---|---|
 | `src/MerchSys.App/Debug/EventChainVerificationHarness.vb` | `EventChainVerificationHarness` | Orchestrates end-to-end event chain verification (GoodsReceived and SaleCompleted) against a scratch SQLite DB. |
 | `src/MerchSys.App/Debug/EventChainReport.vb` | `EventChainReport` | Markdown report generator for the event chain verification results. |
+| `src/MerchSys.App/Startup/DebugServiceRegistration.vb` | `DebugServiceRegistration` (Module) | Registers DebugMenuView as Transient in DI for developer diagnostics. |

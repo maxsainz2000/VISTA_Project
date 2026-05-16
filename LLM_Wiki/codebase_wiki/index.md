@@ -16,7 +16,7 @@ This is the central directory for the VISTA codebase wiki. Use these links to na
 | MerchSys.Accounting | In Progress | 67 | [[accounting/index|Accounting Index]] |
 | MerchSys.App | Infrastructure / In Progress | 43 | [[app/index|App Index]] |
 
-*(Total tracked source files: 342)*
+*(Total tracked source files: 344)*
 
 
 ## Cross-Cutting Registries

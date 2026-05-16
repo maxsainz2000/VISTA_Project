@@ -122,6 +122,11 @@ Class Application
                                       services.AddSingleton(Of MainWindowViewModel)()
                                       services.AddSingleton(Of MainWindow)()
 
+#If DEBUG Then
+                                      ' ── Developer Tools (Debug builds only, ACC-17) ────────
+                                      services.AddDebugServices()
+#End If
+
                                   End Sub)
 
         _host = builder.Build()

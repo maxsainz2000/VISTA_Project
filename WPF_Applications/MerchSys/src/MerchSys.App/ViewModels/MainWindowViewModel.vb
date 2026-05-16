@@ -56,7 +56,7 @@ Namespace ViewModels
         End Sub
 
         Private Function BuildNavigationGroups() As ObservableCollection(Of NavigationGroup)
-            Return New ObservableCollection(Of NavigationGroup) From {
+            Dim groups = New ObservableCollection(Of NavigationGroup) From {
                 New NavigationGroup("Point of Sale", BuildPosNavItems()),
                 New NavigationGroup("Purchasing", New List(Of NavigationItem) From {
                     New NavigationItem With {.DisplayName = "Purchase Orders", .ViewType = GetType(Views.Purchasing.PurchaseOrderListView)},
@@ -73,6 +73,16 @@ Namespace ViewModels
                 }),
                 New NavigationGroup("Accounting", BuildAccountingNavItems())
             }
+#If DEBUG Then
+            ' Developer Tools group — visible only in Debug configuration (ACC-17).
+            groups.Add(New NavigationGroup("Developer Tools", New List(Of NavigationItem) From {
+                New NavigationItem With {
+                    .DisplayName = "Run VAT Schema Harness",
+                    .ViewType = GetType(Views.Debug.DebugMenuView)
+                }
+            }))
+#End If
+            Return groups
         End Function
 
         Private Function BuildPosNavItems() As List(Of NavigationItem)

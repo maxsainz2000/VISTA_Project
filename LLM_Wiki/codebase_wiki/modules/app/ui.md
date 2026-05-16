@@ -65,3 +65,9 @@ This page details the WPF View implementations (XAML and code-behind) in the **M
 | File Path | Description |
 |---|---|
 | `src/MerchSys.App/Resources/Sql/ReceiptIntegrityTriggerVerification.sql` | Diagnostic bundle for MariaDB triggers. Includes trigger inventory and five negative-path probes (BIR compliance). |
+
+## Debug & Developer Tools
+
+| File Path | Class | Description | DataContext / Injection |
+|---|---|---|---|
+| `src/MerchSys.App/Views/Debug/DebugMenuExtensions.vb` | `DebugMenuView` | Code-only `#If DEBUG`-gated UserControl that renders the developer debug panel. | (none) |
