@@ -65,6 +65,16 @@ Namespace Services
 
             For Each dto In lines
                 Dim hasDiscrepancy As Boolean = (dto.QuantityReceived <> dto.QuantityOrdered)
+                Dim lineTotal As Decimal = CDec(dto.QuantityReceived) * dto.UnitCost
+                Dim vatAmt As Decimal = 0D
+                Dim vatableSls As Decimal = 0D
+                If dto.VatClassification = VatTreatment.Vatable Then
+                    ' 12% Philippine VAT rate (NIRC Sec. 106). UnitCost is VAT-inclusive.
+                    vatableSls = Math.Round(lineTotal / 1.12D, 2)
+                    vatAmt = Math.Round(lineTotal - vatableSls, 2)
+                Else
+                    vatableSls = lineTotal
+                End If
                 receipt.Lines.Add(New GoodsReceiptLine With {
                     .ProductId = dto.ProductId,
                     .ProductName = dto.ProductName,
@@ -73,7 +83,10 @@ Namespace Services
                     .UnitCost = dto.UnitCost,
                     .ExpiryDate = dto.ExpiryDate,
                     .HasDiscrepancy = hasDiscrepancy,
-                    .DiscrepancyNotes = dto.DiscrepancyNotes
+                    .DiscrepancyNotes = dto.DiscrepancyNotes,
+                    .VatClassification = dto.VatClassification,
+                    .VatAmount = vatAmt,
+                    .VatableSales = vatableSls
                 })
             Next
 
@@ -98,12 +111,11 @@ Namespace Services
 
             Await _mediator.Publish(ev)
 
-            ' Publish VAT-aware sibling (INFRA-07 / PUR-14).  Both events fire so legacy consumers
-            ' (FIFO costing, stock movement, low-stock alerts) keep receiving GoodsReceivedEvent
-            ' while ACC-10 and ACC-11 consume GoodsReceivedWithVatEvent for input-VAT accounting.
-            ' NOTE — Option-2 simplification: all lines are treated as vatable at 12 % because
-            ' GoodsReceiptLine has no per-line VAT classification yet.  A follow-up plan should
-            ' add that column and replace this calculator with a per-line-aware version.
+            ' Publish VAT-aware sibling (INFRA-07 / PUR-14 / PUR-15).  Both events fire so legacy
+            ' consumers (FIFO costing, stock movement, low-stock alerts) keep receiving
+            ' GoodsReceivedEvent while ACC-10 and ACC-11 consume GoodsReceivedWithVatEvent.
+            ' PUR-15: per-line VatClassification, VatAmount, and VatableSales are now populated on
+            ' each GoodsReceiptLine before SaveChanges, replacing the Option-2 aggregate simplification.
             Dim vatBreakdown = _vatCalculator.Calculate(receipt, receipt.Lines)
 
             Dim vatEvent As New GoodsReceivedWithVatEvent With {
@@ -116,16 +128,17 @@ Namespace Services
             }
 
             For Each grLine In receipt.Lines
-                Dim unitCostExcl As Decimal = Math.Round(grLine.UnitCost / 1.12D, 4)
-                Dim lineInputVat As Decimal = Math.Round(CDec(grLine.QuantityReceived) * (grLine.UnitCost - unitCostExcl), 2)
+                Dim unitCostExcl As Decimal = If(grLine.VatClassification = VatTreatment.Vatable,
+                    Math.Round(grLine.UnitCost / 1.12D, 4),
+                    grLine.UnitCost)
                 vatEvent.Items.Add(New GoodsReceivedWithVatEvent.GoodsReceivedItemWithVat With {
                     .ProductId = grLine.ProductId,
                     .ProductName = grLine.ProductName,
                     .QuantityReceived = grLine.QuantityReceived,
                     .UnitCost = Math.Round(unitCostExcl, 2),
                     .ExpiryDate = grLine.ExpiryDate,
-                    .Treatment = VatTreatment.Vatable,
-                    .InputVat = lineInputVat
+                    .Treatment = grLine.VatClassification,
+                    .InputVat = grLine.VatAmount
                 })
             Next
 

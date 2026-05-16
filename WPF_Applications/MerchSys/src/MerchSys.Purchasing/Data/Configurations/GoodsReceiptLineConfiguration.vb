@@ -15,6 +15,9 @@ Namespace Data.Configurations
             builder.Property(Function(l) l.GoodsReceiptId).IsRequired()
             builder.Property(Function(l) l.ProductName).IsRequired().HasMaxLength(200)
             builder.Property(Function(l) l.UnitCost).HasPrecision(18, 4)
+            builder.Property(Function(l) l.VatClassification).HasDefaultValue(0)
+            builder.Property(Function(l) l.VatAmount).HasPrecision(18, 2).HasDefaultValue(0D)
+            builder.Property(Function(l) l.VatableSales).HasPrecision(18, 2).HasDefaultValue(0D)
         End Sub
 
     End Class

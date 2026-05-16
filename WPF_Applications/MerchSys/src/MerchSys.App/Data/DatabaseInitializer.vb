@@ -30,6 +30,7 @@ Namespace Data
                 ApplyIfPending(conn, "20260515100000_FixVatReturnAmendedIndex", AddressOf ApplyFixVatReturnAmendedIndex)
                 ApplyIfPending(conn, "20260516100000_AddTamperAuditLog", AddressOf ApplyTamperAuditLog)
                 ApplyIfPending(conn, "20260515140000_AddReceiptIntegrityArchive", AddressOf ApplyAddReceiptIntegrityArchive)
+                ApplyIfPending(conn, "20260516140000_AddGoodsReceiptLineVatColumns", AddressOf ApplyGoodsReceiptLineVatColumns)
             End Using
         End Sub
 
@@ -1015,6 +1016,16 @@ Namespace Data
                 """CreatedBy"",""CreatedAt"",""ModifiedBy"",""ModifiedAt"") VALUES " &
                 "(1,0,'0.12','0.03','2026-01-01 00:00:00',NULL,'Villon Farm Supply',NULL," &
                 "'System','2026-01-01 00:00:00','System','2026-01-01 00:00:00')")
+        End Sub
+
+        ' ── GoodsReceiptLine VAT Columns (20260516140000) ────────────────────────
+
+        Private Sub ApplyGoodsReceiptLineVatColumns(conn As SqliteConnection)
+            ' Per-line VAT classification and computed amounts for BIR input-tax credit compliance.
+            ' VatClassification 0 = Vatable (default), 1 = Exempt, 2 = ZeroRated.
+            Exec(conn, "ALTER TABLE ""Pur_GoodsReceiptLines"" ADD COLUMN ""VatClassification"" INTEGER NOT NULL DEFAULT 0")
+            Exec(conn, "ALTER TABLE ""Pur_GoodsReceiptLines"" ADD COLUMN ""VatAmount"" TEXT NOT NULL DEFAULT '0'")
+            Exec(conn, "ALTER TABLE ""Pur_GoodsReceiptLines"" ADD COLUMN ""VatableSales"" TEXT NOT NULL DEFAULT '0'")
         End Sub
 
     End Module

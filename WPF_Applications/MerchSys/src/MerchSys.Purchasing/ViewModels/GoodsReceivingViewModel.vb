@@ -18,8 +18,8 @@ Namespace ViewModels
 
     ''' <summary>
     ''' One line in the receiving grid. Pre-populated from the PO line; manager edits
-    ''' QtyReceived, UnitCost, ExpiryDate, and DiscrepancyNotes before confirming.
-    ''' HasDiscrepancy auto-recalculates when QtyReceived changes.
+    ''' QtyReceived, UnitCost, ExpiryDate, VatClassification, and DiscrepancyNotes before confirming.
+    ''' HasDiscrepancy and VatAmount auto-recalculate on relevant property changes.
     ''' </summary>
     Public Class GRLineItem
         Inherits ObservableObject
@@ -36,6 +36,7 @@ Namespace ViewModels
             Set(value As Integer)
                 If SetProperty(_qtyReceived, value) Then
                     OnPropertyChanged(NameOf(HasDiscrepancy))
+                    OnPropertyChanged(NameOf(VatAmount))
                 End If
             End Set
         End Property
@@ -46,7 +47,9 @@ Namespace ViewModels
                 Return _unitCost
             End Get
             Set(value As Decimal)
-                SetProperty(_unitCost, value)
+                If SetProperty(_unitCost, value) Then
+                    OnPropertyChanged(NameOf(VatAmount))
+                End If
             End Set
         End Property
 
@@ -68,6 +71,29 @@ Namespace ViewModels
             Set(value As String)
                 SetProperty(_discrepancyNotes, value)
             End Set
+        End Property
+
+        Private _vatClassification As VatTreatment = VatTreatment.Vatable
+        Public Property VatClassification As VatTreatment
+            Get
+                Return _vatClassification
+            End Get
+            Set(value As VatTreatment)
+                If SetProperty(_vatClassification, value) Then
+                    OnPropertyChanged(NameOf(VatAmount))
+                End If
+            End Set
+        End Property
+
+        ''' <summary>Auto-computed input VAT for this line based on VatClassification and line total.</summary>
+        Public ReadOnly Property VatAmount As Decimal
+            Get
+                Dim lineTotal As Decimal = CDec(QtyReceived) * UnitCost
+                If _vatClassification = VatTreatment.Vatable Then
+                    Return Math.Round(lineTotal - Math.Round(lineTotal / 1.12D, 2), 2)
+                End If
+                Return 0D
+            End Get
         End Property
 
         Public ReadOnly Property HasDiscrepancy As Boolean
@@ -165,6 +191,12 @@ Namespace ViewModels
         Public Property LoadPOsCommand As AsyncRelayCommand
         Public Property ConfirmReceiptCommand As AsyncRelayCommand
 
+        ' ─── Enum Source ──────────────────────────────────────────────────────────
+
+        ''' <summary>Provides ComboBox ItemsSource for VatClassification column in the receiving grid.</summary>
+        Public ReadOnly Property VatTreatmentValues As List(Of VatTreatment) =
+            New List(Of VatTreatment) From {VatTreatment.Vatable, VatTreatment.Exempt, VatTreatment.ZeroRated}
+
         ' ─── CanExecute ───────────────────────────────────────────────────────────
 
         Private Function CanConfirm() As Boolean
@@ -210,7 +242,8 @@ Namespace ViewModels
                             .ProductName = line.ProductName,
                             .QtyOrdered = line.QuantityOrdered,
                             .QtyReceived = line.QuantityOrdered,
-                            .UnitCost = line.UnitCost
+                            .UnitCost = line.UnitCost,
+                            .VatClassification = VatTreatment.Vatable
                         })
                     Next
                 End If
@@ -253,7 +286,8 @@ Namespace ViewModels
                     .QuantityReceived = rl.QtyReceived,
                     .UnitCost = rl.UnitCost,
                     .ExpiryDate = rl.ExpiryDate,
-                    .DiscrepancyNotes = If(rl.HasDiscrepancy, rl.DiscrepancyNotes, Nothing)
+                    .DiscrepancyNotes = If(rl.HasDiscrepancy, rl.DiscrepancyNotes, Nothing),
+                    .VatClassification = rl.VatClassification
                 }).ToList()
 
                 Dim receipt = Await _grService.ReceiveGoodsAsync(_selectedPO.Id, dtos)

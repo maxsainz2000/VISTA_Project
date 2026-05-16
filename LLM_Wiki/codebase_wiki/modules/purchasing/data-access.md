@@ -31,5 +31,6 @@ Configures the `PurchasingDbContext` with EF Core entity configurations for all 
 | `src/MerchSys.Purchasing/Data/Configurations/PriceChangeAlertConfiguration.vb` | `PriceChangeAlertConfiguration` | Table: `Pur_PriceChangeAlerts`. precision(18,4) on PreviousUnitCost, NewUnitCost, ChangePercent. Indexes on IsAcknowledged and ProductId. |
 | `src/MerchSys.Purchasing/Data/SeedData/PurchasingSeedData.vb` | `PurchasingSeedData` | Seeds 3 sample vendors: AgriChem Supplies, FarmFresh Seeds Corp., Golden Feeds Trading. |
 | `src/MerchSys.Purchasing/Migrations/20260507100001_InitialPurchasing.vb` | `InitialPurchasing` | Manual EF Core migration (Sqlite) for 9 Purchasing tables and seed data. |
+| `src/MerchSys.Purchasing/Data/Migrations/AddGoodsReceiptLineVatColumns.vb` | `AddGoodsReceiptLineVatColumns` | Manual EF Core migration adding per-line VAT columns to Pur_GoodsReceiptLines. |
 | `src/MerchSys.Purchasing/Migrations/PurchasingDbContextModelSnapshot.vb` | `PurchasingDbContextModelSnapshot` | EF Core model snapshot for the Purchasing module. |
 

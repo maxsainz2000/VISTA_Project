@@ -1,3 +1,5 @@
+Imports MerchSys.SharedKernel.Enums
+
 Namespace Dtos
 
     Public Class ReceiveGoodsLineDto
@@ -15,6 +17,9 @@ Namespace Dtos
 
         ''' <summary>Required when QuantityReceived differs from QuantityOrdered.</summary>
         Public Property DiscrepancyNotes As String
+
+        ''' <summary>BIR VAT classification for this line. Defaults to Vatable (12% input VAT).</summary>
+        Public Property VatClassification As VatTreatment
 
     End Class
 

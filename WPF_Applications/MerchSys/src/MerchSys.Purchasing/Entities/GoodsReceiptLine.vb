@@ -1,3 +1,5 @@
+Imports MerchSys.SharedKernel.Enums
+
 Namespace Entities
 
     ''' <summary>
@@ -34,6 +36,24 @@ Namespace Entities
 
         ''' <summary>Explanation of the quantity or condition discrepancy; Nothing when HasDiscrepancy is False.</summary>
         Public Property DiscrepancyNotes As String
+
+        ''' <summary>
+        ''' BIR three-bucket VAT classification for this purchase line.
+        ''' Vatable = 12% input VAT creditable under NIRC Sec. 110; Exempt = no VAT;
+        ''' ZeroRated = 0% rated, input VAT creditable. Default Vatable covers most agricultural retail purchases.
+        ''' Reference: Revenue Regulations No. 16-2005, BIR.
+        ''' </summary>
+        Public Property VatClassification As VatTreatment
+
+        ''' <summary>
+        ''' Total creditable input VAT on this line.
+        ''' Computed: LineTotal - (LineTotal / 1.12) for Vatable; 0 for Exempt and ZeroRated.
+        ''' Rate source: Philippine VAT Act, NIRC Sec. 106 — standard 12% rate.
+        ''' </summary>
+        Public Property VatAmount As Decimal
+
+        ''' <summary>VAT-exclusive line amount. LineTotal / 1.12 for Vatable; LineTotal for Exempt and ZeroRated.</summary>
+        Public Property VatableSales As Decimal
 
         ' --- Navigation ---
 

@@ -1,51 +1,53 @@
 Imports MerchSys.Purchasing.Entities
+Imports MerchSys.SharedKernel.Enums
 
 Namespace Services.Vat
 
     ''' <summary>
     ''' Pure-function calculator that derives input-VAT buckets from a confirmed goods receipt.
-    '''
-    ''' **Known limitation — Option-2 simplification:**
-    ''' All receipt lines are treated as <see cref="MerchSys.SharedKernel.Enums.VatTreatment.Vatable"/>
-    ''' at the 12 % Philippine VAT rate.  <see cref="GoodsReceiptLine.UnitCost"/> is assumed to be
-    ''' VAT-inclusive (i.e., the vendor invoice price already contains VAT).
-    '''
-    ''' This is a deliberate scope concession: <see cref="GoodsReceiptLine"/> does not yet carry
-    ''' a per-line VAT classification column.  A follow-up plan should extend the entity and the
-    ''' goods-receiving UI with per-line <c>VatClassification</c> and <c>VatAmount</c> columns
-    ''' before VISTA serves businesses with mixed input types (vatable + exempt + zero-rated).
-    '''
-    ''' For businesses that purchase exclusively vatable goods (the typical Villon Farm Supply
-    ''' scenario) this calculator is accurate.
+    ''' Reads per-line <see cref="GoodsReceiptLine.VatClassification"/>, <see cref="GoodsReceiptLine.VatAmount"/>,
+    ''' and <see cref="GoodsReceiptLine.VatableSales"/> (populated by <c>GoodsReceivingService</c> before save)
+    ''' to produce the three-bucket aggregate required by <c>GoodsReceivedWithVatEvent</c> and ACC-11.
+    ''' BIR rationale: input VAT on purchases is creditable only when separately disclosed on the
+    ''' supplier's VAT invoice (NIRC Sec. 110).
     ''' </summary>
     Public Class GoodsReceiptVatCalculator
 
-        Private Const VatDivisor As Decimal = 1.12D
-
         ''' <summary>
-        ''' Computes <see cref="GoodsReceiptVatBreakdown"/> for the supplied receipt lines.
-        ''' With the Option-2 assumption: VatableInputs = invoiceTotal / 1.12,
-        ''' InputVat = invoiceTotal − VatableInputs, VatExemptInputs = 0, ZeroRatedInputs = 0.
+        ''' Computes <see cref="GoodsReceiptVatBreakdown"/> for the supplied receipt lines using
+        ''' per-line <see cref="GoodsReceiptLine.VatClassification"/> set at receiving time.
         ''' </summary>
         Public Function Calculate(
             receipt As GoodsReceipt,
             lines As IEnumerable(Of GoodsReceiptLine)
         ) As GoodsReceiptVatBreakdown
 
+            Dim vatableInputs As Decimal = 0D
+            Dim vatExemptInputs As Decimal = 0D
+            Dim zeroRatedInputs As Decimal = 0D
+            Dim inputVat As Decimal = 0D
             Dim invoiceTotal As Decimal = 0D
+
             For Each line In lines
-                invoiceTotal += CDec(line.QuantityReceived) * line.UnitCost
+                Dim lineTotal As Decimal = CDec(line.QuantityReceived) * line.UnitCost
+                invoiceTotal += lineTotal
+                Select Case line.VatClassification
+                    Case VatTreatment.Vatable
+                        vatableInputs += line.VatableSales
+                        inputVat += line.VatAmount
+                    Case VatTreatment.Exempt
+                        vatExemptInputs += lineTotal
+                    Case VatTreatment.ZeroRated
+                        zeroRatedInputs += lineTotal
+                End Select
             Next
 
-            Dim vatableInputs As Decimal = Math.Round(invoiceTotal / VatDivisor, 2)
-            Dim inputVat As Decimal = invoiceTotal - vatableInputs
-
             Return New GoodsReceiptVatBreakdown With {
-                .VatableInputs = vatableInputs,
-                .VatExemptInputs = 0D,
-                .ZeroRatedInputs = 0D,
-                .InputVat = inputVat,
-                .VendorInvoiceTotal = invoiceTotal
+                .VatableInputs = Math.Round(vatableInputs, 2),
+                .VatExemptInputs = Math.Round(vatExemptInputs, 2),
+                .ZeroRatedInputs = Math.Round(zeroRatedInputs, 2),
+                .InputVat = Math.Round(inputVat, 2),
+                .VendorInvoiceTotal = Math.Round(invoiceTotal, 2)
             }
         End Function
 
