@@ -1,6 +1,6 @@
 -- =============================================================================
 -- VISTA MariaDB Central Schema — mariadb-init.sql
--- Schema version : 1.0.0
+-- Schema version : 1.1.0  (INFRA-14: added Status, IssuedAt, IntegrityHash to Pos_OfficialReceipts)
 -- Target engine  : MariaDB 11.4.x LTS
 -- Created by     : INFRA-06 (MariaDB Central Schema & Reconciliation)
 -- Description    : DDL for all synced tables mirroring the local SQLite 3NF
@@ -407,6 +407,9 @@ CREATE TABLE IF NOT EXISTS `Pos_SalesTransactionLines` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- AppendOnly — BIR mandated (Official Receipts)
+-- INFRA-14: Status, IssuedAt, IntegrityHash added to align with local SQLite schema
+--           (columns originated in POS-13 / POS-14 / POS-15).
+--           Existing installations: apply mariadb-receipt-schema-alignment.sql instead.
 CREATE TABLE IF NOT EXISTS `Pos_OfficialReceipts` (
     `Id`               INT           NOT NULL,
     `TransactionId`    INT           NOT NULL,
@@ -419,6 +422,9 @@ CREATE TABLE IF NOT EXISTS `Pos_OfficialReceipts` (
     `TotalAmount`      DECIMAL(18,4) NOT NULL DEFAULT 0,
     `VatAmount`        DECIMAL(18,4) NOT NULL DEFAULT 0,
     `IsVatRegistered`  TINYINT(1)    NOT NULL DEFAULT 0,
+    `Status`           VARCHAR(20)   NOT NULL DEFAULT 'Issued',
+    `IssuedAt`         DATETIME(6)   NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    `IntegrityHash`    VARCHAR(64)   NULL,
     `CreatedBy`        VARCHAR(100)  NOT NULL,
     `CreatedAt`        DATETIME(6)   NOT NULL,
     `ModifiedBy`       VARCHAR(100)  NULL,
@@ -426,6 +432,7 @@ CREATE TABLE IF NOT EXISTS `Pos_OfficialReceipts` (
     PRIMARY KEY (`Id`),
     UNIQUE INDEX `UIX_Pos_OfficialReceipts_ReceiptNumber` (`ReceiptNumber`),
     UNIQUE INDEX `UIX_Pos_OfficialReceipts_TransactionId` (`TransactionId`),
+    INDEX `IX_OfficialReceipts_IssuedAt` (`IssuedAt`),
     INDEX `IX_Pos_OfficialReceipts_ModifiedAt` (`ModifiedAt`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
