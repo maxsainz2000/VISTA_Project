@@ -69,10 +69,10 @@ full resolution-and-push pipeline. All 24 synced entity types are mapped; the SQ
 
 ## What's Next
 
-- [ ] Each module's `Data/` folder needs an `ISyncableRepository` implementation that appends to `Sync_Journal` on local writes, making journal entries available to `SyncOrchestrator`
+- [x] Each module's `Data/` folder needs an `ISyncableRepository` implementation *(completed in INFRA-09)*
 - [ ] Replace `appsettings.json` `Pwd=CHANGE_ME` with a user-level `appsettings.Production.json` outside the repo before any live deployment
 - [ ] Upgrade `Pomelo.EntityFrameworkCore.MySql` to a 10.x release when available to resolve NU1608 cleanly
-- [ ] Add `MainWindowViewModel` subscription to `DefaultNotificationService.SyncStatusChanged` for the shell status bar (noted in INFRA-05)
+- [x] `MainWindowViewModel` subscription to `DefaultNotificationService.SyncStatusChanged` *(completed in INFRA-10)*
 - [ ] Run `mariadb-init.sql` against a fresh MariaDB 11.4.x instance and verify acceptance criteria 2–3 manually
 
 ## Cross-References

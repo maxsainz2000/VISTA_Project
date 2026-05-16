@@ -47,8 +47,8 @@ ACC-01 defines only `RevenueRecord` and `ExpenseRecord` as revenue/expense ledge
 
 ## What's Next
 
-- [ ] ACC-11: VAT return reporting service and BIR Form 2550M/Q view (consumes `VatReturn` / `VatReturnLine` schema delivered here)
-- [ ] Fix pre-existing POS build error: add `Imports System.Threading` to `VatConfigurationLoader.vb`
+- [x] ACC-11: VAT return reporting service and BIR Form 2550M/Q view *(completed in ACC-11)*
+- [x] Fix pre-existing POS build error: add `Imports System.Threading` to `VatConfigurationLoader.vb` *(completed in ACC-11)*
 - [ ] Verify `AddVatLedgerColumns` migration applies cleanly against a fresh and existing SQLite database
 - [ ] Verify composite unique index on `Acc_VatReturns` blocks duplicate filings
 - [ ] Verify cascade delete from `VatReturn` to `VatReturnLines`

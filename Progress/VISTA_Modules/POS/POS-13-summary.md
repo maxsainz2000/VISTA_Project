@@ -54,10 +54,10 @@ Introduces a SHA-256 hash chain sidecar entity, a row-locked per-year sequence t
 
 ## What's Next
 
-- [ ] Register `IReceiptIntegrityService` / `ReceiptIntegrityService` in `MerchSys.App` DI container (scoped)
-- [ ] Integrate `ComputeAndPersistAsync` call into `ReceiptService.GenerateReceiptAsync` (after the OR row is saved) — currently `ReceiptService` still uses the old `Max(ReceiptNumber)+1` pattern; `GetNextReceiptNumberAsync` should replace it
-- [ ] Implement archival job that copies receipts past `RetentionExpiresAt + GraceDays` into `Pos_OfficialReceiptArchive`
-- [ ] Add MariaDB-equivalent triggers to INFRA-06 `mariadb-init.sql`
+- [x] Register `IReceiptIntegrityService` / `ReceiptIntegrityService` in `MerchSys.App` DI container *(completed in POS-14, consolidated in POS-15)*
+- [x] Integrate `ComputeAndPersistAsync` call into `ReceiptService.GenerateReceiptAsync` *(completed in POS-14 via VatAwareReceiptService decorator; numbering replaced in POS-15)*
+- [x] Implement archival job that copies receipts past `RetentionExpiresAt + GraceDays` into `Pos_OfficialReceiptArchive` *(completed in POS-16)*
+- [x] Add MariaDB-equivalent triggers to INFRA-06 `mariadb-init.sql` *(completed in INFRA-08)*
 - [ ] Run concurrency harness (`Pos_SequenceConcurrencyHarness.RunAsync`) against a scratch database
 
 ## Codebase Wiki Discrepancies

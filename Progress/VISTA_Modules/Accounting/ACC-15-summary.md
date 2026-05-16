@@ -106,8 +106,8 @@ Assert.NotEmpty(row.OperatingUser)
 
 ## What's Next
 
-- [ ] Future reporting plan: implement a tamper-incident report UI consuming `ITamperAuditQueryService` (out of scope for ACC-15 per plan)
-- [ ] INFRA-08: add MariaDB-equivalent immutability triggers for the central replica of `Acc_TamperAuditLog` (cross-reference noted in the migration file)
+- [ ] Future reporting plan: implement a tamper-incident report UI consuming `ITamperAuditQueryService` *(planned as ACC-18)*
+- [ ] Add MariaDB-equivalent immutability triggers for the central replica of `Acc_TamperAuditLog` (INFRA-08 covers POS tables only, not Acc_*)
 
 ## Cross-References
 

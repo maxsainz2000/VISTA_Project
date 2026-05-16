@@ -60,7 +60,8 @@
       "Bash(python verify_event_chain.py)",
       "mcp__visualstudio__startup_project_get",
       "mcp__visualstudio__startup_project_set",
-      "Bash(Select-Object FullName)"
+      "Bash(Select-Object FullName)",
+      "Bash(dotnet package *)"
     ]
   }
 }

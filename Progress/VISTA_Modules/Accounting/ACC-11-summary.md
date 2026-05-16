@@ -81,8 +81,8 @@ No PDF library (e.g., iTextSharp, PdfPig) is included in this project. Per plan 
 
 ## What's Next
 
-- [ ] INT-01: Cross-module integration wiring (MediatR publisher/subscriber setup at App startup)
-- [ ] INT-02 onward: Integration plans per the implementation order defined in CLAUDE.md
+- [x] INT-01: Cross-module integration wiring *(completed in INT-01)*
+- [x] INT-02 onward: Integration plans *(completed in INT-02 through INT-13)*
 
 ## Cross-References
 

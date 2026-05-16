@@ -35,12 +35,12 @@ None.
 
 ## What's Next
 
-- [ ] POS-14: Publish `SaleCompletedWithVatEvent` alongside `SaleCompletedEvent` from the POS transaction completion flow
-- [ ] POS-13: Publish `ReceiptTamperDetectedEvent` from the receipt integrity check service
-- [ ] Purchasing (follow-up): Publish `GoodsReceivedWithVatEvent` alongside `GoodsReceivedEvent` from the goods receipt confirmation flow
-- [ ] ACC-10: Implement handler consuming both `SaleCompletedWithVatEvent` and `GoodsReceivedWithVatEvent` for revenue/AP journal entries
-- [ ] ACC-11: Implement handler consuming both VAT events for the VAT summary ledger (three-bucket disclosure)
-- [ ] Accounting audit log handler: Implement handler consuming `ReceiptTamperDetectedEvent`
+- [x] POS-14: Publish `SaleCompletedWithVatEvent` *(completed in POS-14)*
+- [x] POS-13: Publish `ReceiptTamperDetectedEvent` *(completed in POS-13)*
+- [x] Purchasing: Publish `GoodsReceivedWithVatEvent` *(completed in PUR-14)*
+- [x] ACC-10: Implement handler consuming VAT events for revenue/AP journal entries *(completed in ACC-10)*
+- [x] ACC-11: Implement handler consuming VAT events for the VAT summary ledger *(completed in ACC-11)*
+- [x] Accounting audit log handler: Implement handler consuming `ReceiptTamperDetectedEvent` *(completed in ACC-15)*
 
 ## Cross-References
 

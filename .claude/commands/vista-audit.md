@@ -6,6 +6,51 @@ You are running a module audit for the VISTA project. The module to audit is: **
 
 Perform a full mirror-check and pending-task analysis between `Plans/VISTA_Modules/<module>/` and `Progress/VISTA_Modules/<module>/`, then write a report to `Pending_Tasks/`.
 
+> **IMPORTANT:** Step 0 (What's Next Cleanup) is a mandatory pre-step. Skipping it risks reporting stale tasks as pending and may cause duplicate plan generation downstream.
+
+---
+
+## Step 0 — What's Next Cleanup (Mandatory Pre-Step)
+
+Before extracting pending tasks, sweep the `## What's Next` sections of **all** progress summaries in `Progress/VISTA_Modules/<module>/` and resolve stale items.
+
+### Procedure
+
+1. **Read all `## What's Next` sections** in `Progress/VISTA_Modules/<module>/`.
+2. For each unchecked `- [ ]` item, determine if the described work has been completed by a **later plan**. Evidence sources:
+   - A later progress summary in the **same module** (e.g., POS-13's "What's Next" references DI registration → check if POS-14 or POS-15 did it).
+   - A progress summary in a **different module** (e.g., POS-14's "What's Next" references accounting handler → check if ACC-10 did it).
+   - The **"What Was Done"** section of any later summary that describes the same work.
+3. If the work is confirmed completed, **update the item in-place**:
+   ```
+   - [x] <original description> *(completed in <PLAN-ID>)*
+   ```
+4. If the work is **planned** but not yet completed (a plan file exists in `Plans/VISTA_Modules/` but no progress summary), annotate but leave unchecked:
+   ```
+   - [ ] <original description> *(planned as <PLAN-ID>)*
+   ```
+5. If the work is neither completed nor planned, leave the item unchanged.
+
+### Cross-Module Lookup
+
+Some What's Next items reference work in other modules. When auditing module X, you must check progress summaries in **all six modules** if an item names a cross-module plan ID (e.g., INT-01, ACC-10).
+
+### Output
+
+For each module audited, record the number of items resolved in Step 0. Include this count in the Step 5 report under a new `## What's Next Cleanup` section:
+
+```markdown
+## What's Next Cleanup (Step 0)
+
+**Items resolved this pass:** N
+
+| Summary | Item | Resolved By |
+|---------|------|-------------|
+| POS-13 | Register IReceiptIntegrityService in DI | POS-14 |
+| POS-13 | Replace Max+1 pattern | POS-15 |
+| ... | ... | ... |
+```
+
 ---
 
 ## Step 1 — Resolve the Module Name
@@ -58,9 +103,11 @@ Example: `Plans/…/Accounting/07-view-financial-overview.md` → `Progress/…/
 
 For every progress summary that exists (regardless of status), read the full file and extract:
 
-1. **"What's Next" section** — collect every `- [ ]` item (unchecked checkbox). These are explicit pending tasks documented by the implementing agent.
+1. **"What's Next" section** — collect every `- [ ]` item (unchecked checkbox). These are explicit pending tasks documented by the implementing agent. **Only unchecked items remain after Step 0 cleanup.**
 2. **Build status** — note if the build check shows ❌.
 3. **Blocked issues** — if status is `blocked`, summarise the blocker from "Issues Encountered".
+
+If a `- [ ]` item was resolved during Step 0 (now `- [x]`), **do not** include it in the Pending Tasks section. Annotate it with `*(now completed)*` in the report only if the reader benefits from seeing what was cleaned up.
 
 ---
 
