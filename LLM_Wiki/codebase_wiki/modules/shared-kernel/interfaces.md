@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.SharedKernel
 layer: Interfaces & Enums
-last-updated: 2026-05-10
+last-updated: 2026-05-16
 ---
 
 # MerchSys.SharedKernel — Interfaces & Enums
@@ -16,6 +16,7 @@ last-updated: 2026-05-10
 | `Interfaces/INotificationService.vb` | `INotificationService` | `SyncStatusChanged` (Event), `CurrentSyncStatus`, `LastSuccessfulPushAt` |
 | `Interfaces/ISessionService.vb` | `ISessionService` | `CurrentUsername`, `CurrentRole` |
 | `Sync/ISyncProbe.vb` | `ISyncProbe` | `ProbeAsync() As Task(Of SyncProbeResult)` |
+| `Sync/DualConditionSyncProbe.vb` | `DualConditionSyncProbe` | `ProbeAsync() As Task(Of SyncProbeResult)` (Dual-condition implementation) |
 | `Sync/ISyncableRepository.vb` | `ISyncableRepository` | `GetPendingChangesAsync()`, `MarkSyncedAsync(ids)`. (Consumer-side). |
 | `Persistence/ISyncableRepository.vb` | `ISyncableRepository(Of TContext)` | `SaveChangesWithJournalAsync(token)`, `GetTrackedChangeDescriptors()`. (Producer-side). |
 | `Persistence/SyncableRepositoryCore.vb` | `SyncableRepositoryCore` | Static helper (Module) for change-capture and journal mapping. |

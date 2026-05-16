@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.SharedKernel
 layer: Events & Queries
-last-updated: 2026-05-11
+last-updated: 2026-05-16
 ---
 
 # MerchSys.SharedKernel — Events & Queries
@@ -31,3 +31,12 @@ last-updated: 2026-05-11
 | `Queries/GetTotalAPQuery.vb` | `GetTotalAPQuery` | `Decimal` | N/A | Purchasing |
 | `Queries/GetLowStockAlertCountQuery.vb` | `GetLowStockAlertCountQuery` | `Integer` | N/A | Inventory |
 | `Queries/GetVatConfigurationQuery.vb` | `GetVatConfigurationQuery` | `GetVatConfigurationResult` | N/A | POS |
+
+## Query Results
+| File Path | Result Class |
+|---|---|
+| `Queries/GetCurrentStockResult.vb` | `GetCurrentStockResult` |
+| `Queries/GetInventoryValuationResult.vb` | `GetInventoryValuationResult` |
+| `Queries/GetProductCatalogResult.vb` | `GetProductCatalogResult` |
+| `Queries/GetProductCostResult.vb` | `GetProductCostResult` |
+| `Queries/GetVatConfigurationResult.vb` | `GetVatConfigurationResult` |

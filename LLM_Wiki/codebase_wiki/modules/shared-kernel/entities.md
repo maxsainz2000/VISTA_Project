@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.SharedKernel
 layer: Entities
-last-updated: 2026-05-10
+last-updated: 2026-05-16
 ---
 
 # MerchSys.SharedKernel — Entities & Data Types
@@ -18,6 +18,16 @@ last-updated: 2026-05-10
 | `Persistence/SyncJournalDescriptor.vb` | `SyncJournalDescriptor` | N/A | DTO capturing one EF change event for journalling. |
 | `Sync/ConflictResolution.vb` | `RemoteRowSnapshot` | N/A | `Exists`, `ModifiedAt` |
 | `Sync/ConflictResolution.vb` | `ResolutionDecision` | N/A | `Action`, `Reason` |
+| `Sync/SyncSettings.vb` | `SyncSettings` | N/A | `CentralServerHost`, `ProbeIntervalSeconds`, `MariaDbConnection` |
+| `Sync/SyncProbeResult.vb` | `SyncProbeResult` | N/A | `NetworkAvailable`, `ServerReachable`, `LatencyMs` |
+
+## Sync Maps
+| File Path | Class | Target Module |
+|---|---|---|
+| `Sync/SyncMaps/PurchasingSyncMap.vb` | `PurchasingSyncMap` | Purchasing |
+| `Sync/SyncMaps/PosSyncMap.vb` | `PosSyncMap` | POS |
+| `Sync/SyncMaps/InventorySyncMap.vb` | `InventorySyncMap` | Inventory |
+| `Sync/SyncMaps/AccountingSyncMap.vb` | `AccountingSyncMap` | Accounting |
 
 ## DB Context Base
 | File Path | Class | Inherits | Key Members |
