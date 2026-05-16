@@ -6,6 +6,7 @@ Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.POS.Data
 Imports MerchSys.SharedKernel.Events
 Imports MerchSys.SharedKernel.Interfaces
+Imports MerchSys.SharedKernel.Persistence
 
 Namespace Services
 
@@ -92,15 +93,18 @@ Namespace Services
         Private ReadOnly _loader As VatConfigurationLoader
         Private ReadOnly _eventBus As IEventBus
         Private ReadOnly _session As ISessionService
+        Private ReadOnly _repository As ISyncableRepository(Of POSDbContext)
 
         Public Sub New(ctx As POSDbContext,
                        loader As VatConfigurationLoader,
                        eventBus As IEventBus,
-                       session As ISessionService)
+                       session As ISessionService,
+                       repository As ISyncableRepository(Of POSDbContext))
             _ctx = ctx
             _loader = loader
             _eventBus = eventBus
             _session = session
+            _repository = repository
         End Sub
 
         Public Async Function GetCurrentAsync() As Task(Of Entities.VatConfiguration) _
@@ -152,7 +156,7 @@ Namespace Services
                 config.ModifiedAt = DateTime.UtcNow
                 config.ModifiedBy = _session.CurrentUsername
 
-                Await _ctx.SaveChangesAsync(cancellationToken)
+                Await _repository.SaveChangesWithJournalAsync(cancellationToken) ' INFRA-13: Migrated from _ctx.SaveChangesAsync() for sync journal population
             Catch ex As Exception
                 persistError = ex.Message
             End Try

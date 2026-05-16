@@ -1,7 +1,9 @@
+Imports System.Threading
 Imports Microsoft.EntityFrameworkCore
 Imports Microsoft.Extensions.Logging
 Imports MerchSys.Inventory.Data
 Imports MerchSys.Inventory.Entities
+Imports MerchSys.SharedKernel.Persistence
 
 Namespace Services
 
@@ -29,10 +31,14 @@ Namespace Services
 
         Private ReadOnly _db As InventoryDbContext
         Private ReadOnly _logger As ILogger(Of StockService)
+        Private ReadOnly _repository As ISyncableRepository(Of InventoryDbContext)
 
-        Public Sub New(db As InventoryDbContext, logger As ILogger(Of StockService))
+        Public Sub New(db As InventoryDbContext,
+                       logger As ILogger(Of StockService),
+                       repository As ISyncableRepository(Of InventoryDbContext))
             _db = db
             _logger = logger
+            _repository = repository
         End Sub
 
         Public Async Function AddStockBatchAsync(productId As Integer, qty As Integer, unitCost As Decimal, receiptDate As DateTime, expiryDate As DateTime?, sourcePOId As Integer?, Optional movementType As MovementType = MovementType.Receipt) As Task(Of StockBatch) Implements IStockService.AddStockBatchAsync
@@ -52,7 +58,7 @@ Namespace Services
                 .Quantity = qty,
                 .OccurredAt = DateTime.UtcNow
             })
-            Await _db.SaveChangesAsync()
+            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
             _logger.LogInformation("Stock batch added: ProductId={ProductId}, Qty={Qty}, UnitCost={UnitCost}", productId, qty, unitCost)
             Return batch
         End Function
@@ -96,7 +102,7 @@ Namespace Services
                 .Quantity = -quantity,
                 .OccurredAt = DateTime.UtcNow
             })
-            Await _db.SaveChangesAsync()
+            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
             Return results
         End Function
 

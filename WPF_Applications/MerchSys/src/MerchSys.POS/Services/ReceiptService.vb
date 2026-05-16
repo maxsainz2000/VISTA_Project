@@ -1,8 +1,10 @@
+Imports System.Threading
 Imports Microsoft.EntityFrameworkCore
 Imports Microsoft.Extensions.Configuration
 Imports MerchSys.POS.Data
 Imports MerchSys.POS.Entities
 Imports MerchSys.SharedKernel.Enums
+Imports MerchSys.SharedKernel.Persistence
 
 Namespace Services
 
@@ -16,11 +18,13 @@ Namespace Services
         Private ReadOnly _businessAddress As String
         Private ReadOnly _businessTIN As String
         Private ReadOnly _isVatRegistered As Boolean
+        Private ReadOnly _repository As ISyncableRepository(Of POSDbContext)
 
         Public Sub New(context As POSDbContext,
                        configuration As IConfiguration,
                        receiptIntegrity As IReceiptIntegrityService,
-                       bodyComposer As IReceiptBodyComposer)
+                       bodyComposer As IReceiptBodyComposer,
+                       repository As ISyncableRepository(Of POSDbContext))
             _context = context
             _receiptIntegrity = receiptIntegrity
             _bodyComposer = bodyComposer
@@ -28,6 +32,7 @@ Namespace Services
             _businessAddress = If(configuration("POS:BusinessAddress"), "")
             _businessTIN = If(configuration("POS:BusinessTIN"), "")
             _isVatRegistered = String.Equals(configuration("POS:IsVatRegistered"), "true", StringComparison.OrdinalIgnoreCase)
+            _repository = repository
         End Sub
 
         ''' <summary>
@@ -76,7 +81,7 @@ Namespace Services
             }
 
             _context.OfficialReceipts.Add(receipt)
-            Await _context.SaveChangesAsync()
+            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _context.SaveChangesAsync() for sync journal population
 
             Return receipt
         End Function

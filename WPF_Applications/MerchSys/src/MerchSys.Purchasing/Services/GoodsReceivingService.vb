@@ -1,3 +1,4 @@
+Imports System.Threading
 Imports MediatR
 Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.Purchasing.Data
@@ -7,6 +8,7 @@ Imports MerchSys.Purchasing.Helpers
 Imports MerchSys.Purchasing.Services.Vat
 Imports MerchSys.SharedKernel.Enums
 Imports MerchSys.SharedKernel.Events
+Imports MerchSys.SharedKernel.Persistence
 
 Namespace Services
 
@@ -17,12 +19,18 @@ Namespace Services
         Private ReadOnly _mediator As IMediator
         Private ReadOnly _priceChangeService As IPriceChangeService
         Private ReadOnly _vatCalculator As GoodsReceiptVatCalculator
+        Private ReadOnly _repository As ISyncableRepository(Of PurchasingDbContext)
 
-        Public Sub New(db As PurchasingDbContext, mediator As IMediator, priceChangeService As IPriceChangeService, vatCalculator As GoodsReceiptVatCalculator)
+        Public Sub New(db As PurchasingDbContext,
+                       mediator As IMediator,
+                       priceChangeService As IPriceChangeService,
+                       vatCalculator As GoodsReceiptVatCalculator,
+                       repository As ISyncableRepository(Of PurchasingDbContext))
             _db = db
             _mediator = mediator
             _priceChangeService = priceChangeService
             _vatCalculator = vatCalculator
+            _repository = repository
         End Sub
 
         Public Async Function ReceiveGoodsAsync(purchaseOrderId As Integer, lines As List(Of ReceiveGoodsLineDto)) As Task(Of GoodsReceipt) Implements IGoodsReceivingService.ReceiveGoodsAsync
@@ -71,7 +79,7 @@ Namespace Services
 
             _db.GoodsReceipts.Add(receipt)
             po.Status = PurchaseOrderStatus.Received
-            Await _db.SaveChangesAsync()
+            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
 
             Dim ev As New GoodsReceivedEvent With {
                 .PurchaseOrderId = purchaseOrderId,

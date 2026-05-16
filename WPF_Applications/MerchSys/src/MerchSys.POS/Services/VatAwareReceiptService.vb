@@ -1,8 +1,10 @@
+Imports System.Threading
 Imports MediatR
 Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.POS.Data
 Imports MerchSys.POS.Entities
 Imports MerchSys.SharedKernel.Events
+Imports MerchSys.SharedKernel.Persistence
 
 Namespace Services
 
@@ -22,17 +24,20 @@ Namespace Services
         Private ReadOnly _context As POSDbContext
         Private ReadOnly _mediator As IMediator
         Private ReadOnly _integrityService As IReceiptIntegrityService
+        Private ReadOnly _repository As ISyncableRepository(Of POSDbContext)
 
         Public Sub New(inner As ReceiptService,
                        vatCalculator As IVatCalculator,
                        context As POSDbContext,
                        mediator As IMediator,
-                       integrityService As IReceiptIntegrityService)
+                       integrityService As IReceiptIntegrityService,
+                       repository As ISyncableRepository(Of POSDbContext))
             _inner = inner
             _vatCalculator = vatCalculator
             _context = context
             _mediator = mediator
             _integrityService = integrityService
+            _repository = repository
         End Sub
 
         ''' <summary>
@@ -78,7 +83,7 @@ Namespace Services
             transaction.IsVatRegisteredSnapshot = config.IsVatRegistered
 
             ' Step 4 — persist VAT fields before the receipt is issued.
-            Await _context.SaveChangesAsync()
+            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _context.SaveChangesAsync() for sync journal population
 
             ' Step 5 — delegate to the inner ReceiptService to produce the OfficialReceipt.
             Dim receipt = Await _inner.GenerateReceiptAsync(transactionId)

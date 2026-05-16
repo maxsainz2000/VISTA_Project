@@ -1,9 +1,11 @@
+Imports System.Threading
 Imports MediatR
 Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.Purchasing.Data
 Imports MerchSys.Purchasing.Entities
 Imports MerchSys.Purchasing.Helpers
 Imports MerchSys.SharedKernel.Enums
+Imports MerchSys.SharedKernel.Persistence
 Imports MerchSys.SharedKernel.Queries
 
 Namespace Services
@@ -13,10 +15,14 @@ Namespace Services
 
         Private ReadOnly _db As PurchasingDbContext
         Private ReadOnly _mediator As IMediator
+        Private ReadOnly _repository As ISyncableRepository(Of PurchasingDbContext)
 
-        Public Sub New(db As PurchasingDbContext, mediator As IMediator)
+        Public Sub New(db As PurchasingDbContext,
+                       mediator As IMediator,
+                       repository As ISyncableRepository(Of PurchasingDbContext))
             _db = db
             _mediator = mediator
+            _repository = repository
         End Sub
 
         Public Async Function GenerateSuggestionsAsync() As Task(Of List(Of ReorderSuggestion)) Implements IReorderService.GenerateSuggestionsAsync
@@ -74,7 +80,7 @@ Namespace Services
 
             If newSuggestions.Any() Then
                 _db.ReorderSuggestions.AddRange(newSuggestions)
-                Await _db.SaveChangesAsync()
+                Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
             End If
 
             Return newSuggestions
@@ -126,11 +132,11 @@ Namespace Services
             })
 
             _db.PurchaseOrders.Add(po)
-            Await _db.SaveChangesAsync()
+            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
 
             suggestion.Status = "Accepted"
             suggestion.ConvertedToPOId = po.Id
-            Await _db.SaveChangesAsync()
+            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
 
             Return Await _db.PurchaseOrders.
                 Include(Function(p) p.Lines).
@@ -150,7 +156,7 @@ Namespace Services
             End If
 
             suggestion.Status = "Dismissed"
-            Await _db.SaveChangesAsync()
+            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
         End Function
 
         Public Async Function UpdateConfigAsync(config As ReorderConfig) As Task(Of ReorderConfig) Implements IReorderService.UpdateConfigAsync
@@ -171,7 +177,7 @@ Namespace Services
                 existing.IsActive = config.IsActive
             End If
 
-            Await _db.SaveChangesAsync()
+            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
 
             Return Await _db.ReorderConfigs.
                 Include(Function(c) c.PreferredVendor).

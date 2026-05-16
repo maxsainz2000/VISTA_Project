@@ -118,9 +118,13 @@ This page documents the composition root in `MerchSys.App`.
 | Interface | Implementation | Lifetime |
 |---|---|---|
 | `ISyncableRepository(Of PurchasingDbContext)` | `PurchasingSyncableRepository` | Scoped |
+| `ISyncableRepository` | `PurchasingSyncableRepository` | Scoped |
 | `ISyncableRepository(Of InventoryDbContext)` | `InventorySyncableRepository` | Scoped |
+| `ISyncableRepository` | `InventorySyncableRepository` | Scoped |
 | `ISyncableRepository(Of PosDbContext)` | `PosSyncableRepository` | Scoped |
+| `ISyncableRepository` | `PosSyncableRepository` | Scoped |
 | `ISyncableRepository(Of AccountingDbContext)` | `AccountingSyncableRepository` | Scoped |
+| `ISyncableRepository` | `AccountingSyncableRepository` | Scoped |
 | (Extension) | `AddSyncableRepositories()` | Scoped | Registers all four repositories (`SyncableRepositoryRegistration.vb`). |
 
 ## Shared Services

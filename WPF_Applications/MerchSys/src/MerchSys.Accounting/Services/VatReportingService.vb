@@ -13,6 +13,7 @@ Imports MerchSys.Accounting.Entities
 Imports MerchSys.Accounting.Enums
 Imports MerchSys.Accounting.Exceptions
 Imports MerchSys.SharedKernel.Enums
+Imports MerchSys.SharedKernel.Persistence
 Imports MerchSys.SharedKernel.Queries
 
 Namespace Services
@@ -23,11 +24,16 @@ Namespace Services
         Private ReadOnly _db As AccountingDbContext
         Private ReadOnly _mediator As IMediator
         Private ReadOnly _logger As ILogger(Of VatReportingService)
+        Private ReadOnly _repository As ISyncableRepository(Of AccountingDbContext)
 
-        Public Sub New(db As AccountingDbContext, mediator As IMediator, logger As ILogger(Of VatReportingService))
+        Public Sub New(db As AccountingDbContext,
+                       mediator As IMediator,
+                       logger As ILogger(Of VatReportingService),
+                       repository As ISyncableRepository(Of AccountingDbContext))
             _db = db
             _mediator = mediator
             _logger = logger
+            _repository = repository
         End Sub
 
         ' ─── Public Interface ────────────────────────────────────────────────────────
@@ -60,7 +66,7 @@ Namespace Services
                 data, vatPayable, vatConfig.IsVatRegistered)
 
             _db.VatReturns.Add(vatReturn)
-            Await _db.SaveChangesAsync()
+            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
 
             _logger.LogInformation("Generated Form 2550M: Year={Year} Month={Month} VatPayable={VatPayable}.", year, month, vatPayable)
             Return vatReturn
@@ -91,7 +97,7 @@ Namespace Services
                 data, vatPayable, vatConfig.IsVatRegistered)
 
             _db.VatReturns.Add(vatReturn)
-            Await _db.SaveChangesAsync()
+            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
 
             _logger.LogInformation("Generated Form 2550Q: Year={Year} Q={Quarter} VatPayable={VatPayable}.", year, quarter, vatPayable)
             Return vatReturn
@@ -136,7 +142,7 @@ Namespace Services
                 nonVatData, taxDue, vatConfig.IsVatRegistered)
 
             _db.VatReturns.Add(vatReturn)
-            Await _db.SaveChangesAsync()
+            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
 
             _logger.LogInformation("Generated Form 2551Q: Year={Year} Q={Quarter} TaxDue={TaxDue}.", year, quarter, taxDue)
             Return vatReturn
@@ -186,7 +192,7 @@ Namespace Services
             vatReturn.FiledAt = DateTime.UtcNow
             vatReturn.FiledBy = filedBy
 
-            Await _db.SaveChangesAsync()
+            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
             _logger.LogInformation("Filed VAT return #{ReturnId} by {FiledBy}.", returnId, filedBy)
         End Function
 
@@ -250,7 +256,7 @@ Namespace Services
             amended.FilingStatus = VatFilingStatus.Amended
 
             _db.VatReturns.Add(amended)
-            Await _db.SaveChangesAsync()
+            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
 
             _logger.LogInformation("Amended VAT return #{OriginalId} → new Amended return #{NewId}.", returnId, amended.Id)
             Return amended
@@ -296,7 +302,7 @@ Namespace Services
                 End If
                 ' Status is Generated (or Draft) — delete and recreate
                 _db.VatReturns.Remove(existing)
-                Await _db.SaveChangesAsync()
+                Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
             End If
         End Function
 

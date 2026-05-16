@@ -1,9 +1,11 @@
+Imports System.Threading
 Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.POS.Data
 Imports MerchSys.POS.Entities
 Imports MerchSys.SharedKernel.Enums
 Imports MerchSys.SharedKernel.Events
 Imports MerchSys.SharedKernel.Interfaces
+Imports MerchSys.SharedKernel.Persistence
 
 Namespace Services
 
@@ -21,10 +23,14 @@ Namespace Services
 
         Private ReadOnly _context As POSDbContext
         Private ReadOnly _eventBus As IEventBus
+        Private ReadOnly _repository As ISyncableRepository(Of POSDbContext)
 
-        Public Sub New(context As POSDbContext, eventBus As IEventBus)
+        Public Sub New(context As POSDbContext,
+                       eventBus As IEventBus,
+                       repository As ISyncableRepository(Of POSDbContext))
             _context = context
             _eventBus = eventBus
+            _repository = repository
         End Sub
 
         Public Async Function CreateAccountAsync(customerName As String, phone As String, Optional address As String = Nothing) As Task(Of CreditAccount) Implements ICreditService.CreateAccountAsync
@@ -38,7 +44,7 @@ Namespace Services
                 .IsBlocked = False
             }
             _context.CreditAccounts.Add(account)
-            Await _context.SaveChangesAsync()
+            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _context.SaveChangesAsync() for sync journal population
             Return account
         End Function
 
@@ -93,7 +99,7 @@ Namespace Services
             account.IsBlocked = True
             account.LastTransactionDate = DateTime.UtcNow
 
-            Await _context.SaveChangesAsync()
+            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _context.SaveChangesAsync() for sync journal population
         End Function
 
         Public Async Function RecordPaymentAsync(customerId As Integer, amount As Decimal, paymentMethod As PaymentMethod, receivedBy As String) As Task(Of CreditPayment) Implements ICreditService.RecordPaymentAsync
@@ -126,7 +132,7 @@ Namespace Services
                 .ReceivedBy = receivedBy
             }
             _context.CreditPayments.Add(payment)
-            Await _context.SaveChangesAsync()
+            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _context.SaveChangesAsync() for sync journal population
 
             Await _eventBus.PublishAsync(New CreditPaymentEvent() With {
                 .CustomerId = customerId,

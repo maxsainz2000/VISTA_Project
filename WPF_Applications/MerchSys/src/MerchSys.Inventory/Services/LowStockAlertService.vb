@@ -1,7 +1,9 @@
+Imports System.Threading
 Imports Microsoft.EntityFrameworkCore
 Imports Microsoft.Extensions.Logging
 Imports MerchSys.Inventory.Data
 Imports MerchSys.Inventory.Entities
+Imports MerchSys.SharedKernel.Persistence
 
 Namespace Services
 
@@ -12,15 +14,18 @@ Namespace Services
         Private ReadOnly _stockService As IStockService
         Private ReadOnly _notifier As ILowStockNotifier
         Private ReadOnly _logger As ILogger(Of LowStockAlertService)
+        Private ReadOnly _repository As ISyncableRepository(Of InventoryDbContext)
 
         Public Sub New(db As InventoryDbContext,
                        stockService As IStockService,
                        notifier As ILowStockNotifier,
-                       logger As ILogger(Of LowStockAlertService))
+                       logger As ILogger(Of LowStockAlertService),
+                       repository As ISyncableRepository(Of InventoryDbContext))
             _db = db
             _stockService = stockService
             _notifier = notifier
             _logger = logger
+            _repository = repository
         End Sub
 
         ''' <summary>
@@ -64,7 +69,7 @@ Namespace Services
                 product.MinimumThreshold = newThreshold
             End If
 
-            Await _db.SaveChangesAsync()
+            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
             _logger.LogInformation("Threshold updated: ProductId={ProductId}, Threshold={Threshold}", productId, newThreshold)
         End Function
 

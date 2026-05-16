@@ -1,6 +1,8 @@
+Imports System.Threading
 Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.Purchasing.Data
 Imports MerchSys.Purchasing.Entities
+Imports MerchSys.SharedKernel.Persistence
 
 Namespace Services
 
@@ -8,9 +10,12 @@ Namespace Services
         Implements IAccountsPayableService
 
         Private ReadOnly _db As PurchasingDbContext
+        Private ReadOnly _repository As ISyncableRepository(Of PurchasingDbContext)
 
-        Public Sub New(db As PurchasingDbContext)
+        Public Sub New(db As PurchasingDbContext,
+                       repository As ISyncableRepository(Of PurchasingDbContext))
             _db = db
+            _repository = repository
         End Sub
 
         Public Async Function CreateFromPurchaseOrderAsync(purchaseOrderId As Integer, invoiceNumber As String, invoiceDate As DateTime, dueDate As DateTime) As Task(Of AccountsPayableEntry) Implements IAccountsPayableService.CreateFromPurchaseOrderAsync
@@ -50,7 +55,7 @@ Namespace Services
             }
 
             _db.AccountsPayableEntries.Add(entry)
-            Await _db.SaveChangesAsync()
+            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
 
             Return Await GetByIdWithNavigationAsync(entry.Id)
         End Function
@@ -80,7 +85,7 @@ Namespace Services
             entry.Balance = entry.TotalAmount - entry.AmountPaid
             entry.IsPaid = (entry.Balance = 0D)
 
-            Await _db.SaveChangesAsync()
+            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
 
             Return Await GetByIdWithNavigationAsync(apEntryId)
         End Function

@@ -1,7 +1,9 @@
+Imports System.Threading
 Imports Microsoft.EntityFrameworkCore
 Imports Microsoft.Extensions.Logging
 Imports MerchSys.Inventory.Data
 Imports MerchSys.Inventory.Entities
+Imports MerchSys.SharedKernel.Persistence
 
 Namespace Services
 
@@ -10,10 +12,14 @@ Namespace Services
 
         Private ReadOnly _db As InventoryDbContext
         Private ReadOnly _logger As ILogger(Of ExpiryTrackingService)
+        Private ReadOnly _repository As ISyncableRepository(Of InventoryDbContext)
 
-        Public Sub New(db As InventoryDbContext, logger As ILogger(Of ExpiryTrackingService))
+        Public Sub New(db As InventoryDbContext,
+                       logger As ILogger(Of ExpiryTrackingService),
+                       repository As ISyncableRepository(Of InventoryDbContext))
             _db = db
             _logger = logger
+            _repository = repository
         End Sub
 
         ''' <summary>
@@ -170,7 +176,7 @@ Namespace Services
 
             batch.QuantityRemaining = 0
             _db.ShrinkageRecords.Add(shrinkage)
-            Await _db.SaveChangesAsync()
+            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
 
             _logger.LogInformation(
                 "Expired batch written off: BatchId={BatchId}, ProductId={ProductId}, QtyLost={QtyLost}, TotalValue={TotalValue}",

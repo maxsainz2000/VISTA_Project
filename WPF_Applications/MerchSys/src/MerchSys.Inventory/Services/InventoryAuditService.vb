@@ -1,7 +1,9 @@
+Imports System.Threading
 Imports Microsoft.EntityFrameworkCore
 Imports Microsoft.Extensions.Logging
 Imports MerchSys.Inventory.Data
 Imports MerchSys.Inventory.Entities
+Imports MerchSys.SharedKernel.Persistence
 
 Namespace Services
 
@@ -10,10 +12,14 @@ Namespace Services
 
         Private ReadOnly _db As InventoryDbContext
         Private ReadOnly _logger As ILogger(Of InventoryAuditService)
+        Private ReadOnly _repository As ISyncableRepository(Of InventoryDbContext)
 
-        Public Sub New(db As InventoryDbContext, logger As ILogger(Of InventoryAuditService))
+        Public Sub New(db As InventoryDbContext,
+                       logger As ILogger(Of InventoryAuditService),
+                       repository As ISyncableRepository(Of InventoryDbContext))
             _db = db
             _logger = logger
+            _repository = repository
         End Sub
 
         Public Async Function PerformStockCountAsync(productId As Integer, physicalCount As Integer, performedBy As String, notes As String) As Task(Of StockAuditRecord) Implements IInventoryAuditService.PerformStockCountAsync
@@ -65,7 +71,7 @@ Namespace Services
                 })
             End If
 
-            Await _db.SaveChangesAsync()
+            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
 
             _logger.LogInformation(
                 "Stock count performed: ProductId={ProductId}, Expected={Expected}, Physical={Physical}, Variance={Variance}, By={By}",
@@ -123,7 +129,7 @@ Namespace Services
                 })
             End If
 
-            Await _db.SaveChangesAsync()
+            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
 
             _logger.LogInformation(
                 "Stock adjustment recorded: ProductId={ProductId}, Adjusted={Adjusted}, Variance={Variance}, Reason={Reason}, By={By}",

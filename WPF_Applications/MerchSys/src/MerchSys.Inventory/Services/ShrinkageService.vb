@@ -1,9 +1,11 @@
+Imports System.Threading
 Imports MediatR
 Imports Microsoft.EntityFrameworkCore
 Imports Microsoft.Extensions.Logging
 Imports MerchSys.Inventory.Data
 Imports MerchSys.Inventory.Entities
 Imports MerchSys.SharedKernel.Events
+Imports MerchSys.SharedKernel.Persistence
 
 Namespace Services
 
@@ -15,11 +17,16 @@ Namespace Services
         Private ReadOnly _db As InventoryDbContext
         Private ReadOnly _mediator As IMediator
         Private ReadOnly _logger As ILogger(Of ShrinkageService)
+        Private ReadOnly _repository As ISyncableRepository(Of InventoryDbContext)
 
-        Public Sub New(db As InventoryDbContext, mediator As IMediator, logger As ILogger(Of ShrinkageService))
+        Public Sub New(db As InventoryDbContext,
+                       mediator As IMediator,
+                       logger As ILogger(Of ShrinkageService),
+                       repository As ISyncableRepository(Of InventoryDbContext))
             _db = db
             _mediator = mediator
             _logger = logger
+            _repository = repository
         End Sub
 
         ''' <summary>
@@ -106,7 +113,7 @@ Namespace Services
                 .Quantity = -totalQtyForMovement,
                 .OccurredAt = now
             })
-            Await _db.SaveChangesAsync()
+            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
 
             Dim totalQty As Integer = created.Sum(Function(r) r.QuantityLost)
             Dim totalValue As Decimal = created.Sum(Function(r) r.TotalValue)

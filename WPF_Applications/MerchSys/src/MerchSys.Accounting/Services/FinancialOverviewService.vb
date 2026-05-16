@@ -1,8 +1,10 @@
+Imports System.Threading
 Imports MediatR
 Imports Microsoft.EntityFrameworkCore
 Imports Microsoft.Extensions.Logging
 Imports MerchSys.Accounting.Data
 Imports MerchSys.Accounting.Entities
+Imports MerchSys.SharedKernel.Persistence
 Imports MerchSys.SharedKernel.Queries
 
 Namespace Services
@@ -13,11 +15,16 @@ Namespace Services
         Private ReadOnly _db As AccountingDbContext
         Private ReadOnly _mediator As IMediator
         Private ReadOnly _logger As ILogger(Of FinancialOverviewService)
+        Private ReadOnly _repository As ISyncableRepository(Of AccountingDbContext)
 
-        Public Sub New(db As AccountingDbContext, mediator As IMediator, logger As ILogger(Of FinancialOverviewService))
+        Public Sub New(db As AccountingDbContext,
+                       mediator As IMediator,
+                       logger As ILogger(Of FinancialOverviewService),
+                       repository As ISyncableRepository(Of AccountingDbContext))
             _db = db
             _mediator = mediator
             _logger = logger
+            _repository = repository
         End Sub
 
         Public Async Function GetOverviewAsync() As Task(Of FinancialOverviewDto) Implements IFinancialOverviewService.GetOverviewAsync
@@ -197,7 +204,7 @@ Namespace Services
             existing.TotalAR = totalAR
             existing.TotalAP = totalAP
 
-            Await _db.SaveChangesAsync()
+            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
 
             _logger.LogInformation(
                 "Snapshot refreshed for {Date}: TodayRevenue={TodayRevenue}, InventoryValue={InventoryValue}.",

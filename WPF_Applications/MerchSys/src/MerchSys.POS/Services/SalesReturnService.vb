@@ -1,9 +1,11 @@
+Imports System.Threading
 Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.POS.Data
 Imports MerchSys.POS.Entities
 Imports MerchSys.SharedKernel.Enums
 Imports MerchSys.SharedKernel.Events
 Imports MerchSys.SharedKernel.Interfaces
+Imports MerchSys.SharedKernel.Persistence
 
 Namespace Services
 
@@ -12,10 +14,14 @@ Namespace Services
 
         Private ReadOnly _context As POSDbContext
         Private ReadOnly _eventBus As IEventBus
+        Private ReadOnly _repository As ISyncableRepository(Of POSDbContext)
 
-        Public Sub New(context As POSDbContext, eventBus As IEventBus)
+        Public Sub New(context As POSDbContext,
+                       eventBus As IEventBus,
+                       repository As ISyncableRepository(Of POSDbContext))
             _context = context
             _eventBus = eventBus
+            _repository = repository
         End Sub
 
         Public Async Function ProcessReturnAsync(
@@ -85,7 +91,7 @@ Namespace Services
                 account.LastTransactionDate = DateTime.UtcNow
             End If
 
-            Await _context.SaveChangesAsync()
+            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _context.SaveChangesAsync() for sync journal population
 
             If shouldRestock Then
                 Await _eventBus.PublishAsync(New StockReturnedEvent() With {

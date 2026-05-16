@@ -1,9 +1,11 @@
 Imports System.Collections.Concurrent
+Imports System.Threading
 Imports Microsoft.EntityFrameworkCore
 Imports Microsoft.Extensions.Configuration
 Imports MerchSys.POS.Data
 Imports MerchSys.POS.Entities
 Imports MerchSys.SharedKernel.Enums
+Imports MerchSys.SharedKernel.Persistence
 
 Namespace Services
 
@@ -19,11 +21,16 @@ Namespace Services
         Private ReadOnly _context As POSDbContext
         Private ReadOnly _receiptService As IReceiptService
         Private ReadOnly _isVatRegistered As Boolean
+        Private ReadOnly _repository As ISyncableRepository(Of POSDbContext)
 
-        Public Sub New(context As POSDbContext, receiptService As IReceiptService, configuration As IConfiguration)
+        Public Sub New(context As POSDbContext,
+                       receiptService As IReceiptService,
+                       configuration As IConfiguration,
+                       repository As ISyncableRepository(Of POSDbContext))
             _context = context
             _receiptService = receiptService
             _isVatRegistered = String.Equals(configuration("POS:IsVatRegistered"), "true", StringComparison.OrdinalIgnoreCase)
+            _repository = repository
         End Sub
 
         Public Function CreateCartAsync() As Task(Of CartDto) Implements ICartService.CreateCartAsync
@@ -118,7 +125,7 @@ Namespace Services
             Next
 
             _context.SalesTransactions.Add(transaction)
-            Await _context.SaveChangesAsync()
+            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _context.SaveChangesAsync() for sync journal population
 
             Await _receiptService.GenerateReceiptAsync(transaction.Id)
 
@@ -138,7 +145,7 @@ Namespace Services
             End If
             transaction.IsVoided = True
             transaction.VoidReason = reason
-            Await _context.SaveChangesAsync()
+            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _context.SaveChangesAsync() for sync journal population
         End Function
 
         Public Async Function GetTransactionHistoryAsync(Optional startDate As DateTime? = Nothing, Optional endDate As DateTime? = Nothing) As Task(Of List(Of SalesTransaction)) Implements ICartService.GetTransactionHistoryAsync

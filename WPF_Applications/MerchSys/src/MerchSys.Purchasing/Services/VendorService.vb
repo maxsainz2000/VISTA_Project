@@ -1,6 +1,8 @@
+Imports System.Threading
 Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.Purchasing.Data
 Imports MerchSys.Purchasing.Entities
+Imports MerchSys.SharedKernel.Persistence
 
 Namespace Services
 
@@ -8,9 +10,12 @@ Namespace Services
         Implements IVendorService
 
         Private ReadOnly _db As PurchasingDbContext
+        Private ReadOnly _repository As ISyncableRepository(Of PurchasingDbContext)
 
-        Public Sub New(db As PurchasingDbContext)
+        Public Sub New(db As PurchasingDbContext,
+                       repository As ISyncableRepository(Of PurchasingDbContext))
             _db = db
+            _repository = repository
         End Sub
 
         Public Async Function CreateAsync(dto As CreateVendorDto) As Task(Of Vendor) Implements IVendorService.CreateAsync
@@ -35,7 +40,7 @@ Namespace Services
             }
 
             _db.Vendors.Add(vendor)
-            Await _db.SaveChangesAsync()
+            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
 
             Return Await GetByIdAsync(vendor.Id)
         End Function
@@ -80,7 +85,7 @@ Namespace Services
             vendor.DefaultLeadTimeDays = dto.DefaultLeadTimeDays
             vendor.Notes = dto.Notes
 
-            Await _db.SaveChangesAsync()
+            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
 
             Return Await GetByIdAsync(id)
         End Function
@@ -95,7 +100,7 @@ Namespace Services
 
             vendor.IsDeleted = True
             vendor.DeletedAt = DateTime.UtcNow
-            Await _db.SaveChangesAsync()
+            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
 
             Return True
         End Function
