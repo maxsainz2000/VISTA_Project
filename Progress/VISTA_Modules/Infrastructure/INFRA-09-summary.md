@@ -93,8 +93,8 @@ This plan delivers the abstraction and four implementations; it does **not** cha
 
 ## What's Next
 
-- [ ] Integration plan: migrate each module's service write paths from `_context.SaveChangesAsync()` to `_repository.SaveChangesWithJournalAsync()`. Suggested plan ID: `INT-06` or a dedicated `INFRA-10`. High file count expected (mechanical but broad).
-- [ ] Consumer-side `ISyncableRepository` (non-generic) implementations — needed so `SyncOrchestrator` can iterate pending `Sync_Journal` entries per module. Currently `SyncOrchestrator` resolves `IEnumerable(Of ISyncableRepository)` (non-generic) which is not yet backed by any registered implementation.
+- [x] Integration plan: migrate each module's service write paths from `_context.SaveChangesAsync()` to `_repository.SaveChangesWithJournalAsync()`. Suggested plan ID: `INT-06` or a dedicated `INFRA-10`. High file count expected (mechanical but broad). *(completed in INFRA-13)*
+- [x] Consumer-side `ISyncableRepository` (non-generic) implementations — needed so `SyncOrchestrator` can iterate pending `Sync_Journal` entries per module. Currently `SyncOrchestrator` resolves `IEnumerable(Of ISyncableRepository)` (non-generic) which is not yet backed by any registered implementation. *(completed in INFRA-13)*
 
 ## Cross-References
 

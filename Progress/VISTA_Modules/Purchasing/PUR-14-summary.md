@@ -169,7 +169,7 @@ which are not on the actual event; implemented against the real definition.
 
 ## What's Next
 
-- [ ] Follow-up plan: add per-line `VatClassification` + `VatAmount` to `GoodsReceiptLine` and extend the goods-receiving UI.
+- [x] Follow-up plan: add per-line `VatClassification` + `VatAmount` to `GoodsReceiptLine` and extend the goods-receiving UI. *(completed in PUR-15)*
 - [ ] Smoke test: confirm a receipt, then query `Acc_VatReturnLines` for the input-VAT row.
 - [ ] Verify ACC-10 / ACC-11 handlers are idempotent on `PurchaseOrderId` (plan notes this as a consumer-side responsibility).
 

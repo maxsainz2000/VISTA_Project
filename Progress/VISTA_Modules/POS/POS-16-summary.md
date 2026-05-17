@@ -135,7 +135,7 @@ Grace days (default 90) is read from the existing `Bir:ArchivePolicy:GraceDays` 
 - [ ] Confirm rollback: forced archive-insert failure leaves live tables intact
 - [ ] Confirm normal `DELETE FROM Pos_OfficialReceipts` fails with `BIR-immutable` after trigger amendment
 - [ ] Confirm `Pos_OfficialReceiptArchive` and `Pos_ReceiptIntegrityArchive` reject UPDATE and DELETE
-- [ ] MariaDB equivalent triggers are out of scope — to be addressed in INFRA-08
+- [x] MariaDB equivalent triggers are out of scope — to be addressed in INFRA-08 *(completed in INFRA-08)*
 
 ## Cross-References
 

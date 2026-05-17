@@ -126,7 +126,7 @@ Step 2 must be run by the same admin account used in Step 1 so that `DEFINER = C
 
 ## What's Next
 
-- [ ] Schema alignment pass: add `Status`, `IssuedAt`, `IntegrityHash` columns to central `Pos_OfficialReceipts` if the sync worker requires them (coordinate with INFRA-05 sync wiring)
+- [x] Schema alignment pass: add `Status`, `IssuedAt`, `IntegrityHash` columns to central `Pos_OfficialReceipts` if the sync worker requires them (coordinate with INFRA-05 sync wiring) *(completed in INFRA-14)*
 - [ ] Future remediation: replace the INFRA-06 triggers (`trg_Pos_ReceiptIntegrity_NoUpdate`, etc.) with versions using `DEFINER = <admin>` (not anonymous default) once a formal DB admin account is established
 
 ## Cross-References

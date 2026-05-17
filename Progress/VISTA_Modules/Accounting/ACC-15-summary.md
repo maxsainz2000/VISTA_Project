@@ -106,7 +106,7 @@ Assert.NotEmpty(row.OperatingUser)
 
 ## What's Next
 
-- [ ] Future reporting plan: implement a tamper-incident report UI consuming `ITamperAuditQueryService` *(planned as ACC-18)*
+- [x] Future reporting plan: implement a tamper-incident report UI consuming `ITamperAuditQueryService` *(completed in ACC-18)*
 - [ ] Add MariaDB-equivalent immutability triggers for the central replica of `Acc_TamperAuditLog` (INFRA-08 covers POS tables only, not Acc_*)
 
 ## Cross-References

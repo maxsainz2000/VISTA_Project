@@ -65,7 +65,7 @@ Implemented INFRA-05: the dual-condition sync probe, background sync worker, syn
 
 ## What's Next
 
-- [ ] INFRA-06: Implement actual MariaDB data transmission in `SyncOrchestrator.RunAsync` (replace the placeholder `MarkSyncedAsync` stub)
+- [x] INFRA-06: Implement actual MariaDB data transmission in `SyncOrchestrator.RunAsync` (replace the placeholder `MarkSyncedAsync` stub) *(completed in INFRA-06)*
 - [x] Each module's `Data/` folder needs an `ISyncableRepository` implementation *(completed in INFRA-09)*
 - [x] `MainWindowViewModel` subscribes to `DefaultNotificationService.SyncStatusChanged` *(completed in INFRA-10)*
 

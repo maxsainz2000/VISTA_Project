@@ -90,7 +90,7 @@ None. All acceptance criteria were already satisfied by ACC-11; INT-13's work wa
 
 ## What's Next
 
-- [ ] ACC-14 (VAT Tile Integration) — must use type-based `NavigationItem` resolution pattern described above, not `NavigateCommand("VatReturn")` string invocation. Update ACC-14 plan before implementation.
+- [x] ACC-14 (VAT Tile Integration) — must use type-based `NavigationItem` resolution pattern described above, not `NavigateCommand("VatReturn")` string invocation. Update ACC-14 plan before implementation. *(completed in ACC-14)*
 
 ## Cross-References
 

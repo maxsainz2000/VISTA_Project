@@ -67,8 +67,8 @@ source file, partial-class extensions on both `FinancialOverviewDto` and
 
 ## What's Next
 
-- [ ] Place `VatPayableTile` into `FinancialOverviewView.xaml` alongside the existing KPI cards (cosmetic integration — modifies ACC-07 view file, requires separate authorisation)
-- [ ] Wire `NavigateToVatReturnRequested` event in `FinancialOverviewView.xaml.vb` to the `MainWindowViewModel.NavigateCommand` for the `VatReturnView` navigation item
+- [x] Place `VatPayableTile` into `FinancialOverviewView.xaml` alongside the existing KPI cards (cosmetic integration — modifies ACC-07 view file, requires separate authorisation) *(completed in ACC-14)*
+- [x] Wire `NavigateToVatReturnRequested` event in `FinancialOverviewView.xaml.vb` to the `MainWindowViewModel.NavigateCommand` for the `VatReturnView` navigation item *(completed in ACC-14)*
 - [ ] End-to-end smoke test: seed a month of VAT ledger data, verify tile shows correct amount and severity colour changes as the BIR deadline approaches
 
 ## Cross-References
