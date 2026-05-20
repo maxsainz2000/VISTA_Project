@@ -267,7 +267,13 @@ Namespace Debug
 
             Catch ex As Exception
                 runError = ex
-                result.Detail = $"Exception: {ex.GetType().Name}: {ex.Message}"
+                Dim exMsg As String = ex.Message
+                Dim inner As Exception = ex.InnerException
+                Do While inner IsNot Nothing
+                    exMsg &= $" → {inner.GetType().Name}: {inner.Message}"
+                    inner = inner.InnerException
+                Loop
+                result.Detail = $"Exception: {ex.GetType().Name}: {exMsg}"
             End Try
 
             sw.Stop()
@@ -363,7 +369,13 @@ Namespace Debug
 
             Catch ex As Exception
                 runError = ex
-                result.Detail = $"Exception: {ex.GetType().Name}: {ex.Message}"
+                Dim exMsg As String = ex.Message
+                Dim inner As Exception = ex.InnerException
+                Do While inner IsNot Nothing
+                    exMsg &= $" → {inner.GetType().Name}: {inner.Message}"
+                    inner = inner.InnerException
+                Loop
+                result.Detail = $"Exception: {ex.GetType().Name}: {exMsg}"
             End Try
 
             sw.Stop()
