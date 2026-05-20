@@ -3,7 +3,8 @@ test-id: INT-Test-5b
 checklist: INT-verification-checklist.md
 branch: debug/INT-test-5b
 started: 2026-05-20T17:35
-status: in-progress
+resolved: 2026-05-20T18:02
+status: resolved
 ---
 
 # Debug Session — INT Test 5b (Event Chain Harness — both chains failing)
@@ -34,17 +35,39 @@ Report: `%TEMP%\event-chain-report-20260520-173048.md`
 
 ## Attempt Log
 
-### Attempt 1
-- **Hypothesis (GoodsReceived):** `VendorConfiguration` marks `Address` as `IsRequired()` (NOT NULL).
-  The harness vendor seed does not set `.Address`, so SQLite rejects the insert with a NOT NULL
-  constraint violation (wrapped as `DbUpdateException`).
-- **Hypothesis (SaleCompleted):** The harness's scratch `ServiceCollection` registers
-  `IPaymentService → PaymentService`, but `PaymentService` requires
-  `ISyncableRepository(Of POSDbContext)` which is not registered. Adding a no-op stub fixes this;
-  the Cash payment path never calls `SaveChangesWithJournalAsync` so the stub is safe.
-- **Changed:** `EventChainVerificationHarness.vb` — added `.Address` to vendor seed + added
-  `HarnessPosRepository` stub class + registered it in `BuildScratchServices`.
-- **Build result:** (pending)
-- **Runtime result:** (pending operator run)
-- **Verdict:** (pending)
-- **Action:** (pending)
+### Attempt 1 — ⚠️ Partial
+- **Hypothesis (GoodsReceived):** `VendorConfiguration.Address` is `IsRequired()` — harness seed missing it causes `DbUpdateException` (NOT NULL violation).
+- **Hypothesis (SaleCompleted):** `PaymentService` requires `ISyncableRepository(Of POSDbContext)` which was not registered in scratch DI.
+- **Changed:** Added `.Address = "Harness Address"` to vendor seed; added `HarnessPosRepository` no-op stub and registered it.
+- **Build result:** ✅ 0 errors, 0 warnings
+- **Runtime result:** GoodsReceived now fails with `no such table: Inv_ProductCategories`; SaleCompleted fails with `no such table: Pos_SalesTransactions`.
+- **Verdict:** ⚠️ Partial — DI and seed issues fixed; schema creation broken.
+- **Action:** Committed partial fix, continued to Attempt 2.
+
+### Attempt 2 — ⚠️ Partial
+- **Hypothesis:** `EnsureCreatedAsync()` on a shared SQLite file only creates tables for the FIRST `DbContext` called — subsequent calls see the file exists and return `False` without creating tables. Fix: use `RelationalDatabaseCreator.CreateTablesAsync()` per context.
+- **Changed:** Replaced four `EnsureCreatedAsync()` calls with `CreateTablesAsync()` via `GetInfrastructure().GetService(Of IDatabaseCreator)()`.
+- **Build result:** ✅ 0 errors, 0 warnings
+- **Runtime result:** GoodsReceived fails `ISyncableRepository(Of PurchasingDbContext)` not registered; SaleCompleted fails `ISyncableRepository(Of InventoryDbContext)` not registered.
+- **Verdict:** ⚠️ Partial — schema creation fixed; still missing repo stubs for Purchasing and Inventory.
+- **Action:** Committed partial fix, continued to Attempt 3 (which became Attempt 4 after context reset).
+
+### Attempt 3 (final) — ✅ Fixed
+- **Hypothesis:** `PurchaseOrderService` / `GoodsReceivingService` require `ISyncableRepository(Of PurchasingDbContext)`; `StockService` requires `ISyncableRepository(Of InventoryDbContext)`; Accounting handlers may require `ISyncableRepository(Of AccountingDbContext)`. None were registered in the harness scratch `ServiceCollection`.
+- **Changed:** Added `HarnessPurchasingRepository`, `HarnessInventoryRepository`, `HarnessAccountingRepository` stub classes (delegating to `_context.SaveChangesAsync()`); registered all three in `BuildScratchServices`.
+- **Build result:** ✅ 0 errors, 0 warnings
+- **Runtime result:** `event-chain-report-20260520-180147.md` — Overall: PASS ✅. Both chains pass all three checks (publisher fired, handler executed, stock movement row found).
+- **Verdict:** ✅ Fixed
+- **Action:** Committed `fix(INT-test-5b)`.
+
+---
+
+## Resolution
+
+**Root causes (4 issues, all in `EventChainVerificationHarness.vb`):**
+1. Vendor seed missing `Address` field → NOT NULL violation.
+2. `ISyncableRepository(Of POSDbContext)` not registered → `PaymentService` DI failure.
+3. `EnsureCreatedAsync()` multi-context limitation on shared SQLite file → missing tables for contexts 2–4.
+4. `ISyncableRepository(Of Purchasing/Inventory/AccountingDbContext)` not registered → DI failures for `PurchaseOrderService`, `StockService`, Accounting handlers.
+
+**Fix:** All four issues resolved inside the harness fixture only. No application services were touched.

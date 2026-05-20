@@ -49,7 +49,7 @@ generated: 2026-05-17
 - The row's product and quantity match what you just received.
 - This proves the full event chain works: Goods Receiving → `GoodsReceivedEvent` → Handler → Stock Service → Database.
 
-- [ ] GoodsReceived chain: receiving goods creates a StockMovement row with Type=Receipt
+- [x] GoodsReceived chain: receiving goods creates a StockMovement row with Type=Receipt
 
 ---
 
@@ -107,7 +107,7 @@ generated: 2026-05-17
 - No visual glitches or unstyled text elements.
 - No errors in the Visual Studio Output window.
 
-- [ ] TransactionHistoryView displays correctly after XAML fix
+- [x] TransactionHistoryView displays correctly after XAML fix
 
 ---
 
@@ -125,7 +125,7 @@ generated: 2026-05-17
 **What you should see:**
 - Every view in the sidebar opens without errors and shows data.
 
-- [ ] All 16 views pass → INT-10 summary checkbox updated to `[x]`
+- [x] All 16 views pass → INT-10 summary checkbox updated to `[x]`
 
 ---
 
@@ -138,7 +138,7 @@ generated: 2026-05-17
 **What to do:**
 1. Build the solution in **Debug** configuration (Ctrl+Shift+B).
 2. Press **F5** to launch the app.
-3. Find the debug tool that runs the `EventChainVerificationHarness`. (Check the Developer menu or debug tools section.)
+3. In the sidebar, navigate to **Developer Tools → Run VAT Schema Harness** (the view). Scroll down to the **Event Chain Verification** section and click **Run Event Chain Harness**.
 4. Click the button to run the harness.
 5. Wait for it to finish.
 
@@ -147,7 +147,7 @@ generated: 2026-05-17
 - Open the report.
 - Both chains (GoodsReceived and SaleCompleted) show `Passed = True`.
 
-- [ ] Event chain harness reports Passed = True for both chains
+- [x] Event chain harness reports Passed = True for both chains — GoodsReceived ✅ (Receipt row Id=1, Qty=+10) and SaleCompleted ✅ (Sale row Id=2, Qty=-3) — 2026-05-20
 
 ---
 
@@ -156,7 +156,7 @@ generated: 2026-05-17
 **What to do:**
 - Same as Test 3 above. If you already did Test 3, you can mark this as done.
 
-- [ ] TransactionHistoryView re-test (same as Test 3)
+- [x] TransactionHistoryView re-test (same as Test 3)
 
 ---
 
@@ -166,7 +166,7 @@ generated: 2026-05-17
 - Same as Test 4 above. If all views passed and you updated the doc, mark this as done.
 - File to edit: `Progress\VISTA_Modules\Integration\INT-10-summary.md`
 
-- [ ] INT-10 checkbox flipped (same as Test 4)
+- [x] INT-10 checkbox flipped (same as Test 4)
 
 ---
 
@@ -185,4 +185,4 @@ generated: 2026-05-17
 - It does **NOT** use a string like `NavigateCommand("VatReturn")`.
 - This confirms ACC-14 followed the correct pattern required by INT-13.
 
-- [ ] VatReturnView navigation uses type-based resolution, not string key
+- [x] VatReturnView navigation uses type-based resolution, not string key
