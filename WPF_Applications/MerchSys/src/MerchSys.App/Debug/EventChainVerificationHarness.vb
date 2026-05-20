@@ -23,6 +23,8 @@ Imports MerchSys.SharedKernel.Events
 Imports MerchSys.SharedKernel.Interfaces
 Imports MerchSys.SharedKernel.Persistence
 Imports MerchSys.App.Services
+Imports Microsoft.EntityFrameworkCore.Infrastructure
+Imports Microsoft.EntityFrameworkCore.Storage
 
 Namespace Debug
 
@@ -118,6 +120,84 @@ Namespace Debug
     End Class
 
     ''' <summary>
+    ''' No-op stub for <see cref="ISyncableRepository(Of PurchasingDbContext)"/>.
+    ''' Delegates <see cref="SaveChangesWithJournalAsync"/> to <c>_context.SaveChangesAsync()</c>
+    ''' so that PO and goods-receipt data is actually persisted without a sync journal.
+    ''' </summary>
+    Friend Class HarnessPurchasingRepository
+        Implements ISyncableRepository(Of PurchasingDbContext)
+
+        Private ReadOnly _context As PurchasingDbContext
+
+        Public Sub New(context As PurchasingDbContext)
+            _context = context
+        End Sub
+
+        Public Function GetTrackedChangeDescriptors() As IReadOnlyList(Of SyncJournalDescriptor) _
+            Implements ISyncableRepository(Of PurchasingDbContext).GetTrackedChangeDescriptors
+            Return New List(Of SyncJournalDescriptor)()
+        End Function
+
+        Public Function SaveChangesWithJournalAsync(cancellationToken As CancellationToken) As Task(Of Integer) _
+            Implements ISyncableRepository(Of PurchasingDbContext).SaveChangesWithJournalAsync
+            Return _context.SaveChangesAsync(cancellationToken)
+        End Function
+
+    End Class
+
+    ''' <summary>
+    ''' No-op stub for <see cref="ISyncableRepository(Of InventoryDbContext)"/>.
+    ''' Delegates <see cref="SaveChangesWithJournalAsync"/> to <c>_context.SaveChangesAsync()</c>
+    ''' so that stock movement data is actually persisted without a sync journal.
+    ''' </summary>
+    Friend Class HarnessInventoryRepository
+        Implements ISyncableRepository(Of InventoryDbContext)
+
+        Private ReadOnly _context As InventoryDbContext
+
+        Public Sub New(context As InventoryDbContext)
+            _context = context
+        End Sub
+
+        Public Function GetTrackedChangeDescriptors() As IReadOnlyList(Of SyncJournalDescriptor) _
+            Implements ISyncableRepository(Of InventoryDbContext).GetTrackedChangeDescriptors
+            Return New List(Of SyncJournalDescriptor)()
+        End Function
+
+        Public Function SaveChangesWithJournalAsync(cancellationToken As CancellationToken) As Task(Of Integer) _
+            Implements ISyncableRepository(Of InventoryDbContext).SaveChangesWithJournalAsync
+            Return _context.SaveChangesAsync(cancellationToken)
+        End Function
+
+    End Class
+
+    ''' <summary>
+    ''' No-op stub for <see cref="ISyncableRepository(Of AccountingDbContext)"/>.
+    ''' Delegates <see cref="SaveChangesWithJournalAsync"/> to <c>_context.SaveChangesAsync()</c>
+    ''' so that revenue/expense records are persisted without a sync journal.
+    ''' </summary>
+    Friend Class HarnessAccountingRepository
+        Implements ISyncableRepository(Of AccountingDbContext)
+
+        Private ReadOnly _context As AccountingDbContext
+
+        Public Sub New(context As AccountingDbContext)
+            _context = context
+        End Sub
+
+        Public Function GetTrackedChangeDescriptors() As IReadOnlyList(Of SyncJournalDescriptor) _
+            Implements ISyncableRepository(Of AccountingDbContext).GetTrackedChangeDescriptors
+            Return New List(Of SyncJournalDescriptor)()
+        End Function
+
+        Public Function SaveChangesWithJournalAsync(cancellationToken As CancellationToken) As Task(Of Integer) _
+            Implements ISyncableRepository(Of AccountingDbContext).SaveChangesWithJournalAsync
+            Return _context.SaveChangesAsync(cancellationToken)
+        End Function
+
+    End Class
+
+    ''' <summary>
     ''' Verifies the two core runtime event chains end-to-end against a fresh scratch SQLite
     ''' database shared across both runs:
     ''' <list type="bullet">
@@ -172,15 +252,14 @@ Namespace Debug
                 BuildScratchServices(_scratchPath)
 
                 ' ── Schema creation (each DbContext owns its own table prefix) ──────────
+                ' EnsureCreatedAsync() only creates tables for the FIRST DbContext called on a
+                ' shared SQLite file — subsequent calls see the file exists and return False.
+                ' CreateTablesAsync() creates each context's tables without checking file existence.
                 Using scope = _scratchServiceProvider.CreateScope()
-                    Await scope.ServiceProvider.GetRequiredService(Of PurchasingDbContext)().
-                        Database.EnsureCreatedAsync()
-                    Await scope.ServiceProvider.GetRequiredService(Of InventoryDbContext)().
-                        Database.EnsureCreatedAsync()
-                    Await scope.ServiceProvider.GetRequiredService(Of POSDbContext)().
-                        Database.EnsureCreatedAsync()
-                    Await scope.ServiceProvider.GetRequiredService(Of AccountingDbContext)().
-                        Database.EnsureCreatedAsync()
+                    Await TryCast(scope.ServiceProvider.GetRequiredService(Of PurchasingDbContext)().GetInfrastructure().GetService(Of IDatabaseCreator)(), RelationalDatabaseCreator).CreateTablesAsync()
+                    Await TryCast(scope.ServiceProvider.GetRequiredService(Of InventoryDbContext)().GetInfrastructure().GetService(Of IDatabaseCreator)(), RelationalDatabaseCreator).CreateTablesAsync()
+                    Await TryCast(scope.ServiceProvider.GetRequiredService(Of POSDbContext)().GetInfrastructure().GetService(Of IDatabaseCreator)(), RelationalDatabaseCreator).CreateTablesAsync()
+                    Await TryCast(scope.ServiceProvider.GetRequiredService(Of AccountingDbContext)().GetInfrastructure().GetService(Of IDatabaseCreator)(), RelationalDatabaseCreator).CreateTablesAsync()
                 End Using
 
                 ' ── Seed: ProductCategory, Product (Inventory), Vendor (Purchasing) ─────
@@ -460,12 +539,14 @@ Namespace Debug
                                       SaleCompletedProbeHandler)()
 
             ' Purchasing services
+            services.AddScoped(Of ISyncableRepository(Of PurchasingDbContext), HarnessPurchasingRepository)()
             services.AddScoped(Of IPurchaseOrderService, PurchaseOrderService)()
             services.AddScoped(Of IPriceChangeService, PriceChangeService)()
             services.AddScoped(Of IGoodsReceivingService, GoodsReceivingService)()
             services.AddScoped(Of GoodsReceiptVatCalculator)()
 
             ' Inventory services
+            services.AddScoped(Of ISyncableRepository(Of InventoryDbContext), HarnessInventoryRepository)()
             services.AddScoped(Of IStockService, StockService)()
             services.AddScoped(Of ILowStockAlertService, LowStockAlertService)()
             services.AddSingleton(Of ILowStockNotifier, HarnessLowStockNotifier)()
@@ -474,6 +555,9 @@ Namespace Debug
             services.AddScoped(Of IEventBus, MediatREventBus)()
             services.AddScoped(Of ISyncableRepository(Of POSDbContext), HarnessPosRepository)()
             services.AddScoped(Of IPaymentService, PaymentService)()
+
+            ' Accounting services
+            services.AddScoped(Of ISyncableRepository(Of AccountingDbContext), HarnessAccountingRepository)()
 
             _scratchServiceProvider = services.BuildServiceProvider()
         End Sub
