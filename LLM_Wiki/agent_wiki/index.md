@@ -22,3 +22,6 @@ All engineering learnings from debugging and error-fixing sessions. Check this i
 | [vbnet-err-builtin-shadows-loop-variable](antipatterns/vbnet-err-builtin-shadows-loop-variable.md) | antipattern | MerchSys.POS | vb-net, reserved-keyword, for-each, BC30068, BC30311, build-error | claude-code | 2026-05-11 |
 | [vbnet-cstr-keyword-collision](antipatterns/vbnet-cstr-keyword-collision.md) | antipattern | MerchSys.App | vb-net, reserved-keyword, BC30183, build-error | claude-code | 2026-05-15 |
 | [vbnet-console-namespace-shadow](antipatterns/vbnet-console-namespace-shadow.md) | antipattern | MerchSys.App | vb-net, namespace, BC30456, imports, build-error | claude-code | 2026-05-15 |
+| [efcore-hasdefaultvalue-enum-type-mismatch](errors/efcore-hasdefaultvalue-enum-type-mismatch.md) | error-fix | MerchSys.Purchasing | ef-core, enum, vb-net, runtime-error, configuration | claude-code | 2026-05-20 |
+| [efcore-vbnet-tolistasync-entity-empty](errors/efcore-vbnet-tolistasync-entity-empty.md) | error-fix | MerchSys.Purchasing | ef-core, vb-net, sqlite, runtime-error, materialization | claude-code | 2026-05-20 |
+| [vbnet-parameter-shadows-property](antipatterns/vbnet-parameter-shadows-property.md) | antipattern | MerchSys.Purchasing | vb-net, case-insensitive, parameter, property, shadowing, logic-bug | claude-code | 2026-05-20 |

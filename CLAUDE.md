@@ -6,11 +6,33 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **VISTA** — Villon Integrated Supply and Trade Application. A WPF desktop system for Villon Farm Supply (agricultural retail, ~50 SKUs, Philippines). Built in **Visual Basic .NET 10** targeting .NET 10, following a **modular monolith** architecture.
 
-The repository is in **active implementation phase**. All source code lives under `WPF_Applications/MerchSys/`. The `Plans/` directory contains the detailed implementation plans, `Progress/` contains implementation summaries, and `LLM_Wiki/` is the authoritative two-tier knowledge base.
+The repository is in **active implementation phase**. All source code lives under `WPF_Applications/MerchSys/`. The `Plans/` directory contains the detailed implementation plans, `Progress/` contains implementation summaries, and `LLM_Wiki/` is the authoritative three-tier knowledge base.
 
 ## Language
 
 All source code is **Visual Basic .NET (VB.NET)**. Every `dotnet new` command must include `--language VB`. All files use `.vb` extension. Do not generate C# syntax.
+
+## VB.NET Build Traps (read before writing any code)
+
+These are validated antipatterns from `LLM_Wiki/agent_wiki/` that every agent re-discovers. Check this list first.
+
+| Trap | Rule | Error |
+|------|------|-------|
+| **Namespace doubling** | `Namespace` statements must use only the relative suffix — never repeat the `<RootNamespace>` prefix. `Namespace Entities` not `Namespace MerchSys.Purchasing.Entities`. | BC30002 |
+| **Fluent chain leading dot** | Multi-line fluent chains must place the `.` at the **end** of the preceding line, not the start of the continuation. | BC30157 |
+| **`entry` in DbContext** | Never use `entry` as a loop variable inside a `DbContext` subclass — it shadows `DbContext.Entry()`. Use `dbEntry`. | BC30516 |
+| **Lambda param shadows local** | Lambda parameters must not match any local variable anywhere in the same method body. Use short unambiguous names (`p`, `l`). | BC36641 |
+| **`List.Count(predicate)`** | `.Count(Function(x) ...)` on a `List(Of T)` binds to the integer property, not the LINQ extension. Use `Enumerable.Count(list, pred)`. | BC32016 |
+| **Reserved keyword variable names** | `err`, `cstr`, `cint`, `cdbl`, `now`, `date` etc. collide with VB.NET built-ins. Use `errMsg`, `connStr`, etc. | BC30068 / BC30183 |
+| **Reserved keyword enum members** | Enum members named `Return`, `End`, `Stop`, `Error`, `New` must be escaped: `[Return] = 4`. | BC31001 |
+| **XAML `clr-namespace` root prefix** | `xmlns:x="clr-namespace:Views.Foo"` is wrong. Must be `clr-namespace:MerchSys.App.Views.Foo` — VB.NET root namespace is not applied automatically by the XAML parser. `x:Class` is unaffected. | MC3074 |
+| **`Console` namespace shadow** | When `Imports Microsoft.Extensions.Logging` is present, `Console` resolves to MEL's class. Always use `System.Console.WriteLine()`. | BC30456 |
+| **`Await` in Catch/Finally** | `Await` is illegal inside `Catch`/`Finally` blocks (BC36943). Capture error state before the block, await after. | BC36943 |
+| **SQLite trigger + temp table** | SQLite triggers cannot reference `temp.*`. Use a persistent table with a TTL column instead. | SQLite Error 1 |
+| **Parameter shadows property** | A parameter named `vendors` shadows a property `Vendors` (VB.NET is case-insensitive). `Vendors.Clear()` clears the parameter, not the property — silent logic bug. Name parameters distinctly: `vendorList`, `inputItems`, etc. | silent |
+| **EF Core 10 VB.NET ToListAsync empty** | `ToListAsync()` on a full entity query silently returns an empty list. `CountAsync()` and scalar projections work. Use a fresh `SqliteConnection` + synchronous `reader.Read()` loop writing to a class field. | silent |
+
+Full docs in `LLM_Wiki/agent_wiki/antipatterns/` and `LLM_Wiki/agent_wiki/errors/`.
 
 ## Build & Run Commands
 
@@ -30,10 +52,13 @@ dotnet restore WPF_Applications/MerchSys/MerchSys.slnx
 dotnet new wpf --language VB --framework net10.0 -n MerchSys.App
 dotnet new classlib --language VB --framework net10.0 -n MerchSys.<Module>
 
-# EF Core migrations (run from within the module's Data/ project context)
-dotnet ef migrations add <MigrationName> --project src/MerchSys.<Module>
-dotnet ef database update --project src/MerchSys.<Module>
+# EF Core migrations — DO NOT USE for VB.NET (see note below)
+# dotnet ef migrations add ... is NOT supported for VB.NET in EF Core 10
+# dotnet ef database update ... cannot discover VB.NET migration classes
+# See agent_wiki/errors/efcore10-vbnet-migration-discovery-bug.md for the full workaround
 ```
+
+**EF Core CLI is broken for VB.NET + EF Core 10.** Never use `dotnet ef migrations add` or `dotnet ef database update` in this project. Schema changes must be written as manual migration classes in `src/MerchSys.<Module>/Migrations/` and applied via `DatabaseInitializer` (raw `SqliteConnection` + `CREATE TABLE IF NOT EXISTS`) called from `Application_Startup`. See `agent_wiki/errors/efcore10-vbnet-migration-discovery-bug.md` for the exact pattern.
 
 Build must complete with **0 errors, 0 warnings**. No test projects exist yet. (Testing and complex troubleshooting will be conducted in a separate phase after the modules are fully built).
 If the build fails, do not directly fix the error. Instead document all the errors in the Progress folder - the troubleshooting will be on a separated session.
@@ -102,6 +127,17 @@ Each plan specifies:
 After completing a plan, you must **generate an implementation summary** at `Progress/VISTA_Modules/<Module>/<PLAN-ID>-summary.md` using the template at `Progress/_template.md`.
 
 **Implementation order:** INFRA-01 → INFRA-02 → INFRA-03 → INFRA-04 → then module plans in dependency order → then INT-01 → INT-02 → INT-03 → INT-04 → INT-05.
+
+## Testing Phase Rules
+
+The project is in the **testing phase**. A debugging skill and enforcement hooks are configured:
+
+- **Skill:** `.claude/skills/debug-test/SKILL.md` — auto-activates when debugging test failures. Contains the full step-by-step protocol.
+- **Hooks:** `.claude/hooks/` — enforces debug branch requirement and logs all file edits automatically.
+- **Session logs:** `Operator/debug-logs/` — template at `_template.md`.
+- **Full protocol:** `Operator/testing-session-protocol.md`
+
+When debugging a test failure, the skill will load automatically. Follow it exactly.
 
 ## Three-Tier Knowledge Base (`LLM_Wiki/`)
 
