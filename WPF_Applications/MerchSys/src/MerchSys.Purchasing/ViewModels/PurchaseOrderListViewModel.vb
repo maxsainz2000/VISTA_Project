@@ -1,6 +1,9 @@
 Imports System.Collections.ObjectModel
 Imports CommunityToolkit.Mvvm.ComponentModel
 Imports CommunityToolkit.Mvvm.Input
+Imports Microsoft.Data.Sqlite
+Imports Microsoft.EntityFrameworkCore
+Imports MerchSys.Purchasing.Data
 Imports MerchSys.Purchasing.Entities
 Imports MerchSys.Purchasing.Services
 Imports MerchSys.SharedKernel.Enums
@@ -31,13 +34,15 @@ Namespace ViewModels
 
         Private ReadOnly _poService As IPurchaseOrderService
         Private ReadOnly _vendorService As IVendorService
+        Private ReadOnly _db As PurchasingDbContext
 
         Private _allOrders As List(Of PORowItem) = New List(Of PORowItem)()
         Private _vendorList As List(Of Vendor) = New List(Of Vendor)()
 
-        Public Sub New(poService As IPurchaseOrderService, vendorService As IVendorService)
+        Public Sub New(poService As IPurchaseOrderService, vendorService As IVendorService, db As PurchasingDbContext)
             _poService = poService
             _vendorService = vendorService
+            _db = db
 
             Orders = New ObservableCollection(Of PORowItem)()
             StatusOptions = New ObservableCollection(Of String) From {"All", "Draft", "Submitted", "Received", "Verified", "Closed"}
@@ -178,12 +183,34 @@ Namespace ViewModels
         Private Async Function LoadDataAsync() As Task
             IsBusy = True
             Try
-                Dim poTask = _poService.GetAllAsync()
-                Dim vendorTask = _vendorService.GetAllAsync()
-                Await Task.WhenAll(poTask, vendorTask)
+                ' EF Core 10 VB.NET ToListAsync() silently returns empty for full entity queries.
+                ' Load vendors via a fresh SqliteConnection to bypass EF's materializer entirely.
+                _vendorList = New List(Of Vendor)()
+                Dim connStr = _db.Database.GetConnectionString()
+                Using conn As New SqliteConnection(connStr)
+                    Await conn.OpenAsync()
+                    Using selectCmd = conn.CreateCommand()
+                        selectCmd.CommandText = "SELECT Id, Name, ContactPerson, Phone, Email, " &
+                                                "Address, DefaultLeadTimeDays, Notes " &
+                                                "FROM Pur_Vendors WHERE IsDeleted = 0 ORDER BY Name"
+                        Using reader = selectCmd.ExecuteReader()
+                            While reader.Read()
+                                _vendorList.Add(New Vendor With {
+                                    .Id = reader.GetInt32(0),
+                                    .Name = reader.GetString(1),
+                                    .ContactPerson = reader.GetString(2),
+                                    .Phone = reader.GetString(3),
+                                    .Email = If(reader.IsDBNull(4), Nothing, reader.GetString(4)),
+                                    .Address = reader.GetString(5),
+                                    .DefaultLeadTimeDays = reader.GetInt32(6),
+                                    .Notes = If(reader.IsDBNull(7), Nothing, reader.GetString(7))
+                                })
+                            End While
+                        End Using
+                    End Using
+                End Using
 
-                Dim pos As List(Of PurchaseOrder) = poTask.Result
-                _vendorList = vendorTask.Result
+                Dim pos As List(Of PurchaseOrder) = Await _poService.GetAllAsync()
                 Dim vendorMap = _vendorList.ToDictionary(Function(v) v.Id, Function(v) v.Name)
 
                 _allOrders = pos.
@@ -202,7 +229,9 @@ Namespace ViewModels
 
                 Editor.LoadVendors(_vendorList)
                 ApplyFilters()
-                StatusMessage = $"Loaded {_allOrders.Count} purchase orders"
+                StatusMessage = $"Loaded {pos.Count} POs, {_vendorList.Count} vendors"
+            Catch ex As Exception
+                StatusMessage = $"[ERROR] {ex.GetType().Name}: {ex.Message}"
             Finally
                 IsBusy = False
             End Try

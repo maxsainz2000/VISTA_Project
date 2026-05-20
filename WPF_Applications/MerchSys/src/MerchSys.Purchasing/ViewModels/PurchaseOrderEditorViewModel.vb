@@ -170,27 +170,27 @@ Namespace ViewModels
 
         ' ─── Public API ──────────────────────────────────────────────────────────
 
-        Public Sub LoadVendors(vendors As List(Of Vendor))
+        Public Sub LoadVendors(vendorList As List(Of Vendor))
             Vendors.Clear()
-            For Each v In vendors
+            For Each v In vendorList
                 Vendors.Add(v)
             Next
         End Sub
 
-        Public Sub PrepareForNew(vendors As List(Of Vendor))
+        Public Sub PrepareForNew(vendorList As List(Of Vendor))
             EditingPOId = Nothing
             SelectedVendor = Nothing
             ExpectedDeliveryDate = Nothing
             Notes = String.Empty
             UnwireAllLineHandlers()
             LineItems.Clear()
-            LoadVendors(vendors)
+            LoadVendors(vendorList)
             OnPropertyChanged(NameOf(TotalAmount))
         End Sub
 
-        Public Sub LoadFromPO(po As PurchaseOrder, vendors As List(Of Vendor))
+        Public Sub LoadFromPO(po As PurchaseOrder, vendorList As List(Of Vendor))
             EditingPOId = po.Id
-            LoadVendors(vendors)
+            LoadVendors(vendorList)
             SelectedVendor = Vendors.FirstOrDefault(Function(v) v.Id = po.VendorId)
             ExpectedDeliveryDate = po.ExpectedDeliveryDate
             Notes = If(po.Notes, String.Empty)
