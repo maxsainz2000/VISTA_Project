@@ -72,7 +72,7 @@ generated: 2026-05-17
 - The row's product and quantity match what you just sold.
 - This proves the full event chain works: Sale → `SaleCompletedEvent` → Handler → Stock Service → Database.
 
-- [ ] SaleCompleted chain: completing a sale creates a StockMovement row with Type=Sale
+- [x] SaleCompleted chain: completing a sale creates a StockMovement row with Type=Sale
 
 ---
 
