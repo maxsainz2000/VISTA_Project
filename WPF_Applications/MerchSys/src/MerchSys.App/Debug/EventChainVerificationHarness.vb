@@ -21,6 +21,7 @@ Imports MerchSys.Purchasing.Services.Vat
 Imports MerchSys.SharedKernel.Enums
 Imports MerchSys.SharedKernel.Events
 Imports MerchSys.SharedKernel.Interfaces
+Imports MerchSys.SharedKernel.Persistence
 Imports MerchSys.App.Services
 
 Namespace Debug
@@ -93,6 +94,26 @@ Namespace Debug
         Public Sub NotifyLowStock(alertCount As Integer) Implements ILowStockNotifier.NotifyLowStock
             ' Intentionally empty — harness runs with its own headless ServiceProvider.
         End Sub
+
+    End Class
+
+    ''' <summary>
+    ''' No-op stub for <see cref="ISyncableRepository(Of POSDbContext)"/> used inside the harness.
+    ''' <see cref="PaymentService"/> requires this interface, but the Cash payment path tested
+    ''' by the harness never calls <see cref="SaveChangesWithJournalAsync"/> so a no-op is safe.
+    ''' </summary>
+    Friend Class HarnessPosRepository
+        Implements ISyncableRepository(Of POSDbContext)
+
+        Public Function GetTrackedChangeDescriptors() As IReadOnlyList(Of SyncJournalDescriptor) _
+            Implements ISyncableRepository(Of POSDbContext).GetTrackedChangeDescriptors
+            Return New List(Of SyncJournalDescriptor)()
+        End Function
+
+        Public Function SaveChangesWithJournalAsync(cancellationToken As CancellationToken) As Task(Of Integer) _
+            Implements ISyncableRepository(Of POSDbContext).SaveChangesWithJournalAsync
+            Return Task.FromResult(0)
+        End Function
 
     End Class
 
@@ -192,6 +213,7 @@ Namespace Debug
                         .Name = $"Harness-Vendor-{Guid.NewGuid():N}".Substring(0, 30),
                         .ContactPerson = "Harness Contact",
                         .Phone = "09000000000",
+                        .Address = "Harness Address",
                         .DefaultLeadTimeDays = 1
                     }
                     purCtx.Vendors.Add(vendor)
@@ -438,6 +460,7 @@ Namespace Debug
 
             ' POS / shared services
             services.AddScoped(Of IEventBus, MediatREventBus)()
+            services.AddScoped(Of ISyncableRepository(Of POSDbContext), HarnessPosRepository)()
             services.AddScoped(Of IPaymentService, PaymentService)()
 
             _scratchServiceProvider = services.BuildServiceProvider()
