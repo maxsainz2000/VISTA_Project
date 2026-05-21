@@ -582,7 +582,7 @@ CREATE TABLE IF NOT EXISTS `Acc_FinancialSnapshots` (
 DELIMITER $$
 
 -- Pos_OfficialReceipts
-CREATE TRIGGER trg_Pos_OfficialReceipts_NoUpdate
+CREATE OR REPLACE TRIGGER trg_Pos_OfficialReceipts_NoUpdate
 BEFORE UPDATE ON `Pos_OfficialReceipts`
 FOR EACH ROW
 BEGIN
@@ -590,7 +590,7 @@ BEGIN
         SET MESSAGE_TEXT = 'Updates to Pos_OfficialReceipts are prohibited (BIR compliance)';
 END$$
 
-CREATE TRIGGER trg_Pos_OfficialReceipts_NoDelete
+CREATE OR REPLACE TRIGGER trg_Pos_OfficialReceipts_NoDelete
 BEFORE DELETE ON `Pos_OfficialReceipts`
 FOR EACH ROW
 BEGIN
@@ -599,7 +599,7 @@ BEGIN
 END$$
 
 -- Pos_ReceiptIntegrity
-CREATE TRIGGER trg_Pos_ReceiptIntegrity_NoUpdate
+CREATE OR REPLACE TRIGGER trg_Pos_ReceiptIntegrity_NoUpdate
 BEFORE UPDATE ON `Pos_ReceiptIntegrity`
 FOR EACH ROW
 BEGIN
@@ -607,7 +607,7 @@ BEGIN
         SET MESSAGE_TEXT = 'Updates to Pos_ReceiptIntegrity are prohibited (BIR compliance)';
 END$$
 
-CREATE TRIGGER trg_Pos_ReceiptIntegrity_NoDelete
+CREATE OR REPLACE TRIGGER trg_Pos_ReceiptIntegrity_NoDelete
 BEFORE DELETE ON `Pos_ReceiptIntegrity`
 FOR EACH ROW
 BEGIN
@@ -616,7 +616,7 @@ BEGIN
 END$$
 
 -- Pos_CreditPayments
-CREATE TRIGGER trg_Pos_CreditPayments_NoUpdate
+CREATE OR REPLACE TRIGGER trg_Pos_CreditPayments_NoUpdate
 BEFORE UPDATE ON `Pos_CreditPayments`
 FOR EACH ROW
 BEGIN
@@ -624,7 +624,7 @@ BEGIN
         SET MESSAGE_TEXT = 'Updates to Pos_CreditPayments are prohibited (BIR compliance)';
 END$$
 
-CREATE TRIGGER trg_Pos_CreditPayments_NoDelete
+CREATE OR REPLACE TRIGGER trg_Pos_CreditPayments_NoDelete
 BEFORE DELETE ON `Pos_CreditPayments`
 FOR EACH ROW
 BEGIN
@@ -633,7 +633,7 @@ BEGIN
 END$$
 
 -- Acc_FinancialPeriods
-CREATE TRIGGER trg_Acc_FinancialPeriods_NoUpdate
+CREATE OR REPLACE TRIGGER trg_Acc_FinancialPeriods_NoUpdate
 BEFORE UPDATE ON `Acc_FinancialPeriods`
 FOR EACH ROW
 BEGIN
@@ -641,7 +641,7 @@ BEGIN
         SET MESSAGE_TEXT = 'Updates to Acc_FinancialPeriods are prohibited (ledger immutability)';
 END$$
 
-CREATE TRIGGER trg_Acc_FinancialPeriods_NoDelete
+CREATE OR REPLACE TRIGGER trg_Acc_FinancialPeriods_NoDelete
 BEFORE DELETE ON `Acc_FinancialPeriods`
 FOR EACH ROW
 BEGIN
@@ -650,7 +650,7 @@ BEGIN
 END$$
 
 -- Acc_RevenueRecords
-CREATE TRIGGER trg_Acc_RevenueRecords_NoUpdate
+CREATE OR REPLACE TRIGGER trg_Acc_RevenueRecords_NoUpdate
 BEFORE UPDATE ON `Acc_RevenueRecords`
 FOR EACH ROW
 BEGIN
@@ -658,7 +658,7 @@ BEGIN
         SET MESSAGE_TEXT = 'Updates to Acc_RevenueRecords are prohibited (ledger immutability)';
 END$$
 
-CREATE TRIGGER trg_Acc_RevenueRecords_NoDelete
+CREATE OR REPLACE TRIGGER trg_Acc_RevenueRecords_NoDelete
 BEFORE DELETE ON `Acc_RevenueRecords`
 FOR EACH ROW
 BEGIN
@@ -667,7 +667,7 @@ BEGIN
 END$$
 
 -- Acc_ExpenseRecords
-CREATE TRIGGER trg_Acc_ExpenseRecords_NoUpdate
+CREATE OR REPLACE TRIGGER trg_Acc_ExpenseRecords_NoUpdate
 BEFORE UPDATE ON `Acc_ExpenseRecords`
 FOR EACH ROW
 BEGIN
@@ -675,7 +675,7 @@ BEGIN
         SET MESSAGE_TEXT = 'Updates to Acc_ExpenseRecords are prohibited (ledger immutability)';
 END$$
 
-CREATE TRIGGER trg_Acc_ExpenseRecords_NoDelete
+CREATE OR REPLACE TRIGGER trg_Acc_ExpenseRecords_NoDelete
 BEFORE DELETE ON `Acc_ExpenseRecords`
 FOR EACH ROW
 BEGIN
@@ -684,7 +684,7 @@ BEGIN
 END$$
 
 -- Acc_FinancialSnapshots
-CREATE TRIGGER trg_Acc_FinancialSnapshots_NoUpdate
+CREATE OR REPLACE TRIGGER trg_Acc_FinancialSnapshots_NoUpdate
 BEFORE UPDATE ON `Acc_FinancialSnapshots`
 FOR EACH ROW
 BEGIN
@@ -692,7 +692,7 @@ BEGIN
         SET MESSAGE_TEXT = 'Updates to Acc_FinancialSnapshots are prohibited (ledger immutability)';
 END$$
 
-CREATE TRIGGER trg_Acc_FinancialSnapshots_NoDelete
+CREATE OR REPLACE TRIGGER trg_Acc_FinancialSnapshots_NoDelete
 BEFORE DELETE ON `Acc_FinancialSnapshots`
 FOR EACH ROW
 BEGIN
