@@ -40,7 +40,7 @@ generated: 2026-05-17
 - No crash or migration error messages appear.
 - A new `merchsys.db` file appears in `%LOCALAPPDATA%\MerchSys\`.
 
-- [ ] Fresh database migration works
+- [X] Fresh database migration works
 
 ---
 
@@ -55,7 +55,7 @@ generated: 2026-05-17
 - No crash or migration error messages appear.
 - Your old data is still there.
 
-- [ ] Existing database migration works
+- [X] Existing database migration works
 
 ---
 
@@ -71,7 +71,7 @@ generated: 2026-05-17
 - The first row inserts fine.
 - The second row fails with a unique constraint error.
 
-- [ ] Duplicate VAT return filing is blocked
+- [X] Duplicate VAT return filing is blocked
 
 ---
 
@@ -88,7 +88,7 @@ generated: 2026-05-17
 **What you should see:**
 - All the child rows in `Acc_VatReturnLines` are automatically deleted when you delete the parent.
 
-- [ ] Cascade delete from VatReturn to VatReturnLines works
+- [X] Cascade delete from VatReturn to VatReturnLines works
 
 ---
 
@@ -112,7 +112,7 @@ generated: 2026-05-17
   - Yellow/Orange = deadline is approaching
   - Red = deadline is very close or past
 
-- [ ] VAT tile shows correct amount and colour
+- [X] VAT tile shows correct amount and colour — "Percentage Tax" ₱306.00 Due Jul 25, white border (Info severity, deadline 65+ days away)
 
 ---
 

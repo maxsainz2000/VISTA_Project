@@ -32,22 +32,32 @@ generated: 2026-05-17
 **What to do:**
 1. Launch the app (F5).
 2. Go to the **Purchasing** section in the sidebar.
-3. Create a Purchase Order with items that all have the **same** VAT classification (for example, all "Vatable").
-4. Go to **Goods Receiving** and receive the goods for that PO.
+3. Create a Purchase Order with items that all have the **same** VAT classification (for example, all "Vatable"). Use a VAT-inclusive unit cost such as ₱1,120 (= ₱1,000 net + ₱120 VAT).
+4. Submit the PO, then go to **Goods Receiving** and receive the goods for that PO.
 5. Open DB Browser for SQLite and open `%LOCALAPPDATA%\MerchSys\merchsys.db`.
 6. Run this query (replace `<PO_ID>` with the actual Purchase Order ID — you can find it in `Pur_PurchaseOrders`):
    ```sql
-   SELECT * FROM Acc_VatReturnLines WHERE PurchaseOrderId = <PO_ID>;
+   SELECT Id, Description, Amount, VatableAmount, VatExemptAmount, InputVat, VatTreatment
+   FROM Acc_ExpenseRecords
+   WHERE SourceModule = 'Purchasing' AND SourceReferenceId = <PO_ID>;
    ```
+
+> **Note:** `GoodsReceivedWithVatHandler` writes VAT data to `Acc_ExpenseRecords` (adding/updating the
+> `VatableAmount`, `VatExemptAmount`, `InputVat`, and `VatTreatment` columns added by migration
+> `20260510100000_AddVatLedgerColumns`). `Acc_VatReturnLines` is the BIR period-filing table and is
+> only populated when you formally generate a VAT return — it is **not** written during goods receiving.
 
 > **Event publisher:** `WPF_Applications\MerchSys\src\MerchSys.Purchasing\Services\GoodsReceivingService.vb`
 > **Event handler:** `WPF_Applications\MerchSys\src\MerchSys.Accounting\Handlers\GoodsReceivedWithVatHandler.vb`
 
 **What you should see:**
-- At least one row appears in `Acc_VatReturnLines`.
-- The row has the correct input-VAT amount based on the PO total and VAT rate.
+- One row per line item on the PO appears in `Acc_ExpenseRecords`.
+- `VatableAmount` = net cost (VAT-inclusive price ÷ 1.12), e.g. ₱1,000 for a ₱1,120 item.
+- `InputVat` = VAT portion, e.g. ₱120.
+- `VatExemptAmount` = 0.
+- `VatTreatment` = 0 (the integer value for the `Vatable` enum member).
 
-- [ ] Single-classification receipt: input-VAT row appears in Acc_VatReturnLines
+- [x] Single-classification receipt: input-VAT row appears in Acc_ExpenseRecords with correct VatableAmount and InputVat — PO-2026-0001 (id=1): VatableAmount=1000.0, InputVat=120.0, VatExemptAmount=0, VatTreatment=0 ✅ 2026-05-20
 
 ---
 
@@ -55,22 +65,25 @@ generated: 2026-05-17
 
 **What to do:**
 1. Create a new Purchase Order with items that have **different** VAT classifications. For example:
-   - Line 1: "Vatable" item worth ₱1,000
-   - Line 2: "VAT-Exempt" item worth ₱500
-2. Receive the goods for this PO.
-3. Run the same query as above with the new PO ID:
+   - Line 1: "Vatable" item, unit cost ₱1,120 VAT-inclusive (₱1,000 net + ₱120 VAT)
+   - Line 2: "VAT-Exempt" item, unit cost ₱500
+2. Submit the PO, then receive the goods for this PO.
+3. Run this query with the new PO ID:
    ```sql
-   SELECT * FROM Acc_VatReturnLines WHERE PurchaseOrderId = <PO_ID>;
+   SELECT Id, Description, Amount, VatableAmount, VatExemptAmount, InputVat, VatTreatment
+   FROM Acc_ExpenseRecords
+   WHERE SourceModule = 'Purchasing' AND SourceReferenceId = <PO_ID>;
    ```
 
 > **VAT calculator:** `WPF_Applications\MerchSys\src\MerchSys.Purchasing\Services\Vat\GoodsReceiptVatCalculator.vb`
 
 **What you should see:**
-- The `Acc_VatReturnLines` entry shows input-VAT calculated **only** from the Vatable line(s).
-- The Exempt line does NOT add to the VAT amount.
-- The total VAT amount makes sense (e.g., 12% of ₱1,000 = ₱120 for the Vatable line).
+- Two rows in `Acc_ExpenseRecords` — one per line item.
+- Vatable row: `VatableAmount` = ₱1,000, `InputVat` = ₱120, `VatTreatment` = 0.
+- Exempt row: `VatExemptAmount` = ₱500, `InputVat` = 0, `VatTreatment` = 1.
+- The Exempt line contributes nothing to `InputVat`.
 
-- [ ] Mixed-classification receipt: VAT sums only from Vatable lines, Exempt excluded
+- [x] Mixed-classification receipt: VAT sums only from Vatable lines, Exempt excluded — PO-2026-0002 (id=2): Vatable line VatableAmount=1000.0 InputVat=120.0; Exempt line VatExemptAmount=500.0 InputVat=0.0 ✅ 2026-05-20
 
 ---
 
@@ -86,13 +99,14 @@ generated: 2026-05-17
    - Simply receiving the same PO again if the UI allows it.
 3. After triggering the event a second time, run the query again:
    ```sql
-   SELECT COUNT(*) FROM Acc_VatReturnLines WHERE PurchaseOrderId = <PO_ID>;
+   SELECT COUNT(*) FROM Acc_ExpenseRecords
+   WHERE SourceModule = 'Purchasing' AND SourceReferenceId = <PO_ID>;
    ```
 
 > **Handler (checks for duplicates):** `WPF_Applications\MerchSys\src\MerchSys.Accounting\Handlers\GoodsReceivedWithVatHandler.vb`
 
 **What you should see:**
-- The count is the **same** as before. No new duplicate rows were created.
-- The ACC-10 / ACC-11 handlers correctly detect that this PO was already processed and skip it.
+- The count is the **same** as before. No new rows were created.
+- The handler finds the existing `Acc_ExpenseRecords` row(s) by `(SourceModule='Purchasing', SourceReferenceId, Description.Contains(ProductName))` and **updates** them in place rather than inserting duplicates.
 
-- [ ] Re-publishing the event for the same PO does NOT create duplicate VAT entries
+- [x] Re-publishing the event for the same PO does NOT create duplicate VAT entries — PO-2026-0003 (id=3): COUNT=1 after second Immediate Window publish, EF log shows SELECT→UPDATE (no INSERT), row detail: VatableAmount=6696.0 InputVat=803.57 VatTreatment=0 ✅ 2026-05-21

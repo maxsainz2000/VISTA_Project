@@ -51,7 +51,7 @@ generated: 2026-05-17
 - The file exists at `%LOCALAPPDATA%\VISTA\appsettings.Production.json`.
 - Running `git status` does NOT show it as tracked or untracked.
 
-- [ ] Production password file created and excluded from git
+- [X] Production password file created and excluded from git
 
 ---
 
@@ -70,7 +70,7 @@ generated: 2026-05-17
 - All expected tables exist (check against the table list in the INFRA-06 plan).
 - Running the same script a second time should not cause errors (idempotent).
 
-- [ ] MariaDB init SQL runs clean on a fresh instance
+- [X] MariaDB init SQL runs clean on a fresh instance
 
 ---
 
@@ -106,7 +106,7 @@ generated: 2026-05-17
 - A sync status indicator is visible in the status bar.
 - No binding error messages appear in the Visual Studio **Output** window (look for lines starting with `BindingExpression` or `System.Windows.Data Error`).
 
-- [ ] Sync indicator renders in status bar with no binding errors
+- [X] Sync indicator renders in status bar with no binding errors
 
 ---
 
@@ -124,7 +124,7 @@ generated: 2026-05-17
 - The breakpoint in `Dispose` gets hit when you close the app.
 - This confirms the indicator cleans up its resources properly.
 
-- [ ] Dispose breakpoint is hit on app shutdown
+- [X] Dispose breakpoint is hit on app shutdown
 
 ---
 

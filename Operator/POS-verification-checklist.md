@@ -48,7 +48,7 @@ generated: 2026-05-17
 - Today's sales data appears (total sales, number of transactions, etc.).
 - The numbers look correct based on the sales you just made.
 
-- [ ] Daily Summary view loads and shows correct data
+- [x] Daily Summary view loads and shows correct data — View opened, KPIs correct, Top 5 products aggregated correctly. Fixed 2 bugs: ImmutableEntityException on PAY (double GenerateReceiptAsync call) and Top 5 grouping (missing Key keyword on VB.NET anonymous type).
 
 ---
 
