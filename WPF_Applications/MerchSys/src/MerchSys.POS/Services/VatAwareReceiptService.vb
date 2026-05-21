@@ -46,6 +46,13 @@ Namespace Services
         ''' both the VAT-aware and legacy sale-completed events.
         ''' </summary>
         Public Async Function GenerateReceiptAsync(transactionId As Integer) As Task(Of OfficialReceipt) Implements IReceiptService.GenerateReceiptAsync
+            ' Idempotency guard: return immediately if the receipt was already generated.
+            Dim existingReceipt = Await _context.OfficialReceipts.
+                FirstOrDefaultAsync(Function(r) r.TransactionId = transactionId)
+            If existingReceipt IsNot Nothing Then
+                Return existingReceipt
+            End If
+
             ' Step 1 — load transaction with lines and the VAT config singleton.
             Dim transaction = Await _context.SalesTransactions.
                 Include(Function(t) t.Lines).

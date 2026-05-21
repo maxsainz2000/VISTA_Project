@@ -63,7 +63,7 @@ Namespace Services
 
             Dim topProducts = transactions _
                 .SelectMany(Function(t) t.Lines) _
-                .GroupBy(Function(l) New With {.Id = l.ProductId, .Name = l.ProductName}) _
+                .GroupBy(Function(l) New With {Key .Id = l.ProductId, Key .Name = l.ProductName}) _
                 .Select(Function(g) New TopProductDto() With {
                     .ProductId = g.Key.Id,
                     .ProductName = g.Key.Name,
@@ -119,7 +119,7 @@ Namespace Services
 
             Dim topProducts = transactions _
                 .SelectMany(Function(t) t.Lines) _
-                .GroupBy(Function(l) New With {.Id = l.ProductId, .Name = l.ProductName}) _
+                .GroupBy(Function(l) New With {Key .Id = l.ProductId, Key .Name = l.ProductName}) _
                 .Select(Function(g) New TopProductDto() With {
                     .ProductId = g.Key.Id,
                     .ProductName = g.Key.Name,
@@ -158,7 +158,7 @@ Namespace Services
 
                 Dim dayTopProducts = dayTx _
                     .SelectMany(Function(t) t.Lines) _
-                    .GroupBy(Function(l) New With {.Id = l.ProductId, .Name = l.ProductName}) _
+                    .GroupBy(Function(l) New With {Key .Id = l.ProductId, Key .Name = l.ProductName}) _
                     .Select(Function(g) New TopProductDto() With {
                         .ProductId = g.Key.Id,
                         .ProductName = g.Key.Name,

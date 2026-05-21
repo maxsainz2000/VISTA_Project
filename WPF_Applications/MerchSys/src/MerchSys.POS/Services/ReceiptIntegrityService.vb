@@ -29,6 +29,13 @@ Namespace Services
 
         ''' <inheritdoc/>
         Public Async Function ComputeAndPersistAsync(receipt As OfficialReceipt) As Task(Of ReceiptIntegrity) Implements IReceiptIntegrityService.ComputeAndPersistAsync
+            ' Idempotency guard: if integrity already exists for this receipt, return it.
+            Dim existing = Await _context.ReceiptIntegrities.
+                FirstOrDefaultAsync(Function(i) i.ReceiptId = receipt.Id)
+            If existing IsNot Nothing Then
+                Return existing
+            End If
+
             Dim fullReceipt = Await _context.OfficialReceipts.
                 Include(Function(r) r.Transaction).
                     ThenInclude(Function(t) t.Lines).

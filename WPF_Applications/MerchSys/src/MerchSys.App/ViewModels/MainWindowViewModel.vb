@@ -16,7 +16,12 @@ Namespace ViewModels
         Private ReadOnly _session As ISessionService
         Private _activeItem As NavigationItem
 
+        Private ReadOnly _syncStatusIndicator As SyncStatusIndicatorViewModel
         Public ReadOnly Property SyncStatusIndicator As SyncStatusIndicatorViewModel
+            Get
+                Return _syncStatusIndicator
+            End Get
+        End Property
 
         Private _currentView As Object
         Public Property CurrentView As Object
@@ -35,7 +40,7 @@ Namespace ViewModels
                        syncStatusIndicator As SyncStatusIndicatorViewModel)
             _services = services
             _session = session
-            SyncStatusIndicator = syncStatusIndicator
+            _syncStatusIndicator = syncStatusIndicator
             NavigationGroups = BuildNavigationGroups()
             NavigateCommand = New RelayCommand(Of NavigationItem)(AddressOf Navigate)
         End Sub

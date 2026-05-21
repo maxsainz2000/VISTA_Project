@@ -6,8 +6,9 @@
         xmlns:shell="clr-namespace:MerchSys.App.Views.Shell"
         mc:Ignorable="d"
         Title="VISTA — Villon Integrated Supply and Trade Application"
-        Height="768" Width="1280"
+        Height="720" Width="1280"
         WindowStartupLocation="CenterScreen"
+        WindowState="Maximized"
         MinHeight="600" MinWidth="900">
 
     <Window.Resources>

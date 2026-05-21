@@ -526,7 +526,7 @@ Namespace ViewModels
                     Return
                 End If
 
-                Dim receipt = Await _receiptService.GenerateReceiptAsync(transaction.Id)
+                Dim receipt = Await _receiptService.GetReceiptByTransactionAsync(transaction.Id)
                 CurrentReceipt = receipt
                 IsReceiptVisible = True
                 StatusMessage = $"Payment successful — {receipt.ReceiptNumber}"
