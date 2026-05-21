@@ -98,7 +98,7 @@ With `movementLookup.Count > 0`, the `ComputeVelocity` branch that uses time-win
 
 ## What's Next
 
-- [/] Interactive 16-view navigation: **13/16 pass**, 3 POS views fail (`SalesCartView`, `CreditManagementView`, `TransactionHistoryView`) — root cause: missing `IEventBus` DI registration → **fix created in INT-11**; user re-test pending after INT-11 is applied
+- [x] Interactive 16-view navigation: **16/16 pass** — INT-11 DI fix applied; all 3 previously-failing POS views now resolve correctly; confirmed 2026-05-20
 - [ ] Live GoodsReceived chain: create a PO → receive goods → verify `Inv_StockMovements` row appears with `Type=Receipt` via Python query script or DB browser *(not yet attempted)*
 - [ ] Live SaleCompleted chain: complete a sale → verify `Inv_StockMovements` row appears with `Type=Sale` *(not yet attempted)*
 - [ ] EF Core VB.NET CLI limitation: continue monitoring `efcore10-vbnet-migration-discovery-bug.md` in agent wiki for upstream fix; no agent action required until then
