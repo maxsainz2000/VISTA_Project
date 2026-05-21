@@ -61,7 +61,10 @@
       "mcp__visualstudio__startup_project_get",
       "mcp__visualstudio__startup_project_set",
       "Bash(Select-Object FullName)",
-      "Bash(dotnet package *)"
+      "Bash(dotnet package *)",
+      "Bash(git checkout *)",
+      "Bash(git merge *)",
+      "Bash(git branch *)"
     ]
   }
 }

@@ -58,6 +58,20 @@ dotnet new classlib --language VB --framework net10.0 -n MerchSys.<Module>
 # See agent_wiki/errors/efcore10-vbnet-migration-discovery-bug.md for the full workaround
 ```
 
+## SQLite CLI
+
+SQLite 3 is installed via winget. Use it to query `merchsys.db` directly from PowerShell:
+
+```powershell
+$sqlite3 = "C:\Users\Admin\AppData\Local\Microsoft\WinGet\Packages\SQLite.SQLite_Microsoft.Winget.Source_8wekyb3d8bbwe\sqlite3.exe"
+$db = "$env:LOCALAPPDATA\MerchSys\merchsys.db"
+& $sqlite3 "-header" "-column" $db "SELECT ... FROM ...;"
+```
+
+The `sqlite3` alias is also available in new shells after the PATH refresh (open a new terminal and run `sqlite3 $db "..."` directly).
+
+---
+
 **EF Core CLI is broken for VB.NET + EF Core 10.** Never use `dotnet ef migrations add` or `dotnet ef database update` in this project. Schema changes must be written as manual migration classes in `src/MerchSys.<Module>/Migrations/` and applied via `DatabaseInitializer` (raw `SqliteConnection` + `CREATE TABLE IF NOT EXISTS`) called from `Application_Startup`. See `agent_wiki/errors/efcore10-vbnet-migration-discovery-bug.md` for the exact pattern.
 
 Build must complete with **0 errors, 0 warnings**. No test projects exist yet. (Testing and complex troubleshooting will be conducted in a separate phase after the modules are fully built).
