@@ -52,15 +52,15 @@ The `VatTileSmokeHarness` class exists but has never been run. Pre-analysis foun
   4. Fix reflection type name to `"MerchSys.App.Views.Accounting.VatReturnView, MerchSys.App"`.
 - **Changed:** `WPF_Applications/MerchSys/src/MerchSys.Accounting/Debug/VatTileSmokeHarness.vb` — all 4 bugs fixed in one edit (all in same file, all required for harness to function)
 - **Build result:** ✅ clean — 0 errors, 0 warnings
-- **Runtime result:** Operator must run `? Await VatTileSmokeHarness.RunAsync(host)` in VS Immediate Window to confirm `ComputedVatPayable = 9000` and `NavigationRouteFound = True`
-- **Verdict:** ✅ fixed (build clean; runtime verification pending operator)
-- **Action:** committed as `ce01032`, merged to master
+- **Runtime result:** ⚠️ Immediate Window gives "The expression was not evaluated because a code change required restarting the debug session" even after Clean + Rebuild + restart. Two root causes: (1) VS hot-reload/PDB state conflict with the `#If DEBUG` source directory; (2) `host` is not a reachable variable — the field is `Private _host`, not a local named `host`.
+- **Verdict:** ⚠️ partial — build clean, but Immediate Window invocation is fundamentally broken for this scenario
+- **Action:** committed as `ce01032`, merged to master. Proceeding to Attempt 2: wire harness to Dev menu button (same pattern as VatLedgerSchemaHarness in Test 6).
 
 ---
 
 ### Attempt 2
-- **Hypothesis:**
-- **Changed:**
+- **Hypothesis:** The Immediate Window cannot reach `host` (`Private _host` in Application class) and VS hot-reload interferes with evaluating expressions in `#If DEBUG` source files. Fix: wire the harness to the Dev menu, identical to how Test 6 works. (1) Add a `DebugHostHolder` shared module to `DebugMenuExtensions.vb` so the IHost reference survives startup. (2) Set `DebugHostHolder.CurrentHost = _host` in `Application_Startup` after `_host.Start()`. (3) Add "Run VAT Tile Smoke Harness" section and button to `DebugMenuView`, whose click handler calls `VatTileSmokeHarness.RunAsync(DebugHostHolder.CurrentHost)`.
+- **Changed:** `DebugMenuExtensions.vb` + `Application.xaml.vb`
 - **Build result:**
 - **Runtime result:**
 - **Verdict:** ✅ / ❌ / ⚠️

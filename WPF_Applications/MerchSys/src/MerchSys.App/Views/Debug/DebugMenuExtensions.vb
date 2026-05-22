@@ -3,7 +3,17 @@
 Imports System.Windows
 Imports System.Windows.Controls
 Imports System.Windows.Media
+Imports Microsoft.Extensions.Hosting
 Imports MerchSys.Accounting.Debug
+
+''' <summary>
+''' Holds the IHost reference so debug harnesses (running inside MerchSys.App) can resolve
+''' production services without coupling harness code directly to the Application class.
+''' Only populated in Debug builds; always Nothing in Release.
+''' </summary>
+Public Module DebugHostHolder
+    Public Property CurrentHost As IHost
+End Module
 
 Namespace Views.Debug
 
@@ -65,6 +75,34 @@ Namespace Views.Debug
             root.Children.Add(New Separator() With {.Margin = New Thickness(0, 24, 0, 24)})
 
             root.Children.Add(New TextBlock() With {
+                .Text = "VAT Tile Smoke Test",
+                .FontSize = 15,
+                .FontWeight = FontWeights.SemiBold,
+                .Margin = New Thickness(0, 0, 0, 6)
+            })
+            root.Children.Add(New TextBlock() With {
+                .Text = "Seeds synthetic VAT ledger data (OutputVat ₱12,000 / InputVat ₱3,000 ⇒ payable ₱9,000) " &
+                        "into an isolated scratch database, calls the decorated IFinancialOverviewService, " &
+                        "and confirms VatReturnView is registered in DI (ACC-14 / ACC-16).",
+                .Foreground = Brushes.DimGray,
+                .FontSize = 12,
+                .TextWrapping = TextWrapping.Wrap,
+                .MaxWidth = 520,
+                .Margin = New Thickness(0, 0, 0, 12)
+            })
+
+            Dim smokeBtn As New Button() With {
+                .Content = "Run VAT Tile Smoke Harness",
+                .Padding = New Thickness(18, 8, 18, 8),
+                .FontSize = 13,
+                .HorizontalAlignment = HorizontalAlignment.Left
+            }
+            AddHandler smokeBtn.Click, AddressOf RunVatTileSmokeHarness_Click
+            root.Children.Add(smokeBtn)
+
+            root.Children.Add(New Separator() With {.Margin = New Thickness(0, 24, 0, 24)})
+
+            root.Children.Add(New TextBlock() With {
                 .Text = "Event Chain Verification",
                 .FontSize = 15,
                 .FontWeight = FontWeights.SemiBold,
@@ -122,6 +160,42 @@ Namespace Views.Debug
                     "VAT Schema Harness Results",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error)
+            End If
+        End Sub
+
+        Private Async Sub RunVatTileSmokeHarness_Click(sender As Object, e As RoutedEventArgs)
+            Dim btn = DirectCast(sender, Button)
+            btn.IsEnabled = False
+            btn.Content = "Running…"
+
+            Dim report As VatTileSmokeReport = Nothing
+            Dim runError As Exception = Nothing
+            Try
+                report = Await VatTileSmokeHarness.RunAsync(DebugHostHolder.CurrentHost)
+            Catch ex As Exception
+                runError = ex
+            End Try
+
+            btn.IsEnabled = True
+            btn.Content = "Run VAT Tile Smoke Harness"
+
+            If runError IsNot Nothing Then
+                MessageBox.Show(
+                    $"Harness run failed: {runError.GetType().Name}: {runError.Message}" &
+                    Environment.NewLine & Environment.NewLine & runError.ToString(),
+                    "VAT Tile Smoke Harness",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error)
+            Else
+                Dim vatOk = report.ComputedVatPayable = 9000D
+                Dim navOk = report.NavigationRouteFound
+                Dim summary = $"ComputedVatPayable = {report.ComputedVatPayable:N2}  {If(vatOk, "✅", "❌")}" &
+                              Environment.NewLine &
+                              $"NavigationRouteFound = {report.NavigationRouteFound}  {If(navOk, "✅", "❌")}" &
+                              Environment.NewLine & Environment.NewLine &
+                              "Markdown report written to %TEMP%."
+                Dim icon = If(vatOk AndAlso navOk, MessageBoxImage.Information, MessageBoxImage.Warning)
+                MessageBox.Show(summary, "VAT Tile Smoke Harness", MessageBoxButton.OK, icon)
             End If
         End Sub
 

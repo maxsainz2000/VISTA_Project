@@ -158,6 +158,10 @@ Class Application
         _host = builder.Build()
         _host.Start()
 
+#If DEBUG Then
+        DebugHostHolder.CurrentHost = _host
+#End If
+
         DatabaseInitializer.Initialize($"Data Source={DatabaseConfig.DatabasePath}")
 
         _host.Services.GetRequiredService(Of ILowStockNotifier)()
