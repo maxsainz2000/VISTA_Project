@@ -81,6 +81,16 @@
                 <!-- Divider -->
                 <Border DockPanel.Dock="Top" Height="1" Background="#34495E" Margin="12,0,12,8"/>
 
+                <!-- Log Out button pinned to the bottom of the sidebar -->
+                <StackPanel DockPanel.Dock="Bottom" Margin="0,0,0,8">
+                    <Border Height="1" Background="#34495E" Margin="12,8,12,0"/>
+                    <Button Content="Log Out"
+                            Command="{Binding LogoutCommand}"
+                            Style="{StaticResource NavItemButton}"
+                            Foreground="#E74C3C"
+                            Margin="0,4,0,0"/>
+                </StackPanel>
+
                 <!-- Navigation groups -->
                 <ScrollViewer VerticalScrollBarVisibility="Auto"
                               HorizontalScrollBarVisibility="Disabled">

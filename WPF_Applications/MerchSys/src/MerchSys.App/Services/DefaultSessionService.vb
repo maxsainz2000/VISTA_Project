@@ -4,9 +4,9 @@ Imports MerchSys.SharedKernel.Interfaces
 Namespace Services
 
     ''' <summary>
-    ''' Default session implementation for the desktop (single-user) scenario.
-    ''' Returns the active Manager session. Replace with a login-aware implementation
-    ''' when a login screen is added in a future phase.
+    ''' Stub session that always returns Manager — for developer DEBUG bypass only.
+    ''' Registered as ISessionService only when the VISTA_BYPASS_LOGIN=1 environment variable
+    ''' is set in a DEBUG build. The release build always uses <see cref="LoginSessionService"/>.
     ''' </summary>
     Public Class DefaultSessionService
         Implements ISessionService

@@ -27,6 +27,9 @@ This page details the Service implementations specifically located within the **
 | `src/MerchSys.App/Services/Sync/ISyncTransmitter.vb`<br>`src/MerchSys.App/Services/Sync/MariaDbSyncTransmitter.vb` | `ISyncTransmitter`<br>`MariaDbSyncTransmitter` | Pomelo-backed implementation for real data transmission. Replaces the placeholder MarkSyncedAsync stub in SyncOrchestrator. Handles batch semantics, financial reject-on-conflict, and non-financial upsert. |
 | `src/MerchSys.App/Services/SyncWorker.vb` | `SyncWorker` | `BackgroundService` that executes the dual-condition probe and triggers the orchestrator. |
 | `src/MerchSys.App/Services/DefaultNotificationService.vb` | `INotificationService`<br>`DefaultNotificationService` | Singleton that surfaces sync status changes and tracks `LastSuccessfulPushAt` for the UI shell. |
+| `src/MerchSys.App/Services/IAuthenticationService.vb` | `IAuthenticationService`<br>`AuthenticationService` | Validates credentials and returns authenticated user. Implements Argon2id hashing and lockout policy. |
+| `src/MerchSys.App/Services/LoginSessionService.vb` | `ISessionService`<br>`LoginSessionService` | Session service backed by authenticated UserAccount. Replaces DefaultSessionService. |
+| `src/MerchSys.App/Helpers/PasswordBoxHelper.vb` | `PasswordBoxHelper` | Attached-property bridge for PasswordBox.Password binding to ViewModel string. |
 
 ## Debug & Utilities
 | File Path | Class | Description |

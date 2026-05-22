@@ -69,9 +69,10 @@ This page maps the EF Core entities across all modules to their SQLite/MariaDB t
 > These triggers enforce immutability for issued/synced rows, mirroring the SQLite local enforcement (POS-13).
 
 
-## Infrastructure / Shared (`Sync_` prefix)
+## Infrastructure / Shared (`Sync_`, `Sys_` prefix)
 | Entity | DB Table | Key Constraints |
 |---|---|---|
 | `SyncJournal` | `Sync_Journal` | PK `Id`, Composite Index (`ModuleName`, `SyncedAt`) |
+| `UserAccount` | `Sys_UserAccounts` | PK `Id`, Unique Index on `Username` |
 
 

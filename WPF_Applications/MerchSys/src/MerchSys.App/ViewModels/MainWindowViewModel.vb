@@ -3,6 +3,7 @@ Imports CommunityToolkit.Mvvm.ComponentModel
 Imports CommunityToolkit.Mvvm.Input
 Imports Microsoft.Extensions.DependencyInjection
 Imports MerchSys.App.Models
+Imports MerchSys.App.Services
 Imports MerchSys.App.ViewModels.Shell
 Imports MerchSys.SharedKernel.Enums
 Imports MerchSys.SharedKernel.Interfaces
@@ -14,6 +15,7 @@ Namespace ViewModels
 
         Private ReadOnly _services As IServiceProvider
         Private ReadOnly _session As ISessionService
+        Private ReadOnly _loginSession As LoginSessionService
         Private _activeItem As NavigationItem
 
         Private ReadOnly _syncStatusIndicator As SyncStatusIndicatorViewModel
@@ -35,14 +37,24 @@ Namespace ViewModels
 
         Public ReadOnly Property NavigationGroups As ObservableCollection(Of NavigationGroup)
         Public ReadOnly Property NavigateCommand As RelayCommand(Of NavigationItem)
+        Public ReadOnly Property LogoutCommand As RelayCommand
+
+        ''' <summary>
+        ''' Raised when the user clicks Log Out. Application.xaml.vb handles hiding MainWindow
+        ''' and showing a fresh LoginView.
+        ''' </summary>
+        Public Event LogoutRequested As EventHandler
 
         Public Sub New(services As IServiceProvider, session As ISessionService,
+                       loginSession As LoginSessionService,
                        syncStatusIndicator As SyncStatusIndicatorViewModel)
             _services = services
             _session = session
+            _loginSession = loginSession
             _syncStatusIndicator = syncStatusIndicator
-            NavigationGroups = BuildNavigationGroups()
+            NavigationGroups = New ObservableCollection(Of NavigationGroup)(BuildNavigationGroups())
             NavigateCommand = New RelayCommand(Of NavigationItem)(AddressOf Navigate)
+            LogoutCommand = New RelayCommand(AddressOf DoLogout)
         End Sub
 
         Private Sub Navigate(item As NavigationItem)
@@ -60,8 +72,27 @@ Namespace ViewModels
             If defaultItem IsNot Nothing Then Navigate(defaultItem)
         End Sub
 
-        Private Function BuildNavigationGroups() As ObservableCollection(Of NavigationGroup)
-            Dim groups = New ObservableCollection(Of NavigationGroup) From {
+        ''' <summary>
+        ''' Rebuilds navigation groups using the current session role.
+        ''' Called after each successful login so role-specific items (VAT Settings, VAT Return)
+        ''' correctly reflect the newly authenticated user.
+        ''' </summary>
+        Public Sub RefreshNavigation()
+            NavigationGroups.Clear()
+            For Each grp In BuildNavigationGroups()
+                NavigationGroups.Add(grp)
+            Next
+            _activeItem = Nothing
+            CurrentView = Nothing
+        End Sub
+
+        Private Sub DoLogout()
+            _loginSession.ClearUser()
+            RaiseEvent LogoutRequested(Me, EventArgs.Empty)
+        End Sub
+
+        Private Function BuildNavigationGroups() As List(Of NavigationGroup)
+            Dim groups = New List(Of NavigationGroup) From {
                 New NavigationGroup("Point of Sale", BuildPosNavItems()),
                 New NavigationGroup("Purchasing", New List(Of NavigationItem) From {
                     New NavigationItem With {.DisplayName = "Purchase Orders", .ViewType = GetType(Views.Purchasing.PurchaseOrderListView)},
@@ -89,6 +120,7 @@ Namespace ViewModels
 #End If
             Return groups
         End Function
+
 
         Private Function BuildPosNavItems() As List(Of NavigationItem)
             Dim items As New List(Of NavigationItem) From {

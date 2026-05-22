@@ -11,6 +11,7 @@ last-updated: 2026-05-16
 | File Path | Class / Interface | Base / Implements | Key Members |
 |---|---|---|---|
 | `Entities/BaseEntity.vb` | `BaseEntity` | N/A | `Id As Guid` |
+| `Entities/UserAccount.vb` | `UserAccount` | N/A | `Id`, `Username`, `PasswordHash`, `Role`, `LockedUntil` |
 | `Entities/AuditableEntity.vb` | `AuditableEntity` | `BaseEntity`, `IAuditable` | `CreatedBy`, `CreatedAt`, `ModifiedBy`, `ModifiedAt` |
 | `Entities/SoftDeletableEntity.vb` | `SoftDeletableEntity` | `AuditableEntity`, `ISoftDeletable` | `IsDeleted`, `DeletedBy`, `DeletedAt` |
 | `Sync/SyncJournal.vb` | `SyncJournal` | `AuditableEntity` | `TableName`, `RowId`, `Operation`, `Payload`, `SyncedAt`. Marked `<NoSync>`. |

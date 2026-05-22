@@ -20,6 +20,8 @@ This page details the WPF View implementations (XAML and code-behind) in the **M
 | `src/MerchSys.App/Views/Shell/SyncStatusIndicator.xaml`<br>`...Indicator.xaml.vb` | `SyncStatusIndicator` | Status bar component displaying sync state (Online/Offline/Syncing) and relative "Last Sync" time. | `SyncStatusIndicatorViewModel` (Manual/Resource) |
 | `src/MerchSys.App/ViewModels/Shell/SyncStatusIndicatorViewModel.vb` | `SyncStatusIndicatorViewModel` | VM for sync status. Derives `Severity` (Healthy/Idle/Warning/Critical) from `INotificationService` events. | `INotificationService` (Constructor Injection) |
 | `src/MerchSys.App/Converters/SeverityToBrushConverter.vb` | `SeverityToBrushConverter` | XAML Converter mapping `IndicatorSeverity` to `SolidColorBrush`. | (none) |
+| `src/MerchSys.App/Views/LoginView.xaml`<br>`src/MerchSys.App/Views/LoginView.xaml.vb` | `LoginView` | Standalone login window with authentication and first-login password change. | `LoginViewModel` (Constructor Injection) |
+| `src/MerchSys.App/ViewModels/LoginViewModel.vb` | `LoginViewModel` | Manages login flow, error display, and password change logic. | `IAuthenticationService`, `LoginSessionService` (Constructor Injection) |
 
 
 ## Accounting Views

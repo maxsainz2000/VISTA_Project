@@ -1,5 +1,6 @@
 Imports System.IO
 Imports Microsoft.Data.Sqlite
+Imports MerchSys.App.Services
 
 Namespace Data
 
@@ -31,6 +32,8 @@ Namespace Data
                 ApplyIfPending(conn, "20260516100000_AddTamperAuditLog", AddressOf ApplyTamperAuditLog)
                 ApplyIfPending(conn, "20260515140000_AddReceiptIntegrityArchive", AddressOf ApplyAddReceiptIntegrityArchive)
                 ApplyIfPending(conn, "20260516140000_AddGoodsReceiptLineVatColumns", AddressOf ApplyGoodsReceiptLineVatColumns)
+                ' DA6: Sys_UserAccounts with seeded manager/owner accounts (first-login password-change required)
+                ApplyIfPending(conn, "20260522100000_AddUserAccounts", AddressOf ApplyUserAccounts)
             End Using
         End Sub
 
@@ -1016,6 +1019,57 @@ Namespace Data
                 """CreatedBy"",""CreatedAt"",""ModifiedBy"",""ModifiedAt"") VALUES " &
                 "(1,0,'0.12','0.03','2026-01-01 00:00:00',NULL,'Villon Farm Supply',NULL," &
                 "'System','2026-01-01 00:00:00','System','2026-01-01 00:00:00')")
+        End Sub
+
+        ' ── UserAccounts (20260522100000) ─────────────────────────────────────────
+        ' Seeds manager and owner accounts with Argon2id-hashed default password "Vista2026!".
+        ' LastPasswordChangeAt is NULL so the first-login mandatory password-change (DA6) fires.
+
+        Private Sub ApplyUserAccounts(conn As SqliteConnection)
+            Exec(conn,
+                "CREATE TABLE IF NOT EXISTS ""Sys_UserAccounts"" (" &
+                """Id"" INTEGER NOT NULL CONSTRAINT ""PK_Sys_UserAccounts"" PRIMARY KEY AUTOINCREMENT, " &
+                """Username"" TEXT NOT NULL COLLATE NOCASE, " &
+                """PasswordHash"" TEXT NOT NULL, " &
+                """Role"" INTEGER NOT NULL, " &
+                """IsActive"" INTEGER NOT NULL DEFAULT 1, " &
+                """FailedLoginAttempts"" INTEGER NOT NULL DEFAULT 0, " &
+                """LockedUntil"" TEXT NULL, " &
+                """LastPasswordChangeAt"" TEXT NULL, " &
+                """CreatedAt"" TEXT NOT NULL, " &
+                """ModifiedAt"" TEXT NULL" &
+                ")")
+            Exec(conn, "CREATE UNIQUE INDEX IF NOT EXISTS ""IX_Sys_UserAccounts_Username"" ON ""Sys_UserAccounts"" (""Username"")")
+
+            Dim defaultHash = PasswordHashHelper.Hash("Vista2026!")
+            Dim now = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")
+
+            ' Manager — Role=1. Separate hash calls so each row has a unique salt.
+            Using cmd = conn.CreateCommand()
+                cmd.CommandText =
+                    "INSERT OR IGNORE INTO ""Sys_UserAccounts"" " &
+                    "(Username, PasswordHash, Role, IsActive, FailedLoginAttempts, LockedUntil, LastPasswordChangeAt, CreatedAt, ModifiedAt) " &
+                    "VALUES (@u, @h, @r, 1, 0, NULL, NULL, @t, NULL)"
+                cmd.Parameters.AddWithValue("@u", "manager")
+                cmd.Parameters.AddWithValue("@h", defaultHash)
+                cmd.Parameters.AddWithValue("@r", 1)
+                cmd.Parameters.AddWithValue("@t", now)
+                cmd.ExecuteNonQuery()
+            End Using
+
+            ' Owner — Role=2. Fresh hash with its own salt.
+            Dim ownerHash = PasswordHashHelper.Hash("Vista2026!")
+            Using cmd = conn.CreateCommand()
+                cmd.CommandText =
+                    "INSERT OR IGNORE INTO ""Sys_UserAccounts"" " &
+                    "(Username, PasswordHash, Role, IsActive, FailedLoginAttempts, LockedUntil, LastPasswordChangeAt, CreatedAt, ModifiedAt) " &
+                    "VALUES (@u, @h, @r, 1, 0, NULL, NULL, @t, NULL)"
+                cmd.Parameters.AddWithValue("@u", "owner")
+                cmd.Parameters.AddWithValue("@h", ownerHash)
+                cmd.Parameters.AddWithValue("@r", 2)
+                cmd.Parameters.AddWithValue("@t", now)
+                cmd.ExecuteNonQuery()
+            End Using
         End Sub
 
         ' ── GoodsReceiptLine VAT Columns (20260516140000) ────────────────────────

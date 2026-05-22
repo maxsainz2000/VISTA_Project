@@ -6,6 +6,7 @@ Imports MerchSys.App.Services
 Imports MerchSys.App.Startup
 Imports MerchSys.App.ViewModels
 Imports MerchSys.App.ViewModels.Shell
+Imports MerchSys.App.Views
 Imports MerchSys.Inventory.Services
 Imports MerchSys.SharedKernel.Interfaces
 Imports MerchSys.Inventory.ViewModels
@@ -18,20 +19,39 @@ Imports MerchSys.Accounting.Services.Insights
 Class Application
 
     Private _host As IHost
+    Private _loginView As LoginView = Nothing
+    Private _mainWindow As MainWindow = Nothing
 
     Private Sub Application_Startup(sender As Object, e As StartupEventArgs)
         Dim builder = Host.CreateDefaultBuilder()
 
-        ' Overlay user-level production config (%LOCALAPPDATA%\VISTA\appsettings.Production.json)
-        ' on top of the committed appsettings.json defaults. File is optional; missing = local-only mode.
         builder.ConfigureAppConfiguration(Sub(ctx, cfg)
                                               cfg.AddProductionOverlay()
                                           End Sub)
 
         builder.ConfigureServices(Sub(services)
 
-                                      ' Infrastructure: Session
-                                      services.AddSingleton(Of ISessionService, DefaultSessionService)()
+                                      ' Infrastructure: Session (LoginSessionService replaces DefaultSessionService in all builds)
+                                      services.AddSingleton(Of LoginSessionService)()
+                                      services.AddSingleton(Of ISessionService)(Function(sp) sp.GetRequiredService(Of LoginSessionService)())
+
+#If DEBUG Then
+                                      ' ── DEBUG bypass: set VISTA_BYPASS_LOGIN=1 to skip authentication ────
+                                      ' The #If DEBUG guard ensures this code cannot ship to production.
+                                      ' DefaultSessionService is kept only for developer iteration speed.
+                                      If Environment.GetEnvironmentVariable("VISTA_BYPASS_LOGIN") = "1" Then
+                                          ' Re-register ISessionService with the stub so the login view is bypassed
+                                          services.AddSingleton(Of ISessionService, DefaultSessionService)()
+                                      End If
+#End If
+
+                                      ' Infrastructure: Authentication
+                                      services.AddTransient(Of IAuthenticationService)(
+                                          Function(sp) New AuthenticationService($"Data Source={DatabaseConfig.DatabasePath}"))
+
+                                      ' Infrastructure: Login UI
+                                      services.AddTransient(Of LoginViewModel)()
+                                      services.AddTransient(Of LoginView)()
 
                                       ' Infrastructure: EventBus (MediatR adapter — required by POS services)
                                       services.AddScoped(Of IEventBus, MediatREventBus)()
@@ -134,15 +154,55 @@ Class Application
         _host = builder.Build()
         _host.Start()
 
-        ' Apply database migrations (EF Core 10 CLI cannot discover VB.NET migrations)
         DatabaseInitializer.Initialize($"Data Source={DatabaseConfig.DatabasePath}")
 
-        ' Initialise Notification.Wpf NotificationManager on the UI thread
         _host.Services.GetRequiredService(Of ILowStockNotifier)()
 
-        ' Show the main window
-        Dim window = _host.Services.GetRequiredService(Of MainWindow)()
-        window.Show()
+        ' Wire MainWindowViewModel.LogoutRequested once (singleton)
+        Dim mainVm = _host.Services.GetRequiredService(Of MainWindowViewModel)()
+        AddHandler mainVm.LogoutRequested, AddressOf HandleLogoutRequested
+
+        ShowLoginView()
+    End Sub
+
+    ' ── Login / logout flow ───────────────────────────────────────────────────
+
+    Private Sub ShowLoginView()
+        _loginView = _host.Services.GetRequiredService(Of LoginView)()
+        _loginView.ViewModel.Reset()
+        AddHandler _loginView.ViewModel.LoginSucceeded, AddressOf HandleLoginSucceeded
+        AddHandler _loginView.Closed, AddressOf HandleLoginViewClosed
+        _loginView.Show()
+    End Sub
+
+    Private Sub HandleLoginSucceeded(sender As Object, e As EventArgs)
+        RemoveHandler _loginView.ViewModel.LoginSucceeded, AddressOf HandleLoginSucceeded
+        RemoveHandler _loginView.Closed, AddressOf HandleLoginViewClosed
+        _loginView.Hide()
+
+        If _mainWindow Is Nothing Then
+            _mainWindow = _host.Services.GetRequiredService(Of MainWindow)()
+            AddHandler _mainWindow.Closed, AddressOf HandleMainWindowClosed
+        End If
+
+        Dim mainVm = _host.Services.GetRequiredService(Of MainWindowViewModel)()
+        mainVm.RefreshNavigation()
+        _mainWindow.Show()
+        mainVm.NavigateToDefault()
+    End Sub
+
+    Private Sub HandleLogoutRequested(sender As Object, e As EventArgs)
+        _mainWindow.Hide()
+        ShowLoginView()
+    End Sub
+
+    Private Sub HandleMainWindowClosed(sender As Object, e As EventArgs)
+        Shutdown()
+    End Sub
+
+    ' Closing the login view without logging in shuts the application down.
+    Private Sub HandleLoginViewClosed(sender As Object, e As EventArgs)
+        Shutdown()
     End Sub
 
     Private Sub Application_Exit(sender As Object, e As ExitEventArgs)

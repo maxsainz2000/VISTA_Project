@@ -105,6 +105,7 @@ This page documents the composition root in `MerchSys.App`.
 | `VatReturnView` | Accounting | Transient |
 | `VatPayableTile` | Accounting | Transient |
 | `TamperAuditReportView` | Accounting | Transient |
+| `LoginView` | (Shell) | Transient |
 | `SyncStatusIndicator` | (Shell) | Singleton |
 
 
@@ -113,6 +114,7 @@ This page documents the composition root in `MerchSys.App`.
 |---|---|---|
 | `MainWindowViewModel` | Singleton | Main navigation hub and state manager for the shell. |
 | `MainWindow` | Singleton | Main application window. |
+| `LoginViewModel` | Transient | VM for the standalone login window. |
 | `SyncStatusIndicatorViewModel` | Singleton | VM for the sync status shell indicator. |
 
 
@@ -135,7 +137,8 @@ This page documents the composition root in `MerchSys.App`.
 | `IEventBus` | `MediatREventBus` | Scoped |
 | `INotificationService` | `DefaultNotificationService` | Singleton |
 | `ISyncProbe` | `DualConditionSyncProbe` | Singleton |
-| `ISessionService` | `DefaultSessionService` | Singleton |
+| `ISessionService` | `LoginSessionService` | Singleton |
+| `IAuthenticationService` | `AuthenticationService` | Transient |
 | `SyncOrchestrator` | `SyncOrchestrator` | Scoped |
 | `ISyncTransmitter` | `MariaDbSyncTransmitter` | Scoped |
 | `SyncWorker` | `SyncWorker` | Singleton (HostedService) |
