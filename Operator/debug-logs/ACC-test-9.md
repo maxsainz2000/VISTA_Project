@@ -104,8 +104,8 @@ The `VatTileSmokeHarness` class exists but has never been run. Pre-analysis foun
 
 <!-- Fill this in when the bug is fixed OR when you hit the 5-attempt limit -->
 
-- **Status:** resolved (build verified; operator runtime check pending)
-- **Root cause:** `VatTileSmokeHarness` was written but never run; contained 4 bugs: (1) `MigrateAsync` silently skips VB.NET migrations so tables are never created; (2) `ISyncableRepository(Of AccountingDbContext)` not registered in isolated DI; (3) `RunAsync` was an instance method, not `Shared`; (4) reflection type name missing root namespace prefix.
-- **Fix description:** Replaced `MigrateAsync` with `SetupScratchSmokeSchema` raw SQL; added `SmokeSyncableRepository` nested class and DI registration; made `RunAsync` `Shared`; fixed `Type.GetType` string to include `MerchSys.App.` prefix.
-- **Final commit:** `ce01032`
-- **Agent wiki entry needed?** no — bugs 1 and 4 are already covered by `efcore10-vbnet-migration-discovery-bug.md` and `wpf-mainwindow-not-shell-window.md`. Bug 2 (missing DI registration for isolated harness) is a one-off harness authoring error.
+- **Status:** resolved — build clean; operator runtime check pending via Dev menu button
+- **Root cause:** (1) `VatTileSmokeHarness` had 4 bugs preventing it from running at all. (2) The Immediate Window invocation in the test spec is fundamentally broken: VS hot-reload conflicts with `#If DEBUG` source files and `host` is not a reachable symbol (`Private _host` in Application class, no local named `host` anywhere).
+- **Fix description:** Fixed all 4 harness bugs (MigrateAsync→raw SQL, ISyncableRepository stub, RunAsync Shared, Type.GetType namespace prefix). Wired harness to Dev menu "Run VAT Tile Smoke Harness" button — same pattern as Test 6. Added `DebugHostHolder` module + populated in `Application_Startup` to expose `IHost` to debug views without coupling. Final commits: `ce01032` (harness bugs) + `f883ff2` (Dev menu wiring).
+- **Final commit:** `f883ff2`
+- **Agent wiki entry needed?** no — all patterns already covered by existing wiki entries.
