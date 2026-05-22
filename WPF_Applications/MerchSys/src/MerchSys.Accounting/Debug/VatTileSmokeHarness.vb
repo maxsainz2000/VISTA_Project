@@ -3,6 +3,7 @@
 Imports System.IO
 Imports System.Threading
 Imports MediatR
+Imports Microsoft.Data.Sqlite
 Imports Microsoft.EntityFrameworkCore
 Imports Microsoft.Extensions.DependencyInjection
 Imports Microsoft.Extensions.Hosting
@@ -13,6 +14,7 @@ Imports MerchSys.Accounting.Enums
 Imports MerchSys.Accounting.Services
 Imports MerchSys.Accounting.Services.Insights
 Imports MerchSys.SharedKernel.Enums
+Imports MerchSys.SharedKernel.Persistence
 Imports MerchSys.SharedKernel.Queries
 
 Namespace Debug
@@ -26,7 +28,11 @@ Namespace Debug
     ''' </summary>
     Public Class VatTileSmokeHarness
 
-        Public Async Function RunAsync(host As IHost) As Task(Of VatTileSmokeReport)
+        ''' <summary>
+        ''' Shared entry point — callable from the VS Immediate Window as
+        ''' <c>? Await VatTileSmokeHarness.RunAsync(host)</c>.
+        ''' </summary>
+        Public Shared Async Function RunAsync(host As IHost) As Task(Of VatTileSmokeReport)
             Dim scratchPath = Path.Combine(
                 Path.GetTempPath(),
                 $"vista-vat-tile-smoke-{Guid.NewGuid():N}.db")
@@ -44,6 +50,13 @@ Namespace Debug
                 services.AddDbContext(Of AccountingDbContext)(
                     Sub(o) o.UseSqlite($"Data Source={scratchPath}"),
                     ServiceLifetime.Scoped)
+
+                ' SmokeSyncableRepository delegates SaveChangesWithJournalAsync to the
+                ' underlying DbContext so VatReportingService writes persist to the scratch DB
+                ' without requiring SyncJournalDbContext (not available in the isolated container).
+                services.AddScoped(Of ISyncableRepository(Of AccountingDbContext))(
+                    Function(sp) New SmokeSyncableRepository(
+                        sp.GetRequiredService(Of AccountingDbContext)()))
 
                 ' Scan this assembly: picks up SmokeVatConfigHandler (returns IsVatRegistered=True)
                 ' and all Accounting notification handlers (unused in the harness, silently idle).
@@ -64,11 +77,11 @@ Namespace Debug
 
                 smokeProvider = services.BuildServiceProvider()
 
-                ' ── Migrate scratch schema ────────────────────────────────────────────
-                Using scope = smokeProvider.CreateScope()
-                    Dim db = scope.ServiceProvider.GetRequiredService(Of AccountingDbContext)()
-                    Await db.Database.MigrateAsync()
-                End Using
+                ' ── Create scratch schema via raw SQL ─────────────────────────────────
+                ' MigrateAsync() silently skips VB.NET migration classes in EF Core 10
+                ' (see agent_wiki/errors/efcore10-vbnet-migration-discovery-bug.md).
+                ' Raw SQL mirrors the exact DDL produced by migrations 1–3.
+                SetupScratchSmokeSchema(scratchPath)
 
                 ' ── Seed synthetic VAT ledger data ────────────────────────────────────
                 ' VatableSales=₱100,000 | OutputVat=₱12,000 | InputVat=₱3,000 ⇒ payable=₱9,000
@@ -160,8 +173,9 @@ Namespace Debug
 
             ' ── Navigation route check (INT-13 wiring) ───────────────────────────────
             ' Reflection avoids a direct reference to MerchSys.App from MerchSys.Accounting.
+            ' VB.NET root namespace (MerchSys.App) is part of the fully-qualified type name.
             ' DI registration of VatReturnView proves INT-13's wiring is consumable.
-            Dim vatReturnViewType = Type.GetType("Views.Accounting.VatReturnView, MerchSys.App")
+            Dim vatReturnViewType = Type.GetType("MerchSys.App.Views.Accounting.VatReturnView, MerchSys.App")
             Dim roleCheckNote As String
             If vatReturnViewType IsNot Nothing Then
                 Dim resolvedView = host.Services.GetService(vatReturnViewType)
@@ -220,6 +234,179 @@ Namespace Debug
         End Function
 
         ''' <summary>
+        ''' Creates all Accounting module tables on a scratch SQLite database using raw SQL,
+        ''' combining migrations 1 (InitialAccounting), 2 (AddVatLedgerColumns), and
+        ''' 3 (FixVatReturnAmendedIndex).  Idempotent via IF NOT EXISTS guards.
+        ''' Required because EF Core 10 cannot discover VB.NET migration classes via MigrateAsync().
+        ''' </summary>
+        Private Shared Sub SetupScratchSmokeSchema(scratchPath As String)
+            Using conn As New SqliteConnection($"Data Source={scratchPath}")
+                conn.Open()
+
+                ' Migration 1 — base tables
+                Exec(conn,
+                    "CREATE TABLE IF NOT EXISTS ""Acc_FinancialPeriods"" (" &
+                    """Id"" INTEGER NOT NULL CONSTRAINT ""PK_Acc_FinancialPeriods"" PRIMARY KEY AUTOINCREMENT, " &
+                    """PeriodType"" TEXT NOT NULL, " &
+                    """StartDate"" TEXT NOT NULL, " &
+                    """EndDate"" TEXT NOT NULL, " &
+                    """TotalRevenue"" TEXT NOT NULL, " &
+                    """TotalCOGS"" TEXT NOT NULL, " &
+                    """GrossProfit"" TEXT NOT NULL, " &
+                    """GrossMarginPercent"" TEXT NOT NULL, " &
+                    """TotalExpenses"" TEXT NOT NULL, " &
+                    """NetIncome"" TEXT NOT NULL, " &
+                    """IsClosed"" INTEGER NOT NULL, " &
+                    """CreatedBy"" TEXT NULL, " &
+                    """CreatedAt"" TEXT NOT NULL, " &
+                    """ModifiedBy"" TEXT NULL, " &
+                    """ModifiedAt"" TEXT NULL" &
+                    ")")
+
+                ' Acc_RevenueRecords — base columns + VAT columns from migration 2
+                Exec(conn,
+                    "CREATE TABLE IF NOT EXISTS ""Acc_RevenueRecords"" (" &
+                    """Id"" INTEGER NOT NULL CONSTRAINT ""PK_Acc_RevenueRecords"" PRIMARY KEY AUTOINCREMENT, " &
+                    """RecordDate"" TEXT NOT NULL, " &
+                    """SourceTransactionId"" INTEGER NOT NULL, " &
+                    """PaymentMethod"" INTEGER NOT NULL, " &
+                    """GrossAmount"" TEXT NOT NULL, " &
+                    """DiscountAmount"" TEXT NOT NULL, " &
+                    """NetAmount"" TEXT NOT NULL, " &
+                    """VatAmount"" TEXT NOT NULL, " &
+                    """ProductId"" INTEGER NOT NULL, " &
+                    """ProductName"" TEXT NOT NULL, " &
+                    """QuantitySold"" INTEGER NOT NULL, " &
+                    """COGS"" TEXT NOT NULL, " &
+                    """GrossProfit"" TEXT NOT NULL, " &
+                    """VatableAmount"" TEXT NOT NULL DEFAULT '0', " &
+                    """VatExemptAmount"" TEXT NOT NULL DEFAULT '0', " &
+                    """ZeroRatedAmount"" TEXT NOT NULL DEFAULT '0', " &
+                    """OutputVat"" TEXT NOT NULL DEFAULT '0', " &
+                    """InputVat"" TEXT NOT NULL DEFAULT '0', " &
+                    """VatTreatment"" INTEGER NOT NULL DEFAULT 0, " &
+                    """CreatedBy"" TEXT NULL, " &
+                    """CreatedAt"" TEXT NOT NULL, " &
+                    """ModifiedBy"" TEXT NULL, " &
+                    """ModifiedAt"" TEXT NULL" &
+                    ")")
+
+                ' Acc_ExpenseRecords — base columns + VAT columns from migration 2
+                Exec(conn,
+                    "CREATE TABLE IF NOT EXISTS ""Acc_ExpenseRecords"" (" &
+                    """Id"" INTEGER NOT NULL CONSTRAINT ""PK_Acc_ExpenseRecords"" PRIMARY KEY AUTOINCREMENT, " &
+                    """RecordDate"" TEXT NOT NULL, " &
+                    """Category"" TEXT NOT NULL, " &
+                    """Description"" TEXT NULL, " &
+                    """Amount"" TEXT NOT NULL, " &
+                    """SourceModule"" TEXT NOT NULL, " &
+                    """SourceReferenceId"" INTEGER NULL, " &
+                    """VatableAmount"" TEXT NOT NULL DEFAULT '0', " &
+                    """VatExemptAmount"" TEXT NOT NULL DEFAULT '0', " &
+                    """ZeroRatedAmount"" TEXT NOT NULL DEFAULT '0', " &
+                    """OutputVat"" TEXT NOT NULL DEFAULT '0', " &
+                    """InputVat"" TEXT NOT NULL DEFAULT '0', " &
+                    """VatTreatment"" INTEGER NOT NULL DEFAULT 0, " &
+                    """CreatedBy"" TEXT NULL, " &
+                    """CreatedAt"" TEXT NOT NULL, " &
+                    """ModifiedBy"" TEXT NULL, " &
+                    """ModifiedAt"" TEXT NULL" &
+                    ")")
+
+                Exec(conn,
+                    "CREATE TABLE IF NOT EXISTS ""Acc_FinancialSnapshots"" (" &
+                    """Id"" INTEGER NOT NULL CONSTRAINT ""PK_Acc_FinancialSnapshots"" PRIMARY KEY AUTOINCREMENT, " &
+                    """SnapshotDate"" TEXT NOT NULL, " &
+                    """TotalAR"" TEXT NOT NULL, " &
+                    """TotalAP"" TEXT NOT NULL, " &
+                    """InventoryValue"" TEXT NOT NULL, " &
+                    """TodayRevenue"" TEXT NOT NULL, " &
+                    """MonthToDateRevenue"" TEXT NOT NULL, " &
+                    """YearToDateRevenue"" TEXT NOT NULL, " &
+                    """CreatedBy"" TEXT NULL, " &
+                    """CreatedAt"" TEXT NOT NULL, " &
+                    """ModifiedBy"" TEXT NULL, " &
+                    """ModifiedAt"" TEXT NULL" &
+                    ")")
+
+                ' Migration 2 — VAT return tables
+                Exec(conn,
+                    "CREATE TABLE IF NOT EXISTS ""Acc_VatReturns"" (" &
+                    """Id"" INTEGER NOT NULL CONSTRAINT ""PK_Acc_VatReturns"" PRIMARY KEY AUTOINCREMENT, " &
+                    """Year"" INTEGER NOT NULL, " &
+                    """Period"" INTEGER NOT NULL, " &
+                    """PeriodType"" INTEGER NOT NULL, " &
+                    """FormType"" INTEGER NOT NULL, " &
+                    """TotalVatableSales"" TEXT NOT NULL, " &
+                    """TotalVatExemptSales"" TEXT NOT NULL, " &
+                    """TotalZeroRatedSales"" TEXT NOT NULL, " &
+                    """TotalOutputVat"" TEXT NOT NULL, " &
+                    """TotalVatablePurchases"" TEXT NOT NULL, " &
+                    """TotalInputVat"" TEXT NOT NULL, " &
+                    """VatPayable"" TEXT NOT NULL, " &
+                    """FilingStatus"" INTEGER NOT NULL, " &
+                    """FiledAt"" TEXT NULL, " &
+                    """FiledBy"" TEXT NULL, " &
+                    """GeneratedAt"" TEXT NOT NULL, " &
+                    """IsVatRegisteredSnapshot"" INTEGER NOT NULL, " &
+                    """CreatedBy"" TEXT NULL, " &
+                    """CreatedAt"" TEXT NOT NULL, " &
+                    """ModifiedBy"" TEXT NULL, " &
+                    """ModifiedAt"" TEXT NULL" &
+                    ")")
+
+                Exec(conn,
+                    "CREATE TABLE IF NOT EXISTS ""Acc_VatReturnLines"" (" &
+                    """Id"" INTEGER NOT NULL CONSTRAINT ""PK_Acc_VatReturnLines"" PRIMARY KEY AUTOINCREMENT, " &
+                    """VatReturnId"" INTEGER NOT NULL, " &
+                    """SourceModule"" TEXT NOT NULL, " &
+                    """SourceTable"" TEXT NOT NULL, " &
+                    """SourceRowId"" INTEGER NOT NULL, " &
+                    """TransactionDate"" TEXT NOT NULL, " &
+                    """VatableAmount"" TEXT NOT NULL DEFAULT '0', " &
+                    """VatExemptAmount"" TEXT NOT NULL DEFAULT '0', " &
+                    """ZeroRatedAmount"" TEXT NOT NULL DEFAULT '0', " &
+                    """OutputVat"" TEXT NOT NULL DEFAULT '0', " &
+                    """InputVat"" TEXT NOT NULL DEFAULT '0', " &
+                    """Treatment"" INTEGER NOT NULL DEFAULT 0, " &
+                    """CreatedBy"" TEXT NULL, " &
+                    """CreatedAt"" TEXT NOT NULL, " &
+                    """ModifiedBy"" TEXT NULL, " &
+                    """ModifiedAt"" TEXT NULL, " &
+                    "CONSTRAINT ""FK_Acc_VatReturnLines_Acc_VatReturns_VatReturnId"" " &
+                    "FOREIGN KEY (""VatReturnId"") REFERENCES ""Acc_VatReturns"" (""Id"") ON DELETE CASCADE" &
+                    ")")
+
+                ' Migration 3 — partial unique index (supersedes migration 2's full index)
+                Exec(conn,
+                    "CREATE UNIQUE INDEX IF NOT EXISTS " &
+                    """IX_Acc_VatReturns_Year_Period_PeriodType_FormType_Active"" " &
+                    "ON ""Acc_VatReturns"" (""Year"", ""Period"", ""PeriodType"", ""FormType"") " &
+                    "WHERE ""FilingStatus"" != 3")
+
+                Exec(conn,
+                    "CREATE INDEX IF NOT EXISTS ""IX_Acc_RevenueRecords_RecordDate"" " &
+                    "ON ""Acc_RevenueRecords"" (""RecordDate"")")
+                Exec(conn,
+                    "CREATE INDEX IF NOT EXISTS ""IX_Acc_RevenueRecords_ProductId"" " &
+                    "ON ""Acc_RevenueRecords"" (""ProductId"")")
+                Exec(conn,
+                    "CREATE UNIQUE INDEX IF NOT EXISTS ""IX_Acc_FinancialSnapshots_SnapshotDate"" " &
+                    "ON ""Acc_FinancialSnapshots"" (""SnapshotDate"")")
+                Exec(conn,
+                    "CREATE INDEX IF NOT EXISTS ""IX_Acc_VatReturnLines_VatReturnId"" " &
+                    "ON ""Acc_VatReturnLines"" (""VatReturnId"")")
+            End Using
+        End Sub
+
+        Private Shared Sub Exec(conn As SqliteConnection, sql As String)
+            Using cmd = conn.CreateCommand()
+                cmd.CommandText = sql
+                cmd.ExecuteNonQuery()
+            End Using
+        End Sub
+
+        ''' <summary>
         ''' Returns <c>IsVatRegistered = True, Tin = "999-999-999-000"</c> without hitting the
         ''' POS database.  Stands in for the production <c>GetVatConfigurationQueryHandler</c>
         ''' in <c>MerchSys.POS</c>.
@@ -236,6 +423,33 @@ Namespace Debug
                     .VatRate = 0.12D,
                     .NonVatPercentageTaxRate = 0.03D
                 })
+            End Function
+
+        End Class
+
+        ''' <summary>
+        ''' Minimal ISyncableRepository stub for the isolated harness DI container.
+        ''' Delegates SaveChangesWithJournalAsync to the underlying DbContext so that
+        ''' VatReportingService can persist generated VAT returns to the scratch database.
+        ''' SyncJournalDbContext is not available in the isolated container and is not needed here.
+        ''' </summary>
+        Private Class SmokeSyncableRepository
+            Implements ISyncableRepository(Of AccountingDbContext)
+
+            Private ReadOnly _db As AccountingDbContext
+
+            Public Sub New(db As AccountingDbContext)
+                _db = db
+            End Sub
+
+            Public Function SaveChangesWithJournalAsync(cancellationToken As CancellationToken) As Task(Of Integer) _
+                Implements ISyncableRepository(Of AccountingDbContext).SaveChangesWithJournalAsync
+                Return _db.SaveChangesAsync(cancellationToken)
+            End Function
+
+            Public Function GetTrackedChangeDescriptors() As IReadOnlyList(Of SyncJournalDescriptor) _
+                Implements ISyncableRepository(Of AccountingDbContext).GetTrackedChangeDescriptors
+                Return New List(Of SyncJournalDescriptor)().AsReadOnly()
             End Function
 
         End Class
