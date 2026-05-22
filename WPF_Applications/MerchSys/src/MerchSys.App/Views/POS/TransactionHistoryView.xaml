@@ -499,7 +499,8 @@
                                         Margin="0,0,6,0"/>
                                 <Button Content="Process Return"
                                         Style="{StaticResource SuccessButton}"
-                                        Command="{Binding OpenReturnDialogCommand}"/>
+                                        Command="{Binding OpenReturnDialogCommand}"
+                                        IsEnabled="{Binding CanEdit}"/>
                             </StackPanel>
                         </Border>
                     </Grid>

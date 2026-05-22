@@ -35,6 +35,20 @@ Namespace ViewModels
             End Set
         End Property
 
+        ''' <summary>Display name of the currently authenticated user for the shell header.</summary>
+        Public ReadOnly Property CurrentUsername As String
+            Get
+                Return _session.CurrentUsername
+            End Get
+        End Property
+
+        ''' <summary>Role string for the shell header (e.g. "Manager", "Owner").</summary>
+        Public ReadOnly Property CurrentRoleDisplay As String
+            Get
+                Return _session.CurrentRole.ToString()
+            End Get
+        End Property
+
         Public ReadOnly Property NavigationGroups As ObservableCollection(Of NavigationGroup)
         Public ReadOnly Property NavigateCommand As RelayCommand(Of NavigationItem)
         Public ReadOnly Property LogoutCommand As RelayCommand
@@ -65,23 +79,35 @@ Namespace ViewModels
             CurrentView = _services.GetRequiredService(item.ViewType)
         End Sub
 
+        ''' <summary>
+        ''' Navigates to the role-appropriate default landing page.
+        ''' Owner → OwnerDashboardView; Manager → StockDashboardView (unchanged).
+        ''' </summary>
         Public Sub NavigateToDefault()
-            Dim defaultItem = NavigationGroups _
-                .SelectMany(Function(g) g.Items) _
-                .FirstOrDefault(Function(i) i.ViewType = GetType(Views.Inventory.StockDashboardView))
-            If defaultItem IsNot Nothing Then Navigate(defaultItem)
+            If _session.CurrentRole = UserRole.Owner Then
+                Dim ownerItem = NavigationGroups _
+                    .SelectMany(Function(g) g.Items) _
+                    .FirstOrDefault(Function(i) i.ViewType = GetType(Views.OwnerDashboardView))
+                If ownerItem IsNot Nothing Then Navigate(ownerItem)
+            Else
+                Dim defaultItem = NavigationGroups _
+                    .SelectMany(Function(g) g.Items) _
+                    .FirstOrDefault(Function(i) i.ViewType = GetType(Views.Inventory.StockDashboardView))
+                If defaultItem IsNot Nothing Then Navigate(defaultItem)
+            End If
         End Sub
 
         ''' <summary>
-        ''' Rebuilds navigation groups using the current session role.
-        ''' Called after each successful login so role-specific items (VAT Settings, VAT Return)
-        ''' correctly reflect the newly authenticated user.
+        ''' Rebuilds navigation groups using the current session role and notifies the shell
+        ''' so role-specific items correctly reflect the newly authenticated user.
         ''' </summary>
         Public Sub RefreshNavigation()
             NavigationGroups.Clear()
             For Each grp In BuildNavigationGroups()
                 NavigationGroups.Add(grp)
             Next
+            OnPropertyChanged(NameOf(CurrentUsername))
+            OnPropertyChanged(NameOf(CurrentRoleDisplay))
             _activeItem = Nothing
             CurrentView = Nothing
         End Sub
@@ -91,7 +117,22 @@ Namespace ViewModels
             RaiseEvent LogoutRequested(Me, EventArgs.Empty)
         End Sub
 
+        ''' <summary>
+        ''' Dispatches to role-specific navigation builders.
+        ''' Owner sees a read-only subset; Manager sees the full operational sidebar.
+        ''' Derived from system plan Section 7 access matrix.
+        ''' </summary>
         Private Function BuildNavigationGroups() As List(Of NavigationGroup)
+            If _session.CurrentRole = UserRole.Owner Then
+                Return BuildOwnerNavigationGroups()
+            End If
+            Return BuildManagerNavigationGroups()
+        End Function
+
+        ''' <summary>
+        ''' Manager navigation — full operational access (unchanged from prior implementation).
+        ''' </summary>
+        Private Function BuildManagerNavigationGroups() As List(Of NavigationGroup)
             Dim groups = New List(Of NavigationGroup) From {
                 New NavigationGroup("Point of Sale", BuildPosNavItems()),
                 New NavigationGroup("Purchasing", New List(Of NavigationItem) From {
@@ -121,6 +162,34 @@ Namespace ViewModels
             Return groups
         End Function
 
+        ''' <summary>
+        ''' Owner navigation — read-only subset per system plan Section 7.
+        ''' Owner Dashboard is the landing page; CRUD and operational views are excluded.
+        ''' No Developer Tools, VAT Settings, VAT Return, Goods Receiving, Vendor Directory,
+        ''' Reorder Suggestions, Product Management, Expiry Monitor, Shrinkage, Tamper Audit.
+        ''' </summary>
+        Private Function BuildOwnerNavigationGroups() As List(Of NavigationGroup)
+            Return New List(Of NavigationGroup) From {
+                New NavigationGroup("Owner Dashboard", New List(Of NavigationItem) From {
+                    New NavigationItem With {.DisplayName = "KPI Overview", .ViewType = GetType(Views.OwnerDashboardView)}
+                }),
+                New NavigationGroup("Point of Sale", New List(Of NavigationItem) From {
+                    New NavigationItem With {.DisplayName = "Transaction History", .ViewType = GetType(Views.POS.TransactionHistoryView)}
+                }),
+                New NavigationGroup("Purchasing", New List(Of NavigationItem) From {
+                    New NavigationItem With {.DisplayName = "Purchase Orders", .ViewType = GetType(Views.Purchasing.PurchaseOrderListView)},
+                    New NavigationItem With {.DisplayName = "Accounts Payable", .ViewType = GetType(Views.Purchasing.APLedgerView)}
+                }),
+                New NavigationGroup("Inventory", New List(Of NavigationItem) From {
+                    New NavigationItem With {.DisplayName = "Stock Dashboard", .ViewType = GetType(Views.Inventory.StockDashboardView)}
+                }),
+                New NavigationGroup("Accounting", New List(Of NavigationItem) From {
+                    New NavigationItem With {.DisplayName = "Financial Overview", .ViewType = GetType(Views.Accounting.FinancialOverviewView)},
+                    New NavigationItem With {.DisplayName = "Income Statement", .ViewType = GetType(Views.Accounting.IncomeStatementView)},
+                    New NavigationItem With {.DisplayName = "Sales Summary", .ViewType = GetType(Views.Accounting.SalesSummaryView)}
+                })
+            }
+        End Function
 
         Private Function BuildPosNavItems() As List(Of NavigationItem)
             Dim items As New List(Of NavigationItem) From {

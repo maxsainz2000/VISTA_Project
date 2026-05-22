@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.App
 layer: UI
-last-updated: 2026-05-11
+last-updated: 2026-05-22
 ---
 
 # MerchSys.App — UI (Views)
@@ -17,10 +17,11 @@ This page details the WPF View implementations (XAML and code-behind) in the **M
 | `src/MerchSys.App/MainWindow.xaml`<br>`src/MerchSys.App/MainWindow.xaml.vb` | `MainWindow` | Main application shell with grouped sidebar navigation and a dynamic content area. | `MainWindowViewModel` (Constructor Injection) |
 | `src/MerchSys.App/ViewModels/MainWindowViewModel.vb` | `MainWindowViewModel` | MVVM hub for the shell. Manages `NavigationGroups`, `CurrentView` state, and navigation commands. | `IServiceProvider` (Constructor Injection) |
 | `src/MerchSys.App/Models/NavigationItem.vb` | `NavigationItem`, `NavigationGroup` | POCO models representing navigation nodes and their parent groups. `NavigationItem` is observable for `IsActive` state. | (none) |
-| `src/MerchSys.App/Views/Shell/SyncStatusIndicator.xaml`<br>`...Indicator.xaml.vb` | `SyncStatusIndicator` | Status bar component displaying sync state (Online/Offline/Syncing) and relative "Last Sync" time. | `SyncStatusIndicatorViewModel` (Manual/Resource) |
+| `src/MerchSys.App/Views/Shell/SyncStatusIndicator.xaml`<br>`src/MerchSys.App/Views/Shell/SyncStatusIndicator.xaml.vb` | `SyncStatusIndicator` | Status bar component displaying sync state (Online/Offline/Syncing) and relative "Last Sync" time. | `SyncStatusIndicatorViewModel` (Manual/Resource) |
 | `src/MerchSys.App/ViewModels/Shell/SyncStatusIndicatorViewModel.vb` | `SyncStatusIndicatorViewModel` | VM for sync status. Derives `Severity` (Healthy/Idle/Warning/Critical) from `INotificationService` events. | `INotificationService` (Constructor Injection) |
 | `src/MerchSys.App/Converters/SeverityToBrushConverter.vb` | `SeverityToBrushConverter` | XAML Converter mapping `IndicatorSeverity` to `SolidColorBrush`. | (none) |
 | `src/MerchSys.App/Views/LoginView.xaml`<br>`src/MerchSys.App/Views/LoginView.xaml.vb` | `LoginView` | Standalone login window with authentication and first-login password change. | `LoginViewModel` (Constructor Injection) |
+| `src/MerchSys.App/Views/OwnerDashboardView.xaml`<br>`src/MerchSys.App/Views/OwnerDashboardView.xaml.vb` | `OwnerDashboardView` | Owner Dashboard with KPI cards and plain-language interpretations. | `OwnerDashboardViewModel` (Constructor Injection) |
 | `src/MerchSys.App/ViewModels/LoginViewModel.vb` | `LoginViewModel` | Manages login flow, error display, and password change logic. | `IAuthenticationService`, `LoginSessionService` (Constructor Injection) |
 
 
@@ -32,7 +33,7 @@ This page details the WPF View implementations (XAML and code-behind) in the **M
 | `src/MerchSys.App/Views/Accounting/IncomeStatementView.xaml`<br>`src/MerchSys.App/Views/Accounting/IncomeStatementView.xaml.vb` | `IncomeStatementView` | Income Statement (P&L) View. Features period switching (Monthly/Quarterly/Annual), a "What This Means" panel, and a detailed P&L layout with a per-product margins tab. | `IncomeStatementViewModel` (Constructor Injection) |
 | `src/MerchSys.App/Views/Accounting/SalesSummaryView.xaml`<br>`src/MerchSys.App/Views/Accounting/SalesSummaryView.xaml.vb` | `SalesSummaryView` | Sales Summary View. Displays daily/weekly/monthly sales breakdowns by payment method with KPI summary cards and "What This Means" interpretation. | `SalesSummaryViewModel` (Constructor Injection) |
 | `src/MerchSys.App/Views/Accounting/VatReturnView.xaml`<br>`src/MerchSys.App/Views/Accounting/VatReturnView.xaml.vb` | `VatReturnView` | Manager-only BIR VAT reporting interface. Supports generation, locking, and export of Forms 2550M/Q and 2551Q. | `VatReturnViewModel` (Constructor Injection) |
-| `src/MerchSys.App/Views/Accounting/Components/VatPayableTile.xaml`<br>`.../VatPayableTile.xaml.vb` | `VatPayableTile` | Standalone KPI tile for VAT Payable / Percentage Tax. Inherits DataContext. | (Inherited from `FinancialOverviewView`) |
+| `src/MerchSys.App/Views/Accounting/Components/VatPayableTile.xaml`<br>`src/MerchSys.App/Views/Accounting/Components/VatPayableTile.xaml.vb` | `VatPayableTile` | Standalone KPI tile for VAT Payable / Percentage Tax. Inherits DataContext. | (Inherited from `FinancialOverviewView`) |
 
 ## Inventory Views
 

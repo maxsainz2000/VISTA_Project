@@ -241,6 +241,7 @@
                         <Button Content="Record Payment"
                                 Command="{Binding OpenPaymentDialogCommand}"
                                 Style="{StaticResource ActionButton}"
+                                IsEnabled="{Binding CanEdit}"
                                 Margin="0,0,8,0"/>
                         <Button Content="↻ Refresh"
                                 Command="{Binding RefreshCommand}"

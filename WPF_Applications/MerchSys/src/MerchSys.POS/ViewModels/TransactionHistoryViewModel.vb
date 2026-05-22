@@ -4,6 +4,7 @@ Imports CommunityToolkit.Mvvm.Input
 Imports MerchSys.POS.Entities
 Imports MerchSys.POS.Services
 Imports MerchSys.SharedKernel.Enums
+Imports MerchSys.SharedKernel.Interfaces
 
 Namespace ViewModels
 
@@ -102,9 +103,20 @@ Namespace ViewModels
     Public Class TransactionHistoryViewModel
         Inherits ObservableObject
 
+        Private ReadOnly _session As ISessionService
         Private ReadOnly _cartService As ICartService
         Private ReadOnly _returnService As ISalesReturnService
         Private ReadOnly _receiptService As IReceiptService
+
+        ''' <summary>
+        ''' True when the current role is Manager. Owner role receives read-only access (DA5 UI enforcement).
+        ''' Binds to IsEnabled on write-capable action buttons (Process Return).
+        ''' </summary>
+        Public ReadOnly Property CanEdit As Boolean
+            Get
+                Return _session.CurrentRole = UserRole.Manager
+            End Get
+        End Property
 
         Private _selectedReceiptId As Integer
 
@@ -162,10 +174,12 @@ Namespace ViewModels
 
         ' ── Constructor ───────────────────────────────────────────────────────────
 
-        Public Sub New(cartService As ICartService,
+        Public Sub New(session As ISessionService,
+                       cartService As ICartService,
                        returnService As ISalesReturnService,
                        receiptService As IReceiptService)
 
+            _session = session
             _cartService = cartService
             _returnService = returnService
             _receiptService = receiptService

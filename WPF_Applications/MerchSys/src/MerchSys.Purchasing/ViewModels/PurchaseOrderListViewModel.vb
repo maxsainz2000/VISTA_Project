@@ -7,6 +7,7 @@ Imports MerchSys.Purchasing.Data
 Imports MerchSys.Purchasing.Entities
 Imports MerchSys.Purchasing.Services
 Imports MerchSys.SharedKernel.Enums
+Imports MerchSys.SharedKernel.Interfaces
 
 Namespace ViewModels
 
@@ -32,6 +33,7 @@ Namespace ViewModels
     Public Class PurchaseOrderListViewModel
         Inherits ObservableObject
 
+        Private ReadOnly _session As ISessionService
         Private ReadOnly _poService As IPurchaseOrderService
         Private ReadOnly _vendorService As IVendorService
         Private ReadOnly _db As PurchasingDbContext
@@ -39,7 +41,11 @@ Namespace ViewModels
         Private _allOrders As List(Of PORowItem) = New List(Of PORowItem)()
         Private _vendorList As List(Of Vendor) = New List(Of Vendor)()
 
-        Public Sub New(poService As IPurchaseOrderService, vendorService As IVendorService, db As PurchasingDbContext)
+        Public Sub New(session As ISessionService,
+                       poService As IPurchaseOrderService,
+                       vendorService As IVendorService,
+                       db As PurchasingDbContext)
+            _session = session
             _poService = poService
             _vendorService = vendorService
             _db = db
@@ -121,14 +127,14 @@ Namespace ViewModels
 
         ' ─── Role ─────────────────────────────────────────────────────────────────
 
-        Private _isManager As Boolean = True
-        Public Property IsManager As Boolean
+        ''' <summary>
+        ''' True when the current role is Manager. Owner role receives read-only access (DA5 UI enforcement).
+        ''' Bound to Visibility of action buttons (New PO, Edit, Submit, Delete) in PurchaseOrderListView.
+        ''' </summary>
+        Public ReadOnly Property IsManager As Boolean
             Get
-                Return _isManager
+                Return _session.CurrentRole = UserRole.Manager
             End Get
-            Set(value As Boolean)
-                SetProperty(_isManager, value)
-            End Set
         End Property
 
         ' ─── Status ───────────────────────────────────────────────────────────────

@@ -116,6 +116,10 @@ Class Application
                                       services.AddTransient(Of VatReturnViewModel)()
                                       services.AddTransient(Of TamperAuditReportViewModel)()
 
+                                      ' ── Owner Dashboard (INFRA-16) ────────────────────────
+                                      services.AddTransient(Of OwnerDashboardViewModel)()
+                                      services.AddTransient(Of Views.OwnerDashboardView)()
+
                                       ' ── Views (UserControls) ──────────────────────────────
                                       services.AddTransient(Of Views.POS.SalesCartView)()
                                       services.AddTransient(Of Views.POS.CreditManagementView)()

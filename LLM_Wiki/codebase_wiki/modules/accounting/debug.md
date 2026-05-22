@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.Accounting
 layer: debug
-last-updated: 2026-05-15
+last-updated: 2026-05-22
 ---
 
 # Accounting — Debug Layer
@@ -13,9 +13,9 @@ This layer contains `#If DEBUG`-gated harnesses and runners used for integration
 
 | File | Type | Description |
 |---|---|---|
-| `VatLedgerSchemaHarness.vb` | Harness | Multi-check schema verification targeting isolated SQLite databases. Verifies migrations, constraints, and cascades. |
-| `VatLedgerSchemaHarnessRunner.vb` | Runner | Entry point that instantiates the schema harness and generates Markdown reports in `%TEMP%`. |
-| `VatTileSmokeHarness.vb` | Harness | Smoke test for the VAT dashboard tile, verifying KPI calculation logic against transient data. |
+| `Debug/VatLedgerSchemaHarness.vb` | Harness | Multi-check schema verification targeting isolated SQLite databases. Verifies migrations, constraints, and cascades. |
+| `Debug/VatLedgerSchemaHarnessRunner.vb` | Runner | Entry point that instantiates the schema harness and generates Markdown reports in `%TEMP%`. |
+| `Debug/VatTileSmokeHarness.vb` | Harness | Smoke test for the VAT dashboard tile, verifying KPI calculation logic against transient data. |
 
 ## Implementation Patterns
 

@@ -2,6 +2,8 @@ Imports System.Collections.ObjectModel
 Imports CommunityToolkit.Mvvm.ComponentModel
 Imports CommunityToolkit.Mvvm.Input
 Imports MerchSys.Purchasing.Services
+Imports MerchSys.SharedKernel.Enums
+Imports MerchSys.SharedKernel.Interfaces
 
 Namespace ViewModels
 
@@ -39,11 +41,23 @@ Namespace ViewModels
     Public Class APLedgerViewModel
         Inherits ObservableObject
 
+        Private ReadOnly _session As ISessionService
         Private ReadOnly _apService As IAccountsPayableService
         Private _allRows As List(Of APLedgerRow) = New List(Of APLedgerRow)()
         Private _payingEntryId As Integer
 
-        Public Sub New(apService As IAccountsPayableService)
+        ''' <summary>
+        ''' True when the current role is Manager. Owner role receives read-only access (DA5 UI enforcement).
+        ''' Binds to IsEnabled on the Record Payment button in APLedgerView.
+        ''' </summary>
+        Public ReadOnly Property CanEdit As Boolean
+            Get
+                Return _session.CurrentRole = UserRole.Manager
+            End Get
+        End Property
+
+        Public Sub New(session As ISessionService, apService As IAccountsPayableService)
+            _session = session
             _apService = apService
 
             Entries = New ObservableCollection(Of APLedgerRow)()

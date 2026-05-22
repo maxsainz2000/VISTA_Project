@@ -106,6 +106,7 @@ This page documents the composition root in `MerchSys.App`.
 | `VatPayableTile` | Accounting | Transient |
 | `TamperAuditReportView` | Accounting | Transient |
 | `LoginView` | (Shell) | Transient |
+| `OwnerDashboardView` | (Shell) | Transient |
 | `SyncStatusIndicator` | (Shell) | Singleton |
 
 
@@ -115,6 +116,7 @@ This page documents the composition root in `MerchSys.App`.
 | `MainWindowViewModel` | Singleton | Main navigation hub and state manager for the shell. |
 | `MainWindow` | Singleton | Main application window. |
 | `LoginViewModel` | Transient | VM for the standalone login window. |
+| `OwnerDashboardViewModel` | Transient | VM for the owner dashboard. |
 | `SyncStatusIndicatorViewModel` | Singleton | VM for the sync status shell indicator. |
 
 
