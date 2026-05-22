@@ -10,6 +10,10 @@ generated: 2026-05-17
 > All 18 Accounting plans are completed. These are the remaining acceptance tests.
 > 
 > **How to use:** Do each step in order. Check the box when done. Write what you saw next to each item.
+>
+> **Login required (INFRA-15):** The app now shows a login screen on launch.
+> Unless a test specifically says to log in as Owner, log in as `manager`.
+> Default password: `Vista2026!` (first login will prompt you to change it).
 
 ### Key file locations
 
@@ -98,7 +102,7 @@ generated: 2026-05-17
 
 **What to do:**
 1. Make sure there is VAT ledger data in the database for the current month. (If there is none, complete a few sales first, or seed data manually in `Acc_VatReturnLines`.)
-2. Launch the app as **Manager**.
+2. Launch the app and log in as `manager` (use your changed password, or `Vista2026!` if first run — you will be prompted to change it).
 3. Navigate to the **Financial Overview** screen.
 4. Find the VAT Payable tile among the KPI cards.
 
@@ -144,7 +148,7 @@ generated: 2026-05-17
 
 **What to do:**
 1. Press **F5** to launch the app.
-2. Log in as a user with the **Manager** role.
+2. Log in with username `manager` and your password.
 3. Navigate to the **Financial Overview** screen.
 4. Look for the VAT Payable tile (it should be among the KPI cards at the top).
 5. Click the VAT Payable tile.
@@ -155,7 +159,7 @@ generated: 2026-05-17
 - The tile is visible on the Financial Overview.
 - Clicking it takes you to the **VAT Return View** screen.
 
-- [ ] Manager sees VAT tile and clicking it opens VatReturnView
+- [X] Manager sees VAT tile and clicking it opens VatReturnView — fixed: Application.Current.MainWindow was LoginView (first shown); handler now iterates Application.Current.Windows to find the shell
 
 ---
 
@@ -163,16 +167,17 @@ generated: 2026-05-17
 
 **What to do:**
 1. Launch the app.
-2. Log in as a user with the **Owner** role.
-3. Navigate to the **Financial Overview** screen.
-4. Look for the VAT Payable tile.
-5. Click the VAT Payable tile.
+2. Log out if currently logged in (click **Log Out** in the sidebar).
+3. Log in with username `owner` and your password.
+4. Navigate to the **Financial Overview** screen.
+5. Look for the VAT Payable tile.
+6. Click the VAT Payable tile.
 
 **What you should see:**
 - The tile is visible on the Financial Overview.
 - Clicking it does **nothing** (no navigation happens). The Owner role is restricted from accessing the VAT Return View.
 
-- [ ] Owner sees VAT tile but clicking does nothing
+- [X] Owner sees VAT tile but clicking does nothing — VAT Return nav item absent from Owner nav groups; FirstOrDefault returns Nothing, navigation suppressed
 
 ---
 
