@@ -3,7 +3,7 @@ test-id: ACC-Test-9
 checklist: ACC-verification-checklist.md
 branch: debug/ACC-test-9
 started: 2026-05-22T14:00
-status: in-progress
+status: resolved
 ---
 
 # Debug Session — ACC Test 9
@@ -61,10 +61,10 @@ The `VatTileSmokeHarness` class exists but has never been run. Pre-analysis foun
 ### Attempt 2
 - **Hypothesis:** The Immediate Window cannot reach `host` (`Private _host` in Application class) and VS hot-reload interferes with evaluating expressions in `#If DEBUG` source files. Fix: wire the harness to the Dev menu, identical to how Test 6 works. (1) Add a `DebugHostHolder` shared module to `DebugMenuExtensions.vb` so the IHost reference survives startup. (2) Set `DebugHostHolder.CurrentHost = _host` in `Application_Startup` after `_host.Start()`. (3) Add "Run VAT Tile Smoke Harness" section and button to `DebugMenuView`, whose click handler calls `VatTileSmokeHarness.RunAsync(DebugHostHolder.CurrentHost)`.
 - **Changed:** `DebugMenuExtensions.vb` + `Application.xaml.vb`
-- **Build result:**
-- **Runtime result:**
-- **Verdict:** ✅ / ❌ / ⚠️
-- **Action:** committed / reverted
+- **Build result:** ✅ clean — 0 errors, 0 warnings
+- **Runtime result:** ✅ MessageBox: ComputedVatPayable = ₱9,000.00 ✅, NavigationRouteFound = True ✅
+- **Verdict:** ✅ fixed
+- **Action:** committed as `f883ff2`, merged to master
 
 ---
 

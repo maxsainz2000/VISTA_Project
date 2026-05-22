@@ -196,7 +196,7 @@ generated: 2026-05-17
 - `ComputedVatPayable = 9000` (or whatever the expected test value is)
 - `NavigationRouteFound = True`
 
-- [X] VatTileSmokeHarness passes with expected values — fixed: 4 bugs in harness (MigrateAsync→raw SQL, ISyncableRepository stub added, RunAsync made Shared, Type.GetType root namespace prefix corrected); wired to Dev menu "Run VAT Tile Smoke Harness" button (Immediate Window approach was broken — VS hot-reload + Private _host not reachable as 'host')
+- [X] VatTileSmokeHarness passes — ComputedVatPayable = ₱9,000.00 ✅, NavigationRouteFound = True ✅ — via Dev menu button (Immediate Window approach broken by VS hot-reload + Private _host not in scope as 'host')
 
 ---
 
