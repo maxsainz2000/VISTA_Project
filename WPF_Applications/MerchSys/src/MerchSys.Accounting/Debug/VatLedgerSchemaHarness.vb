@@ -53,7 +53,7 @@ Namespace Debug
 
             Try
                 Using ctx = OpenScratch(scratchPath)
-                    Await ctx.Database.MigrateAsync()
+                    SetupScratchSchema(scratchPath)
 
                     Dim conn = ctx.Database.GetDbConnection()
                     Await conn.OpenAsync()
@@ -125,7 +125,7 @@ Namespace Debug
             Try
                 ' First migrate and seed one row.
                 Using ctx = OpenScratch(scratchPath)
-                    Await ctx.Database.MigrateAsync()
+                    SetupScratchSchema(scratchPath)
                     Dim now = DateTime.UtcNow
                     ctx.VatReturns.Add(New VatReturn With {
                         .Year = 2025, .Period = 12,
@@ -140,7 +140,7 @@ Namespace Debug
 
                 ' Second migrate on the same database — must be a no-op.
                 Using ctx = OpenScratch(scratchPath)
-                    Await ctx.Database.MigrateAsync()
+                    SetupScratchSchema(scratchPath)
 
                     Dim seededCount = Await ctx.VatReturns.CountAsync()
 
@@ -192,7 +192,7 @@ Namespace Debug
 
                 ' Commit the first row so the constraint can reject the second.
                 Using ctx = OpenScratch(scratchPath)
-                    Await ctx.Database.MigrateAsync()
+                    SetupScratchSchema(scratchPath)
                     ' FilingStatus=Generated (1) sits within the partial index scope (FilingStatus != 3).
                     ctx.VatReturns.Add(New VatReturn With {
                         .Year = 2026, .Period = 5,
@@ -275,7 +275,7 @@ Namespace Debug
                 ' Part A — EF Core cascade: Remove entity via context, verify lines are gone.
                 Dim efCascadeOk = False
                 Using ctx = OpenScratch(scratchPath)
-                    Await ctx.Database.MigrateAsync()
+                    SetupScratchSchema(scratchPath)
                     Dim now = DateTime.UtcNow
 
                     Dim vatReturn = New VatReturn With {
@@ -308,7 +308,7 @@ Namespace Debug
                 Dim fkDetail As String = "Not reached"
 
                 Using ctx = OpenScratch(scratchPath)
-                    Await ctx.Database.MigrateAsync()
+                    SetupScratchSchema(scratchPath)
                     Dim now = DateTime.UtcNow
 
                     Dim vatReturn = New VatReturn With {
@@ -409,6 +409,88 @@ Namespace Debug
                 Catch
                 End Try
             Next
+        End Sub
+
+        ''' <summary>
+        ''' Creates the VAT schema on a scratch SQLite database using raw SQL, matching what
+        ''' DatabaseInitializer does in MerchSys.App.  Required because EF Core 10 cannot
+        ''' discover VB.NET migration classes via MigrateAsync().
+        ''' Idempotent: IF NOT EXISTS / INSERT OR IGNORE guards allow calling twice (Check 2).
+        ''' </summary>
+        Private Shared Sub SetupScratchSchema(scratchPath As String)
+            Using conn As New SqliteConnection($"Data Source={scratchPath}")
+                conn.Open()
+                ExecSchema(conn,
+                    "CREATE TABLE IF NOT EXISTS ""__EFMigrationsHistory"" (" &
+                    """MigrationId"" TEXT NOT NULL PRIMARY KEY, " &
+                    """ProductVersion"" TEXT NOT NULL)")
+                ExecSchema(conn,
+                    "INSERT OR IGNORE INTO ""__EFMigrationsHistory"" VALUES " &
+                    "('20260510100000_AddVatLedgerColumns', '10.0.7')")
+                ExecSchema(conn,
+                    "INSERT OR IGNORE INTO ""__EFMigrationsHistory"" VALUES " &
+                    "('20260515100000_FixVatReturnAmendedIndex', '10.0.7')")
+                ExecSchema(conn,
+                    "CREATE TABLE IF NOT EXISTS ""Acc_VatReturns"" (" &
+                    """Id"" INTEGER NOT NULL CONSTRAINT ""PK_Acc_VatReturns"" PRIMARY KEY AUTOINCREMENT, " &
+                    """Year"" INTEGER NOT NULL, " &
+                    """Period"" INTEGER NOT NULL, " &
+                    """PeriodType"" INTEGER NOT NULL, " &
+                    """FormType"" INTEGER NOT NULL, " &
+                    """TotalVatableSales"" TEXT NOT NULL, " &
+                    """TotalVatExemptSales"" TEXT NOT NULL, " &
+                    """TotalZeroRatedSales"" TEXT NOT NULL, " &
+                    """TotalOutputVat"" TEXT NOT NULL, " &
+                    """TotalVatablePurchases"" TEXT NOT NULL, " &
+                    """TotalInputVat"" TEXT NOT NULL, " &
+                    """VatPayable"" TEXT NOT NULL, " &
+                    """FilingStatus"" INTEGER NOT NULL, " &
+                    """FiledAt"" TEXT NULL, " &
+                    """FiledBy"" TEXT NULL, " &
+                    """GeneratedAt"" TEXT NOT NULL, " &
+                    """IsVatRegisteredSnapshot"" INTEGER NOT NULL, " &
+                    """CreatedBy"" TEXT NULL, " &
+                    """CreatedAt"" TEXT NOT NULL, " &
+                    """ModifiedBy"" TEXT NULL, " &
+                    """ModifiedAt"" TEXT NULL" &
+                    ")")
+                ExecSchema(conn,
+                    "CREATE TABLE IF NOT EXISTS ""Acc_VatReturnLines"" (" &
+                    """Id"" INTEGER NOT NULL CONSTRAINT ""PK_Acc_VatReturnLines"" PRIMARY KEY AUTOINCREMENT, " &
+                    """VatReturnId"" INTEGER NOT NULL, " &
+                    """SourceModule"" TEXT NOT NULL, " &
+                    """SourceTable"" TEXT NOT NULL, " &
+                    """SourceRowId"" INTEGER NOT NULL, " &
+                    """TransactionDate"" TEXT NOT NULL, " &
+                    """VatableAmount"" TEXT NOT NULL DEFAULT '0', " &
+                    """VatExemptAmount"" TEXT NOT NULL DEFAULT '0', " &
+                    """ZeroRatedAmount"" TEXT NOT NULL DEFAULT '0', " &
+                    """OutputVat"" TEXT NOT NULL DEFAULT '0', " &
+                    """InputVat"" TEXT NOT NULL DEFAULT '0', " &
+                    """Treatment"" INTEGER NOT NULL DEFAULT 0, " &
+                    """CreatedBy"" TEXT NULL, " &
+                    """CreatedAt"" TEXT NOT NULL, " &
+                    """ModifiedBy"" TEXT NULL, " &
+                    """ModifiedAt"" TEXT NULL, " &
+                    "CONSTRAINT ""FK_Acc_VatReturnLines_Acc_VatReturns_VatReturnId"" " &
+                    "FOREIGN KEY (""VatReturnId"") REFERENCES ""Acc_VatReturns"" (""Id"") ON DELETE CASCADE" &
+                    ")")
+                ExecSchema(conn,
+                    "CREATE UNIQUE INDEX IF NOT EXISTS " &
+                    """IX_Acc_VatReturns_Year_Period_PeriodType_FormType_Active"" " &
+                    "ON ""Acc_VatReturns"" (""Year"", ""Period"", ""PeriodType"", ""FormType"") " &
+                    "WHERE ""FilingStatus"" != 3")
+                ExecSchema(conn,
+                    "CREATE INDEX IF NOT EXISTS ""IX_Acc_VatReturnLines_VatReturnId"" " &
+                    "ON ""Acc_VatReturnLines"" (""VatReturnId"")")
+            End Using
+        End Sub
+
+        Private Shared Sub ExecSchema(conn As SqliteConnection, sql As String)
+            Using cmd = conn.CreateCommand()
+                cmd.CommandText = sql
+                cmd.ExecuteNonQuery()
+            End Using
         End Sub
 
         Private Shared Function MakeLine(now As DateTime) As VatReturnLine
