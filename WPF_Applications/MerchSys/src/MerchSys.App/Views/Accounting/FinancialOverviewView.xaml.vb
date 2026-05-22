@@ -30,13 +30,22 @@ Namespace Views.Accounting
         ''' Precedent: <see cref="MainWindowViewModel.NavigateToDefault"/> — identical lookup idiom.
         ''' </summary>
         Private Sub OnNavigateToVatReturnRequested(sender As Object, e As EventArgs)
-            Dim mainWindow = TryCast(Application.Current.MainWindow?.DataContext, MainWindowViewModel)
-            If mainWindow Is Nothing Then Return
-            Dim item = mainWindow.NavigationGroups _
+            ' Application.Current.MainWindow is the LoginView (first window shown), not the shell.
+            ' Iterate all open windows to find the one backed by MainWindowViewModel.
+            Dim mainVm As MainWindowViewModel = Nothing
+            For Each win As Window In Application.Current.Windows
+                Dim vm = TryCast(win.DataContext, MainWindowViewModel)
+                If vm IsNot Nothing Then
+                    mainVm = vm
+                    Exit For
+                End If
+            Next
+            If mainVm Is Nothing Then Return
+            Dim item = mainVm.NavigationGroups _
                 .SelectMany(Function(g) g.Items) _
                 .FirstOrDefault(Function(i) i.ViewType = GetType(VatReturnView))
-            If item IsNot Nothing AndAlso mainWindow.NavigateCommand.CanExecute(item) Then
-                mainWindow.NavigateCommand.Execute(item)
+            If item IsNot Nothing AndAlso mainVm.NavigateCommand.CanExecute(item) Then
+                mainVm.NavigateCommand.Execute(item)
             End If
         End Sub
 
