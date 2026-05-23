@@ -6,6 +6,7 @@ Imports System.Windows.Media
 Imports Microsoft.Extensions.Hosting
 Imports MerchSys.Accounting.Debug
 Imports MerchSys.POS.Tests
+Imports MerchSys.POS.Debug
 
 ''' <summary>
 ''' Holds the IHost reference so debug harnesses (running inside MerchSys.App) can resolve
@@ -155,6 +156,33 @@ Namespace Views.Debug
             AddHandler posSeqBtn.Click, AddressOf RunPosSequenceHarness_Click
             root.Children.Add(posSeqBtn)
 
+            root.Children.Add(New Separator() With {.Margin = New Thickness(0, 24, 0, 24)})
+
+            root.Children.Add(New TextBlock() With {
+                .Text = "POS Receipt Sequence Harness Report (POS-15)",
+                .FontSize = 15,
+                .FontWeight = FontWeights.SemiBold,
+                .Margin = New Thickness(0, 0, 0, 6)
+            })
+            root.Children.Add(New TextBlock() With {
+                .Text = "Runs 16 workers × 50 reservations (800 total) and asserts Duplicates=0, Gaps=0, " &
+                        "TotalReservations=800. Writes a Markdown report to %TEMP%.",
+                .Foreground = Brushes.DimGray,
+                .FontSize = 12,
+                .TextWrapping = TextWrapping.Wrap,
+                .MaxWidth = 520,
+                .Margin = New Thickness(0, 0, 0, 12)
+            })
+
+            Dim seqReportBtn As New Button() With {
+                .Content = "Run Receipt Sequence Harness Report",
+                .Padding = New Thickness(18, 8, 18, 8),
+                .FontSize = 13,
+                .HorizontalAlignment = HorizontalAlignment.Left
+            }
+            AddHandler seqReportBtn.Click, AddressOf RunReceiptSequenceHarnessReport_Click
+            root.Children.Add(seqReportBtn)
+
             Content = root
         End Sub
 
@@ -257,6 +285,59 @@ Namespace Views.Debug
                     MessageBoxButton.OK,
                     MessageBoxImage.Error)
             End If
+        End Sub
+
+        Private Async Sub RunReceiptSequenceHarnessReport_Click(sender As Object, e As RoutedEventArgs)
+            Dim btn = DirectCast(sender, Button)
+            btn.IsEnabled = False
+            btn.Content = "Running… (800 reservations)"
+
+            Dim consoleOutput As String = String.Empty
+            Dim runError As Exception = Nothing
+            Dim sw As New IO.StringWriter()
+            Dim prevOut = System.Console.Out
+            System.Console.SetOut(sw)
+            Try
+                Await ReceiptSequenceHarnessReport.RunAndReportAsync()
+            Catch ex As Exception
+                runError = ex
+            Finally
+                System.Console.SetOut(prevOut)
+                consoleOutput = sw.ToString()
+            End Try
+
+            btn.IsEnabled = True
+            btn.Content = "Run Receipt Sequence Harness Report"
+
+            If runError IsNot Nothing Then
+                MessageBox.Show(
+                    $"Harness run failed: {runError.GetType().Name}: {runError.Message}" &
+                    Environment.NewLine & Environment.NewLine & runError.ToString(),
+                    "Receipt Sequence Harness Report",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error)
+                Return
+            End If
+
+            ' Extract the report path from Console output and display the Markdown report.
+            Dim reportPath As String = Nothing
+            For Each line In consoleOutput.Split(Environment.NewLine)
+                Dim marker = "Report: "
+                Dim idx = line.IndexOf(marker, StringComparison.Ordinal)
+                If idx >= 0 Then
+                    reportPath = line.Substring(idx + marker.Length).Trim()
+                    Exit For
+                End If
+            Next
+
+            Dim reportContent As String = consoleOutput
+            If reportPath IsNot Nothing AndAlso IO.File.Exists(reportPath) Then
+                reportContent = IO.File.ReadAllText(reportPath)
+            End If
+
+            Dim passed = consoleOutput.Contains("PASS")
+            Dim icon = If(passed, MessageBoxImage.Information, MessageBoxImage.Warning)
+            MessageBox.Show(reportContent, "Receipt Sequence Harness Report", MessageBoxButton.OK, icon)
         End Sub
 
         Private Async Sub RunPosSequenceHarness_Click(sender As Object, e As RoutedEventArgs)
