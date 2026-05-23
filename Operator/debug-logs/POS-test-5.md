@@ -3,7 +3,7 @@ test-id: POS-16-Test-5
 checklist: POS-verification-checklist.md
 branch: debug/POS-test-5
 started: 2026-05-23T00:00
-status: in-progress
+status: resolved
 ---
 
 # Debug Session — POS-16 Test 5
@@ -44,11 +44,11 @@ calls `ArchiveEligibleAsync` with `batchSize=50`, asserts `ReceiptsMoved=50` and
   receipts, runs with `batchSize=50`, checks `ReceiptsMoved=50` and `HadMoreEligible=True`.
 - **Changed:**
   - `ReceiptArchivalHarness.vb` — add `RunBatchSizeTestAsync()` and `ReceiptArchivalBatchTestResult`
-  - `DebugMenuExtensions.vb` — add "Run Batch-Size Test (batchSize=50)" button
-- **Build result:**
-- **Runtime result:**
-- **Verdict:**
-- **Action:**
+  - `DebugMenuExtensions.vb` — add "Run Batch-Size Test (batchSize=50)" button + ScrollViewer wrapper (panel was not scrollable, new button was off-screen)
+- **Build result:** clean — 0 errors, 0 warnings
+- **Runtime result:** PASS — ReceiptsMoved=50, HadMoreEligible=True, LiveRemaining=50, ArchiveCount=50, ElapsedMs=1101. Cleanup warning (scratch DB file in use) is harmless.
+- **Verdict:** ✅ fixed
+- **Action:** committed as `95619c2`
 
 ---
 
@@ -96,8 +96,8 @@ calls `ArchiveEligibleAsync` with `batchSize=50`, asserts `ReceiptsMoved=50` and
 
 ## Resolution
 
-- **Status:** in-progress
-- **Root cause:**
-- **Fix description:**
-- **Final commit:**
-- **Agent wiki entry needed?**
+- **Status:** resolved
+- **Root cause:** No bug in production code. Dev menu panel lacked a ScrollViewer, hiding the new button below the visible area.
+- **Fix description:** Added `RunBatchSizeTestAsync()` to the archival harness (batchSize=50, 100 expired receipts, asserts HadMoreEligible=True). Wrapped DebugMenuView root StackPanel in a ScrollViewer.
+- **Final commit:** `95619c2`
+- **Agent wiki entry needed?** no

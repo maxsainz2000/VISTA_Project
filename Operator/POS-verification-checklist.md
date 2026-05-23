@@ -146,7 +146,7 @@ generated: 2026-05-17
 - Only 50 receipts are moved in this batch.
 - The archival result shows `HadMoreEligible = True` (meaning there are more receipts waiting to be archived in the next batch).
 
-- [ ] Batch size of 50: only 50 moved, HadMoreEligible = True
+- [x] Batch size of 50: only 50 moved, HadMoreEligible = True — PASS. ReceiptsMoved=50, HadMoreEligible=True, LiveRemaining=50, ArchiveCount=50, ElapsedMs=1101. No production code change needed.
 
 ---
 
