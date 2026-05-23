@@ -3,7 +3,7 @@ test-id: POS-16-Test-4
 checklist: POS-verification-checklist.md
 branch: debug/POS-test-4
 started: 2026-05-23T00:00
-status: in-progress
+status: resolved
 ---
 
 # Debug Session — POS-16 Test 4
@@ -50,12 +50,12 @@ manually after `EnsureCreatedAsync()` since it is seeded by `DatabaseInitializer
   receipts through `ArchiveEligibleAsync`. Expect ReceiptsMoved=100, LiveRemaining=100.
   If the EF Core ToListAsync bug applies, ReceiptsMoved will be 0.
 - **Changed:**
-  - `MerchSys.POS/Debug/ReceiptArchivalHarness.vb` — new harness
-  - `MerchSys.App/Views/Debug/DebugMenuExtensions.vb` — new Dev menu button
-- **Build result:**
-- **Runtime result:**
-- **Verdict:**
-- **Action:**
+  - `MerchSys.POS/Debug/ReceiptArchivalHarness.vb` — new harness (seeds 200 receipts in scratch DB, calls ArchiveEligibleAsync)
+  - `MerchSys.App/Views/Debug/DebugMenuExtensions.vb` — new Dev menu button "Run Receipt Archival Harness"
+- **Build result:** clean — 0 errors, 0 warnings (after fixing `ConfigurationBuilder` not available → `EmptyConfiguration` class; `Private Class` at namespace level → `Friend Class`; missing `Imports System.Threading`)
+- **Runtime result:** PASS — ReceiptsMoved=100, LiveRemaining=100, ArchiveCount=100, ElapsedMs=1204. EF Core ToListAsync bug did NOT apply to anonymous-type projection; full entity materialization worked correctly here.
+- **Verdict:** ✅ fixed
+- **Action:** committed as `846d8bd`
 
 ---
 
@@ -103,10 +103,10 @@ manually after `EnsureCreatedAsync()` since it is seeded by `DatabaseInitializer
 
 ## Resolution
 
-- **Status:** in-progress
-- **Root cause:**
-- **Fix description:**
-- **Final commit:**
-- **Agent wiki entry needed?**
+- **Status:** resolved
+- **Root cause:** No bug in production code. The archival service candidate query uses an anonymous-type projection (`New With { Key .Receipt = r, Key .Integrity = ri }`) which materializes correctly — unlike a plain `ToListAsync()` on a full entity (the documented EF Core 10 VB.NET bug).
+- **Fix description:** No production code change needed. Added a scratch-DB harness and Dev menu button to invoke `ReceiptArchivalService.ArchiveEligibleAsync` programmatically (background timer fires every 24 h, impractical to wait). Build fixes: replaced unavailable `ConfigurationBuilder` with a minimal `EmptyConfiguration` class; changed `Private Class` to `Friend Class` (VB.NET rule: Private types must be nested); added `Imports System.Threading`.
+- **Final commit:** `846d8bd`
+- **Agent wiki entry needed?** no — existing wiki entry covers the ToListAsync bug boundary; anonymous-type projection is safe.
 
 ### Summary for operator (if escalated)

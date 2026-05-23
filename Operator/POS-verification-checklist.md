@@ -129,7 +129,7 @@ generated: 2026-05-17
 - Exactly 100 receipts were moved to the archive table (the expired ones).
 - The 100 in-window receipts remain in `Pos_OfficialReceipts`.
 
-- [ ] Archival moves exactly 100 expired receipts, leaves 100 in-window untouched
+- [x] Archival moves exactly 100 expired receipts, leaves 100 in-window untouched — PASS. ReceiptsMoved=100, LiveRemaining=100, ArchiveCount=100, ElapsedMs=1204. EF Core ToListAsync anonymous-type projection materialized correctly. No production code change needed; harness wired to Dev menu button.
 
 ---
 
