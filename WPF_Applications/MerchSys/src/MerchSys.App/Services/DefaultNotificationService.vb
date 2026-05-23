@@ -34,7 +34,8 @@ Namespace Services
         End Sub
 
         Public Sub NotifySyncStatusChanged(newStatus As SyncStatus) Implements INotificationService.NotifySyncStatusChanged
-            If newStatus = SyncStatus.Online AndAlso _currentSyncStatus = SyncStatus.Syncing Then
+            If newStatus = SyncStatus.Online AndAlso
+               (_currentSyncStatus = SyncStatus.Syncing OrElse _currentSyncStatus = SyncStatus.[Error]) Then
                 _lastSuccessfulPushAt = DateTimeOffset.Now
             End If
             _currentSyncStatus = newStatus
