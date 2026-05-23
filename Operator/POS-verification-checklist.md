@@ -10,6 +10,10 @@ generated: 2026-05-17
 > All 18 POS plans are completed. These are the remaining acceptance tests.
 >
 > **How to use:** Do each step in order. Check the box when done. Write what you saw next to each item.
+>
+> **Login required (INFRA-15):** The app now shows a login screen on launch.
+> Unless a test specifically says to log in as Owner, log in as `manager`.
+> Default password: `Vista2026!` (first login will prompt you to change it).
 
 ### Key file locations
 
@@ -76,7 +80,7 @@ generated: 2026-05-17
   - **No gaps** in the sequence.
 - If you see duplicates or gaps, there is a concurrency bug.
 
-- [ ] Concurrency harness: no duplicates and no gaps in receipt sequence
+- [x] Concurrency harness: no duplicates and no gaps in receipt sequence — [PASS] 1000 numbers generated, 1000 unique, contiguous sequence confirmed. Fixed 3 harness bugs: missing no-arg overload (Immediate Window unsupported), EnsureCreatedAsync race (called 1000× in parallel), WAL file lock on temp DB cleanup.
 
 ---
 
@@ -102,7 +106,7 @@ generated: 2026-05-17
   - `TotalReservations = 800` (the harness reserved 800 numbers)
   - `Elapsed` = a reasonable time (a few seconds is normal)
 
-- [ ] Receipt harness report: Duplicates=0, Gaps=0, TotalReservations=800
+- [x] Receipt harness report: Duplicates=0, Gaps=0, TotalReservations=800 — PASS. TotalReservations=800, Duplicates=0, Gaps=0, ElapsedMs=2383. Wired to Dev menu button (Immediate Window blocked by VS hot-reload).
 
 ---
 
@@ -189,7 +193,7 @@ generated: 2026-05-17
 - The DELETE fails with a `BIR-immutable` trigger error.
 - This proves the immutability trigger is working — you cannot manually delete official receipts.
 
-- [ ] Direct DELETE from Pos_OfficialReceipts fails with BIR-immutable error
+- [x] Direct DELETE from Pos_OfficialReceipts fails with BIR-immutable error — PASS. `DELETE FROM Pos_OfficialReceipts WHERE Id = 211` returned `Error: BIR-immutable` (exit code 1). Trigger `pos_receipts_no_delete` is active and working.
 
 ---
 
@@ -221,7 +225,7 @@ generated: 2026-05-17
 
 **What to do:**
 1. Launch the app (F5).
-2. Log in as a user with the **Manager** role.
+2. Log in with username `manager` and your password.
 3. Navigate to **VAT Settings** in the sidebar.
 4. Note the current values displayed (VAT rate, registration status, etc.).
 5. Change one value (for example, toggle the VAT registration checkbox or change the rate).
@@ -284,10 +288,11 @@ generated: 2026-05-17
 ### Test 13: VAT Settings visibility by role
 
 **What to do:**
-1. Launch the app and log in as **Manager**.
+1. Launch the app and log in with username `manager` and your password.
 2. Look at the sidebar navigation.
-3. Log out and log in as **Owner**.
-4. Look at the sidebar navigation again.
+3. Click the **Log Out** button in the sidebar.
+4. Log in with username `owner` and your password.
+5. Look at the sidebar navigation again.
 
 > **Navigation config:** `WPF_Applications\MerchSys\src\MerchSys.App\ViewModels\MainWindowViewModel.vb` — search for `VatSettings` to see how role visibility is configured.
 
