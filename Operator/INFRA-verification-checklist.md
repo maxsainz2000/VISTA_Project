@@ -206,7 +206,7 @@ generated: 2026-05-17
 - The second sync does NOT create duplicate rows in the MariaDB tables (for non-financial tables).
 - No "duplicate key" errors appear in the Output window or logs.
 
-- [ ] TransmitBatchAsync handles duplicate batches without errors
+- [X] TransmitBatchAsync handles duplicate batches without errors — idempotency confirmed: UPDATEs re-apply cleanly, INSERTs use EXISTS check (UPDATE if found, skip if financial). Fixed root-cause bug: EF Core temp key was captured in Payload pre-save; fixed to re-read post-save. All 9 crash-simulation entries (5 INSERTs + 4 UPDATEs) re-synced with zero duplicate-key errors.
 
 ---
 
@@ -250,7 +250,7 @@ generated: 2026-05-17
 - A new row appears in `Sync_Journal` matching the write you just did.
 - The row has the correct table name, entity ID, and timestamp.
 
-- [ ] Writing through a migrated service creates a Sync_Journal row
+- [X] Writing through a migrated service creates a Sync_Journal row — completed a sale; Sync_Journal captured INSERT/UPDATE rows for Pos_SalesTransactions, Pos_SalesTransactionLines, Pos_OfficialReceipts, Inv_StockMovements, Inv_StockBatches across POS and Inventory modules.
 
 ---
 

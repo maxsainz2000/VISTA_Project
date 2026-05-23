@@ -164,7 +164,17 @@ Namespace Persistence
 
                 Dim snapshotJson As String = Nothing
                 If cap.OperationKind <> "Delete" Then
-                    snapshotJson = JsonSerializer.Serialize(cap.PropertySnapshot, SerializerOptions)
+                    If cap.OperationKind = "Insert" Then
+                        ' Re-read from the live entry post-save so the DB-generated PK replaces
+                        ' the EF Core temporary negative key that was present in the pre-save snapshot.
+                        Dim postSave As New Dictionary(Of String, Object)
+                        For Each prop In cap.Entry.Properties
+                            postSave(prop.Metadata.Name) = prop.CurrentValue
+                        Next
+                        snapshotJson = JsonSerializer.Serialize(postSave, SerializerOptions)
+                    Else
+                        snapshotJson = JsonSerializer.Serialize(cap.PropertySnapshot, SerializerOptions)
+                    End If
                 End If
 
                 result.Add(New SyncJournalDescriptor With {

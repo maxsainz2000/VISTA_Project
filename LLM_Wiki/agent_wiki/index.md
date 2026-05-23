@@ -27,3 +27,4 @@ All engineering learnings from debugging and error-fixing sessions. Check this i
 | [vbnet-parameter-shadows-property](antipatterns/vbnet-parameter-shadows-property.md) | antipattern | MerchSys.Purchasing | vb-net, case-insensitive, parameter, property, shadowing, logic-bug | claude-code | 2026-05-20 |
 | [wpf-mainwindow-not-shell-window](patterns/wpf-mainwindow-not-shell-window.md) | pattern | MerchSys.App | wpf, navigation, login, mainwindow, runtime-bug | claude-code | 2026-05-22 |
 | [sync-transmit-delete-no-payload](patterns/sync-transmit-delete-no-payload.md) | antipattern | Infrastructure | sync, mariadb, sqlite, json, transmitter, delete, payload | claude-code | 2026-05-23 |
+| [efcore-temp-key-sync-journal-payload](errors/efcore-temp-key-sync-journal-payload.md) | error-fix | MerchSys.SharedKernel | ef-core, sync, journal, temp-key, insert, duplicate-key, idempotency, vb-net | claude-code | 2026-05-23 |
