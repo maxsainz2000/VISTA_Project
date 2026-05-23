@@ -1,25 +1,30 @@
 Imports System.Threading
-Imports Microsoft.EntityFrameworkCore
 Imports Microsoft.Extensions.Logging
+Imports MySqlConnector
 Imports MerchSys.SharedKernel.Sync
 Imports MerchSys.SharedKernel.Sync.SyncMaps
 
 Namespace Services.Sync
 
     ''' <summary>
-    ''' Pomelo-backed <see cref="ISyncTransmitter"/> that writes pre-resolved sync journal entries
-    ''' to the central MariaDB 11.4.x instance.
+    ''' MySqlConnector-backed <see cref="ISyncTransmitter"/> that writes pre-resolved sync journal
+    ''' entries to the central MariaDB 11.4.x instance using raw parameterized SQL.
+    ''' <para>
+    ''' Replaces the former Pomelo/EF Core implementation to eliminate the EF Core 10/Pomelo 9
+    ''' binary incompatibility. Uses <see cref="MariaDbSyncContext"/> for connection management
+    ''' and SQL execution.
+    ''' </para>
     ''' <para>
     ''' Processing flow: entries are grouped by <c>TableName</c>; each group is executed inside
     ''' its own transaction so a table-level failure is isolated. Within a group, each entry is
-    ''' mapped to a remote POCO via the module SyncMaps, then written via EF Core
-    ''' (<c>Add</c> / <c>Update</c> / <c>Remove</c>) and committed with <c>SaveChangesAsync</c>.
+    ''' mapped to a remote POCO via the module SyncMaps, then written via parameterized
+    ''' INSERT / UPDATE / DELETE and committed.
     ''' </para>
     ''' <para>
     ''' Conflict semantics at SQL level (secondary safety net; primary resolution is in the
     ''' orchestrator's <c>IConflictResolver</c>):
     ''' <list type="bullet">
-    '''   <item>Non-financial tables — upsert: INSERT uses existence check then Add or Update.</item>
+    '''   <item>Non-financial tables — upsert: INSERT uses existence check then Insert or Update.</item>
     '''   <item>Financial tables (Pos_OfficialReceipts, Pos_ReceiptIntegrity,
     '''         Pos_CreditPayments, Acc_*) — reject-on-conflict: an INSERT is skipped if a
     '''         remote row already exists, preventing accidental overwrite of ledger data.</item>
@@ -55,6 +60,7 @@ Namespace Services.Sync
         Public Async Function TransmitBatchAsync(entries As IReadOnlyList(Of SyncJournal),
                                                   cancellationToken As CancellationToken) As Task(Of TransmitResult) Implements ISyncTransmitter.TransmitBatchAsync
             If entries Is Nothing OrElse entries.Count = 0 Then Return TransmitResult.Empty
+            If Not _mariaDb.IsConfigured Then Return TransmitResult.Empty
 
             Dim allErrors As New List(Of TransmitError)()
             Dim totalSuccess As Integer = 0
@@ -69,9 +75,14 @@ Namespace Services.Sync
                 Dim groupErrors As New List(Of TransmitError)()
                 Dim caughtException As Exception = Nothing
 
-                Dim tx = Await _mariaDb.Database.BeginTransactionAsync(cancellationToken)
+                Dim conn As MySqlConnection = Nothing
+                Dim tx As MySqlTransaction = Nothing
+
                 Try
-                    Dim result = Await TransmitTableGroupAsync(group.Key, groupEntries, cancellationToken)
+                    conn = Await _mariaDb.CreateConnectionAsync(cancellationToken)
+                    tx = Await conn.BeginTransactionAsync(cancellationToken)
+
+                    Dim result = Await TransmitTableGroupAsync(group.Key, groupEntries, conn, tx, cancellationToken)
                     groupSuccess = result.SuccessCount
                     groupErrors.AddRange(result.Errors)
                     Await tx.CommitAsync(cancellationToken)
@@ -81,17 +92,21 @@ Namespace Services.Sync
 
                 ' Rollback and dispose outside Catch because Await is not allowed in Catch/Finally.
                 If caughtException IsNot Nothing Then
-                    Dim rollbackEx As Exception = Nothing
-                    Try
-                        Await tx.RollbackAsync(CancellationToken.None)
-                    Catch rbEx As Exception
-                        rollbackEx = rbEx
-                    End Try
-                    If rollbackEx IsNot Nothing Then
-                        _logger.LogError(rollbackEx, "Sync: rollback failed for table group {Table}", group.Key)
+                    If tx IsNot Nothing Then
+                        Dim rollbackEx As Exception = Nothing
+                        Try
+                            Await tx.RollbackAsync(CancellationToken.None)
+                        Catch rbEx As Exception
+                            rollbackEx = rbEx
+                        End Try
+                        If rollbackEx IsNot Nothing Then
+                            _logger.LogError(rollbackEx, "Sync: rollback failed for table group {Table}", group.Key)
+                        End If
                     End If
                 End If
-                tx.Dispose()
+
+                If tx IsNot Nothing Then tx.Dispose()
+                If conn IsNot Nothing Then conn.Dispose()
 
                 If caughtException IsNot Nothing Then
                     _logger.LogError(caughtException, "Sync: table group {Table} failed entirely — all {Count} entries will retry",
@@ -108,8 +123,6 @@ Namespace Services.Sync
                     totalSuccess += groupSuccess
                     allErrors.AddRange(groupErrors)
                 End If
-
-                _mariaDb.ChangeTracker.Clear()
             Next
 
             Return New TransmitResult With {
@@ -121,6 +134,8 @@ Namespace Services.Sync
 
         Private Async Function TransmitTableGroupAsync(tableName As String,
                                                         entries As List(Of SyncJournal),
+                                                        conn As MySqlConnection,
+                                                        tx As MySqlTransaction,
                                                         ct As CancellationToken) As Task(Of TransmitResult)
             Dim isFinancial = IsFinancialTable(tableName)
             Dim errors As New List(Of TransmitError)()
@@ -131,7 +146,7 @@ Namespace Services.Sync
 
                 Dim caughtMsg As String = Nothing
                 Try
-                    Await TransmitEntryAsync(entry, isFinancial, ct)
+                    Await TransmitEntryAsync(entry, isFinancial, conn, tx, ct)
                     successCount += 1
                 Catch ex As Exception When Not TypeOf ex Is OperationCanceledException
                     caughtMsg = ex.Message
@@ -158,6 +173,8 @@ Namespace Services.Sync
 
         Private Async Function TransmitEntryAsync(entry As SyncJournal,
                                                    isFinancial As Boolean,
+                                                   conn As MySqlConnection,
+                                                   tx As MySqlTransaction,
                                                    ct As CancellationToken) As Task
             Dim remoteEntity = ToRemoteEntity(entry)
             If remoteEntity Is Nothing Then
@@ -176,28 +193,23 @@ Namespace Services.Sync
                         Return
                     End If
                     ' Non-financial upsert: if the row already exists remotely (e.g. from a prior partial cycle),
-                    ' Update instead of Add to avoid duplicate-key errors (idempotency guarantee).
+                    ' Update instead of Insert to avoid duplicate-key errors (idempotency guarantee).
                     If exists Then
-                        _mariaDb.Update(remoteEntity)
+                        Await _mariaDb.ExecuteUpdateAsync(entry.TableName, remoteEntity, conn, tx, ct)
                     Else
-                        _mariaDb.Add(remoteEntity)
+                        Await _mariaDb.ExecuteInsertAsync(entry.TableName, remoteEntity, conn, tx, ct)
                     End If
-                    Await _mariaDb.SaveChangesAsync(ct)
 
                 Case "UPDATE"
-                    _mariaDb.Update(remoteEntity)
-                    Await _mariaDb.SaveChangesAsync(ct)
+                    Await _mariaDb.ExecuteUpdateAsync(entry.TableName, remoteEntity, conn, tx, ct)
 
                 Case "DELETE"
-                    _mariaDb.Remove(remoteEntity)
-                    Await _mariaDb.SaveChangesAsync(ct)
+                    Await _mariaDb.ExecuteDeleteAsync(entry.TableName, entry.RowId, conn, tx, ct)
 
                 Case Else
                     _logger.LogWarning("Sync: unrecognised operation '{Op}' for {Table}/{Id}; skipping",
                                        entry.Operation, entry.TableName, entry.RowId)
             End Select
-
-            _mariaDb.ChangeTracker.Clear()
         End Function
 
         Private Shared Function IsFinancialTable(tableName As String) As Boolean

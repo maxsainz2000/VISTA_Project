@@ -140,3 +140,11 @@ Create at: `Progress/VISTA_Modules/Infrastructure/INFRA-06-summary.md` using `Pr
 ### Documentation
 - XML doc comments on `IConflictResolver` and each `*SyncMap` describing ownership and policy
 - Header comment in `mariadb-init.sql` listing schema version and intended MariaDB version (11.4.x)
+
+---
+
+## Superseded Items
+
+> **2026-05-XX (INFRA-17):** The `Pomelo.EntityFrameworkCore.MySql` dependency specified in this plan
+> has been replaced with raw `MySqlConnector` (ADO.NET). `MariaDbSyncContext` no longer inherits
+> `DbContext`; it is a lightweight connection wrapper. See INFRA-17 for details.

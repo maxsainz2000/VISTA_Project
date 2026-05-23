@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.App
 layer: UI
-last-updated: 2026-05-22
+last-updated: 2026-05-23
 ---
 
 # MerchSys.App — UI (Views)
@@ -23,6 +23,7 @@ This page details the WPF View implementations (XAML and code-behind) in the **M
 | `src/MerchSys.App/Views/LoginView.xaml`<br>`src/MerchSys.App/Views/LoginView.xaml.vb` | `LoginView` | Standalone login window with authentication and first-login password change. | `LoginViewModel` (Constructor Injection) |
 | `src/MerchSys.App/Views/OwnerDashboardView.xaml`<br>`src/MerchSys.App/Views/OwnerDashboardView.xaml.vb` | `OwnerDashboardView` | Owner Dashboard with KPI cards and plain-language interpretations. | `OwnerDashboardViewModel` (Constructor Injection) |
 | `src/MerchSys.App/ViewModels/LoginViewModel.vb` | `LoginViewModel` | Manages login flow, error display, and password change logic. | `IAuthenticationService`, `LoginSessionService` (Constructor Injection) |
+| `src/MerchSys.App/ViewModels/OwnerDashboardViewModel.vb` | `OwnerDashboardViewModel` | MVVM hub for the Owner dashboard. Sourced from all four modules to aggregate business metrics and display plain-language interpretations. | `ISessionService`, `IStockDashboardService`, `ILowStockAlertService`, `IExpiryTrackingService`, `IPurchaseOrderService`, `IVendorService`, `IAccountsPayableService`, `IDailySummaryService`, `IFinancialOverviewService`, `IIncomeStatementService` (Constructor Injection) |
 
 
 ## Accounting Views

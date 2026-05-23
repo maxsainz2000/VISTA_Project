@@ -23,6 +23,7 @@ generated: 2026-05-17
 | Where to put the real config | `%LOCALAPPDATA%\VISTA\appsettings.Production.json` |
 | MariaDB init SQL | `Plans\VISTA_Modules\Infrastructure\sql\mariadb-init.sql` |
 | Receipt schema alignment SQL | `Plans\VISTA_Modules\Infrastructure\sql\mariadb-receipt-schema-alignment.sql` |
+| MySqlConnector wrapper | `WPF_Applications\MerchSys\src\MerchSys.SharedKernel\Sync\MariaDbSyncContext.vb` |
 | Receipt integrity triggers SQL | `Plans\VISTA_Modules\Infrastructure\sql\02-pos-receipt-integrity-triggers.sql` |
 | Production deployment runbook | `Plans\VISTA_Modules\Infrastructure\runbooks\01-production-deployment.md` |
 | SyncStatusIndicator (XAML) | `WPF_Applications\MerchSys\src\MerchSys.App\Views\Shell\SyncStatusIndicator.xaml` |
@@ -142,17 +143,12 @@ generated: 2026-05-17
 
 ## INFRA-11 — Production Deployment Configuration
 
-### ⏳ Deferred: Pomelo 10.x upgrade
+### ~~⏳ Deferred: Pomelo 10.x upgrade~~ — RESOLVED (INFRA-17)
 
-**What to do:**
-- Nothing right now. The Pomelo.EntityFrameworkCore.MySql package version 10.x is not yet published on NuGet.
+**Resolution:** Pomelo dependency removed entirely in INFRA-17. Replaced with raw
+`MySqlConnector` (ADO.NET). NU1608 suppression removed from `Directory.Build.props`.
 
-**When to do it:**
-- Check NuGet periodically for a stable `Pomelo.EntityFrameworkCore.MySql` 10.x release.
-- Once available, update the package reference and remove the `NU1608` suppression from:
-  `WPF_Applications\MerchSys\Directory.Build.props`
-
-- [ ] ⏳ Deferred — waiting for Pomelo 10.x on NuGet
+- [x] ~~Deferred — waiting for Pomelo 10.x on NuGet~~ → resolved by INFRA-17 (Pomelo removed)
 
 ---
 
@@ -170,7 +166,25 @@ generated: 2026-05-17
 - The deployment completes without errors.
 - The app can connect to and read/write from the MariaDB instance.
 
-- [~] Live MariaDB deployment walkthrough — schema/triggers/provisioning/INFRA-06 criteria all ✅; first-run sync blocked by Pomelo 10.x incompatibility (INFRA-11 deferred). Re-test after Pomelo 10.x ships.
+- [ ] Live MariaDB deployment walkthrough — schema/triggers/provisioning/INFRA-06 criteria all ✅. Re-test sync indicator after INFRA-17 lands.
+
+---
+
+## INFRA-17 — Replace Pomelo with MySqlConnector
+
+### Test 5b: Sync indicator reaches Online after INFRA-17
+
+**What to do:**
+1. Make sure INFRA-17 implementation is complete (Pomelo removed, MySqlConnector in place).
+2. Repeat Test 5 steps 1–4 (live MariaDB, production password file, follow runbook).
+3. Launch the app, log in, observe the sync status indicator.
+
+**What you should see:**
+- The sync indicator transitions Offline → Probing → **Online (green)**.
+- No `MissingMethodException` in the Output window.
+- The `Sync_Journal` entries are transmitted to MariaDB.
+
+- [ ] Sync indicator reaches Online/Green with MySqlConnector
 
 ---
 

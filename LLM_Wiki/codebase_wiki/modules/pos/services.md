@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.POS
 layer: Services
-last-updated: 2026-05-16
+last-updated: 2026-05-23
 ---
 
 # MerchSys.POS — Services
@@ -24,8 +24,9 @@ last-updated: 2026-05-16
 | `src/MerchSys.POS/Services/ReceiptFormatting/IReceiptBodyComposer.vb`<br>`src/MerchSys.POS/Services/ReceiptFormatting/BirCompliantReceiptBodyComposer.vb` | `IReceiptBodyComposer`<br>`BirCompliantReceiptBodyComposer` | Composes BIR-compliant receipt body text with three-bucket VAT disclosure (VATable, Exempt, Zero-Rated) and Output VAT. | `POSDbContext`, `VatConfigurationLoader` |
 | `src/MerchSys.POS/Services/Archival/IReceiptArchivalService.vb`<br>`src/MerchSys.POS/Services/Archival/ReceiptArchivalOptions.vb`<br>`src/MerchSys.POS/Services/Archival/ReceiptArchivalService.vb` | `IReceiptArchivalService`<br>`ReceiptArchivalOptions`<br>`ReceiptArchivalService` | Background service for transactional archival of expired receipts and integrity logs to cold storage. Uses `Pos_ArchivalSession` table for session-variable-aware database triggers (INT-12). | `IServiceScopeFactory`, `POSDbContext`, `IOptions(Of ReceiptArchivalOptions)` |
  
-+## Debug & Utilities
-+| File Path | Class | Description |
-+|---|---|---|
-+| `src/MerchSys.POS/Debug/ReceiptSequenceHarnessReport.vb` | `ReceiptSequenceHarnessReport` | Debug-only runner for `Pos_SequenceConcurrencyHarness`; validates concurrency-safe receipt numbering against a scratch SQLite DB. |
-+
+## Debug & Utilities
+
+| File Path | Class | Description |
+|---|---|---|
+| `src/MerchSys.POS/Debug/ReceiptSequenceHarnessReport.vb` | `ReceiptSequenceHarnessReport` | Debug-only runner for `Pos_SequenceConcurrencyHarness`; validates concurrency-safe receipt numbering against a scratch SQLite DB. |
+| `src/MerchSys.POS/Debug/ReceiptArchivalHarness.vb` | `ReceiptArchivalHarness` | Debug-only harness that seeds expired and in-window receipts in a temporary SQLite database, runs the archival service, and verifies counts, concurrency, and transactional rollbacks. |

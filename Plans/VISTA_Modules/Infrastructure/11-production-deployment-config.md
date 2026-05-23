@@ -134,3 +134,12 @@ Create at: `Progress/VISTA_Modules/Infrastructure/INFRA-11-summary.md` using `Pr
 - Inline `"_comment"` keys in the template file explaining each field.
 - A short header comment in the runbook citing INFRA-05, INFRA-06, INFRA-08, and INFRA-10 as the prerequisite landing zones.
 - XML doc on the overlay logic in `ConnectionStringLoader` explaining the three-state outcome (absent / placeholder / valid).
+
+---
+
+## Superseded Items
+
+> **2026-05-XX (INFRA-17):** The "Pomelo upgrade" section (lines 83–87) and acceptance criterion #1's
+> Pomelo bump requirement are no longer applicable. The Pomelo dependency was removed entirely in
+> INFRA-17 (replaced with raw MySqlConnector). The NU1608 suppression in `Directory.Build.props`
+> has been removed.

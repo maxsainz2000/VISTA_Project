@@ -23,15 +23,13 @@ Namespace Startup
             ' MariaDB context — connection string assembled from the production overlay at resolve time.
             ' If no valid overlay is present the context is registered but UseMySql is never called;
             ' the SyncWorker's TCP probe will gate any actual connection attempt.
-            services.AddDbContext(Of MariaDbSyncContext)(
-                Sub(sp, options)
+            services.AddScoped(Of MariaDbSyncContext)(
+                Function(sp)
                     Dim cfg = sp.GetRequiredService(Of IConfiguration)()
                     Dim logger = sp.GetRequiredService(Of ILogger(Of SyncWorker))()
                     Dim conn = ConnectionStringLoader.GetMariaDbConnectionString(cfg, logger)
-                    If Not String.IsNullOrWhiteSpace(conn) Then
-                        options.UseMySql(conn, ServerVersion.Parse("11.4.0-mariadb"))
-                    End If
-                End Sub)
+                    Return New MariaDbSyncContext(conn)
+                End Function)
 
             services.AddSingleton(Of ISyncProbe, DualConditionSyncProbe)()
             services.AddSingleton(Of INotificationService, DefaultNotificationService)()

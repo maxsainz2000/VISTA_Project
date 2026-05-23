@@ -9,14 +9,14 @@ This is the central directory for the VISTA codebase wiki. Use these links to na
 
 | Module | Status | File Count | Index Page |
 |---|---|---|---|
-| MerchSys.SharedKernel | Infrastructure / In Progress | 50 | [[shared-kernel/index\|SharedKernel Index]] |
-| MerchSys.POS | In Progress | 78 | [[pos/index\|POS Index]] |
-| MerchSys.Purchasing | In Progress | 60 | [[purchasing/index\|Purchasing Index]] |
-| MerchSys.Inventory | In Progress | 53 | [[inventory/index\|Inventory Index]] |
-| MerchSys.Accounting | In Progress | 70 | [[accounting/index|Accounting Index]] |
-| MerchSys.App | Infrastructure / In Progress | 52 | [[app/index|App Index]] |
+| MerchSys.SharedKernel | Infrastructure / In Progress | 57 | [[shared-kernel/index\|SharedKernel Index]] |
+| MerchSys.POS | In Progress | 67 | [[pos/index\|POS Index]] |
+| MerchSys.Purchasing | In Progress | 49 | [[purchasing/index\|Purchasing Index]] |
+| MerchSys.Inventory | In Progress | 50 | [[inventory/index\|Inventory Index]] |
+| MerchSys.Accounting | In Progress | 61 | [[accounting/index|Accounting Index]] |
+| MerchSys.App | Infrastructure / In Progress | 77 | [[app/index|App Index]] |
 
-*(Total tracked source files: 357)*
+*(Total tracked source files: 361)*
 
 
 ## Cross-Cutting Registries

@@ -66,7 +66,7 @@ All other `Sync` section keys (`CentralServerHost`, `CentralServerPort`, `ProbeI
 
 ## What's Next
 
-- [ ] Pomelo 10.x bump — defer until `Pomelo.EntityFrameworkCore.MySql` 10.x is published on NuGet.org; remove NU1608 suppression from `Directory.Build.props` at that time.
+- [x] ~~Pomelo 10.x bump~~ → resolved by INFRA-17; Pomelo dependency removed, replaced with MySqlConnector.
 - [ ] Live operator walkthrough against a real MariaDB 11.4.x instance to validate the INFRA-06 acceptance criteria steps 2–3 documented in the runbook.
 
 ## Cross-References

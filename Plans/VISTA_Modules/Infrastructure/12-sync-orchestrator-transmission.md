@@ -113,3 +113,10 @@ Create at: `Progress/VISTA_Modules/Infrastructure/INFRA-12-summary.md` using `Pr
 ### Documentation
 - XML doc on `ISyncTransmitter` describing the batch semantics and idempotency guarantee.
 - Inline comment in `SyncOrchestrator.RunAsync` noting this replaces the INFRA-05 placeholder stub.
+
+---
+
+## Superseded Items
+
+> **2026-05-XX (INFRA-17):** `MariaDbSyncTransmitter` is rewritten to use raw `MySqlConnector`
+> instead of Pomelo `DbContext`. The `ISyncTransmitter` interface is unchanged. See INFRA-17.

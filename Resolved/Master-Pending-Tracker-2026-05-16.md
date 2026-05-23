@@ -82,7 +82,7 @@ These are blocked on external dependencies and cannot proceed now.
 
 | Item | Module | Blocked On |
 |---|---|---|
-| Pomelo 10.x bump | INFRA-11 | NuGet publish of `Pomelo.EntityFrameworkCore.MySql` 10.x |
+| ~~Pomelo 10.x bump~~ | INFRA-11 | ~~NuGet publish~~ → **Resolved by INFRA-17** (dependency removed) |
 | MariaDB trigger DEFINER remediation | INFRA-08 | Formal DB admin account creation |
 | EF Core VB.NET migration discovery | INT-04 | Upstream EF Core bug fix |
 | ESC/POS or PDF receipt rendering | POS-18 | Future scope — no blocker, just not planned |

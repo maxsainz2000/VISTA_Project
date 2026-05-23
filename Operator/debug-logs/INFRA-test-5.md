@@ -91,3 +91,12 @@ Live deployment walkthrough against a local XAMPP MariaDB 11.4.x instance. Goal:
 
 ### Blocked step
 - ❌ First-run sync (indicator → green) — requires Pomelo 10.x on NuGet (INFRA-11 deferred)
+
+---
+
+## Follow-up: INFRA-17
+
+The Pomelo blocker documented above has been addressed by **INFRA-17** (replace Pomelo
+with raw MySqlConnector). After INFRA-17 lands, re-run Phase 5 to confirm the sync
+indicator reaches Online/Green. The `ToListAsync` fix from commit `8ff9926` remains
+valid and is unaffected by the Pomelo removal.

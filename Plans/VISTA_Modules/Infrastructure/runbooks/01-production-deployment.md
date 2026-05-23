@@ -193,6 +193,7 @@ If the indicator stays **Offline** after two probe intervals, check:
 - The `Password` field is not still the placeholder string.
 - The MariaDB server is reachable on TCP port 3306 from the VISTA host (`Test-NetConnection <server-hostname> -Port 3306`).
 - The application log (`%LOCALAPPDATA%\MerchSys\logs\`) for detailed error messages.
+- If you see `MissingMethodException` mentioning `AbstractionsStrings.ArgumentIsEmpty`, INFRA-17 has not been applied — the old Pomelo dependency is still in place. Rebuild from the INFRA-17 branch.
 
 ---
 
@@ -240,4 +241,4 @@ Probes that succeed without an error indicate a missing trigger — re-apply the
 
 ---
 
-*Last updated: 2026-05-15 | Relates to: INFRA-06, INFRA-08, INFRA-10, INFRA-11*
+*Last updated: 2026-05-XX | Relates to: INFRA-06, INFRA-08, INFRA-10, INFRA-11, INFRA-17*

@@ -57,7 +57,7 @@ audit-date: 2026-05-17
 **Status:** Completed
 
 - [ ] Replace `appsettings.json` `Pwd=CHANGE_ME` with a user-level `appsettings.Production.json` outside the repo before any live deployment
-- [ ] Upgrade `Pomelo.EntityFrameworkCore.MySql` to a 10.x release when available to resolve NU1608 cleanly
+- [x] ~~Upgrade `Pomelo.EntityFrameworkCore.MySql` to a 10.x release~~ → resolved by INFRA-17 (Pomelo removed; MySqlConnector adopted)
 - [ ] Run `mariadb-init.sql` against a fresh MariaDB 11.4.x instance and verify acceptance criteria 2–3 manually
 
 ### INFRA-08 — MariaDB Receipt Integrity Triggers
@@ -77,7 +77,7 @@ audit-date: 2026-05-17
 
 **Status:** Completed
 
-- [ ] Pomelo 10.x bump — defer until `Pomelo.EntityFrameworkCore.MySql` 10.x is published on NuGet.org; remove NU1608 suppression from `Directory.Build.props` at that time
+- [x] ~~Pomelo 10.x bump~~ → resolved by INFRA-17 (dependency removed entirely; NU1608 suppression removed)
 - [ ] Live operator walkthrough against a real MariaDB 11.4.x instance to validate the INFRA-06 acceptance criteria steps 2–3 documented in the runbook
 
 ### INFRA-12 — SyncOrchestrator Real Data Transmission
@@ -121,6 +121,6 @@ audit-date: 2026-05-17
 - **100% complete** — all 14 Infrastructure plans have completed progress summaries. No blockers.
 - **13 pending `[ ]` tasks** are spread across INFRA-06 through INFRA-14; all are deployment/runtime verification items, not implementation gaps.
 - **Top priority: credential hygiene** — INFRA-06 and INFRA-12 both track `Pwd=CHANGE_ME` in `appsettings.json`. This must be resolved before any live MariaDB testing (INFRA-11 production deployment runbook addresses the mechanism via `appsettings.Production.json`).
-- **Pomelo 10.x** (INFRA-06, INFRA-11) — deferred until the package is published; NU1608 suppression is in place via `Directory.Build.props`. No action needed until stable 10.x release.
+- **~~Pomelo 10.x~~** (INFRA-06, INFRA-11) — **resolved by INFRA-17:** dependency replaced with raw MySqlConnector. NU1608 suppression removed.
 - **INFRA-13 write-path migration** — `Accounting/Handlers` and `ProductManagementViewModel` write-path migrations are explicitly deferred pending scope decision. These are the last consumers still using raw `SaveChangesAsync` without journalling.
 - **INFRA-14 + INFRA-12 coordination** — deploying the receipt schema alignment SQL (INFRA-14) is a prerequisite for testing the SyncOrchestrator receipt push path (INFRA-12).
