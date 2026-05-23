@@ -1,4 +1,5 @@
 Imports System.Threading
+Imports Microsoft.Data.Sqlite
 Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.SharedKernel.Persistence
 Imports MerchSys.SharedKernel.Sync
@@ -40,26 +41,50 @@ Namespace Data
             Return SyncableRepositoryCore.SaveWithJournalAsync(_context, _journalContext, "Purchasing", cancellationToken)
         End Function
 
-        Public Async Function GetPendingChangesAsync() As Task(Of IReadOnlyList(Of SyncJournal)) _
+        Public Function GetPendingChangesAsync() As Task(Of IReadOnlyList(Of SyncJournal)) _
             Implements ISyncableRepository.GetPendingChangesAsync
-            Dim entries = Await _journalContext.SyncJournalEntries _
-                .Where(Function(j) j.ModuleName = "Purchasing" AndAlso j.SyncedAt Is Nothing) _
-                .OrderBy(Function(j) j.CreatedAt) _
-                .ToListAsync()
-            Return entries.AsReadOnly()
+            Dim result As New List(Of SyncJournal)()
+            Dim connStr = _journalContext.Database.GetConnectionString()
+            Using conn As New SqliteConnection(connStr)
+                conn.Open()
+                Using cmd = conn.CreateCommand()
+                    cmd.CommandText =
+                        "SELECT Id, TableName, RowId, Operation, Payload, AttemptCount, " &
+                        "LastError, SyncedAt, ModuleName, CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                        "FROM Sync_Journal WHERE ModuleName = @m AND SyncedAt IS NULL ORDER BY CreatedAt"
+                    cmd.Parameters.AddWithValue("@m", "Purchasing")
+                    Using reader = cmd.ExecuteReader()
+                        While reader.Read()
+                            Dim j As New SyncJournal()
+                            j.Id = reader.GetInt32(0)
+                            j.TableName = If(reader.IsDBNull(1), Nothing, reader.GetString(1))
+                            j.RowId = reader.GetInt64(2)
+                            j.Operation = If(reader.IsDBNull(3), Nothing, reader.GetString(3))
+                            j.Payload = If(reader.IsDBNull(4), Nothing, reader.GetString(4))
+                            j.AttemptCount = reader.GetInt32(5)
+                            j.LastError = If(reader.IsDBNull(6), Nothing, reader.GetString(6))
+                            j.SyncedAt = If(reader.IsDBNull(7), CType(Nothing, DateTime?), reader.GetDateTime(7))
+                            j.ModuleName = If(reader.IsDBNull(8), Nothing, reader.GetString(8))
+                            j.CreatedBy = If(reader.IsDBNull(9), Nothing, reader.GetString(9))
+                            j.CreatedAt = reader.GetDateTime(10)
+                            j.ModifiedBy = If(reader.IsDBNull(11), Nothing, reader.GetString(11))
+                            j.ModifiedAt = If(reader.IsDBNull(12), CType(Nothing, DateTime?), reader.GetDateTime(12))
+                            result.Add(j)
+                        End While
+                    End Using
+                End Using
+            End Using
+            Return Task.FromResult(CType(result.AsReadOnly(), IReadOnlyList(Of SyncJournal)))
         End Function
 
         Public Async Function MarkSyncedAsync(journalIds As IEnumerable(Of Long)) As Task _
             Implements ISyncableRepository.MarkSyncedAsync
             Dim now = DateTime.UtcNow
-            Dim ids = journalIds.ToList()
-            Dim entries = Await _journalContext.SyncJournalEntries _
-                .Where(Function(j) ids.Contains(j.Id)) _
-                .ToListAsync()
-            For Each entry In entries
-                entry.SyncedAt = now
+            For Each jid In journalIds
+                Await _journalContext.Database.ExecuteSqlRawAsync(
+                    "UPDATE Sync_Journal SET SyncedAt = {0} WHERE Id = {1}",
+                    now, CInt(jid))
             Next
-            Await _journalContext.SaveChangesAsync()
         End Function
 
     End Class
