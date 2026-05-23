@@ -7,9 +7,13 @@ generated: 2026-05-17
 # Operator Verification Checklist — Infrastructure
 
 > Extracted from the 2026-05-17 module audit. Only operator/manual verification tasks are listed here.
-> All 14 Infrastructure plans are completed. These are the remaining acceptance tests.
+> All 16 Infrastructure plans are completed. These are the remaining acceptance tests.
 >
 > **How to use:** Do each step in order. Check the box when done. Write what you saw next to each item.
+>
+> **Login required (INFRA-15):** The app now shows a login screen on launch.
+> Unless a test specifically says to log in as Owner, log in as `manager`.
+> Default password: `Vista2026!` (first login will prompt you to change it).
 
 ### Key file locations
 
@@ -30,6 +34,14 @@ generated: 2026-05-17
 | ConnectionStringLoader | `WPF_Applications\MerchSys\src\MerchSys.App\Configuration\ConnectionStringLoader.vb` |
 | SQLite database | `%LOCALAPPDATA%\MerchSys\merchsys.db` |
 | .gitignore | `VISTA_Project\.gitignore` (line 2: `appsettings.Production.json` is excluded) |
+| LoginView (XAML) | `WPF_Applications\MerchSys\src\MerchSys.App\Views\LoginView.xaml` |
+| LoginViewModel | `WPF_Applications\MerchSys\src\MerchSys.App\ViewModels\LoginViewModel.vb` |
+| LoginSessionService | `WPF_Applications\MerchSys\src\MerchSys.App\Services\LoginSessionService.vb` |
+| IAuthenticationService | `WPF_Applications\MerchSys\src\MerchSys.App\Services\IAuthenticationService.vb` |
+| UserAccount entity | `WPF_Applications\MerchSys\src\MerchSys.SharedKernel\Entities\UserAccount.vb` |
+| OwnerDashboardView (XAML) | `WPF_Applications\MerchSys\src\MerchSys.App\Views\OwnerDashboardView.xaml` |
+| OwnerDashboardViewModel | `WPF_Applications\MerchSys\src\MerchSys.App\ViewModels\OwnerDashboardViewModel.vb` |
+| MainWindowViewModel (nav) | `WPF_Applications\MerchSys\src\MerchSys.App\ViewModels\MainWindowViewModel.vb` |
 
 ---
 
@@ -158,7 +170,7 @@ generated: 2026-05-17
 - The deployment completes without errors.
 - The app can connect to and read/write from the MariaDB instance.
 
-- [ ] Live MariaDB deployment walkthrough completed
+- [~] Live MariaDB deployment walkthrough — schema/triggers/provisioning/INFRA-06 criteria all ✅; first-run sync blocked by Pomelo 10.x incompatibility (INFRA-11 deferred). Re-test after Pomelo 10.x ships.
 
 ---
 
@@ -266,3 +278,232 @@ generated: 2026-05-17
 - `IntegrityHash` has a non-empty hash string.
 
 - [ ] Receipt row syncs to MariaDB with Status, IssuedAt, and IntegrityHash filled in
+
+---
+
+## INFRA-15 — Login Form & User Authentication
+
+### Test 10: Fresh database creates user accounts
+
+**What to do:**
+1. Go to `%LOCALAPPDATA%\MerchSys\` in File Explorer.
+2. Rename `merchsys.db` to `merchsys.db.bak` (this is your backup).
+3. Press **F5** to launch the app in Debug mode. The app will create a new database on startup.
+4. Before logging in, open DB Browser for SQLite and open the new `merchsys.db`.
+5. Look at the `Sys_UserAccounts` table.
+
+**What you should see:**
+- Two rows: `manager` (Role=1) and `owner` (Role=2).
+- Both have Argon2id password hashes (starting with `$argon2id$v=19$m=19456,t=2,p=1$`).
+- Both have `LastPasswordChangeAt = NULL` (signals first-login state).
+
+- [ ] Fresh DB: Sys_UserAccounts has 2 seeded users with Argon2id hashes
+
+---
+
+### Test 11: Manager login with mandatory password change
+
+**What to do:**
+1. Launch the app (F5). A login screen should appear.
+2. Enter username `manager` and password `Vista2026!`.
+3. Click **LOG IN**.
+
+> **LoginView file:** `WPF_Applications\MerchSys\src\MerchSys.App\Views\LoginView.xaml`
+> **LoginViewModel:** `WPF_Applications\MerchSys\src\MerchSys.App\ViewModels\LoginViewModel.vb`
+
+**What you should see:**
+- A password-change panel appears ("first login" prompt per DA6 — no default credentials in production use).
+- Enter a new password (≥ 8 characters), confirm it, and click **Set Password & Continue**.
+- The main shell appears with Manager navigation: Sales Cart, Credit Management, Transaction History, Daily Summary, VAT Settings, Purchase Orders, Goods Receiving, Vendor Directory, Accounts Payable, Reorder Suggestions, Stock Dashboard, Product Management, Expiry Monitor, Shrinkage, Financial Overview, Income Statement, Sales Summary, Tamper Audit Report, VAT Return (BIR).
+
+- [ ] Manager login: password change prompt shown, new password accepted, main shell visible with full Manager sidebar
+
+---
+
+### Test 12: Owner login with restricted navigation
+
+**What to do:**
+1. If you are already logged in, click the **Log Out** button in the sidebar.
+2. On the login screen, enter username `owner` and password `Vista2026!`.
+3. Complete the mandatory password change (same as Test 11).
+
+**What you should see:**
+- The main shell appears with Owner-restricted navigation only:
+  - Owner Dashboard
+  - Transaction History
+  - Purchase Orders, Accounts Payable
+  - Stock Dashboard
+  - Financial Overview, Income Statement, Sales Summary
+- You do **NOT** see: Sales Cart, Credit Management, Daily Summary, VAT Settings, Goods Receiving, Vendor Directory, Reorder Suggestions, Product Management, Expiry Monitor, Shrinkage, Tamper Audit Report, VAT Return (BIR).
+
+- [ ] Owner login: restricted sidebar — only read-only views visible
+
+---
+
+### Test 13: Account lockout after 5 failed attempts
+
+**What to do:**
+1. Log out if logged in.
+2. On the login screen, enter username `manager` and an **incorrect** password.
+3. Click **LOG IN**.
+4. Repeat this 5 times total (5 wrong passwords in a row).
+
+> **Auth service:** `WPF_Applications\MerchSys\src\MerchSys.App\Services\IAuthenticationService.vb`
+
+**What you should see:**
+- After the 5th failed attempt, the error message says the account is locked and shows remaining minutes (approximately 15 minutes).
+- Entering the **correct** password while locked still shows the lockout message.
+
+- [ ] 5 wrong passwords: lockout message with remaining minutes displayed
+
+---
+
+### Test 14: Role switch via logout/re-login
+
+**What to do:**
+1. Log in as `manager` (use the password you set in Test 11).
+2. Note the sidebar items.
+3. Click the **Log Out** button in the sidebar.
+4. Log in as `owner` (use the password you set in Test 12).
+5. Note the sidebar items.
+
+**What you should see:**
+- After logging out as Manager and logging in as Owner, the sidebar changes to show only Owner-visible items.
+- The landing page changes to the Owner Dashboard.
+
+- [ ] Logout → re-login as different role: sidebar and landing page change correctly
+
+---
+
+### Test 15: Disabled account cannot log in
+
+**What to do:**
+1. Open DB Browser for SQLite and open `%LOCALAPPDATA%\MerchSys\merchsys.db`.
+2. Set `IsActive = 0` on the `owner` row in `Sys_UserAccounts`.
+3. Save the change.
+4. In the app, log out (or restart the app).
+5. Try to log in as `owner` with the correct password.
+
+**What you should see:**
+- Login fails with "Invalid credentials" — the error message does NOT reveal that the account is disabled (OWASP best practice).
+
+**After the test:** Set `IsActive` back to `1` in DB Browser so the `owner` account works for future tests.
+
+- [ ] Disabled account: login fails with generic error, no information leakage
+
+---
+
+## INFRA-16 — Owner Dashboard & Read-Only View Enforcement
+
+### Test 16: Owner landing page is the Owner Dashboard
+
+**What to do:**
+1. Log in as `owner`.
+2. Look at the content area (the main panel to the right of the sidebar).
+
+> **OwnerDashboardView:** `WPF_Applications\MerchSys\src\MerchSys.App\Views\OwnerDashboardView.xaml`
+> **OwnerDashboardViewModel:** `WPF_Applications\MerchSys\src\MerchSys.App\ViewModels\OwnerDashboardViewModel.vb`
+
+**What you should see:**
+- The Owner Dashboard is displayed as the landing page (not the Stock Dashboard).
+- The dashboard shows a 2×2 grid of KPI cards: Purchasing, Inventory, Sales, Accounting.
+
+- [ ] Owner landing page is OwnerDashboardView (not Stock Dashboard)
+
+---
+
+### Test 17: Owner Dashboard KPI cards show data and interpretations
+
+**What to do:**
+1. While logged in as Owner, look at each of the four KPI cards on the Owner Dashboard.
+2. Check that each card shows:
+   - Numeric KPIs (counts, amounts)
+   - A "What This Means" plain-language interpretation section
+
+**What you should see:**
+- **Purchasing card:** Active vendors, open POs, pending deliveries, overdue AP + interpretation text
+- **Inventory card:** Total SKUs, stock value, low-stock items, expiring soon + interpretation text
+- **Sales card:** Today's revenue, weekly revenue, transactions today, top product + interpretation text
+- **Accounting card:** Net income, overdue AR, upcoming AP + interpretation text
+- If there is no data yet, the interpretation should say something like "No sales recorded" or "All settled" — not show an error.
+
+- [ ] All 4 KPI cards display numeric values and "What This Means" interpretation text
+
+---
+
+### Test 18: Owner sidebar excludes CRUD views
+
+**What to do:**
+1. While logged in as Owner, carefully read every item in the sidebar navigation.
+2. Compare against the expected list.
+
+> **Navigation config:** `WPF_Applications\MerchSys\src\MerchSys.App\ViewModels\MainWindowViewModel.vb` — search for `BuildOwnerNavigationGroups` or `BuildManagerNavigationGroups`.
+
+**Owner SHOULD see:**
+- Owner Dashboard
+- Transaction History
+- Purchase Orders, Accounts Payable
+- Stock Dashboard
+- Financial Overview, Income Statement, Sales Summary
+
+**Owner should NOT see:**
+- Sales Cart, Credit Management, Daily Summary, VAT Settings
+- Goods Receiving, Vendor Directory, Reorder Suggestions
+- Product Management, Expiry Monitor, Shrinkage
+- Tamper Audit Report, VAT Return (BIR)
+- Developer Tools
+
+- [ ] Owner sidebar: only read-only views listed
+- [ ] Owner sidebar: no CRUD/operational views visible
+
+---
+
+### Test 19: Write buttons disabled for Owner on shared views
+
+**What to do:**
+1. While logged in as Owner, navigate to **Transaction History**.
+2. Look for the "Process Return" button.
+3. Navigate to **Accounts Payable**.
+4. Look for the "Record Payment" button.
+5. Navigate to **Purchase Orders**.
+6. Look for action buttons (Create, Edit, etc.).
+
+**What you should see:**
+- "Process Return" button on Transaction History is **disabled** (greyed out).
+- "Record Payment" button on AP Ledger is **disabled** (greyed out).
+- Action buttons on Purchase Orders are **hidden or disabled**.
+
+- [ ] Transaction History: "Process Return" disabled for Owner
+- [ ] AP Ledger: "Record Payment" disabled for Owner
+- [ ] Purchase Orders: action buttons hidden/disabled for Owner
+
+---
+
+### Test 20: Shell header shows username and role
+
+**What to do:**
+1. While logged in as Owner, look at the sidebar area (near the Log Out button).
+2. Log out and log in as Manager.
+3. Look at the same area.
+
+**What you should see:**
+- When logged in as Owner: displays `owner` and `Owner` (or similar role label).
+- When logged in as Manager: displays `manager` and `Manager`.
+
+- [ ] Shell header shows correct username and role for Owner
+- [ ] Shell header shows correct username and role for Manager
+
+---
+
+### Test 21: Owner Dashboard auto-refresh
+
+**What to do:**
+1. Log in as Owner.
+2. Watch the Owner Dashboard for at least 90 seconds without clicking anything.
+3. If possible, make a change in a second instance of the app (e.g., create a sale as Manager) during this time.
+
+**What you should see:**
+- The dashboard data refreshes automatically (you may see a brief loading indicator or the numbers updating).
+- The "Last refreshed" timestamp (if shown) updates approximately every 60 seconds.
+
+- [ ] Owner Dashboard auto-refreshes within ~60 seconds
