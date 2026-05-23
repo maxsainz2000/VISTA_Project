@@ -214,8 +214,8 @@ generated: 2026-05-17
 - Both UPDATE and DELETE fail on both archive tables.
 - Archive records are permanent and cannot be changed or removed.
 
-- [ ] Pos_OfficialReceiptArchive rejects UPDATE and DELETE
-- [ ] Pos_ReceiptIntegrityArchive rejects UPDATE and DELETE
+- [x] Pos_OfficialReceiptArchive rejects UPDATE and DELETE — PASS. UPDATE and DELETE both returned `Error: BIR-archive-immutable` (exit code 1). Triggers `pos_receipt_archive_no_update` and `pos_receipt_archive_no_delete` confirmed working.
+- [x] Pos_ReceiptIntegrityArchive rejects UPDATE and DELETE — PASS. UPDATE and DELETE both returned `Error: BIR-archive-immutable` (exit code 1). Triggers `pos_integrity_archive_no_update` and `pos_integrity_archive_no_delete` confirmed working.
 
 ---
 
