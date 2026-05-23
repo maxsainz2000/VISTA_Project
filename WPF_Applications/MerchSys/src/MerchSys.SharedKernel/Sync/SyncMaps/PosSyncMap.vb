@@ -75,6 +75,8 @@ Namespace Sync.SyncMaps
         Public Property CreatedAt As DateTime
         Public Property ModifiedBy As String
         Public Property ModifiedAt As DateTime?
+        ''' <summary>SHA-256 hash from Pos_ReceiptIntegrity; Nothing for receipts created before POS-13.</summary>
+        Public Property IntegrityHash As String
     End Class
 
     Public Class RemoteCreditPayment

@@ -269,7 +269,7 @@ generated: 2026-05-17
 - First run: script completes without errors, columns/indexes are created.
 - Second run: script completes without errors again (the `IF NOT EXISTS` guards prevent duplicates).
 
-- [ ] Schema alignment SQL runs twice without errors
+- [X] Schema alignment SQL runs twice without errors — both runs exit 0; Status (VARCHAR 20, NOT NULL, default 'Issued'), IssuedAt (DATETIME(6), NOT NULL), IntegrityHash (VARCHAR 64, nullable), and IX_OfficialReceipts_IssuedAt index all confirmed present on Pos_OfficialReceipts.
 
 ---
 
@@ -291,7 +291,7 @@ generated: 2026-05-17
 - `IssuedAt` has a valid timestamp.
 - `IntegrityHash` has a non-empty hash string.
 
-- [ ] Receipt row syncs to MariaDB with Status, IssuedAt, and IntegrityHash filled in
+- [X] Receipt row syncs to MariaDB with Status, IssuedAt, and IntegrityHash filled in — OR-2026-0009 (Id 219): Status='Issued', IssuedAt='2026-05-23 18:31:08.661388', IntegrityHash='cebffb6ae18fd3e16a63ea46878fa287639255562d099cef139377c3a178eb9d'. Three fixes applied: (1) IntegrityHash added to RemoteOfficialReceipt POCO; (2) VatAwareReceiptService patches journal payload after ComputeAndPersistAsync; (3) SyncWorker fixed to run sync on every healthy probe cycle, not just on first Online transition.
 
 ---
 

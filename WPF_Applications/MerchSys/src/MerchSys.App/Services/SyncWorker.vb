@@ -53,15 +53,12 @@ Namespace Services
                     Dim result = Await _probe.ProbeAsync()
 
                     If result.IsHealthy Then
-                        If previousStatus = SyncStatus.Offline OrElse
-                           previousStatus = SyncStatus.Probing Then
-                            SetStatus(SyncStatus.Syncing)
-                            Using scope = _scopeFactory.CreateScope()
-                                Dim orchestrator = scope.ServiceProvider.
-                                    GetRequiredService(Of SyncOrchestrator)()
-                                Await orchestrator.RunAsync(stoppingToken)
-                            End Using
-                        End If
+                        SetStatus(SyncStatus.Syncing)
+                        Using scope = _scopeFactory.CreateScope()
+                            Dim orchestrator = scope.ServiceProvider.
+                                GetRequiredService(Of SyncOrchestrator)()
+                            Await orchestrator.RunAsync(stoppingToken)
+                        End Using
                         SetStatus(SyncStatus.Online)
                     Else
                         SetStatus(SyncStatus.Offline)
