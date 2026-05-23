@@ -25,11 +25,14 @@ Namespace Tests
         ''' </summary>
         Public Async Function RunAsync() As Task
             Dim tempDb = IO.Path.Combine(IO.Path.GetTempPath(), $"harness_{Guid.NewGuid():N}.db")
-            Try
-                Await RunAsync($"Data Source={tempDb}")
-            Finally
-                If IO.File.Exists(tempDb) Then IO.File.Delete(tempDb)
-            End Try
+            Await RunAsync($"Data Source={tempDb}")
+            ' Best-effort cleanup — SQLite WAL mode may still hold the file open briefly.
+            For Each f In {tempDb, tempDb & "-wal", tempDb & "-shm"}
+                Try
+                    If IO.File.Exists(f) Then IO.File.Delete(f)
+                Catch __ex As IO.IOException
+                End Try
+            Next
         End Function
 
         ''' <summary>
