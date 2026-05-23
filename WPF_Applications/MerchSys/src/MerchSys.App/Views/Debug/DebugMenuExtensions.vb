@@ -5,6 +5,7 @@ Imports System.Windows.Controls
 Imports System.Windows.Media
 Imports Microsoft.Extensions.Hosting
 Imports MerchSys.Accounting.Debug
+Imports MerchSys.POS.Tests
 
 ''' <summary>
 ''' Holds the IHost reference so debug harnesses (running inside MerchSys.App) can resolve
@@ -127,6 +128,33 @@ Namespace Views.Debug
             AddHandler chainBtn.Click, AddressOf RunEventChainHarness_Click
             root.Children.Add(chainBtn)
 
+            root.Children.Add(New Separator() With {.Margin = New Thickness(0, 24, 0, 24)})
+
+            root.Children.Add(New TextBlock() With {
+                .Text = "POS Receipt Sequence Concurrency (POS-13)",
+                .FontSize = 15,
+                .FontWeight = FontWeights.SemiBold,
+                .Margin = New Thickness(0, 0, 0, 6)
+            })
+            root.Children.Add(New TextBlock() With {
+                .Text = "Fires 1000 parallel GetNextReceiptNumberAsync calls against a temp scratch database " &
+                        "and asserts no duplicate or missing sequence numbers.",
+                .Foreground = Brushes.DimGray,
+                .FontSize = 12,
+                .TextWrapping = TextWrapping.Wrap,
+                .MaxWidth = 520,
+                .Margin = New Thickness(0, 0, 0, 12)
+            })
+
+            Dim posSeqBtn As New Button() With {
+                .Content = "Run POS Sequence Concurrency Harness",
+                .Padding = New Thickness(18, 8, 18, 8),
+                .FontSize = 13,
+                .HorizontalAlignment = HorizontalAlignment.Left
+            }
+            AddHandler posSeqBtn.Click, AddressOf RunPosSequenceHarness_Click
+            root.Children.Add(posSeqBtn)
+
             Content = root
         End Sub
 
@@ -228,6 +256,45 @@ Namespace Views.Debug
                     "Event Chain Harness",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error)
+            End If
+        End Sub
+
+        Private Async Sub RunPosSequenceHarness_Click(sender As Object, e As RoutedEventArgs)
+            Dim btn = DirectCast(sender, Button)
+            btn.IsEnabled = False
+            btn.Content = "Running… (1000 calls)"
+
+            Dim output As String = String.Empty
+            Dim runError As Exception = Nothing
+            Dim sw As New IO.StringWriter()
+            Dim prevOut = System.Console.Out
+            System.Console.SetOut(sw)
+            Try
+                Await Pos_SequenceConcurrencyHarness.RunAsync()
+            Catch ex As Exception
+                runError = ex
+            Finally
+                System.Console.SetOut(prevOut)
+                output = sw.ToString()
+            End Try
+
+            btn.IsEnabled = True
+            btn.Content = "Run POS Sequence Concurrency Harness"
+
+            If runError IsNot Nothing Then
+                MessageBox.Show(
+                    $"Harness run failed: {runError.GetType().Name}: {runError.Message}" &
+                    Environment.NewLine & Environment.NewLine & runError.ToString(),
+                    "POS Sequence Concurrency Harness",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error)
+            Else
+                Dim passed = output.Contains("[PASS]")
+                Dim icon = If(passed, MessageBoxImage.Information, MessageBoxImage.Warning)
+                MessageBox.Show(output,
+                    "POS Sequence Concurrency Harness",
+                    MessageBoxButton.OK,
+                    icon)
             End If
         End Sub
 

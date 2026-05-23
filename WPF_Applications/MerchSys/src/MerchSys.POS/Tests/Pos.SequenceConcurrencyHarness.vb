@@ -16,7 +16,7 @@ Namespace Tests
     ''' Invoke <see cref="RunAsync"/> from a console app or interactive session pointing at a scratch database.
     ''' </para>
     ''' </summary>
-    Friend Module Pos_SequenceConcurrencyHarness
+    Public Module Pos_SequenceConcurrencyHarness
 
         ''' <summary>
         ''' Runs 1000 parallel <c>GetNextReceiptNumberAsync</c> calls against a temporary
