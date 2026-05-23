@@ -19,6 +19,20 @@ Namespace Tests
     Friend Module Pos_SequenceConcurrencyHarness
 
         ''' <summary>
+        ''' Runs 1000 parallel <c>GetNextReceiptNumberAsync</c> calls against a temporary
+        ''' scratch database and asserts the results are unique and form a contiguous sequence.
+        ''' Invoke this overload from the Immediate Window: <c>? Await Pos_SequenceConcurrencyHarness.RunAsync()</c>
+        ''' </summary>
+        Public Async Function RunAsync() As Task
+            Dim tempDb = IO.Path.Combine(IO.Path.GetTempPath(), $"harness_{Guid.NewGuid():N}.db")
+            Try
+                Await RunAsync($"Data Source={tempDb}")
+            Finally
+                If IO.File.Exists(tempDb) Then IO.File.Delete(tempDb)
+            End Try
+        End Function
+
+        ''' <summary>
         ''' Runs 1000 parallel <c>GetNextReceiptNumberAsync</c> calls and asserts the results
         ''' are unique and form a contiguous sequence 1-1000.
         ''' </summary>
