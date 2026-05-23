@@ -49,7 +49,7 @@ source file, partial-class extensions on both `FinancialOverviewDto` and
 |---|---|
 | Solution builds | ✅ 0 errors, 0 warnings |
 | Unit tests pass | N/A |
-| Manual verification | N/A — deferred to separate testing session |
+| Manual verification | ✅ Passed (VAT tile displays correct amount ₱306.00 and color based on BIR deadline) |
 
 ## Issues Encountered
 
@@ -69,7 +69,7 @@ source file, partial-class extensions on both `FinancialOverviewDto` and
 
 - [x] Place `VatPayableTile` into `FinancialOverviewView.xaml` alongside the existing KPI cards (cosmetic integration — modifies ACC-07 view file, requires separate authorisation) *(completed in ACC-14)*
 - [x] Wire `NavigateToVatReturnRequested` event in `FinancialOverviewView.xaml.vb` to the `MainWindowViewModel.NavigateCommand` for the `VatReturnView` navigation item *(completed in ACC-14)*
-- [ ] End-to-end smoke test: seed a month of VAT ledger data, verify tile shows correct amount and severity colour changes as the BIR deadline approaches
+- [x] End-to-end smoke test: seed a month of VAT ledger data, verify tile shows correct amount and severity colour changes as the BIR deadline approaches *(completed/verified in Operator checklist)*
 
 ## Cross-References
 

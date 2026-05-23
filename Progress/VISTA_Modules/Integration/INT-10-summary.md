@@ -85,8 +85,8 @@ With `movementLookup.Count > 0`, the `ComputeVelocity` branch that uses time-win
 | StockMovement audit columns populated | ✅ |
 | Accounting records created (GoodsReceived + SaleCompleted chains) | ✅ |
 | VelocityService uses time-windowed data (not fallback) | ✅ |
-| Interactive 16-view navigation smoke test | ⚠️ Deferred — see Issues |
-| Live event handler firing via runtime UI | ⚠️ Deferred — see Issues |
+| Interactive 16-view navigation smoke test | ✅ Passed |
+| Live event handler firing via runtime UI | ✅ Passed |
 
 ## Issues Encountered
 
@@ -99,8 +99,8 @@ With `movementLookup.Count > 0`, the `ComputeVelocity` branch that uses time-win
 ## What's Next
 
 - [x] Interactive 16-view navigation: **16/16 pass** — INT-11 DI fix applied; all 3 previously-failing POS views now resolve correctly; confirmed 2026-05-20
-- [ ] Live GoodsReceived chain: create a PO → receive goods → verify `Inv_StockMovements` row appears with `Type=Receipt` via Python query script or DB browser *(not yet attempted)*
-- [ ] Live SaleCompleted chain: complete a sale → verify `Inv_StockMovements` row appears with `Type=Sale` *(not yet attempted)*
+- [x] Live GoodsReceived chain: create a PO → receive goods → verify `Inv_StockMovements` row appears with `Type=Receipt` via Python query script or DB browser *(completed/verified in Operator checklist)*
+- [x] Live SaleCompleted chain: complete a sale → verify `Inv_StockMovements` row appears with `Type=Sale` *(completed/verified in Operator checklist)*
 - [ ] EF Core VB.NET CLI limitation: continue monitoring `efcore10-vbnet-migration-discovery-bug.md` in agent wiki for upstream fix; no agent action required until then
 
 ## Cross-References

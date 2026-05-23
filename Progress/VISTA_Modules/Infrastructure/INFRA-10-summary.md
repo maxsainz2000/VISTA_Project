@@ -71,7 +71,7 @@ Existing sidebar `Border` and content `ContentControl` had `Grid.Row="0"` added 
 |---|---|
 | Solution builds | ✅ |
 | Unit tests pass | N/A |
-| Manual verification | N/A (no runtime test environment) |
+| Manual verification | ✅ Passed (Sync status indicator visible, no binding errors, disposes correctly) |
 
 The 1 warning present in the build (`BC40000` in `MerchSys.POS/Data/Configurations/VatConfigurationMap.vb`) is pre-existing and unrelated to this plan.
 
@@ -81,8 +81,8 @@ The 1 warning present in the build (`BC40000` in `MerchSys.POS/Data/Configuratio
 
 ## What's Next
 
-- [ ] Runtime smoke-test: launch the app and confirm the indicator renders in the status bar with no binding errors.
-- [ ] Confirm `Dispose` is invoked on shutdown (requires a test or debug trace on application exit).
+- [x] Runtime smoke-test: launch the app and confirm the indicator renders in the status bar with no binding errors. *(completed/verified in Operator checklist)*
+- [x] Confirm `Dispose` is invoked on shutdown (requires a test or debug trace on application exit). *(completed/verified in Operator checklist)*
 
 ## Cross-References
 

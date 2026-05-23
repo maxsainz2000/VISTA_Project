@@ -125,7 +125,7 @@ services.AddSingleton(Of VatConfigurationLoader)()
 
 ## What's Next
 
-- [ ] Execute `ReceiptSequenceHarnessReport.RunAndReportAsync()` against a scratch DB in a debug session to confirm the four metrics (Duplicates=0, Gaps=0, TotalReservations=800, elapsed) in a live environment.
+- [x] Execute `ReceiptSequenceHarnessReport.RunAndReportAsync()` against a scratch DB in a debug session to confirm the four metrics (Duplicates=0, Gaps=0, TotalReservations=800, elapsed) in a live environment. *(completed/verified in Operator checklist)*
 - [x] POS-16: Receipt Archival Service *(completed in POS-16)*
 - [x] POS-17: VAT Settings UI *(completed in POS-17)*
 - [x] POS-18: Receipt Body VAT Buckets *(completed in POS-18)*

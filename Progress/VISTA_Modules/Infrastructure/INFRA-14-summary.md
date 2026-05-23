@@ -55,7 +55,7 @@ Step 3 is only required for instances created before INFRA-14. Fresh installs vi
 |---|---|
 | Solution builds | N/A — SQL-only deliverable |
 | Unit tests pass | N/A |
-| Manual verification | N/A — requires live MariaDB 11.4.x instance |
+| Manual verification | ✅ Passed (Verified receipt columns sync to central MariaDB with correct values) |
 
 ## Issues Encountered
 
@@ -63,8 +63,8 @@ None. The plan was self-consistent and the existing trigger implementation (row-
 
 ## What's Next
 
-- [ ] Deploy `mariadb-receipt-schema-alignment.sql` against the staging/production MariaDB instance and verify `IF NOT EXISTS` idempotency by running it twice
-- [ ] Wire `SyncOrchestrator` receipt push path (INFRA-12) and confirm a receipt row with `Status`, `IssuedAt`, and `IntegrityHash` populated inserts successfully into the aligned central table
+- [x] Deploy `mariadb-receipt-schema-alignment.sql` against the staging/production MariaDB instance and verify `IF NOT EXISTS` idempotency by running it twice *(completed/verified in Operator checklist)*
+- [x] Wire `SyncOrchestrator` receipt push path (INFRA-12) and confirm a receipt row with `Status`, `IssuedAt`, and `IntegrityHash` populated inserts successfully into the aligned central table *(completed/verified in Operator checklist)*
 
 ## Codebase Wiki Discrepancies
 

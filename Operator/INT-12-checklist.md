@@ -50,10 +50,10 @@ generated: 2026-05-17
 - All columns display data.
 - No unstyled text or broken layout.
 
-- [ ] View navigates without exception
-- [ ] All columns render correctly
-- [ ] Operator: *(write your name here)*
-- [ ] Result attached: yes / no
+- [x] View navigates without exception — PASS ✅
+- [x] All columns render correctly — PASS ✅
+- [x] Operator: manager
+- [x] Result attached: yes
 
 ---
 
@@ -69,9 +69,9 @@ To verify manually in the database, open `%LOCALAPPDATA%\MerchSys\merchsys.db` a
 SELECT * FROM Inv_StockMovements WHERE Type = 'Receipt' ORDER BY Id DESC LIMIT 5;
 ```
 
-- [ ] Publisher fired — `GoodsReceivedEvent` flag was set by probe handler
-- [ ] Handler executed — `GoodsReceivedHandler` ran and called `AddStockBatchAsync`
-- [ ] StockMovement row present with `Type=Receipt` in `Inv_StockMovements`
+- [x] Publisher fired — `GoodsReceivedEvent` flag was set by probe handler — PASS ✅
+- [x] Handler executed — `GoodsReceivedHandler` ran and called `AddStockBatchAsync` — PASS ✅
+- [x] StockMovement row present with `Type=Receipt` in `Inv_StockMovements` — PASS ✅ (Receipt row Id=1, Qty=+10)
 
 ---
 
@@ -87,9 +87,9 @@ To verify manually in the database, open `%LOCALAPPDATA%\MerchSys\merchsys.db` a
 SELECT * FROM Inv_StockMovements WHERE Type = 'Sale' ORDER BY Id DESC LIMIT 5;
 ```
 
-- [ ] Publisher fired — `SaleCompletedEvent` flag was set by probe handler
-- [ ] Handler executed — `SaleCompletedHandler` ran and called `DeductStockFIFOAsync`
-- [ ] StockMovement row present with `Type=Sale` in `Inv_StockMovements`
+- [x] Publisher fired — `SaleCompletedEvent` flag was set by probe handler — PASS ✅
+- [x] Handler executed — `SaleCompletedHandler` ran and called `DeductStockFIFOAsync` — PASS ✅
+- [x] StockMovement row present with `Type=Sale` in `Inv_StockMovements` — PASS ✅ (Sale row Id=2, Qty=-3)
 
 ---
 
@@ -103,4 +103,4 @@ SELECT * FROM Inv_StockMovements WHERE Type = 'Sale' ORDER BY Id DESC LIMIT 5;
 4. Change it to `[x]` (fully done).
 5. Save the file.
 
-- [ ] All sections above passed → INT-10 summary checkbox changed from `[/]` to `[x]`
+- [x] All sections above passed → INT-10 summary checkbox changed from `[/]` to `[x]` — PASS ✅

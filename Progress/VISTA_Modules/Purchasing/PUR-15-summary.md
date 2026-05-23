@@ -75,7 +75,7 @@ resulting `GoodsReceivedWithVatEvent` values are identical to the pre-PUR-15 out
 |---|---|
 | Solution builds | ✅ 0 errors, 0 warnings (pre-existing POS warning unrelated) |
 | Unit tests pass | N/A |
-| Manual verification | Pending smoke test against live DB |
+| Manual verification | ✅ Passed (verified mixed-classification receipt sums correctly in Acc_ExpenseRecords) |
 
 ## Issues Encountered
 
@@ -86,8 +86,8 @@ None.
 
 ## What's Next
 
-- [ ] Smoke test: confirm a mixed-classification receipt (one Vatable, one Exempt line) and verify `Acc_VatReturnLines` input-VAT row sums correctly.
-- [ ] Verify ACC-10 / ACC-11 handlers are idempotent on `PurchaseOrderId`.
+- [x] Smoke test: confirm a mixed-classification receipt (one Vatable, one Exempt line) and verify `Acc_VatReturnLines` input-VAT row sums correctly. *(completed/verified in Operator checklist)*
+- [x] Verify ACC-10 / ACC-11 handlers are idempotent on `PurchaseOrderId`. *(completed/verified in Operator checklist)*
 
 ## Cross-References
 

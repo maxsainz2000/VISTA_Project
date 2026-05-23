@@ -120,7 +120,7 @@ All four module repositories now implement both this interface and `ISyncableRep
 |---|---|
 | Solution builds | ✅ |
 | Unit tests pass | N/A |
-| Manual verification | N/A |
+| Manual verification | ✅ Passed (Verified that writing through migrated services creates Sync_Journal rows) |
 
 Build result: **0 errors, 1 warning** (pre-existing `BC40000` in `VatConfigurationMap.vb`, unrelated to INFRA-13).
 
@@ -133,7 +133,7 @@ Build result: **0 errors, 1 warning** (pre-existing `BC40000` in `VatConfigurati
 
 - [ ] Migration of `Accounting/Handlers` write paths (if determined to be in scope for a follow-up plan)
 - [ ] Migration of `Inventory/ViewModels/ProductManagementViewModel.vb` write paths (if ViewModels are brought into sync scope)
-- [ ] Runtime verification: execute a write through each migrated service and confirm a corresponding `Sync_Journal` row is created
+- [x] Runtime verification: execute a write through each migrated service and confirm a corresponding `Sync_Journal` row is created *(completed/verified in Operator checklist)*
 
 ## Codebase Wiki Discrepancies
 

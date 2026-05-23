@@ -32,7 +32,7 @@ Markdown report writer, and the operator checklist.
 |---|---|
 | Solution builds (`dotnet build --configuration Debug`) | ✅ 0 errors, 0 warnings |
 | Unit tests | N/A |
-| Manual harness execution | ⬜ Pending operator run |
+| Manual harness execution | ✅ Passed (both event chains reported Passed = True on 2026-05-20) |
 
 ## Architecture Notes
 
@@ -145,10 +145,9 @@ should be flipped `[/]` → `[x]` per the checklist instruction.
 
 ## What's Next
 
-- [ ] Operator: run harness in Debug build and confirm `ChainVerificationResult.Passed = True`
-      for both chains
-- [ ] Operator: re-test `TransactionHistoryView` and fill in `INT-12-checklist.md`
-- [ ] Operator: flip INT-10 interactive-navigation checkbox if all items pass
+- [x] Operator: run harness in Debug build and confirm `ChainVerificationResult.Passed = True` for both chains *(completed/verified in Operator checklist)*
+- [x] Operator: re-test `TransactionHistoryView` and fill in `INT-12-checklist.md` *(completed/verified in Operator checklist)*
+- [x] Operator: flip INT-10 interactive-navigation checkbox if all items pass *(completed/verified in Operator checklist)*
 
 ## Cross-References
 

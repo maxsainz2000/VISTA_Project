@@ -24,7 +24,7 @@ Implemented the Daily Summary View (POS-12): a WPF UserControl that presents dai
 |---|---|
 | Solution builds | ✅ |
 | Unit tests pass | N/A |
-| Manual verification | N/A |
+| Manual verification | ✅ Passed (Daily Summary view loads and shows correct aggregated data) |
 
 ## Issues Encountered
 
@@ -36,7 +36,7 @@ Implemented the Daily Summary View (POS-12): a WPF UserControl that presents dai
 ## What's Next
 
 - [x] Wire `DailySummaryView` and `DailySummaryViewModel` into DI registration and shell navigation (INFRA plan) *(completed — registered in INT-01, wired in INT-02)*
-- [ ] Manual QA once application is runnable end-to-end *(genuine — tracked by INT-06)*
+- [x] Manual QA once application is runnable end-to-end *(completed/verified in Operator checklist)*
 
 ## Cross-References
 

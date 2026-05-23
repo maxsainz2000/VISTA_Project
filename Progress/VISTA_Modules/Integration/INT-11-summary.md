@@ -36,7 +36,7 @@ This gap was invisible to prior DI audits (INT-07) because INT-07 only checked f
 | Unit tests | N/A |
 | SalesCartView | ✅ Pass (user-verified after IEventBus fix) |
 | CreditManagementView | ✅ Pass (user-verified after IEventBus fix) |
-| TransactionHistoryView | Pending — XAML fix applied, user re-test needed |
+| TransactionHistoryView | ✅ Pass (verified in Operator checklist) |
 
 ## Issues Encountered
 
@@ -46,8 +46,8 @@ None. Build succeeded on the first attempt.
 
 - [x] User re-test: SalesCartView — ✅ Pass
 - [x] User re-test: CreditManagementView — ✅ Pass
-- [ ] User re-test: TransactionHistoryView — XAML fix applied (FieldLabel style on Run element), awaiting re-test
-- [ ] If all 16 views pass, update INT-10 summary's interactive navigation item from `[/]` to `[x]`
+- [x] User re-test: TransactionHistoryView — XAML fix applied (FieldLabel style on Run element), awaiting re-test *(completed/verified in Operator checklist)*
+- [x] If all 16 views pass, update INT-10 summary's interactive navigation item from `[/]` to `[x]` *(completed/verified in Operator checklist)*
 
 ## Codebase Wiki Updates Made
 

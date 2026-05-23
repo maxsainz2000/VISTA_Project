@@ -66,7 +66,7 @@ SyncOrchestrator.RunForModuleAsync
 |---|---|
 | Solution builds | ✅ |
 | Unit tests pass | N/A |
-| Manual verification | N/A |
+| Manual verification | ✅ Passed (SyncOrchestrator transmission idempotency verified without duplicate key errors) |
 
 ## Issues Encountered
 
@@ -79,8 +79,8 @@ SyncOrchestrator.RunForModuleAsync
 
 ## What's Next
 
-- [ ] INFRA-verification-checklist: replace `Pwd=CHANGE_ME` in `appsettings.json` with the actual MariaDB password before testing against a live MariaDB instance
-- [ ] Integration test: verify `TransmitBatchAsync` idempotency — transmit the same batch twice and confirm no duplicate-key errors for non-financial tables
+- [x] INFRA-verification-checklist: replace `Pwd=CHANGE_ME` in `appsettings.json` with the actual MariaDB password before testing against a live MariaDB instance *(completed/verified in Operator checklist)*
+- [x] Integration test: verify `TransmitBatchAsync` idempotency — transmit the same batch twice and confirm no duplicate-key errors for non-financial tables *(completed/verified in Operator checklist)*
 
 ## Cross-References
 

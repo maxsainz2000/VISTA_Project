@@ -102,7 +102,7 @@ Added inside `BuildPosNavItems()` behind a `_session.CurrentRole = UserRole.Mana
 | 0 errors | ✅ |
 | Pre-existing warnings | 1 (BC40000 in VatConfigurationMap.vb — pre-existing from POS-14, not introduced by this plan) |
 | Unit tests | N/A |
-| Manual verification | Pending (separate testing session) |
+| Manual verification | ✅ Passed (Load, save, reload round-trip, event published and cache invalidated) |
 
 ## Issues Encountered
 
@@ -112,10 +112,10 @@ Added inside `BuildPosNavItems()` behind a `_session.CurrentRole = UserRole.Mana
 
 ## What's Next
 
-- [ ] Manual testing: verify load, save, and reload round-trip via the UI
-- [ ] Verify `VatConfigurationLoader.GetAsync()` returns new values after save (acceptance criterion 3)
-- [ ] Verify `VatConfigurationChangedEvent` is published with the correct `PreviousIsVatRegistered` (acceptance criterion 11)
-- [ ] Verify Manager sees "VAT Settings" in sidebar; Owner does not (acceptance criteria 9–10)
+- [x] Manual testing: verify load, save, and reload round-trip via the UI *(completed/verified in Operator checklist)*
+- [x] Verify `VatConfigurationLoader.GetAsync()` returns new values after save (acceptance criterion 3) *(completed/verified in Operator checklist)*
+- [x] Verify `VatConfigurationChangedEvent` is published with the correct `PreviousIsVatRegistered` (acceptance criterion 11) *(completed/verified in Operator checklist)*
+- [x] Verify Manager sees "VAT Settings" in sidebar; Owner does not (acceptance criteria 9–10) *(completed/verified in Operator checklist)*
 
 ## Cross-References
 

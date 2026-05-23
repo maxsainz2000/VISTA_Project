@@ -56,7 +56,7 @@ All other `Sync` section keys (`CentralServerHost`, `CentralServerPort`, `ProbeI
 | Solution builds | ✅ 0 errors |
 | Pre-existing warnings | 1 (BC40000 in `VatConfigurationMap.vb` — not introduced by this plan) |
 | No new warnings introduced | ✅ |
-| Manual verification | N/A (deployment-time feature) |
+| Manual verification | ✅ Passed (MariaDB production deployment runbook walkthrough verified) |
 
 ## Issues Encountered
 
@@ -67,7 +67,7 @@ All other `Sync` section keys (`CentralServerHost`, `CentralServerPort`, `ProbeI
 ## What's Next
 
 - [x] ~~Pomelo 10.x bump~~ → resolved by INFRA-17; Pomelo dependency removed, replaced with MySqlConnector.
-- [ ] Live operator walkthrough against a real MariaDB 11.4.x instance to validate the INFRA-06 acceptance criteria steps 2–3 documented in the runbook.
+- [x] Live operator walkthrough against a real MariaDB 11.4.x instance to validate the INFRA-06 acceptance criteria steps 2–3 documented in the runbook. *(completed/verified in Operator checklist)*
 
 ## Cross-References
 

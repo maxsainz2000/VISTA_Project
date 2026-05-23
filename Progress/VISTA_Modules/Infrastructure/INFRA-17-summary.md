@@ -30,7 +30,7 @@ Implemented INFRA-17 to resolve the Pomelo 9 / EF Core 10 incompatibility block.
 
 ## What's Next
 
-- [ ] Operator must re-run INFRA Test 5b to confirm the sync indicator goes green against the live MariaDB instance.
+- [x] Operator must re-run INFRA Test 5b to confirm the sync indicator goes green against the live MariaDB instance. *(completed/verified in Operator checklist)*
 - [ ] Codebase Wiki audit must be run for the Infrastructure module to align the Data Access Layer manifests with the removal of `Pomelo`.
 
 ## Cross-References

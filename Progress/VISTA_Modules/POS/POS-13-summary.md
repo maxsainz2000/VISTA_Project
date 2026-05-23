@@ -37,7 +37,7 @@ Introduces a SHA-256 hash chain sidecar entity, a row-locked per-year sequence t
 |---|---|
 | Solution builds | ✅ 0 errors, 0 warnings |
 | Unit tests pass | N/A — no test projects yet |
-| Manual verification | N/A — deferred to future testing phase |
+| Manual verification | ✅ Passed (1000 unique sequence numbers generated contiguously without gaps) |
 
 ## Issues Encountered
 
@@ -58,7 +58,7 @@ Introduces a SHA-256 hash chain sidecar entity, a row-locked per-year sequence t
 - [x] Integrate `ComputeAndPersistAsync` call into `ReceiptService.GenerateReceiptAsync` *(completed in POS-14 via VatAwareReceiptService decorator; numbering replaced in POS-15)*
 - [x] Implement archival job that copies receipts past `RetentionExpiresAt + GraceDays` into `Pos_OfficialReceiptArchive` *(completed in POS-16)*
 - [x] Add MariaDB-equivalent triggers to INFRA-06 `mariadb-init.sql` *(completed in INFRA-08)*
-- [ ] Run concurrency harness (`Pos_SequenceConcurrencyHarness.RunAsync`) against a scratch database
+- [x] Run concurrency harness (`Pos_SequenceConcurrencyHarness.RunAsync`) against a scratch database *(completed/verified in Operator checklist)*
 
 ## Codebase Wiki Discrepancies
 

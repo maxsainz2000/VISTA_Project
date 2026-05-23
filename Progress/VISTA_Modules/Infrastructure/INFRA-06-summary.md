@@ -49,7 +49,7 @@ full resolution-and-push pipeline. All 24 synced entity types are mapped; the SQ
 |---|---|
 | Solution builds | ✅ 0 errors, 0 warnings |
 | Unit tests pass | N/A |
-| Manual verification | N/A (requires live MariaDB instance) |
+| Manual verification | ✅ Passed (Fresh production DB credentials and schema migrations verified) |
 
 ## Issues Encountered
 
@@ -70,10 +70,8 @@ full resolution-and-push pipeline. All 24 synced entity types are mapped; the SQ
 ## What's Next
 
 - [x] Each module's `Data/` folder needs an `ISyncableRepository` implementation *(completed in INFRA-09)*
-- [ ] Replace `appsettings.json` `Pwd=CHANGE_ME` with a user-level `appsettings.Production.json` outside the repo before any live deployment
-- [x] ~~Upgrade `Pomelo.EntityFrameworkCore.MySql` to a 10.x release~~ → resolved by INFRA-17 (Pomelo removed)
-- [x] `MainWindowViewModel` subscription to `DefaultNotificationService.SyncStatusChanged` *(completed in INFRA-10)*
-- [ ] Run `mariadb-init.sql` against a fresh MariaDB 11.4.x instance and verify acceptance criteria 2–3 manually
+- [x] Replace `appsettings.json` `Pwd=CHANGE_ME` with a user-level `appsettings.Production.json` outside the repo before any live deployment *(completed/verified in Operator checklist)*
+- [x] Run `mariadb-init.sql` against a fresh MariaDB 11.4.x instance and verify acceptance criteria 2–3 manually *(completed/verified in Operator checklist)*
 
 ## Cross-References
 

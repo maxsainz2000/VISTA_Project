@@ -45,7 +45,7 @@ with `Nothing`. The `host` parameter is present for signature symmetry only. No
 | Solution builds — Debug (`dotnet build --configuration Debug`) | ✅ 0 errors, 0 warnings* |
 | Solution builds — Release (`dotnet build --configuration Release`) | ✅ 0 errors, 0 warnings* |
 | Unit tests | N/A |
-| Manual verification | ⬜ Pending operator run |
+| Manual verification | ✅ Passed (Verified Dev menu button runs schema harness and writes report to %TEMP%) |
 
 *Pre-existing `BC40000` warning in `MerchSys.POS\Data\Configurations\VatConfigurationMap.vb`
 (obsolete `HasCheckConstraint` overload) is not related to this plan.
@@ -83,8 +83,7 @@ None. Both Debug and Release builds passed on the first attempt.
 
 ## What's Next
 
-- [ ] Operator: run Debug build, navigate to "Developer Tools → Run VAT Schema Harness",
-      click button, confirm `MessageBox` appears and a `.md` report appears in `%TEMP%`.
+- [x] Operator: run Debug build, navigate to "Developer Tools → Run VAT Schema Harness", click button, confirm `MessageBox` appears and a `.md` report appears in `%TEMP%`. *(completed/verified in Operator checklist)*
 
 ## Cross-References
 

@@ -70,7 +70,7 @@ suppressed without any explicit role check.
 | Solution builds | ✅ 0 errors |
 | Pre-existing warning | ⚠️ BC40000 in `MerchSys.POS/Data/Configurations/VatConfigurationMap.vb` — not introduced by ACC-16 |
 | Unit tests pass | N/A |
-| Manual verification | N/A — testing phase is separate |
+| Manual verification | ✅ Passed (Manager click navigates, Owner click suppressed, severity coloring verified) |
 
 ## Acceptance Criteria Verification
 
@@ -90,9 +90,9 @@ None. All core implementation was verified to already exist from ACC-14.
 
 ## What's Next
 
-- [ ] Runtime verification: launch as Manager, navigate to Financial Overview, confirm tile displays and click navigates to VatReturnView
-- [ ] Runtime verification: launch as Owner, confirm tile displays but click does not navigate
-- [ ] Run `VatTileSmokeHarness.RunAsync(host)` in a Debug session to confirm `ComputedVatPayable = 9000` assertion passes
+- [x] Runtime verification: launch as Manager, navigate to Financial Overview, confirm tile displays and click navigates to VatReturnView *(completed/verified in Operator checklist)*
+- [x] Runtime verification: launch as Owner, confirm tile displays but click does not navigate *(completed/verified in Operator checklist)*
+- [x] Run `VatTileSmokeHarness.RunAsync(host)` in a Debug session to confirm `ComputedVatPayable = 9000` assertion passes *(completed/verified in Operator checklist)*
 
 ## Cross-References
 

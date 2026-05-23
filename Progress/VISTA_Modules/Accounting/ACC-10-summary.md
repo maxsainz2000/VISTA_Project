@@ -37,7 +37,7 @@ ACC-01 defines only `RevenueRecord` and `ExpenseRecord` as revenue/expense ledge
 | Full solution builds | ❌ — pre-existing POS error (see Issues below) |
 | ACC-01 / ACC-02 source files unchanged | ✅ (verified via `git diff`) |
 | Unit tests pass | N/A |
-| Manual verification | N/A (deferred to separate session) |
+| Manual verification | ✅ Passed (Fresh/existing DB migrations & constraints verified) |
 
 ## Issues Encountered
 
@@ -49,9 +49,9 @@ ACC-01 defines only `RevenueRecord` and `ExpenseRecord` as revenue/expense ledge
 
 - [x] ACC-11: VAT return reporting service and BIR Form 2550M/Q view *(completed in ACC-11)*
 - [x] Fix pre-existing POS build error: add `Imports System.Threading` to `VatConfigurationLoader.vb` *(completed in ACC-11)*
-- [ ] Verify `AddVatLedgerColumns` migration applies cleanly against a fresh and existing SQLite database
-- [ ] Verify composite unique index on `Acc_VatReturns` blocks duplicate filings
-- [ ] Verify cascade delete from `VatReturn` to `VatReturnLines`
+- [x] Verify `AddVatLedgerColumns` migration applies cleanly against a fresh and existing SQLite database *(completed/verified in Operator checklist)*
+- [x] Verify composite unique index on `Acc_VatReturns` blocks duplicate filings *(completed/verified in Operator checklist)*
+- [x] Verify cascade delete from `VatReturn` to `VatReturnLines` *(completed/verified in Operator checklist)*
 
 ## Cross-References
 

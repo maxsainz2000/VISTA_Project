@@ -64,7 +64,7 @@ The ACC-13 plan spec itself preserves the ACC-10 language. The harness was imple
 |---|---|
 | Solution builds | ✅ 0 errors, 0 warnings |
 | Unit tests pass | N/A |
-| Manual verification | Pending (debug harness — run from developer menu) |
+| Manual verification | ✅ Passed (4/4 schema checks passed via developer menu) |
 
 ## Issues Encountered
 
@@ -79,7 +79,7 @@ The ACC-13 plan spec itself preserves the ACC-10 language. The harness was imple
 ## What's Next
 
 - [x] Wire `VatLedgerSchemaHarnessRunner.RunAndReportAsync` to a developer-only menu item in `MerchSys.App` (similar to how INT-13 wired the VAT tile smoke harness). *(completed in ACC-17)*
-- [ ] Run the harness once against the production dev database to produce an actual `CheckResult` output and confirm all four checks pass.
+- [x] Run the harness once against the production dev database to produce an actual `CheckResult` output and confirm all four checks pass. *(completed/verified in Operator checklist)*
 - [ ] Consider adding `IDbContextFactory(Of AccountingDbContext)` registration to `DatabaseConfig.AddModuleDbContexts` if future harnesses need factory-based multi-instance patterns.
 
 ## Cross-References

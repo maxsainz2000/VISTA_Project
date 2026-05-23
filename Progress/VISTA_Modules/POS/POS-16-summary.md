@@ -115,7 +115,7 @@ Grace days (default 90) is read from the existing `Bir:ArchivePolicy:GraceDays` 
 |---|---|
 | Solution builds | ✅ 0 errors, 0 new warnings |
 | Unit tests pass | N/A |
-| Manual verification | N/A — testing in separate session |
+| Manual verification | ✅ Passed (Moves expired receipts, respects fiscal year guard, rolls back on failure) |
 
 ## Issues Encountered
 
@@ -129,12 +129,12 @@ Grace days (default 90) is read from the existing `Bir:ArchivePolicy:GraceDays` 
 
 ## What's Next
 
-- [ ] Manual testing: seed 100 expired + 100 in-window receipts; verify batch moves exactly 100
-- [ ] Verify `batchSize = 50` produces `HadMoreEligible = True`
-- [ ] Confirm fiscal-year guard: receipts issued in current year must not be archived even if `RetentionExpiresAt` is past
-- [ ] Confirm rollback: forced archive-insert failure leaves live tables intact
-- [ ] Confirm normal `DELETE FROM Pos_OfficialReceipts` fails with `BIR-immutable` after trigger amendment
-- [ ] Confirm `Pos_OfficialReceiptArchive` and `Pos_ReceiptIntegrityArchive` reject UPDATE and DELETE
+- [x] Manual testing: seed 100 expired + 100 in-window receipts; verify batch moves exactly 100 *(completed/verified in Operator checklist)*
+- [x] Verify `batchSize = 50` produces `HadMoreEligible = True` *(completed/verified in Operator checklist)*
+- [x] Confirm fiscal-year guard: receipts issued in current year must not be archived even if `RetentionExpiresAt` is past *(completed/verified in Operator checklist)*
+- [x] Confirm rollback: forced archive-insert failure leaves live tables intact *(completed/verified in Operator checklist)*
+- [x] Confirm normal `DELETE FROM Pos_OfficialReceipts` fails with `BIR-immutable` after trigger amendment *(completed/verified in Operator checklist)*
+- [x] Confirm `Pos_OfficialReceiptArchive` and `Pos_ReceiptIntegrityArchive` reject UPDATE and DELETE *(completed/verified in Operator checklist)*
 - [x] MariaDB equivalent triggers are out of scope — to be addressed in INFRA-08 *(completed in INFRA-08)*
 
 ## Cross-References

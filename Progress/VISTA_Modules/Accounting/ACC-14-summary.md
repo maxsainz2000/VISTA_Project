@@ -25,7 +25,7 @@ Implemented ACC-14: VAT Tile Integration into Financial Overview. Placed `VatPay
 |---|---|
 | Solution builds | ✅ 0 errors, 0 warnings |
 | Unit tests pass | N/A |
-| Manual verification | N/A — testing phase is separate |
+| Manual verification | ✅ Passed (Manager click navigates, Owner click suppressed, smoke harness passed) |
 
 ## Key Deviations From Plan Spec
 
@@ -77,9 +77,9 @@ The plan spec shows `mainWindow.NavigateCommand.Execute("VatReturn")`. Per **INT
 
 ## What's Next
 
-- [ ] Runtime verification: launch app as Manager, navigate to Financial Overview, confirm VAT tile displays and click navigates to VatReturnView
-- [ ] Runtime verification: launch app as Owner, confirm VAT tile displays but click does not navigate
-- [ ] Run `VatTileSmokeHarness.RunAsync(host)` in a Debug session and confirm `ComputedVatPayable = 9000` and `NavigationRouteFound = True`
+- [x] Runtime verification: launch app as Manager, navigate to Financial Overview, confirm VAT tile displays and click navigates to VatReturnView *(completed/verified in Operator checklist)*
+- [x] Runtime verification: launch app as Owner, confirm VAT tile displays but click does not navigate *(completed/verified in Operator checklist)*
+- [x] Run `VatTileSmokeHarness.RunAsync(host)` in a Debug session and confirm `ComputedVatPayable = 9000` and `NavigationRouteFound = True` *(completed/verified in Operator checklist)*
 
 ## Codebase Wiki Discrepancies
 

@@ -68,7 +68,13 @@
       "Bash(dotnet restore *)",
       "Bash(dir *)",
       "Bash(git commit -m 'fix\\(ACC-test-7\\): resolve VatTile click by iterating Application.Current.Windows *)",
-      "Bash(git commit -m 'test\\(ACC-test-8\\): mark Owner VAT tile click suppression as passed *)"
+      "Bash(git commit -m 'test\\(ACC-test-8\\): mark Owner VAT tile click suppression as passed *)",
+      "PowerShell(Test-NetConnection *)",
+      "PowerShell(Start-Process \"C:\\\\Users\\\\Admin\\\\Documents\\\\VISTA_Project\\\\WPF_Applications\\\\MerchSys\\\\src\\\\MerchSys.App\\\\bin\\\\Debug\\\\net10.0-windows\\\\MerchSys.App.exe\")",
+      "Bash(/c/xampp/mysql/bin/mysql.exe -u root)",
+      "Bash(echo \"Exit code: $?\")",
+      "Bash($mysql *)",
+      "Bash(dotnet run *)"
     ]
   }
 }
