@@ -25,3 +25,4 @@ All engineering learnings from debugging and error-fixing sessions. Check this i
 | [efcore-hasdefaultvalue-enum-type-mismatch](errors/efcore-hasdefaultvalue-enum-type-mismatch.md) | error-fix | MerchSys.Purchasing | ef-core, enum, vb-net, runtime-error, configuration | claude-code | 2026-05-20 |
 | [efcore-vbnet-tolistasync-entity-empty](errors/efcore-vbnet-tolistasync-entity-empty.md) | error-fix | MerchSys.Purchasing | ef-core, vb-net, sqlite, runtime-error, materialization | claude-code | 2026-05-20 |
 | [vbnet-parameter-shadows-property](antipatterns/vbnet-parameter-shadows-property.md) | antipattern | MerchSys.Purchasing | vb-net, case-insensitive, parameter, property, shadowing, logic-bug | claude-code | 2026-05-20 |
+| [wpf-mainwindow-not-shell-window](patterns/wpf-mainwindow-not-shell-window.md) | pattern | MerchSys.App | wpf, navigation, login, mainwindow, runtime-bug | claude-code | 2026-05-22 |

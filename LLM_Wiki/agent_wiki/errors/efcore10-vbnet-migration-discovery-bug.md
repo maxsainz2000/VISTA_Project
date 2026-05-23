@@ -106,10 +106,32 @@ DatabaseInitializer.Initialize($"Data Source={DatabaseConfig.DatabasePath}")
 
 This gives the production database the exact same schema as the migration files, with the migration history table correctly populated for future compatibility.
 
+## Extension: `MigrateAsync()` on scratch contexts also fails (ACC-test-6, 2026-05-22)
+
+The same discovery bug hits **runtime** `MigrateAsync()` calls on isolated scratch contexts — not only the CLI. `VatLedgerSchemaHarness` used `Await ctx.Database.MigrateAsync()` on a fresh temp-file `AccountingDbContext` expecting it to create the VAT tables. The call succeeded without throwing, but the tables were created empty (no columns) — `PRAGMA table_info` returned 0 rows for both `Acc_VatReturns` and `Acc_VatReturnLines`. All four schema checks then failed with `DbUpdateException` on insert.
+
+**Fix pattern for harness/test scratch databases:** Add a `SetupScratchSchema(scratchPath)` helper that opens a raw `SqliteConnection` and runs the same DDL as `DatabaseInitializer`, using `IF NOT EXISTS` / `INSERT OR IGNORE` for idempotency. Replace every `MigrateAsync()` call in the harness with this helper.
+
+```vb
+Private Shared Sub SetupScratchSchema(scratchPath As String)
+    Using conn As New SqliteConnection($"Data Source={scratchPath}")
+        conn.Open()
+        ExecSchema(conn, "CREATE TABLE IF NOT EXISTS ""__EFMigrationsHistory"" ...")
+        ExecSchema(conn, "INSERT OR IGNORE INTO ""__EFMigrationsHistory"" VALUES (...)")
+        ExecSchema(conn, "CREATE TABLE IF NOT EXISTS ""Acc_VatReturns"" (...)")
+        ExecSchema(conn, "CREATE TABLE IF NOT EXISTS ""Acc_VatReturnLines"" (...)")
+        ExecSchema(conn, "CREATE UNIQUE INDEX IF NOT EXISTS ...")
+    End Using
+End Sub
+```
+
+See `MerchSys.Accounting/Debug/VatLedgerSchemaHarness.vb` for the full implementation.
+
 ## Prevention
 
 - **Never use `dotnet ef migrations add` for VB.NET projects** targeting EF Core ≥ 9. Write migration files manually.
 - **Never rely on `dotnet ef database update` for VB.NET projects** with EF Core 10. Use a `DatabaseInitializer` that runs raw SQL on app startup.
+- **Never use `MigrateAsync()` on scratch/test contexts in VB.NET EF Core 10.** Use a raw-SQL setup helper instead.
 - Model snapshots (`<Module>DbContextModelSnapshot.vb`) must still be written manually to enable future migration diffs. Use the `BuildModel()` fluent API.
 - Always use `CREATE TABLE IF NOT EXISTS` and `INSERT OR IGNORE INTO` in the initializer to make it idempotent.
 - Reference `Microsoft.EntityFrameworkCore.Design` in the startup project (`MerchSys.App`) with `<PrivateAssets>all</PrivateAssets>` so EF CLI can find design-time services.

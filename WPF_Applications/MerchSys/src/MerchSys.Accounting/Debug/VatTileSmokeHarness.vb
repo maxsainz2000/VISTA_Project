@@ -29,7 +29,7 @@ Namespace Debug
     Public Class VatTileSmokeHarness
 
         ''' <summary>
-        ''' Shared entry point — callable from the VS Immediate Window as
+        ''' Shared entry point — callable from the VS   Immediate Window as
         ''' <c>? Await VatTileSmokeHarness.RunAsync(host)</c>.
         ''' </summary>
         Public Shared Async Function RunAsync(host As IHost) As Task(Of VatTileSmokeReport)

@@ -11,6 +11,10 @@ generated: 2026-05-17
 >
 > **How to use:** Do each step in order. Check the box when done. Write what you saw next to each item.
 > INT-12 items are also tracked in the dedicated [INT-12-checklist.md](INT-12-checklist.md) file.
+>
+> **Login required (INFRA-15):** The app now shows a login screen on launch.
+> Unless a test specifically says to log in as Owner, log in as `manager`.
+> Default password: `Vista2026!` (first login will prompt you to change it).
 
 ### Key file locations
 
@@ -126,6 +130,8 @@ generated: 2026-05-17
 - Every view in the sidebar opens without errors and shows data.
 
 - [x] All 16 views pass → INT-10 summary checkbox updated to `[x]`
+
+> **Note (INFRA-16):** `OwnerDashboardView` was added as view #17, but it is Owner-only and not visible in the Manager sidebar. The Manager-role 16-view count tested here remains valid.
 
 ---
 

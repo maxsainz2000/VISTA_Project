@@ -43,19 +43,29 @@ and confirm a MessageBox appears + a .md report is written to %TEMP% with all fo
 ## Attempt Log
 
 ### Attempt 1
-- **Hypothesis:** The harness is fully wired (button exists, nav group exists, DI registered). Run the app and execute the harness via the Developer Tools menu to verify it passes all four checks.
-- **Changed:** (none — verification run)
+- **Hypothesis:** The harness is fully wired (button exists, nav group exists, DI registered). Run the app and execute the harness via the Developer Tools menu to confirm all four checks pass.
+- **Changed:** (none — initial verification run to get baseline)
 - **Build result:** clean (0 errors, 0 warnings)
-- **Runtime result:** pending operator test
-- **Verdict:** pending
-- **Action:** pending
+- **Runtime result:** 0/4 checks failed. Check 1: all columns missing from both tables. Checks 2–4: DbUpdateException on insert. Root cause: `MigrateAsync()` on scratch AccountingDbContext does nothing — EF Core 10 cannot discover VB.NET migration classes (known bug).
+- **Verdict:** ❌ failed
+- **Action:** identified root cause; proceeded to Attempt 2
+
+---
+
+### Attempt 2
+- **Hypothesis:** Replace `Await ctx.Database.MigrateAsync()` in `VatLedgerSchemaHarness` (6 call sites) with `SetupScratchSchema(scratchPath)` — a new raw-SQL helper that mirrors `DatabaseInitializer.ApplyVatLedgerColumns` + `ApplyFixVatReturnAmendedIndex`, using IF NOT EXISTS / INSERT OR IGNORE for idempotency (Check 2).
+- **Changed:** `WPF_Applications\MerchSys\src\MerchSys.Accounting\Debug\VatLedgerSchemaHarness.vb` — replaced 6× `MigrateAsync()` calls; added `SetupScratchSchema` and `ExecSchema` helpers
+- **Build result:** clean (0 errors, 0 warnings)
+- **Runtime result:** 4/4 checks passed. Check 1: tables + partial unique index confirmed. Check 2: idempotency OK (2 migrations × 1 each). Check 3: SQLITE_CONSTRAINT code 19, committed count=1. Check 4: EF cascade + schema-level FK CASCADE both confirmed.
+- **Verdict:** ✅ fixed
+- **Action:** committed as `1cca7c6`
 
 ---
 
 ## Resolution
 
-- **Status:** in-progress
-- **Root cause:** n/a
-- **Fix description:** n/a
-- **Final commit:** n/a
-- **Agent wiki entry needed?** n/a
+- **Status:** resolved
+- **Root cause:** `MigrateAsync()` on a scratch `AccountingDbContext` silently creates empty tables (no columns) because EF Core 10 cannot discover VB.NET migration classes. This is the same bug documented in `efcore10-vbnet-migration-discovery-bug.md`. The harness was written using `MigrateAsync()` but the rest of the app uses raw SQL via `DatabaseInitializer`.
+- **Fix description:** Added `SetupScratchSchema(scratchPath As String)` private helper that creates the VAT schema via raw `SqliteConnection` SQL, exactly matching what `DatabaseInitializer` does. All 6 `MigrateAsync()` call sites replaced.
+- **Final commit:** `1cca7c6`
+- **Agent wiki entry needed?** yes — `efcore-vbnet-migrateAsync-scratch-db` (extends existing pattern)

@@ -8,6 +8,10 @@ generated: 2026-05-17
 > This checklist is for INT-12 specifically. The main Integration checklist is in [INT-verification-checklist.md](INT-verification-checklist.md).
 >
 > **How to use:** Run the harness first, then fill in what you saw for each section.
+>
+> **Login required (INFRA-15):** The app now shows a login screen on launch.
+> Unless a test specifically says to log in as Owner, log in as `manager`.
+> Default password: `Vista2026!` (first login will prompt you to change it).
 
 ### Key file locations
 

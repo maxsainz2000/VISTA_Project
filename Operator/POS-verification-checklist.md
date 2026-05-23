@@ -240,7 +240,7 @@ generated: 2026-05-17
 - The new values you saved are still there after navigating away and back.
 - The old values are gone — the save actually persisted.
 
-- [ ] VAT Settings: load → change → save → reload shows saved values
+- [x] VAT Settings: load → change → save → reload shows saved values — PASS. Filled in BusinessAddress ("123 National Highway, Bagong Ilog, Pasig City"), saved, navigated away and back; address reloaded correctly. DB confirmed: ModifiedAt=2026-05-23.
 
 ---
 
@@ -259,7 +259,7 @@ generated: 2026-05-17
 **What you should see:**
 - The values match what you just saved in the UI (not the old values).
 
-- [ ] VatConfigurationLoader.GetAsync() returns the newly saved values
+- [x] VatConfigurationLoader.GetAsync() returns the newly saved values — PASS. IsVatRegistered=False, VatRate=0.12, BusinessName="Villon Farm Supply", BusinessAddress="123 National Highway, Bagong Ilog, Pasig City", ModifiedAt=2026-05-23 04:08:40. Cache invalidated by save; loader returned updated DB values. Wired to Dev menu button (VS Immediate Window not suitable for instance service calls).
 
 ---
 
@@ -281,7 +281,7 @@ generated: 2026-05-17
 - The event's `PreviousIsVatRegistered` property matches the **old** value (before you changed it).
 - The current value matches the **new** value you just set.
 
-- [ ] VatConfigurationChangedEvent fires with correct PreviousIsVatRegistered
+- [x] VatConfigurationChangedEvent fires with correct PreviousIsVatRegistered — PASS. Breakpoint hit on PublishAsync at IVatConfigurationWriter.vb:174. previousIsVatRegistered=False (old value), request.IsVatRegistered=True (new value). Event carries correct before/after state.
 
 ---
 
@@ -300,5 +300,5 @@ generated: 2026-05-17
 - **Manager** sees "VAT Settings" in the sidebar.
 - **Owner** does **NOT** see "VAT Settings" in the sidebar.
 
-- [ ] Manager sees "VAT Settings" in sidebar
-- [ ] Owner does NOT see "VAT Settings" in sidebar
+- [x] Manager sees "VAT Settings" in sidebar — PASS.
+- [x] Owner does NOT see "VAT Settings" in sidebar — PASS.

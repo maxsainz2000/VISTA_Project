@@ -60,3 +60,23 @@ source: Pending_Tasks audit reports (2026-05-17)
 **Description:** The `Acc_TamperAuditLog` table has SQLite immutability triggers (deployed by ACC-15), but no MariaDB equivalents for the central replica. This is a SQL-only task similar to INFRA-08 (which added MariaDB triggers for POS tables, but not Acc_* tables).
 **Why deferred:** The central MariaDB deployment is not yet live, and a formal DB admin account hasn't been established yet.
 **Depends on:** ACC-15 (completed), INFRA-08 (completed), DB admin account (not yet created).
+
+---
+
+## 6. Session Inactivity Timeout (DA2 Partial)
+
+**Module:** Infrastructure
+**Source:** INFRA-15 What's Next
+**Description:** The system plan DA2 specifies a 15–30 minute inactivity timeout that invalidates the session and returns to the login screen. This requires idle detection (keyboard/mouse activity monitoring), a warning dialog before timeout, and session token invalidation. INFRA-15 implemented authentication but deferred this non-trivial UI concern.
+**Why deferred:** Login form and core authentication had to be built first. Idle detection is a separate UI concern requiring input-hook monitoring and a countdown warning dialog.
+**Depends on:** INFRA-15 (Login Form — completed).
+
+---
+
+## 7. DA5 Data-Layer Write Rejection for Owner Role
+
+**Module:** Infrastructure
+**Source:** INFRA-16 What's Next
+**Description:** OWASP DA5 requires Owner read-only enforcement at the data-access layer, not just the UI. INFRA-16 implemented UI-layer enforcement (navigation filtering + `CanEdit` property on shared ViewModels) but the repository and service layer does not yet reject writes from Owner sessions. A future plan should add role-based write guards in the repository or service layer to fully satisfy DA5.
+**Why deferred:** UI enforcement was prioritized to unblock operator checklist tests (ACC Test 8, POS Test 13). Data-layer enforcement requires auditing all write paths across all four modules.
+**Depends on:** INFRA-15 (completed), INFRA-16 (completed).

@@ -10,6 +10,11 @@ generated: 2026-05-17
 > All 15 Purchasing plans are completed. These are the remaining acceptance tests.
 >
 > **How to use:** Do each step in order. Check the box when done. Write what you saw next to each item.
+>
+> **Login required (INFRA-15):** The app now shows a login screen on launch.
+> Unless a test specifically says to log in as Owner, log in as `manager`.
+> Default password: `Vista2026!` (first login will prompt you to change it).
+
 
 ### Key file locations
 

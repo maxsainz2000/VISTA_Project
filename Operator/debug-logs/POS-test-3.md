@@ -3,7 +3,7 @@ test-id: POS-15-Test-3
 checklist: POS-verification-checklist.md
 branch: debug/POS-test-3
 started: 2026-05-23T00:00
-status: in-progress
+status: resolved
 ---
 
 # Debug Session — POS-15 Test 3
@@ -45,17 +45,17 @@ to `%TEMP%` and prints the path via `Console.WriteLine`.
 ### Attempt 1
 - **Hypothesis:** Wire `ReceiptSequenceHarnessReport.RunAndReportAsync()` to a Dev menu button. Redirect Console.Out to capture the report path from Console output, then read and display the Markdown report in a MessageBox.
 - **Changed:** `DebugMenuExtensions.vb` — added button section and click handler
-- **Build result:** TBD
-- **Runtime result:** TBD
-- **Verdict:** TBD
-- **Action:** TBD
+- **Build result:** clean — 0 errors, 0 warnings
+- **Runtime result:** PASS — TotalReservations=800, Duplicates=0, Gaps=0, ElapsedMs=2383
+- **Verdict:** ✅ fixed
+- **Action:** committed as `1333cf2`
 
 ---
 
 ## Resolution
 
-- **Status:** in-progress
-- **Root cause:** Immediate Window blocked by VS hot-reload conflict with `#If DEBUG` source files (same as POS-13 Test 2).
-- **Fix description:** Dev menu button — same pattern as all prior harnesses.
-- **Final commit:** TBD
+- **Status:** resolved
+- **Root cause:** Immediate Window blocked by VS hot-reload conflict with `#If DEBUG` source files (same as POS-13 Test 2). Harness itself was already correct.
+- **Fix description:** Added Dev menu button that calls `RunAndReportAsync()`, captures Console output, reads the written Markdown report from `%TEMP%`, and displays it in a MessageBox.
+- **Final commit:** `1333cf2`
 - **Agent wiki entry needed?** no

@@ -4,6 +4,8 @@ Chronological record of all agent contributions to the Agent Wiki.
 
 <!-- Append new entries at the top. Format: ## [YYYY-MM-DD] agent | action | description -->
 
+## [2026-05-22] claude-code | extended error-fix | EF Core 10 MigrateAsync() on scratch VB.NET context also silently skips migrations (ACC-test-6) — use raw-SQL SetupScratchSchema helper instead
+## [2026-05-22] claude-code | added pattern | WPF Application.Current.MainWindow points to LoginView (first window shown), not the shell — iterate Application.Current.Windows to find a window by ViewModel type
 ## [2026-05-20] claude-code | added error-fix | EF Core 10 VB.NET ToListAsync silently returns empty for full entity queries — use raw SqliteConnection workaround
 ## [2026-05-20] claude-code | added antipattern | VB.NET parameter name shadows property of same name (case-insensitive) — clears input list silently; rename parameter to avoid collision
 ## [2026-05-15] claude-code | added antipattern | VB.NET `cstr` variable name collides with `CStr()` conversion keyword (BC30183) — use `connStr` or any non-conversion-function name

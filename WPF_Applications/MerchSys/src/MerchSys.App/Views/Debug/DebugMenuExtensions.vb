@@ -3,10 +3,12 @@
 Imports System.Windows
 Imports System.Windows.Controls
 Imports System.Windows.Media
+Imports Microsoft.Extensions.DependencyInjection
 Imports Microsoft.Extensions.Hosting
 Imports MerchSys.Accounting.Debug
 Imports MerchSys.POS.Tests
 Imports MerchSys.POS.Debug
+Imports MerchSys.POS.Services
 Imports MerchSys.POS.Services.Archival
 
 ''' <summary>
@@ -211,7 +213,121 @@ Namespace Views.Debug
             AddHandler archivalBtn.Click, AddressOf RunReceiptArchivalHarness_Click
             root.Children.Add(archivalBtn)
 
-            Content = root
+            root.Children.Add(New Separator() With {.Margin = New Thickness(0, 24, 0, 24)})
+
+            root.Children.Add(New TextBlock() With {
+                .Text = "POS Archival Batch-Size Test (POS-16 Test 5)",
+                .FontSize = 15,
+                .FontWeight = FontWeights.SemiBold,
+                .Margin = New Thickness(0, 0, 0, 6)
+            })
+            root.Children.Add(New TextBlock() With {
+                .Text = "Seeds 100 expired receipts, runs archival with batchSize=50, and asserts " &
+                        "ReceiptsMoved=50 and HadMoreEligible=True.",
+                .Foreground = Brushes.DimGray,
+                .FontSize = 12,
+                .TextWrapping = TextWrapping.Wrap,
+                .MaxWidth = 520,
+                .Margin = New Thickness(0, 0, 0, 12)
+            })
+
+            Dim batchSizeBtn As New Button() With {
+                .Content = "Run Archival Batch-Size Test (batchSize=50)",
+                .Padding = New Thickness(18, 8, 18, 8),
+                .FontSize = 13,
+                .HorizontalAlignment = HorizontalAlignment.Left
+            }
+            AddHandler batchSizeBtn.Click, AddressOf RunArchivalBatchSizeTest_Click
+            root.Children.Add(batchSizeBtn)
+
+            root.Children.Add(New Separator() With {.Margin = New Thickness(0, 24, 0, 24)})
+
+            root.Children.Add(New TextBlock() With {
+                .Text = "POS Archival Fiscal-Year Guard Test (POS-16 Test 6)",
+                .FontSize = 15,
+                .FontWeight = FontWeights.SemiBold,
+                .Margin = New Thickness(0, 0, 0, 6)
+            })
+            root.Children.Add(New TextBlock() With {
+                .Text = "Seeds 20 receipts with IssueDate in the current fiscal year (2026) and " &
+                        "RetentionExpiresAt in the past. Asserts ReceiptsMoved=0 — the BIR rule " &
+                        "prevents archiving any receipt from the current year.",
+                .Foreground = Brushes.DimGray,
+                .FontSize = 12,
+                .TextWrapping = TextWrapping.Wrap,
+                .MaxWidth = 520,
+                .Margin = New Thickness(0, 0, 0, 12)
+            })
+
+            Dim fiscalBtn As New Button() With {
+                .Content = "Run Fiscal-Year Guard Test",
+                .Padding = New Thickness(18, 8, 18, 8),
+                .FontSize = 13,
+                .HorizontalAlignment = HorizontalAlignment.Left
+            }
+            AddHandler fiscalBtn.Click, AddressOf RunFiscalYearGuardTest_Click
+            root.Children.Add(fiscalBtn)
+
+            root.Children.Add(New Separator() With {.Margin = New Thickness(0, 24, 0, 24)})
+
+            root.Children.Add(New TextBlock() With {
+                .Text = "POS Archival Rollback Test (POS-16 Test 7)",
+                .FontSize = 15,
+                .FontWeight = FontWeights.SemiBold,
+                .Margin = New Thickness(0, 0, 0, 6)
+            })
+            root.Children.Add(New TextBlock() With {
+                .Text = "Seeds 20 expired receipts, drops the archive table to force an insert failure, " &
+                        "runs archival, then verifies the live table is untouched (LiveRemaining=20).",
+                .Foreground = Brushes.DimGray,
+                .FontSize = 12,
+                .TextWrapping = TextWrapping.Wrap,
+                .MaxWidth = 520,
+                .Margin = New Thickness(0, 0, 0, 12)
+            })
+
+            Dim rollbackBtn As New Button() With {
+                .Content = "Run Archival Rollback Test",
+                .Padding = New Thickness(18, 8, 18, 8),
+                .FontSize = 13,
+                .HorizontalAlignment = HorizontalAlignment.Left
+            }
+            AddHandler rollbackBtn.Click, AddressOf RunArchivalRollbackTest_Click
+            root.Children.Add(rollbackBtn)
+
+            root.Children.Add(New Separator() With {.Margin = New Thickness(0, 24, 0, 24)})
+
+            root.Children.Add(New TextBlock() With {
+                .Text = "POS VatConfigurationLoader Cache Check (POS-17 Test 11)",
+                .FontSize = 15,
+                .FontWeight = FontWeights.SemiBold,
+                .Margin = New Thickness(0, 0, 0, 6)
+            })
+            root.Children.Add(New TextBlock() With {
+                .Text = "Resolves the singleton VatConfigurationLoader from DI, calls GetAsync(), " &
+                        "and displays the returned VatConfiguration fields. " &
+                        "Run after saving changes in VAT Settings to confirm the cache returns updated values.",
+                .Foreground = Brushes.DimGray,
+                .FontSize = 12,
+                .TextWrapping = TextWrapping.Wrap,
+                .MaxWidth = 520,
+                .Margin = New Thickness(0, 0, 0, 12)
+            })
+
+            Dim vatLoaderBtn As New Button() With {
+                .Content = "Run VatConfigurationLoader Check",
+                .Padding = New Thickness(18, 8, 18, 8),
+                .FontSize = 13,
+                .HorizontalAlignment = HorizontalAlignment.Left
+            }
+            AddHandler vatLoaderBtn.Click, AddressOf RunVatConfigLoaderCheck_Click
+            root.Children.Add(vatLoaderBtn)
+
+            Content = New ScrollViewer() With {
+                .Content = root,
+                .VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                .HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled
+            }
         End Sub
 
         Private Async Sub RunVatSchemaHarness_Click(sender As Object, e As RoutedEventArgs)
@@ -368,6 +484,108 @@ Namespace Views.Debug
             MessageBox.Show(reportContent, "Receipt Sequence Harness Report", MessageBoxButton.OK, icon)
         End Sub
 
+        Private Async Sub RunArchivalRollbackTest_Click(sender As Object, e As RoutedEventArgs)
+            Dim btn = DirectCast(sender, Button)
+            btn.IsEnabled = False
+            btn.Content = "Running…"
+
+            Dim harnessResult As ReceiptArchivalHarnessResult = Nothing
+            Dim runError As Exception = Nothing
+            Try
+                harnessResult = Await ReceiptArchivalHarness.RunRollbackTestAsync()
+            Catch ex As Exception
+                runError = ex
+            End Try
+
+            btn.IsEnabled = True
+            btn.Content = "Run Archival Rollback Test"
+
+            If runError IsNot Nothing Then
+                MessageBox.Show(
+                    $"Harness run failed unexpectedly: {runError.GetType().Name}: {runError.Message}" &
+                    Environment.NewLine & Environment.NewLine & runError.ToString(),
+                    "Archival Rollback Test",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error)
+                Return
+            End If
+
+            Dim icon = If(harnessResult.Passed, MessageBoxImage.Information, MessageBoxImage.Warning)
+            Dim verdict = If(harnessResult.Passed, "PASS ✓", "FAIL ✗")
+            Dim summary =
+                $"Result: {verdict}" & Environment.NewLine & Environment.NewLine &
+                harnessResult.Notes.Replace(", ", Environment.NewLine)
+            MessageBox.Show(summary, "Archival Rollback Test", MessageBoxButton.OK, icon)
+        End Sub
+
+        Private Async Sub RunFiscalYearGuardTest_Click(sender As Object, e As RoutedEventArgs)
+            Dim btn = DirectCast(sender, Button)
+            btn.IsEnabled = False
+            btn.Content = "Running…"
+
+            Dim harnessResult As ReceiptArchivalHarnessResult = Nothing
+            Dim runError As Exception = Nothing
+            Try
+                harnessResult = Await ReceiptArchivalHarness.RunFiscalYearGuardTestAsync()
+            Catch ex As Exception
+                runError = ex
+            End Try
+
+            btn.IsEnabled = True
+            btn.Content = "Run Fiscal-Year Guard Test"
+
+            If runError IsNot Nothing Then
+                MessageBox.Show(
+                    $"Harness run failed: {runError.GetType().Name}: {runError.Message}" &
+                    Environment.NewLine & Environment.NewLine & runError.ToString(),
+                    "Fiscal-Year Guard Test",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error)
+                Return
+            End If
+
+            Dim icon = If(harnessResult.Passed, MessageBoxImage.Information, MessageBoxImage.Warning)
+            Dim verdict = If(harnessResult.Passed, "PASS ✓", "FAIL ✗")
+            Dim summary =
+                $"Result: {verdict}" & Environment.NewLine & Environment.NewLine &
+                harnessResult.Notes.Replace(", ", Environment.NewLine)
+            MessageBox.Show(summary, "Fiscal-Year Guard Test", MessageBoxButton.OK, icon)
+        End Sub
+
+        Private Async Sub RunArchivalBatchSizeTest_Click(sender As Object, e As RoutedEventArgs)
+            Dim btn = DirectCast(sender, Button)
+            btn.IsEnabled = False
+            btn.Content = "Running… (100 receipts, batchSize=50)"
+
+            Dim harnessResult As ReceiptArchivalHarnessResult = Nothing
+            Dim runError As Exception = Nothing
+            Try
+                harnessResult = Await ReceiptArchivalHarness.RunBatchSizeTestAsync()
+            Catch ex As Exception
+                runError = ex
+            End Try
+
+            btn.IsEnabled = True
+            btn.Content = "Run Archival Batch-Size Test (batchSize=50)"
+
+            If runError IsNot Nothing Then
+                MessageBox.Show(
+                    $"Harness run failed: {runError.GetType().Name}: {runError.Message}" &
+                    Environment.NewLine & Environment.NewLine & runError.ToString(),
+                    "Archival Batch-Size Test",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error)
+                Return
+            End If
+
+            Dim icon = If(harnessResult.Passed, MessageBoxImage.Information, MessageBoxImage.Warning)
+            Dim verdict = If(harnessResult.Passed, "PASS ✓", "FAIL ✗")
+            Dim summary =
+                $"Result: {verdict}" & Environment.NewLine & Environment.NewLine &
+                harnessResult.Notes.Replace(", ", Environment.NewLine)
+            MessageBox.Show(summary, "Archival Batch-Size Test (batchSize=50)", MessageBoxButton.OK, icon)
+        End Sub
+
         Private Async Sub RunReceiptArchivalHarness_Click(sender As Object, e As RoutedEventArgs)
             Dim btn = DirectCast(sender, Button)
             btn.IsEnabled = False
@@ -403,6 +621,55 @@ Namespace Views.Debug
                 $"ArchiveCount    = {harnessResult.ArchiveCount}  (expected 100)" & Environment.NewLine &
                 $"ElapsedMs       = {harnessResult.ElapsedMs}"
             MessageBox.Show(summary, "Receipt Archival Harness", MessageBoxButton.OK, icon)
+        End Sub
+
+        Private Async Sub RunVatConfigLoaderCheck_Click(sender As Object, e As RoutedEventArgs)
+            Dim btn = DirectCast(sender, Button)
+            btn.IsEnabled = False
+            btn.Content = "Running…"
+
+            Dim config As MerchSys.POS.Entities.VatConfiguration = Nothing
+            Dim runError As Exception = Nothing
+            Try
+                Dim loader = DebugHostHolder.CurrentHost.Services.GetRequiredService(Of VatConfigurationLoader)()
+                config = Await loader.GetAsync()
+            Catch ex As Exception
+                runError = ex
+            End Try
+
+            btn.IsEnabled = True
+            btn.Content = "Run VatConfigurationLoader Check"
+
+            If runError IsNot Nothing Then
+                MessageBox.Show(
+                    $"Check failed: {runError.GetType().Name}: {runError.Message}" &
+                    Environment.NewLine & Environment.NewLine & runError.ToString(),
+                    "VatConfigurationLoader Check",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error)
+                Return
+            End If
+
+            If config Is Nothing Then
+                MessageBox.Show(
+                    "GetAsync() returned Nothing — no VatConfiguration row found (Id = 1 missing).",
+                    "VatConfigurationLoader Check",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning)
+                Return
+            End If
+
+            Dim summary =
+                $"IsVatRegistered         = {config.IsVatRegistered}" & Environment.NewLine &
+                $"VatRate                 = {config.VatRate} ({config.VatRate * 100D:N0}%)" & Environment.NewLine &
+                $"NonVatPercentageTaxRate = {config.NonVatPercentageTaxRate} ({config.NonVatPercentageTaxRate * 100D:N0}%)" & Environment.NewLine &
+                $"BusinessTIN             = {If(String.IsNullOrEmpty(config.BusinessTIN), "(empty)", config.BusinessTIN)}" & Environment.NewLine &
+                $"BusinessName            = {config.BusinessName}" & Environment.NewLine &
+                $"BusinessAddress         = {If(String.IsNullOrEmpty(config.BusinessAddress), "(empty)", config.BusinessAddress)}" & Environment.NewLine &
+                $"EffectiveFrom           = {config.EffectiveFrom:yyyy-MM-dd HH:mm:ss} UTC" & Environment.NewLine &
+                $"ModifiedAt              = {config.ModifiedAt:yyyy-MM-dd HH:mm:ss}"
+
+            MessageBox.Show(summary, "VatConfigurationLoader.GetAsync() Result", MessageBoxButton.OK, MessageBoxImage.Information)
         End Sub
 
         Private Async Sub RunPosSequenceHarness_Click(sender As Object, e As RoutedEventArgs)

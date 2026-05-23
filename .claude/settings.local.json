@@ -66,7 +66,9 @@
       "Bash(git merge *)",
       "Bash(git branch *)",
       "Bash(dotnet restore *)",
-      "Bash(dir *)"
+      "Bash(dir *)",
+      "Bash(git commit -m 'fix\\(ACC-test-7\\): resolve VatTile click by iterating Application.Current.Windows *)",
+      "Bash(git commit -m 'test\\(ACC-test-8\\): mark Owner VAT tile click suppression as passed *)"
     ]
   }
 }
