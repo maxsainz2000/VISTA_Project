@@ -176,7 +176,7 @@ generated: 2026-05-17
 - The live table is untouched — no receipts were deleted.
 - The failure is rolled back cleanly. No data is lost.
 
-- [ ] Forced archive failure: live table remains intact (rollback works)
+- [x] Forced archive failure: live table remains intact (rollback works) — PASS. ExceptionThrown=True (DbUpdateException on dropped archive table), LiveRemaining=20. Transaction rolled back cleanly, live table untouched.
 
 ---
 

@@ -3,7 +3,7 @@ test-id: POS-16-Test-7
 checklist: POS-verification-checklist.md
 branch: debug/POS-test-7
 started: 2026-05-23T00:00
-status: in-progress
+status: resolved
 ---
 
 # Debug Session — POS-16 Test 7
@@ -53,11 +53,11 @@ exception), then verifies `Pos_OfficialReceipts` still has 20 rows.
   expected exception), then asserts LiveRemaining=20 (rollback kept live table intact).
 - **Changed:**
   - `ReceiptArchivalHarness.vb` — add `RunRollbackTestAsync()`
-  - `DebugMenuExtensions.vb` — add "Run Rollback Test" button
-- **Build result:**
-- **Runtime result:**
-- **Verdict:**
-- **Action:**
+  - `DebugMenuExtensions.vb` — add "Run Archival Rollback Test" button
+- **Build result:** clean — 0 errors, 0 warnings
+- **Runtime result:** PASS — ExceptionThrown=True, ExceptionType=DbUpdateException, LiveRemaining=20, ElapsedMs=1202. Rollback correctly preserved the live table after SaveChangesAsync failed on the dropped archive table.
+- **Verdict:** ✅ fixed
+- **Action:** committed as `c464f4a`
 
 ---
 
@@ -105,8 +105,8 @@ exception), then verifies `Pos_OfficialReceipts` still has 20 rows.
 
 ## Resolution
 
-- **Status:** in-progress
-- **Root cause:**
-- **Fix description:**
-- **Final commit:**
-- **Agent wiki entry needed?**
+- **Status:** resolved
+- **Root cause:** No bug. The service's try/catch + RollbackAsync correctly handles a failed SaveChangesAsync (DbUpdateException on missing archive table). Live table remains at 20 rows.
+- **Fix description:** No production code change. Added `RunRollbackTestAsync()` harness (drops archive table post-seed to force failure) and Dev menu button.
+- **Final commit:** `c464f4a`
+- **Agent wiki entry needed?** no
