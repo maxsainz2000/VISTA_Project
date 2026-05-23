@@ -7,6 +7,7 @@ Imports Microsoft.Extensions.Hosting
 Imports MerchSys.Accounting.Debug
 Imports MerchSys.POS.Tests
 Imports MerchSys.POS.Debug
+Imports MerchSys.POS.Services.Archival
 
 ''' <summary>
 ''' Holds the IHost reference so debug harnesses (running inside MerchSys.App) can resolve
@@ -183,6 +184,33 @@ Namespace Views.Debug
             AddHandler seqReportBtn.Click, AddressOf RunReceiptSequenceHarnessReport_Click
             root.Children.Add(seqReportBtn)
 
+            root.Children.Add(New Separator() With {.Margin = New Thickness(0, 24, 0, 24)})
+
+            root.Children.Add(New TextBlock() With {
+                .Text = "POS Receipt Archival Harness (POS-16)",
+                .FontSize = 15,
+                .FontWeight = FontWeights.SemiBold,
+                .Margin = New Thickness(0, 0, 0, 6)
+            })
+            root.Children.Add(New TextBlock() With {
+                .Text = "Seeds 100 expired + 100 in-window receipts in a scratch DB, runs ReceiptArchivalService, " &
+                        "and asserts ReceiptsMoved=100, LiveRemaining=100, ArchiveCount=100.",
+                .Foreground = Brushes.DimGray,
+                .FontSize = 12,
+                .TextWrapping = TextWrapping.Wrap,
+                .MaxWidth = 520,
+                .Margin = New Thickness(0, 0, 0, 12)
+            })
+
+            Dim archivalBtn As New Button() With {
+                .Content = "Run Receipt Archival Harness",
+                .Padding = New Thickness(18, 8, 18, 8),
+                .FontSize = 13,
+                .HorizontalAlignment = HorizontalAlignment.Left
+            }
+            AddHandler archivalBtn.Click, AddressOf RunReceiptArchivalHarness_Click
+            root.Children.Add(archivalBtn)
+
             Content = root
         End Sub
 
@@ -338,6 +366,43 @@ Namespace Views.Debug
             Dim passed = consoleOutput.Contains("PASS")
             Dim icon = If(passed, MessageBoxImage.Information, MessageBoxImage.Warning)
             MessageBox.Show(reportContent, "Receipt Sequence Harness Report", MessageBoxButton.OK, icon)
+        End Sub
+
+        Private Async Sub RunReceiptArchivalHarness_Click(sender As Object, e As RoutedEventArgs)
+            Dim btn = DirectCast(sender, Button)
+            btn.IsEnabled = False
+            btn.Content = "Running… (seeding 200 receipts)"
+
+            Dim harnessResult As ReceiptArchivalHarnessResult = Nothing
+            Dim runError As Exception = Nothing
+            Try
+                harnessResult = Await ReceiptArchivalHarness.RunAsync()
+            Catch ex As Exception
+                runError = ex
+            End Try
+
+            btn.IsEnabled = True
+            btn.Content = "Run Receipt Archival Harness"
+
+            If runError IsNot Nothing Then
+                MessageBox.Show(
+                    $"Harness run failed: {runError.GetType().Name}: {runError.Message}" &
+                    Environment.NewLine & Environment.NewLine & runError.ToString(),
+                    "Receipt Archival Harness",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error)
+                Return
+            End If
+
+            Dim icon = If(harnessResult.Passed, MessageBoxImage.Information, MessageBoxImage.Warning)
+            Dim verdict = If(harnessResult.Passed, "PASS ✓", "FAIL ✗")
+            Dim summary =
+                $"Result: {verdict}" & Environment.NewLine & Environment.NewLine &
+                $"ReceiptsMoved   = {harnessResult.ReceiptsMoved}  (expected 100)" & Environment.NewLine &
+                $"LiveRemaining   = {harnessResult.LiveRemaining}  (expected 100)" & Environment.NewLine &
+                $"ArchiveCount    = {harnessResult.ArchiveCount}  (expected 100)" & Environment.NewLine &
+                $"ElapsedMs       = {harnessResult.ElapsedMs}"
+            MessageBox.Show(summary, "Receipt Archival Harness", MessageBoxButton.OK, icon)
         End Sub
 
         Private Async Sub RunPosSequenceHarness_Click(sender As Object, e As RoutedEventArgs)
