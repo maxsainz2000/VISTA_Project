@@ -161,7 +161,7 @@ generated: 2026-05-17
 - Those receipts are **NOT** archived, even though their retention has "expired".
 - The BIR rule is: receipts from the current fiscal year must never be archived regardless of the retention date.
 
-- [ ] Current-year receipts are NOT archived even if RetentionExpiresAt is past
+- [x] Current-year receipts are NOT archived even if RetentionExpiresAt is past — PASS. ReceiptsMoved=0, LiveRemaining=20, ArchiveCount=0 with IssueDate.Year=2026. Fiscal-year guard working correctly.
 
 ---
 

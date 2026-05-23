@@ -3,7 +3,7 @@ test-id: POS-16-Test-6
 checklist: POS-verification-checklist.md
 branch: debug/POS-test-6
 started: 2026-05-23T00:00
-status: in-progress
+status: resolved
 ---
 
 # Debug Session — POS-16 Test 6
@@ -52,10 +52,10 @@ RetentionExpiresAt in the past, runs archival, asserts ReceiptsMoved=0.
 - **Changed:**
   - `ReceiptArchivalHarness.vb` — add `RunFiscalYearGuardTestAsync()`
   - `DebugMenuExtensions.vb` — add "Run Fiscal-Year Guard Test" button
-- **Build result:**
-- **Runtime result:**
-- **Verdict:**
-- **Action:**
+- **Build result:** clean — 0 errors, 0 warnings
+- **Runtime result:** PASS — ReceiptsMoved=0, LiveRemaining=20, ArchiveCount=0, IssueDate.Year=2026, ElapsedMs=598. Cleanup warning (file in use) is harmless.
+- **Verdict:** ✅ fixed
+- **Action:** committed as `79cef69`
 
 ---
 
@@ -103,8 +103,8 @@ RetentionExpiresAt in the past, runs archival, asserts ReceiptsMoved=0.
 
 ## Resolution
 
-- **Status:** in-progress
-- **Root cause:**
-- **Fix description:**
-- **Final commit:**
-- **Agent wiki entry needed?**
+- **Status:** resolved
+- **Root cause:** No bug. The fiscal-year guard (`r.IssueDate.Year < currentFiscalYear`) correctly excludes 2026 receipts.
+- **Fix description:** No production code change. Added `RunFiscalYearGuardTestAsync()` harness and Dev menu button.
+- **Final commit:** `79cef69`
+- **Agent wiki entry needed?** no
