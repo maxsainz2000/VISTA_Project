@@ -44,6 +44,12 @@ Namespace Tests
             Const CallCount As Integer = 1000
             Dim year = DateTime.UtcNow.Year
 
+            ' Create schema once before parallel tasks — EnsureCreatedAsync is not concurrency-safe.
+            Dim setupOptions = New DbContextOptionsBuilder(Of POSDbContext)().UseSqlite(connectionString).Options
+            Using setupCtx As New POSDbContext(setupOptions)
+                Await setupCtx.Database.EnsureCreatedAsync()
+            End Using
+
             Console.WriteLine($"[Harness] Starting {CallCount} parallel GetNextReceiptNumberAsync calls for year {year}...")
 
             Dim results As New ConcurrentBag(Of String)()
@@ -54,7 +60,6 @@ Namespace Tests
                                                    UseSqlite(connectionString).
                                                    Options
                                                Using ctx = New POSDbContext(options)
-                                                   Await ctx.Database.EnsureCreatedAsync()
                                                    Dim svc = New ReceiptIntegrityService(
                                                        ctx,
                                                        DirectCast(Nothing, IMediator),
