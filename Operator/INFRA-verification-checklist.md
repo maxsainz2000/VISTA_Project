@@ -166,7 +166,7 @@ generated: 2026-05-17
 - The deployment completes without errors.
 - The app can connect to and read/write from the MariaDB instance.
 
-- [ ] Live MariaDB deployment walkthrough — schema/triggers/provisioning/INFRA-06 criteria all ✅. Re-test sync indicator after INFRA-17 lands.
+- [X] Live MariaDB deployment walkthrough — schema/triggers/provisioning/INFRA-06 criteria all ✅. MariaDB 31 tables, 16 triggers, all 5 integrity probes fire ERROR 1644. Three missing tables created (Acc_VatReturns, Acc_VatReturnLines, Pos_VatConfiguration). CreatedBy made nullable. DELETE transmit crash fixed.
 
 ---
 
@@ -184,7 +184,7 @@ generated: 2026-05-17
 - No `MissingMethodException` in the Output window.
 - The `Sync_Journal` entries are transmitted to MariaDB.
 
-- [ ] Sync indicator reaches Online/Green with MySqlConnector
+- [X] Sync indicator reaches Online/Green with MySqlConnector — shows "Online just now" after first probe cycle. LastSuccessfulPushAt fixed to update on Error→Online transition.
 
 ---
 
