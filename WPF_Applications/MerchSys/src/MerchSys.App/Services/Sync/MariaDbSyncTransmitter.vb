@@ -176,32 +176,30 @@ Namespace Services.Sync
                                                    conn As MySqlConnection,
                                                    tx As MySqlTransaction,
                                                    ct As CancellationToken) As Task
-            Dim remoteEntity = ToRemoteEntity(entry)
-            If remoteEntity Is Nothing Then
-                _logger.LogWarning("Sync: no SyncMap registered for table {Table}; entry {Id} skipped",
-                                   entry.TableName, entry.Id)
-                Return
-            End If
-
             Select Case entry.Operation.ToUpperInvariant()
-                Case "INSERT"
-                    Dim exists = (Await _mariaDb.FetchRemoteRowAsync(entry.TableName, entry.RowId)).Exists
-                    If isFinancial AndAlso exists Then
-                        ' Financial reject-on-conflict: a remote row means we must not overwrite.
-                        _logger.LogWarning("Sync: financial row {Table}/{Id} already exists on central; skipping INSERT",
-                                           entry.TableName, entry.RowId)
+                Case "INSERT", "UPDATE"
+                    Dim remoteEntity = ToRemoteEntity(entry)
+                    If remoteEntity Is Nothing Then
+                        _logger.LogWarning("Sync: no SyncMap registered for table {Table}; entry {Id} skipped",
+                                           entry.TableName, entry.Id)
                         Return
                     End If
-                    ' Non-financial upsert: if the row already exists remotely (e.g. from a prior partial cycle),
-                    ' Update instead of Insert to avoid duplicate-key errors (idempotency guarantee).
-                    If exists Then
-                        Await _mariaDb.ExecuteUpdateAsync(entry.TableName, remoteEntity, conn, tx, ct)
-                    Else
-                        Await _mariaDb.ExecuteInsertAsync(entry.TableName, remoteEntity, conn, tx, ct)
-                    End If
 
-                Case "UPDATE"
-                    Await _mariaDb.ExecuteUpdateAsync(entry.TableName, remoteEntity, conn, tx, ct)
+                    If entry.Operation.ToUpperInvariant() = "INSERT" Then
+                        Dim exists = (Await _mariaDb.FetchRemoteRowAsync(entry.TableName, entry.RowId)).Exists
+                        If isFinancial AndAlso exists Then
+                            _logger.LogWarning("Sync: financial row {Table}/{Id} already exists on central; skipping INSERT",
+                                               entry.TableName, entry.RowId)
+                            Return
+                        End If
+                        If exists Then
+                            Await _mariaDb.ExecuteUpdateAsync(entry.TableName, remoteEntity, conn, tx, ct)
+                        Else
+                            Await _mariaDb.ExecuteInsertAsync(entry.TableName, remoteEntity, conn, tx, ct)
+                        End If
+                    Else
+                        Await _mariaDb.ExecuteUpdateAsync(entry.TableName, remoteEntity, conn, tx, ct)
+                    End If
 
                 Case "DELETE"
                     Await _mariaDb.ExecuteDeleteAsync(entry.TableName, entry.RowId, conn, tx, ct)
