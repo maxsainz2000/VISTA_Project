@@ -54,3 +54,30 @@ Avoid `Application.Current.MainWindow` anywhere that assumes it's the shell. The
 1. Iterate `Application.Current.Windows` filtered by DataContext type (above).
 2. Inject the target ViewModel directly into the view constructor via DI (`MainWindowViewModel` is a singleton).
 3. Explicitly set `Application.Current.MainWindow = _mainWindow` in `HandleLoginSucceeded` after the shell is shown.
+
+## Detector Contract
+
+> Added 2026-05-24 after the agent-wiki audit (`Operator/debug-logs/archive/2026-05-24-audit-cycle/agent-wiki-verification-report.md`)
+> flagged the comment on line 33 of `FinancialOverviewView.xaml.vb` — a comment in code that
+> deliberately *avoids* the antipattern by iterating `Application.Current.Windows`. See
+> `Operator/debug-logs/archive/2026-05-24-audit-cycle/agent-wiki-verification-improvement-plan.md`.
+
+Any audit that detects this rule MUST strip comments before pattern-matching.
+
+### Flag (positive patterns)
+
+A `Application.Current.MainWindow` reference that:
+
+- Appears in executable code (not inside a `'...` comment or a `"..."` string literal).
+- Reads `.MainWindow` to dereference it (`Application.Current.MainWindow.DataContext`,
+  `TryCast(Application.Current.MainWindow, ...)`, etc.).
+
+### Do NOT flag (negative patterns)
+
+- Text inside a single-line VB.NET comment (`'`).
+- Text inside an XML doc-comment (`'''`).
+- Text inside a string literal (`"..."`) or interpolated string (`$"..."`).
+- An *assignment* `Application.Current.MainWindow = X` — this is the recommended remediation
+  pattern (Prevention option 3 above), not the antipattern.
+
+The corpus that exercises these patterns lives at `Operator/audit-tests/rule-19/` (see INFRA-18).

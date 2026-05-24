@@ -48,6 +48,32 @@ Dim n As Integer = myList.Where(Function(x) x.IsActive).ToList().Count
 - `Any(predicate)` and `Sum(selector)` are unaffected — they are not `List(Of T)` properties.
 - This also applies to `.Sum(selector)` if called on a list that shadows an inherited property — always prefer `Enumerable.Sum(list, selector)` when in doubt.
 
+## Detector Contract
+
+> Added 2026-05-24 after the agent-wiki audit (`Operator/debug-logs/archive/2026-05-24-audit-cycle/agent-wiki-verification-report.md`)
+> flagged a tuple-array `.Count(predicate)` site as a violation. Arrays have no `Count` property —
+> only `List(Of T)` does. See `Operator/debug-logs/archive/2026-05-24-audit-cycle/agent-wiki-verification-improvement-plan.md`.
+
+Any audit that detects this rule MUST verify the receiver's static type.
+
+### Flag (positive patterns)
+
+A call shaped `<receiver>.Count(Function(...) ...)` where the receiver is statically declared as:
+
+- `As List(Of T)`
+- `As New List(Of T)`
+- Any subtype of `List(Of T)` that does not override the `Count` property to accept arguments
+
+### Do NOT flag (negative patterns)
+
+- Arrays declared as `{ ... }` literals — they expose `Length`, not `Count`.
+- Receivers typed `As T()` (any array type).
+- Tuple-literal arrays like `{("a", 1), ("b", 2)}` — these are `ValueTuple(Of String, Integer)()`, an array.
+- `As IEnumerable(Of T)`, `As IQueryable(Of T)`, `As ICollection(Of T)` — these have no `Count(predicate)` member that conflicts; the LINQ extension is the only candidate.
+- Receivers whose static type cannot be resolved from local scope (skip rather than flag).
+
+The corpus that exercises these patterns lives at `Operator/audit-tests/rule-12/` (see INFRA-18).
+
 ## Related
 
 - First encountered in INV-05 StockDashboardService (2026-05-04)

@@ -43,6 +43,31 @@ System.Console.WriteLine("done")   ' fully qualified — unambiguous
 - Prefer structured logging (`_logger.LogDebug(...)`) inside harness and service code; reserve
   `System.Console.WriteLine` for top-level diagnostic output that must survive without a logger.
 
+## Detector Contract
+
+> Added 2026-05-24 after the agent-wiki audit (`Operator/debug-logs/archive/2026-05-24-audit-cycle/agent-wiki-verification-report.md`)
+> flagged 8 sites, all false positives — every flagged file imported only
+> `Microsoft.Extensions.Logging.Abstractions`, which does not bring the `Console` class into scope.
+> See `Operator/debug-logs/archive/2026-05-24-audit-cycle/agent-wiki-verification-improvement-plan.md`.
+
+Any audit that detects this rule MUST verify the import scope before flagging.
+
+### Flag (positive patterns)
+
+The file contains BOTH:
+
+1. A `Console.` reference outside comments and string literals, AND
+2. An exact import of `Imports Microsoft.Extensions.Logging` (no suffix) OR `Imports Microsoft.Extensions.Logging.Console` (explicit sub-import).
+
+### Do NOT flag (negative patterns)
+
+- `Imports Microsoft.Extensions.Logging.Abstractions` — sibling sub-namespace, does NOT bring `Console` into scope.
+- `Imports Microsoft.Extensions.Logging.Configuration` — same reason.
+- Files that import any other `Microsoft.Extensions.Logging.<suffix>` namespace that does not itself contain a `Console` member.
+- `Console.` text inside `'...` comments or `"..."` string literals.
+
+The corpus that exercises these patterns lives at `Operator/audit-tests/rule-07/` (see INFRA-18).
+
 ## Related
 
 - First encountered: INT-12 harness implementation (2026-05-15)

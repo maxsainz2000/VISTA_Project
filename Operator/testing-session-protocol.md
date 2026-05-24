@@ -7,6 +7,38 @@
 
 ---
 
+## Audit-Report Triage (before treating any audit as a backlog)
+
+> Added 2026-05-24 after the agent-wiki audit produced
+> `Operator/debug-logs/archive/2026-05-24-audit-cycle/agent-wiki-verification-report.md` with a ~45–50% false-positive rate.
+> See `Operator/debug-logs/archive/2026-05-24-audit-cycle/agent-wiki-verification-improvement-plan.md` for the verification.
+
+When an audit (agent-wiki, security-review, code-review, or any similar batch report) lands
+in `Operator/debug-logs/`, do NOT open fix branches against its findings directly. Triage first:
+
+1. **Pick a 10% random sample per failing rule** (minimum 3 findings per rule). For each
+   sampled finding, open the cited file at the cited line and verify the violation against
+   the rule's definition in `LLM_Wiki/agent_wiki/` — specifically the "Detector Contract"
+   section if one exists.
+
+2. **Record the sample verdict** in a triage note alongside the report
+   (e.g., `Operator/debug-logs/<report-name>-triage.md`) with one row per sampled finding:
+   `file:line | rule | verdict (TRUE/FALSE positive) | reason`.
+
+3. **Decide based on the sample false-positive rate:**
+   - **< 20%** — proceed to fix the findings using the normal Pre-Flight Checklist below.
+   - **≥ 20%** — STOP. Open a tooling plan to correct the detector before fixing any code.
+     Precedent: INFRA-18 (`Plans/VISTA_Modules/Infrastructure/18-audit-tool-detector-rewrite.md`).
+     Fixing code from a noisy report wastes attempts and corrupts the One-Fix Rule's signal.
+
+4. **Re-run the corrected audit** before opening fix branches. The corrected report is what
+   feeds the per-test debug branches below.
+
+This step is mandatory whenever the report's source script has not been updated since its
+last sample-verification pass.
+
+---
+
 ## Pre-Flight Checklist (before ANY code change)
 
 Before touching a single line of code, you MUST complete all four steps:

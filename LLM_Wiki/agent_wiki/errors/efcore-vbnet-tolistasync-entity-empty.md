@@ -89,6 +89,36 @@ Key details:
 - Scalar projections (`Select(Function(e) e.Id).ToListAsync()`) and aggregates
   (`CountAsync()`, `SumAsync()`) are not affected — only full entity materialization.
 
+## Detector Contract
+
+> Added 2026-05-24 after the agent-wiki audit (`Operator/debug-logs/archive/2026-05-24-audit-cycle/agent-wiki-verification-report.md`)
+> flagged 63 sites for this rule, of which ~25 were false positives matched by literal `.ToListAsync(`
+> grep against query shapes the rule itself excludes. See
+> `Operator/debug-logs/archive/2026-05-24-audit-cycle/agent-wiki-verification-improvement-plan.md`.
+
+Any audit that detects this rule MUST match the **shape** of the LINQ chain, not the literal
+`.ToListAsync(` token. The bug affects **full-entity materialisation only**.
+
+### Flag (positive patterns)
+
+The chain ends in `.ToListAsync(...)` and the last call before `.ToListAsync` is one of:
+
+- a bare `DbSet` reference (`_db.Vendors.ToListAsync()`)
+- `.Where(...)`, `.OrderBy(...)`, `.OrderByDescending(...)`, `.ThenBy(...)`, `.ThenByDescending(...)`
+- `.Include(...)`, `.ThenInclude(...)`
+- `.AsNoTracking()`, `.IgnoreQueryFilters()`
+- `.Take(...)`, `.Skip(...)`
+
+### Do NOT flag (negative patterns — wiki-excluded)
+
+- `.Select(Function(x) New With { ... }).ToListAsync()` — anonymous-type projection
+- `.Select(Function(x) x.ScalarMember).ToListAsync()` — scalar projection
+- `.GroupBy(...).Select(...).ToListAsync()` — group projection
+- Any chain containing `.Select(...)` between the last `.Where`/`.Include`/`DbSet` and `.ToListAsync`
+- `.CountAsync()`, `.SumAsync()`, `.AnyAsync()`, `.FirstOrDefaultAsync()` — different terminator
+
+The corpus that exercises these patterns lives at `Operator/audit-tests/rule-03/` (see INFRA-18).
+
 ## Related
 
 - `[[efcore10-vbnet-migration-discovery-bug]]` — another EF Core 10 + VB.NET incompatibility

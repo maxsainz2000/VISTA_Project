@@ -4,6 +4,7 @@ Chronological record of all agent contributions to the Agent Wiki.
 
 <!-- Append new entries at the top. Format: ## [YYYY-MM-DD] agent | action | description -->
 
+## [2026-05-24] claude-code | added detector contracts | Added "Detector Contract" sections to 5 wiki entries (efcore-vbnet-tolistasync-entity-empty, vbnet-console-namespace-shadow, vbnet-list-count-property-shadows-linq-extension, vbnet-parameter-shadows-property, wpf-mainwindow-not-shell-window) after agent-wiki audit produced ~45% false-positive rate from naïve text matching; see Operator/debug-logs/archive/2026-05-24-audit-cycle/agent-wiki-verification-improvement-plan.md
 ## [2026-05-22] claude-code | extended error-fix | EF Core 10 MigrateAsync() on scratch VB.NET context also silently skips migrations (ACC-test-6) — use raw-SQL SetupScratchSchema helper instead
 ## [2026-05-22] claude-code | added pattern | WPF Application.Current.MainWindow points to LoginView (first window shown), not the shell — iterate Application.Current.Windows to find a window by ViewModel type
 ## [2026-05-20] claude-code | added error-fix | EF Core 10 VB.NET ToListAsync silently returns empty for full entity queries — use raw SqliteConnection workaround
