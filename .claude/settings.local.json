@@ -74,7 +74,21 @@
       "Bash(/c/xampp/mysql/bin/mysql.exe -u root)",
       "Bash(echo \"Exit code: $?\")",
       "Bash($mysql *)",
-      "Bash(dotnet run *)"
+      "Bash(dotnet run *)",
+      "Bash(mkdir -p \"C:\\\\Users\\\\Admin\\\\Documents\\\\VISTA_Project\\\\.claude\\\\skills\\\\vista-audit\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\Admin\\\\Documents\\\\VISTA_Project\\\\Operator\\\\audit-tests\\\\rule-03\\\\known-good\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\Admin\\\\Documents\\\\VISTA_Project\\\\Operator\\\\audit-tests\\\\rule-03\\\\known-bad\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\Admin\\\\Documents\\\\VISTA_Project\\\\Operator\\\\audit-tests\\\\rule-07\\\\known-good\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\Admin\\\\Documents\\\\VISTA_Project\\\\Operator\\\\audit-tests\\\\rule-07\\\\known-bad\")",
+      "Bash(grep -n \"^Imports Microsoft.Extensions.Logging$\" \"C:\\\\Users\\\\Admin\\\\Documents\\\\VISTA_Project\\\\Operator\\\\audit-tests\\\\rule-07\\\\known-bad\\\\01-bare-import-console-usage.vb\")",
+      "Bash(grep -n \"^Imports Microsoft.Extensions.Logging$\" \"C:\\\\Users\\\\Admin\\\\Documents\\\\VISTA_Project\\\\Operator\\\\audit-tests\\\\rule-07\\\\known-bad\\\\02-bare-import-console-in-method.vb\")",
+      "Bash(grep -n \"^Imports Microsoft.Extensions.Logging$\" \"C:\\\\Users\\\\Admin\\\\Documents\\\\VISTA_Project\\\\Operator\\\\audit-tests\\\\rule-07\\\\known-bad\\\\03-bare-import-with-system-and-console.vb\")",
+      "Bash(grep -n \"^Imports Microsoft.Extensions.Logging$\" \"C:\\\\Users\\\\Admin\\\\Documents\\\\VISTA_Project\\\\Operator\\\\audit-tests\\\\rule-07\\\\known-good\\\\01-abstractions-only.vb\")",
+      "Bash(grep -n \"^Imports Microsoft.Extensions.Logging$\" \"C:\\\\Users\\\\Admin\\\\Documents\\\\VISTA_Project\\\\Operator\\\\audit-tests\\\\rule-07\\\\known-good\\\\02-no-console-usage.vb\")",
+      "Bash(grep *)",
+      "Bash(Get-Content \"C:\\\\Users\\\\Admin\\\\Documents\\\\VISTA_Project\\\\WPF_Applications\\\\MerchSys\\\\src\\\\MerchSys.Accounting\\\\Debug\\\\VatLedgerSchemaHarnessRunner.vb\")",
+      "Bash(Select-Object -Index 36)",
+      "Bash(Select-String \"Count\")"
     ]
   }
 }
