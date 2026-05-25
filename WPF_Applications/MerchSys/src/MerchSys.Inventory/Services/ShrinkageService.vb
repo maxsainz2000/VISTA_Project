@@ -1,5 +1,6 @@
 Imports System.Threading
 Imports MediatR
+Imports Microsoft.Data.Sqlite
 Imports Microsoft.EntityFrameworkCore
 Imports Microsoft.Extensions.Logging
 Imports MerchSys.Inventory.Data
@@ -18,6 +19,8 @@ Namespace Services
         Private ReadOnly _mediator As IMediator
         Private ReadOnly _logger As ILogger(Of ShrinkageService)
         Private ReadOnly _repository As ISyncableRepository(Of InventoryDbContext)
+        Private _batchesForShrinkage As List(Of StockBatch)
+        Private _shrinkageHistoryList As List(Of ShrinkageRecord)
 
         Public Sub New(db As InventoryDbContext,
                        mediator As IMediator,
@@ -76,10 +79,26 @@ Namespace Services
                 created.Add(record)
             Else
                 ' FIFO: consume oldest batches first regardless of expiry status
-                Dim batches As List(Of StockBatch) = Await _db.StockBatches _
-                    .Where(Function(b) b.ProductId = productId AndAlso b.QuantityRemaining > 0) _
-                    .OrderBy(Function(b) b.ReceiptDate) _
-                    .ToListAsync()
+                _batchesForShrinkage = New List(Of StockBatch)()
+                Dim shrConnStr = _db.Database.GetConnectionString()
+                Using shrConn As New SqliteConnection(shrConnStr)
+                    Await shrConn.OpenAsync()
+                    Using shrCmd = shrConn.CreateCommand()
+                        shrCmd.CommandText = "SELECT Id, ProductId, QuantityReceived, QuantityRemaining, UnitCost, " &
+                                             "ReceiptDate, ExpiryDate, SourcePurchaseOrderId, " &
+                                             "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                             "FROM Inv_StockBatches " &
+                                             "WHERE ProductId = @productId AND QuantityRemaining > 0 " &
+                                             "ORDER BY ReceiptDate"
+                        shrCmd.Parameters.Add(New SqliteParameter("@productId", productId))
+                        Using shrReader = shrCmd.ExecuteReader()
+                            While shrReader.Read()
+                                _batchesForShrinkage.Add(StockService.ReadStockBatch(shrReader))
+                            End While
+                        End Using
+                    End Using
+                End Using
+                Dim batches As List(Of StockBatch) = _batchesForShrinkage
 
                 Dim remaining As Integer = quantity
                 For Each batch In batches
@@ -137,16 +156,90 @@ Namespace Services
         End Function
 
         Public Async Function GetShrinkageHistoryAsync(Optional productId As Integer? = Nothing) As Task(Of List(Of ShrinkageRecord)) Implements IShrinkageService.GetShrinkageHistoryAsync
-            Dim query = _db.ShrinkageRecords _
-                .Include(Function(r) r.Product) _
-                .Include(Function(r) r.StockBatch) _
-                .AsQueryable()
+            _shrinkageHistoryList = New List(Of ShrinkageRecord)()
+            Dim shConnStr = _db.Database.GetConnectionString()
+            Using shConn As New SqliteConnection(shConnStr)
+                Await shConn.OpenAsync()
 
-            If productId.HasValue Then
-                query = query.Where(Function(r) r.ProductId = productId.Value)
-            End If
+                Dim shSql = "SELECT Id, ProductId, StockBatchId, QuantityLost, UnitCost, TotalValue, " &
+                             "Reason, Notes, RecordedDate, CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                             "FROM Inv_ShrinkageRecords"
+                If productId.HasValue Then
+                    shSql &= " WHERE ProductId = @productId"
+                End If
+                shSql &= " ORDER BY RecordedDate DESC"
+                Using shCmd = shConn.CreateCommand()
+                    shCmd.CommandText = shSql
+                    If productId.HasValue Then
+                        shCmd.Parameters.Add(New SqliteParameter("@productId", productId.Value))
+                    End If
+                    Using shReader = shCmd.ExecuteReader()
+                        While shReader.Read()
+                            _shrinkageHistoryList.Add(New ShrinkageRecord With {
+                                .Id = shReader.GetInt32(0),
+                                .ProductId = shReader.GetInt32(1),
+                                .StockBatchId = If(shReader.IsDBNull(2), CType(Nothing, Integer?), shReader.GetInt32(2)),
+                                .QuantityLost = shReader.GetInt32(3),
+                                .UnitCost = shReader.GetDecimal(4),
+                                .TotalValue = shReader.GetDecimal(5),
+                                .Reason = shReader.GetString(6),
+                                .Notes = If(shReader.IsDBNull(7), Nothing, shReader.GetString(7)),
+                                .RecordedDate = shReader.GetDateTime(8),
+                                .CreatedBy = shReader.GetString(9),
+                                .CreatedAt = shReader.GetDateTime(10),
+                                .ModifiedBy = If(shReader.IsDBNull(11), Nothing, shReader.GetString(11)),
+                                .ModifiedAt = If(shReader.IsDBNull(12), Nothing, CType(shReader.GetDateTime(12), DateTime?))
+                            })
+                        End While
+                    End Using
+                End Using
 
-            Return Await query.OrderByDescending(Function(r) r.RecordedDate).ToListAsync()
+                If _shrinkageHistoryList.Count > 0 Then
+                    Dim productIds = String.Join(",", _shrinkageHistoryList.Select(Function(s) s.ProductId).Distinct())
+                    Dim productMap As New Dictionary(Of Integer, Product)()
+                    Using pCmd = shConn.CreateCommand()
+                        pCmd.CommandText = "SELECT Id, Name, Sku, CategoryId, Description, RetailPrice, Unit, HasExpiry, " &
+                                           "MinimumThreshold, IsActive, IsDeleted, DeletedBy, DeletedAt, " &
+                                           "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                           $"FROM Inv_Products WHERE Id IN ({productIds})"
+                        Using pReader = pCmd.ExecuteReader()
+                            While pReader.Read()
+                                Dim p = StockService.ReadProduct(pReader)
+                                productMap(p.Id) = p
+                            End While
+                        End Using
+                    End Using
+
+                    Dim batchIds = _shrinkageHistoryList.Where(Function(s) s.StockBatchId.HasValue) _
+                                                         .Select(Function(s) s.StockBatchId.Value).Distinct().ToList()
+                    Dim batchMap As New Dictionary(Of Integer, StockBatch)()
+                    If batchIds.Count > 0 Then
+                        Dim batchIdList = String.Join(",", batchIds)
+                        Using bCmd = shConn.CreateCommand()
+                            bCmd.CommandText = "SELECT Id, ProductId, QuantityReceived, QuantityRemaining, UnitCost, " &
+                                               "ReceiptDate, ExpiryDate, SourcePurchaseOrderId, " &
+                                               "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                               $"FROM Inv_StockBatches WHERE Id IN ({batchIdList})"
+                            Using bReader = bCmd.ExecuteReader()
+                                While bReader.Read()
+                                    Dim b = StockService.ReadStockBatch(bReader)
+                                    batchMap(b.Id) = b
+                                End While
+                            End Using
+                        End Using
+                    End If
+
+                    For Each sr In _shrinkageHistoryList
+                        Dim prod As Product = Nothing
+                        If productMap.TryGetValue(sr.ProductId, prod) Then sr.Product = prod
+                        If sr.StockBatchId.HasValue Then
+                            Dim bat As StockBatch = Nothing
+                            If batchMap.TryGetValue(sr.StockBatchId.Value, bat) Then sr.StockBatch = bat
+                        End If
+                    Next
+                End If
+            End Using
+            Return _shrinkageHistoryList
         End Function
 
         Public Async Function GetTotalShrinkageValueAsync(startDate As DateTime, endDate As DateTime) As Task(Of Decimal) Implements IShrinkageService.GetTotalShrinkageValueAsync

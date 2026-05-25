@@ -1,8 +1,11 @@
 Imports System.Threading
 Imports MediatR
+Imports Microsoft.Data.Sqlite
 Imports Microsoft.EntityFrameworkCore
 Imports Microsoft.Extensions.Logging
 Imports MerchSys.Inventory.Data
+Imports MerchSys.Inventory.Entities
+Imports MerchSys.Inventory.Services
 Imports MerchSys.SharedKernel.Queries
 
 Namespace Handlers
@@ -16,6 +19,7 @@ Namespace Handlers
 
         Private ReadOnly _db As InventoryDbContext
         Private ReadOnly _logger As ILogger(Of GetProductCatalogQueryHandler)
+        Private _catalogProductList As List(Of Product)
 
         Public Sub New(db As InventoryDbContext, logger As ILogger(Of GetProductCatalogQueryHandler))
             _db = db
@@ -27,22 +31,55 @@ Namespace Handlers
                 request.SearchTerm, request.ProductId)
 
             Dim now As DateTime = DateTime.UtcNow
+            _catalogProductList = New List(Of Product)()
+            Dim catConnStr = _db.Database.GetConnectionString()
+            Using catConn As New SqliteConnection(catConnStr)
+                Await catConn.OpenAsync()
 
-            Dim query = _db.Products _
-                .Where(Function(p) Not p.IsDeleted AndAlso p.IsActive) _
-                .Include(Function(p) p.StockBatches) _
-                .AsQueryable()
+                Dim catSql = "SELECT Id, Name, Sku, CategoryId, Description, RetailPrice, Unit, HasExpiry, " &
+                              "MinimumThreshold, IsActive, IsDeleted, DeletedBy, DeletedAt, " &
+                              "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                              "FROM Inv_Products WHERE IsDeleted = 0 AND IsActive = 1"
+                If request.ProductId.HasValue Then catSql &= " AND Id = @productId"
+                If Not String.IsNullOrWhiteSpace(request.SearchTerm) Then catSql &= " AND (lower(Name) LIKE @term OR lower(Sku) LIKE @term)"
+                catSql &= " ORDER BY Name"
 
-            If request.ProductId.HasValue Then
-                query = query.Where(Function(p) p.Id = request.ProductId.Value)
-            End If
+                Using catCmd = catConn.CreateCommand()
+                    catCmd.CommandText = catSql
+                    If request.ProductId.HasValue Then catCmd.Parameters.Add(New SqliteParameter("@productId", request.ProductId.Value))
+                    If Not String.IsNullOrWhiteSpace(request.SearchTerm) Then
+                        catCmd.Parameters.Add(New SqliteParameter("@term", "%" & request.SearchTerm.Trim().ToLower() & "%"))
+                    End If
+                    Using catReader = catCmd.ExecuteReader()
+                        While catReader.Read()
+                            _catalogProductList.Add(StockService.ReadProduct(catReader))
+                        End While
+                    End Using
+                End Using
 
-            If Not String.IsNullOrWhiteSpace(request.SearchTerm) Then
-                Dim term = request.SearchTerm.Trim().ToLower()
-                query = query.Where(Function(p) p.Name.ToLower().Contains(term) OrElse p.Sku.ToLower().Contains(term))
-            End If
-
-            Dim products = Await query.OrderBy(Function(p) p.Name).ToListAsync(cancellationToken)
+                If _catalogProductList.Count > 0 Then
+                    Dim pIds = String.Join(",", _catalogProductList.Select(Function(p) p.Id))
+                    Dim batchMap As New Dictionary(Of Integer, List(Of StockBatch))()
+                    Using bCmd = catConn.CreateCommand()
+                        bCmd.CommandText = "SELECT Id, ProductId, QuantityReceived, QuantityRemaining, UnitCost, " &
+                                           "ReceiptDate, ExpiryDate, SourcePurchaseOrderId, " &
+                                           "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                           $"FROM Inv_StockBatches WHERE ProductId IN ({pIds})"
+                        Using bReader = bCmd.ExecuteReader()
+                            While bReader.Read()
+                                Dim b = StockService.ReadStockBatch(bReader)
+                                If Not batchMap.ContainsKey(b.ProductId) Then batchMap(b.ProductId) = New List(Of StockBatch)()
+                                batchMap(b.ProductId).Add(b)
+                            End While
+                        End Using
+                    End Using
+                    For Each p In _catalogProductList
+                        Dim pBatches As List(Of StockBatch) = Nothing
+                        p.StockBatches = If(batchMap.TryGetValue(p.Id, pBatches), pBatches, New List(Of StockBatch)())
+                    Next
+                End If
+            End Using
+            Dim products As List(Of Product) = _catalogProductList
 
             Dim result As New GetProductCatalogResult()
 

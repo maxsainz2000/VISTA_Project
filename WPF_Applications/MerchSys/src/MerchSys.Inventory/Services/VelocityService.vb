@@ -1,3 +1,4 @@
+Imports Microsoft.Data.Sqlite
 Imports Microsoft.EntityFrameworkCore
 Imports Microsoft.Extensions.Logging
 Imports MerchSys.Inventory.Data
@@ -13,6 +14,7 @@ Namespace Services
 
         Private ReadOnly _db As InventoryDbContext
         Private ReadOnly _logger As ILogger(Of VelocityService)
+        Private _velocityProductList As List(Of Product)
 
         Public Sub New(db As InventoryDbContext, logger As ILogger(Of VelocityService))
             _db = db
@@ -20,13 +22,104 @@ Namespace Services
         End Sub
 
         Public Async Function ClassifyAllProductsAsync(daysToAnalyze As Integer) As Task(Of List(Of ProductVelocityDto)) Implements IVelocityService.ClassifyAllProductsAsync
-            Dim products As List(Of Product) = Await _db.Products.
-                Where(Function(p) Not p.IsDeleted AndAlso p.IsActive).
-                Include(Function(p) p.Category).
-                Include(Function(p) p.StockBatches).
-                Include(Function(p) p.ShrinkageRecords).
-                OrderBy(Function(p) p.Name).
-                ToListAsync()
+            _velocityProductList = New List(Of Product)()
+            Dim velConnStr = _db.Database.GetConnectionString()
+            Using velConn As New SqliteConnection(velConnStr)
+                Await velConn.OpenAsync()
+                Using velCmd = velConn.CreateCommand()
+                    velCmd.CommandText = "SELECT Id, Name, Sku, CategoryId, Description, RetailPrice, Unit, HasExpiry, " &
+                                         "MinimumThreshold, IsActive, IsDeleted, DeletedBy, DeletedAt, " &
+                                         "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                         "FROM Inv_Products WHERE IsDeleted = 0 AND IsActive = 1 ORDER BY Name"
+                    Using velReader = velCmd.ExecuteReader()
+                        While velReader.Read()
+                            _velocityProductList.Add(StockService.ReadProduct(velReader))
+                        End While
+                    End Using
+                End Using
+
+                If _velocityProductList.Count > 0 Then
+                    Dim pIds = String.Join(",", _velocityProductList.Select(Function(p) p.Id))
+
+                    Dim batchMap As New Dictionary(Of Integer, List(Of StockBatch))()
+                    Using bCmd = velConn.CreateCommand()
+                        bCmd.CommandText = "SELECT Id, ProductId, QuantityReceived, QuantityRemaining, UnitCost, " &
+                                           "ReceiptDate, ExpiryDate, SourcePurchaseOrderId, " &
+                                           "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                           $"FROM Inv_StockBatches WHERE ProductId IN ({pIds})"
+                        Using bReader = bCmd.ExecuteReader()
+                            While bReader.Read()
+                                Dim b = StockService.ReadStockBatch(bReader)
+                                If Not batchMap.ContainsKey(b.ProductId) Then batchMap(b.ProductId) = New List(Of StockBatch)()
+                                batchMap(b.ProductId).Add(b)
+                            End While
+                        End Using
+                    End Using
+
+                    Dim shrinkageMap As New Dictionary(Of Integer, List(Of ShrinkageRecord))()
+                    Using sCmd = velConn.CreateCommand()
+                        sCmd.CommandText = "SELECT Id, ProductId, StockBatchId, QuantityLost, UnitCost, TotalValue, " &
+                                           "Reason, Notes, RecordedDate, CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                           $"FROM Inv_ShrinkageRecords WHERE ProductId IN ({pIds})"
+                        Using sReader = sCmd.ExecuteReader()
+                            While sReader.Read()
+                                Dim s As New ShrinkageRecord With {
+                                    .Id = sReader.GetInt32(0),
+                                    .ProductId = sReader.GetInt32(1),
+                                    .StockBatchId = If(sReader.IsDBNull(2), CType(Nothing, Integer?), sReader.GetInt32(2)),
+                                    .QuantityLost = sReader.GetInt32(3),
+                                    .UnitCost = sReader.GetDecimal(4),
+                                    .TotalValue = sReader.GetDecimal(5),
+                                    .Reason = sReader.GetString(6),
+                                    .Notes = If(sReader.IsDBNull(7), Nothing, sReader.GetString(7)),
+                                    .RecordedDate = sReader.GetDateTime(8),
+                                    .CreatedBy = sReader.GetString(9),
+                                    .CreatedAt = sReader.GetDateTime(10),
+                                    .ModifiedBy = If(sReader.IsDBNull(11), Nothing, sReader.GetString(11)),
+                                    .ModifiedAt = If(sReader.IsDBNull(12), Nothing, CType(sReader.GetDateTime(12), DateTime?))
+                                }
+                                If Not shrinkageMap.ContainsKey(s.ProductId) Then shrinkageMap(s.ProductId) = New List(Of ShrinkageRecord)()
+                                shrinkageMap(s.ProductId).Add(s)
+                            End While
+                        End Using
+                    End Using
+
+                    Dim catIds = String.Join(",", _velocityProductList.Select(Function(p) p.CategoryId).Distinct())
+                    Dim categoryMap As New Dictionary(Of Integer, ProductCategory)()
+                    Using cCmd = velConn.CreateCommand()
+                        cCmd.CommandText = "SELECT Id, Name, Description, IsDeleted, DeletedBy, DeletedAt, " &
+                                           "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                           $"FROM Inv_ProductCategories WHERE Id IN ({catIds})"
+                        Using cReader = cCmd.ExecuteReader()
+                            While cReader.Read()
+                                Dim cat As New ProductCategory With {
+                                    .Id = cReader.GetInt32(0),
+                                    .Name = cReader.GetString(1),
+                                    .Description = If(cReader.IsDBNull(2), Nothing, cReader.GetString(2)),
+                                    .IsDeleted = cReader.GetBoolean(3),
+                                    .DeletedBy = If(cReader.IsDBNull(4), Nothing, cReader.GetString(4)),
+                                    .DeletedAt = If(cReader.IsDBNull(5), Nothing, CType(cReader.GetDateTime(5), DateTime?)),
+                                    .CreatedBy = cReader.GetString(6),
+                                    .CreatedAt = cReader.GetDateTime(7),
+                                    .ModifiedBy = If(cReader.IsDBNull(8), Nothing, cReader.GetString(8)),
+                                    .ModifiedAt = If(cReader.IsDBNull(9), Nothing, CType(cReader.GetDateTime(9), DateTime?))
+                                }
+                                categoryMap(cat.Id) = cat
+                            End While
+                        End Using
+                    End Using
+
+                    For Each p In _velocityProductList
+                        Dim pBatches As List(Of StockBatch) = Nothing
+                        p.StockBatches = If(batchMap.TryGetValue(p.Id, pBatches), pBatches, New List(Of StockBatch)())
+                        Dim pShrinkages As List(Of ShrinkageRecord) = Nothing
+                        p.ShrinkageRecords = If(shrinkageMap.TryGetValue(p.Id, pShrinkages), pShrinkages, New List(Of ShrinkageRecord)())
+                        Dim cat As ProductCategory = Nothing
+                        If categoryMap.TryGetValue(p.CategoryId, cat) Then p.Category = cat
+                    Next
+                End If
+            End Using
+            Dim products As List(Of Product) = _velocityProductList
 
             Dim windowStart As DateTime = DateTime.UtcNow.Date.AddDays(-daysToAnalyze)
             Dim movementCounts = Await _db.StockMovements.

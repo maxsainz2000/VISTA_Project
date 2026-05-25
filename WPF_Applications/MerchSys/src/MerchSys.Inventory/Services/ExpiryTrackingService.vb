@@ -1,4 +1,5 @@
 Imports System.Threading
+Imports Microsoft.Data.Sqlite
 Imports Microsoft.EntityFrameworkCore
 Imports Microsoft.Extensions.Logging
 Imports MerchSys.Inventory.Data
@@ -13,6 +14,8 @@ Namespace Services
         Private ReadOnly _db As InventoryDbContext
         Private ReadOnly _logger As ILogger(Of ExpiryTrackingService)
         Private ReadOnly _repository As ISyncableRepository(Of InventoryDbContext)
+        Private _nearExpiryBatchList As List(Of StockBatch)
+        Private _expiredBatchList As List(Of StockBatch)
 
         Public Sub New(db As InventoryDbContext,
                        logger As ILogger(Of ExpiryTrackingService),
@@ -28,16 +31,50 @@ Namespace Services
         Public Async Function GetNearExpiryBatchesAsync(daysThreshold As Integer) As Task(Of List(Of ExpiryAlertDto)) Implements IExpiryTrackingService.GetNearExpiryBatchesAsync
             Dim today As DateTime = DateTime.UtcNow.Date
             Dim thresholdDate As DateTime = today.AddDays(daysThreshold)
-
-            Dim batches As List(Of StockBatch) = Await _db.StockBatches _
-                .Include(Function(b) b.Product) _
-                .Where(Function(b) b.Product.HasExpiry AndAlso
-                                   b.QuantityRemaining > 0 AndAlso
-                                   b.ExpiryDate.HasValue AndAlso
-                                   b.ExpiryDate.Value >= today AndAlso
-                                   b.ExpiryDate.Value <= thresholdDate) _
-                .OrderBy(Function(b) b.ExpiryDate) _
-                .ToListAsync()
+            _nearExpiryBatchList = New List(Of StockBatch)()
+            Dim neConnStr = _db.Database.GetConnectionString()
+            Using neConn As New SqliteConnection(neConnStr)
+                Await neConn.OpenAsync()
+                Using neCmd = neConn.CreateCommand()
+                    neCmd.CommandText = "SELECT b.Id, b.ProductId, b.QuantityReceived, b.QuantityRemaining, b.UnitCost, " &
+                                        "b.ReceiptDate, b.ExpiryDate, b.SourcePurchaseOrderId, " &
+                                        "b.CreatedBy, b.CreatedAt, b.ModifiedBy, b.ModifiedAt " &
+                                        "FROM Inv_StockBatches b " &
+                                        "INNER JOIN Inv_Products p ON p.Id = b.ProductId " &
+                                        "WHERE p.HasExpiry = 1 AND b.QuantityRemaining > 0 " &
+                                        "AND b.ExpiryDate IS NOT NULL " &
+                                        "AND b.ExpiryDate >= @today AND b.ExpiryDate <= @threshold " &
+                                        "ORDER BY b.ExpiryDate"
+                    neCmd.Parameters.Add(New SqliteParameter("@today", today.ToString("o")))
+                    neCmd.Parameters.Add(New SqliteParameter("@threshold", thresholdDate.ToString("o")))
+                    Using neReader = neCmd.ExecuteReader()
+                        While neReader.Read()
+                            _nearExpiryBatchList.Add(StockService.ReadStockBatch(neReader))
+                        End While
+                    End Using
+                End Using
+                If _nearExpiryBatchList.Count > 0 Then
+                    Dim pIds = String.Join(",", _nearExpiryBatchList.Select(Function(b) b.ProductId).Distinct())
+                    Dim productMap As New Dictionary(Of Integer, Product)()
+                    Using pCmd = neConn.CreateCommand()
+                        pCmd.CommandText = "SELECT Id, Name, Sku, CategoryId, Description, RetailPrice, Unit, HasExpiry, " &
+                                           "MinimumThreshold, IsActive, IsDeleted, DeletedBy, DeletedAt, " &
+                                           "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                           $"FROM Inv_Products WHERE Id IN ({pIds})"
+                        Using pReader = pCmd.ExecuteReader()
+                            While pReader.Read()
+                                Dim p = StockService.ReadProduct(pReader)
+                                productMap(p.Id) = p
+                            End While
+                        End Using
+                    End Using
+                    For Each b In _nearExpiryBatchList
+                        Dim prod As Product = Nothing
+                        If productMap.TryGetValue(b.ProductId, prod) Then b.Product = prod
+                    Next
+                End If
+            End Using
+            Dim batches As List(Of StockBatch) = _nearExpiryBatchList
 
             Return batches.Select(Function(b)
                 Dim days As Integer = CInt((b.ExpiryDate.Value.Date - today).TotalDays)
@@ -60,15 +97,48 @@ Namespace Services
         ''' </summary>
         Public Async Function GetExpiredBatchesAsync() As Task(Of List(Of ExpiryAlertDto)) Implements IExpiryTrackingService.GetExpiredBatchesAsync
             Dim today As DateTime = DateTime.UtcNow.Date
-
-            Dim batches As List(Of StockBatch) = Await _db.StockBatches _
-                .Include(Function(b) b.Product) _
-                .Where(Function(b) b.Product.HasExpiry AndAlso
-                                   b.QuantityRemaining > 0 AndAlso
-                                   b.ExpiryDate.HasValue AndAlso
-                                   b.ExpiryDate.Value < today) _
-                .OrderBy(Function(b) b.ExpiryDate) _
-                .ToListAsync()
+            _expiredBatchList = New List(Of StockBatch)()
+            Dim expConnStr = _db.Database.GetConnectionString()
+            Using expConn As New SqliteConnection(expConnStr)
+                Await expConn.OpenAsync()
+                Using expCmd = expConn.CreateCommand()
+                    expCmd.CommandText = "SELECT b.Id, b.ProductId, b.QuantityReceived, b.QuantityRemaining, b.UnitCost, " &
+                                         "b.ReceiptDate, b.ExpiryDate, b.SourcePurchaseOrderId, " &
+                                         "b.CreatedBy, b.CreatedAt, b.ModifiedBy, b.ModifiedAt " &
+                                         "FROM Inv_StockBatches b " &
+                                         "INNER JOIN Inv_Products p ON p.Id = b.ProductId " &
+                                         "WHERE p.HasExpiry = 1 AND b.QuantityRemaining > 0 " &
+                                         "AND b.ExpiryDate IS NOT NULL AND b.ExpiryDate < @today " &
+                                         "ORDER BY b.ExpiryDate"
+                    expCmd.Parameters.Add(New SqliteParameter("@today", today.ToString("o")))
+                    Using expReader = expCmd.ExecuteReader()
+                        While expReader.Read()
+                            _expiredBatchList.Add(StockService.ReadStockBatch(expReader))
+                        End While
+                    End Using
+                End Using
+                If _expiredBatchList.Count > 0 Then
+                    Dim pIds = String.Join(",", _expiredBatchList.Select(Function(b) b.ProductId).Distinct())
+                    Dim productMap As New Dictionary(Of Integer, Product)()
+                    Using pCmd = expConn.CreateCommand()
+                        pCmd.CommandText = "SELECT Id, Name, Sku, CategoryId, Description, RetailPrice, Unit, HasExpiry, " &
+                                           "MinimumThreshold, IsActive, IsDeleted, DeletedBy, DeletedAt, " &
+                                           "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                           $"FROM Inv_Products WHERE Id IN ({pIds})"
+                        Using pReader = pCmd.ExecuteReader()
+                            While pReader.Read()
+                                Dim p = StockService.ReadProduct(pReader)
+                                productMap(p.Id) = p
+                            End While
+                        End Using
+                    End Using
+                    For Each b In _expiredBatchList
+                        Dim prod As Product = Nothing
+                        If productMap.TryGetValue(b.ProductId, prod) Then b.Product = prod
+                    Next
+                End If
+            End Using
+            Dim batches As List(Of StockBatch) = _expiredBatchList
 
             Return batches.Select(Function(b)
                 Dim days As Integer = CInt((b.ExpiryDate.Value.Date - today).TotalDays)

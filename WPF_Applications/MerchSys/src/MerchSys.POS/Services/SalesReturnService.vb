@@ -1,4 +1,5 @@
 Imports System.Threading
+Imports Microsoft.Data.Sqlite
 Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.POS.Data
 Imports MerchSys.POS.Entities
@@ -15,6 +16,8 @@ Namespace Services
         Private ReadOnly _context As POSDbContext
         Private ReadOnly _eventBus As IEventBus
         Private ReadOnly _repository As ISyncableRepository(Of POSDbContext)
+        Private _returnsForTxList As List(Of SalesReturn)
+        Private _returnHistoryList As List(Of SalesReturn)
 
         Public Sub New(context As POSDbContext,
                        eventBus As IEventBus,
@@ -109,20 +112,50 @@ Namespace Services
         End Function
 
         Public Async Function GetReturnsForTransactionAsync(transactionId As Integer) As Task(Of List(Of SalesReturn)) Implements ISalesReturnService.GetReturnsForTransactionAsync
-            Dim returns = Await _context.SalesReturns _
-                .Where(Function(r) r.OriginalTransactionId = transactionId) _
-                .OrderBy(Function(r) r.ReturnDate) _
-                .ToListAsync()
-            Return returns
+            _returnsForTxList = New List(Of SalesReturn)()
+            Dim rftConnStr = _context.Database.GetConnectionString()
+            Using rftConn As New SqliteConnection(rftConnStr)
+                Await rftConn.OpenAsync()
+                Using rftCmd = rftConn.CreateCommand()
+                    rftCmd.CommandText = "SELECT Id, OriginalTransactionId, ReturnDate, ProductId, ProductName, " &
+                                         "QuantityReturned, UnitPrice, RefundAmount, Reason, IsRestocked, " &
+                                         "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                         "FROM Pos_SalesReturns WHERE OriginalTransactionId = @txId " &
+                                         "ORDER BY ReturnDate"
+                    rftCmd.Parameters.Add(New SqliteParameter("@txId", transactionId))
+                    Using rftReader = rftCmd.ExecuteReader()
+                        While rftReader.Read()
+                            _returnsForTxList.Add(ReadSalesReturn(rftReader))
+                        End While
+                    End Using
+                End Using
+            End Using
+            Return _returnsForTxList
         End Function
 
         Public Async Function GetReturnHistoryAsync(startDate As DateTime, endDate As DateTime) As Task(Of List(Of SalesReturn)) Implements ISalesReturnService.GetReturnHistoryAsync
             Dim endOfDay = endDate.Date.AddDays(1).AddTicks(-1)
-            Dim returns = Await _context.SalesReturns _
-                .Where(Function(r) r.ReturnDate >= startDate AndAlso r.ReturnDate <= endOfDay) _
-                .OrderByDescending(Function(r) r.ReturnDate) _
-                .ToListAsync()
-            Return returns
+            _returnHistoryList = New List(Of SalesReturn)()
+            Dim rhConnStr = _context.Database.GetConnectionString()
+            Using rhConn As New SqliteConnection(rhConnStr)
+                Await rhConn.OpenAsync()
+                Using rhCmd = rhConn.CreateCommand()
+                    rhCmd.CommandText = "SELECT Id, OriginalTransactionId, ReturnDate, ProductId, ProductName, " &
+                                         "QuantityReturned, UnitPrice, RefundAmount, Reason, IsRestocked, " &
+                                         "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                         "FROM Pos_SalesReturns " &
+                                         "WHERE ReturnDate >= @startDate AND ReturnDate <= @endOfDay " &
+                                         "ORDER BY ReturnDate DESC"
+                    rhCmd.Parameters.Add(New SqliteParameter("@startDate", startDate.ToString("o")))
+                    rhCmd.Parameters.Add(New SqliteParameter("@endOfDay", endOfDay.ToString("o")))
+                    Using rhReader = rhCmd.ExecuteReader()
+                        While rhReader.Read()
+                            _returnHistoryList.Add(ReadSalesReturn(rhReader))
+                        End While
+                    End Using
+                End Using
+            End Using
+            Return _returnHistoryList
         End Function
 
         Public Async Function GetTransactionIdsWithReturnsAsync(transactionIds As List(Of Integer)) As Task(Of HashSet(Of Integer)) Implements ISalesReturnService.GetTransactionIdsWithReturnsAsync
@@ -135,6 +168,25 @@ Namespace Services
                 .Distinct() _
                 .ToListAsync()
             Return New HashSet(Of Integer)(ids)
+        End Function
+
+        Private Shared Function ReadSalesReturn(r As Microsoft.Data.Sqlite.SqliteDataReader) As SalesReturn
+            Return New SalesReturn With {
+                .Id = r.GetInt32(0),
+                .OriginalTransactionId = r.GetInt32(1),
+                .ReturnDate = r.GetDateTime(2),
+                .ProductId = r.GetInt32(3),
+                .ProductName = r.GetString(4),
+                .QuantityReturned = r.GetInt32(5),
+                .UnitPrice = r.GetDecimal(6),
+                .RefundAmount = r.GetDecimal(7),
+                .Reason = r.GetString(8),
+                .IsRestocked = r.GetBoolean(9),
+                .CreatedBy = r.GetString(10),
+                .CreatedAt = r.GetDateTime(11),
+                .ModifiedBy = If(r.IsDBNull(12), Nothing, r.GetString(12)),
+                .ModifiedAt = If(r.IsDBNull(13), Nothing, CType(r.GetDateTime(13), DateTime?))
+            }
         End Function
 
     End Class

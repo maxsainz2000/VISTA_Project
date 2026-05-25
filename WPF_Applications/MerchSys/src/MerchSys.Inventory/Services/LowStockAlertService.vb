@@ -1,4 +1,5 @@
 Imports System.Threading
+Imports Microsoft.Data.Sqlite
 Imports Microsoft.EntityFrameworkCore
 Imports Microsoft.Extensions.Logging
 Imports MerchSys.Inventory.Data
@@ -15,6 +16,7 @@ Namespace Services
         Private ReadOnly _notifier As ILowStockNotifier
         Private ReadOnly _logger As ILogger(Of LowStockAlertService)
         Private ReadOnly _repository As ISyncableRepository(Of InventoryDbContext)
+        Private _alertConfigList As List(Of StockAlertConfig)
 
         Public Sub New(db As InventoryDbContext,
                        stockService As IStockService,
@@ -76,11 +78,32 @@ Namespace Services
         Private Async Function BuildAlertsAsync() As Task(Of List(Of LowStockAlertDto))
             Dim stockLevels As List(Of StockLevelDto) = Await _stockService.GetCurrentStockAsync(Nothing)
 
-            Dim alertConfigs As Dictionary(Of Integer, StockAlertConfig) =
-                (Await _db.StockAlertConfigs.
-                    Where(Function(c) c.IsAlertEnabled).
-                    ToListAsync()).
-                    ToDictionary(Function(c) c.ProductId)
+            _alertConfigList = New List(Of StockAlertConfig)()
+            Dim acConnStr = _db.Database.GetConnectionString()
+            Using acConn As New SqliteConnection(acConnStr)
+                Await acConn.OpenAsync()
+                Using acCmd = acConn.CreateCommand()
+                    acCmd.CommandText = "SELECT Id, ProductId, MinimumThreshold, ExpiryAlertDays, IsAlertEnabled, " &
+                                        "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                        "FROM Inv_StockAlertConfigs WHERE IsAlertEnabled = 1"
+                    Using acReader = acCmd.ExecuteReader()
+                        While acReader.Read()
+                            _alertConfigList.Add(New StockAlertConfig With {
+                                .Id = acReader.GetInt32(0),
+                                .ProductId = acReader.GetInt32(1),
+                                .MinimumThreshold = acReader.GetInt32(2),
+                                .ExpiryAlertDays = acReader.GetInt32(3),
+                                .IsAlertEnabled = acReader.GetBoolean(4),
+                                .CreatedBy = acReader.GetString(5),
+                                .CreatedAt = acReader.GetDateTime(6),
+                                .ModifiedBy = If(acReader.IsDBNull(7), Nothing, acReader.GetString(7)),
+                                .ModifiedAt = If(acReader.IsDBNull(8), Nothing, CType(acReader.GetDateTime(8), DateTime?))
+                            })
+                        End While
+                    End Using
+                End Using
+            End Using
+            Dim alertConfigs As Dictionary(Of Integer, StockAlertConfig) = _alertConfigList.ToDictionary(Function(c) c.ProductId)
 
             Dim lastRestockLookup As Dictionary(Of Integer, DateTime) =
                 (Await _db.StockBatches.

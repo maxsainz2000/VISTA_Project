@@ -1,6 +1,7 @@
 Imports System.Collections.ObjectModel
 Imports CommunityToolkit.Mvvm.ComponentModel
 Imports CommunityToolkit.Mvvm.Input
+Imports Microsoft.Data.Sqlite
 Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.POS.Data
 Imports MerchSys.POS.Entities
@@ -33,6 +34,7 @@ Namespace ViewModels
 
         ' Unfiltered master list used for in-memory filtering
         Private _allAccounts As List(Of CreditAccount) = New List(Of CreditAccount)()
+        Private _historyTxList As List(Of SalesTransaction)
 
         ' ── Backing fields ────────────────────────────────────────────────────────
 
@@ -353,15 +355,31 @@ Namespace ViewModels
                 PaymentHistory.Add(p)
             Next
 
-            Dim txns = Await _context.SalesTransactions _
-                .Where(Function(t) t.CustomerId.HasValue AndAlso t.CustomerId.Value = account.Id AndAlso
-                                   t.PaymentMethod = PaymentMethod.Credit AndAlso
-                                   Not t.IsDeleted) _
-                .OrderByDescending(Function(t) t.TransactionDate) _
-                .ToListAsync()
+            _historyTxList = New List(Of SalesTransaction)()
+            Dim htConnStr = _context.Database.GetConnectionString()
+            Using htConn As New SqliteConnection(htConnStr)
+                Await htConn.OpenAsync()
+                Using htCmd = htConn.CreateCommand()
+                    htCmd.CommandText = "SELECT TransactionDate, TransactionNumber, TotalAmount " &
+                                         "FROM Pos_SalesTransactions " &
+                                         "WHERE CustomerId = @accountId AND PaymentMethod = @creditMethod AND IsDeleted = 0 " &
+                                         "ORDER BY TransactionDate DESC"
+                    htCmd.Parameters.Add(New SqliteParameter("@accountId", account.Id))
+                    htCmd.Parameters.Add(New SqliteParameter("@creditMethod", CInt(PaymentMethod.Credit)))
+                    Using htReader = htCmd.ExecuteReader()
+                        While htReader.Read()
+                            _historyTxList.Add(New SalesTransaction With {
+                                .TransactionDate = htReader.GetDateTime(0),
+                                .TransactionNumber = htReader.GetString(1),
+                                .TotalAmount = htReader.GetDecimal(2)
+                            })
+                        End While
+                    End Using
+                End Using
+            End Using
 
             CreditTransactions.Clear()
-            For Each t In txns
+            For Each t In _historyTxList
                 CreditTransactions.Add(New CreditTransactionItem() With {
                     .TransactionDate = t.TransactionDate,
                     .TransactionNumber = t.TransactionNumber,

@@ -3,6 +3,7 @@ Imports System.Security.Cryptography
 Imports System.Text
 Imports System.Text.Json
 Imports MediatR
+Imports Microsoft.Data.Sqlite
 Imports Microsoft.EntityFrameworkCore
 Imports Microsoft.Extensions.Logging
 Imports MerchSys.POS.Data
@@ -20,6 +21,7 @@ Namespace Services
         Private ReadOnly _context As POSDbContext
         Private ReadOnly _mediator As IMediator
         Private ReadOnly _logger As ILogger(Of ReceiptIntegrityService)
+        Private _integrityChainList As List(Of ReceiptIntegrity)
 
         Public Sub New(context As POSDbContext, mediator As IMediator, logger As ILogger(Of ReceiptIntegrityService))
             _context = context
@@ -101,13 +103,87 @@ Namespace Services
 
         ''' <inheritdoc/>
         Public Async Function ValidateChainAsync(year As Integer) As Task(Of ChainValidationResult) Implements IReceiptIntegrityService.ValidateChainAsync
-            Dim integrities = Await _context.ReceiptIntegrities.
-                Where(Function(i) i.Receipt.IssueDate.Year = year).
-                OrderBy(Function(i) i.ReceiptId).
-                Include(Function(i) i.Receipt).
-                    ThenInclude(Function(r) r.Transaction).
-                        ThenInclude(Function(t) t.Lines).
-                ToListAsync()
+            _integrityChainList = New List(Of ReceiptIntegrity)()
+            Dim vcConnStr = _context.Database.GetConnectionString()
+            Using vcConn As New SqliteConnection(vcConnStr)
+                Await vcConn.OpenAsync()
+
+                Using vcCmd = vcConn.CreateCommand()
+                    vcCmd.CommandText = "SELECT ri.Id, ri.ReceiptId, ri.IntegrityHash, ri.PreviousHash " &
+                                         "FROM Pos_ReceiptIntegrity ri " &
+                                         "INNER JOIN Pos_OfficialReceipts r ON r.Id = ri.ReceiptId " &
+                                         "WHERE CAST(strftime('%Y', r.IssueDate) AS INTEGER) = @year " &
+                                         "ORDER BY ri.ReceiptId"
+                    vcCmd.Parameters.Add(New SqliteParameter("@year", year))
+                    Using vcReader = vcCmd.ExecuteReader()
+                        While vcReader.Read()
+                            _integrityChainList.Add(New ReceiptIntegrity With {
+                                .Id = vcReader.GetInt32(0),
+                                .ReceiptId = vcReader.GetInt32(1),
+                                .IntegrityHash = vcReader.GetString(2),
+                                .PreviousHash = vcReader.GetString(3)
+                            })
+                        End While
+                    End Using
+                End Using
+
+                If _integrityChainList.Count > 0 Then
+                    Dim receiptIds = String.Join(",", _integrityChainList.Select(Function(i) i.ReceiptId))
+                    Dim receiptMap As New Dictionary(Of Integer, OfficialReceipt)()
+                    Using rCmd = vcConn.CreateCommand()
+                        rCmd.CommandText = "SELECT Id, TransactionId, ReceiptNumber, BusinessTIN, IssueDate, TotalAmount, VatAmount " &
+                                            $"FROM Pos_OfficialReceipts WHERE Id IN ({receiptIds})"
+                        Using rReader = rCmd.ExecuteReader()
+                            While rReader.Read()
+                                Dim receipt As New OfficialReceipt With {
+                                    .Id = rReader.GetInt32(0),
+                                    .TransactionId = rReader.GetInt32(1),
+                                    .ReceiptNumber = rReader.GetString(2),
+                                    .BusinessTIN = If(rReader.IsDBNull(3), Nothing, rReader.GetString(3)),
+                                    .IssueDate = rReader.GetDateTime(4),
+                                    .TotalAmount = rReader.GetDecimal(5),
+                                    .VatAmount = rReader.GetDecimal(6)
+                                }
+                                receiptMap(receipt.Id) = receipt
+                            End While
+                        End Using
+                    End Using
+
+                    Dim txIds = String.Join(",", receiptMap.Values.Select(Function(r) r.TransactionId).Distinct())
+                    Dim lineMap As New Dictionary(Of Integer, List(Of SalesTransactionLine))()
+                    Using lCmd = vcConn.CreateCommand()
+                        lCmd.CommandText = "SELECT TransactionId, ProductId, Quantity, UnitPrice, LineTotal " &
+                                            $"FROM Pos_SalesTransactionLines WHERE TransactionId IN ({txIds})"
+                        Using lReader = lCmd.ExecuteReader()
+                            While lReader.Read()
+                                Dim line As New SalesTransactionLine With {
+                                    .TransactionId = lReader.GetInt32(0),
+                                    .ProductId = lReader.GetInt32(1),
+                                    .Quantity = lReader.GetInt32(2),
+                                    .UnitPrice = lReader.GetDecimal(3),
+                                    .LineTotal = lReader.GetDecimal(4)
+                                }
+                                If Not lineMap.ContainsKey(line.TransactionId) Then lineMap(line.TransactionId) = New List(Of SalesTransactionLine)()
+                                lineMap(line.TransactionId).Add(line)
+                            End While
+                        End Using
+                    End Using
+
+                    For Each receipt In receiptMap.Values
+                        Dim txLines As List(Of SalesTransactionLine) = Nothing
+                        If Not lineMap.TryGetValue(receipt.TransactionId, txLines) Then txLines = New List(Of SalesTransactionLine)()
+                        Dim tx As New SalesTransaction With {.Id = receipt.TransactionId}
+                        For Each ln In txLines : tx.Lines.Add(ln) : Next
+                        receipt.Transaction = tx
+                    Next
+
+                    For Each integrity In _integrityChainList
+                        Dim receipt As OfficialReceipt = Nothing
+                        If receiptMap.TryGetValue(integrity.ReceiptId, receipt) Then integrity.Receipt = receipt
+                    Next
+                End If
+            End Using
+            Dim integrities As List(Of ReceiptIntegrity) = _integrityChainList
 
             Dim result As New ChainValidationResult() With {
                 .Year = year,

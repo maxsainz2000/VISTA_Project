@@ -1,9 +1,11 @@
 Imports System.Collections.ObjectModel
 Imports CommunityToolkit.Mvvm.ComponentModel
 Imports CommunityToolkit.Mvvm.Input
+Imports Microsoft.Data.Sqlite
 Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.Inventory.Data
 Imports MerchSys.Inventory.Entities
+Imports MerchSys.Inventory.Services
 
 Namespace ViewModels
 
@@ -35,6 +37,8 @@ Namespace ViewModels
 
         Private ReadOnly _db As InventoryDbContext
         Private _allProducts As List(Of ProductManagementRowItem) = New List(Of ProductManagementRowItem)()
+        Private _loadedProducts As List(Of Product)
+        Private _loadedCategories As List(Of ProductCategory)
 
         Public Sub New(db As InventoryDbContext)
             _db = db
@@ -337,11 +341,51 @@ Namespace ViewModels
         Private Async Function LoadDataAsync() As Task
             IsBusy = True
             Try
-                Dim dbProducts = Await _db.Products.
-                    Where(Function(p) Not p.IsDeleted).
-                    Include(Function(p) p.Category).
-                    OrderBy(Function(p) p.Name).
-                    ToListAsync()
+                _loadedProducts = New List(Of Product)()
+                _loadedCategories = New List(Of ProductCategory)()
+                Dim pmConnStr = _db.Database.GetConnectionString()
+                Using pmConn As New SqliteConnection(pmConnStr)
+                    Await pmConn.OpenAsync()
+                    Using pmCmd = pmConn.CreateCommand()
+                        pmCmd.CommandText = "SELECT Id, Name, Sku, CategoryId, Description, RetailPrice, Unit, HasExpiry, " &
+                                             "MinimumThreshold, IsActive, IsDeleted, DeletedBy, DeletedAt, " &
+                                             "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                             "FROM Inv_Products WHERE IsDeleted = 0 ORDER BY Name"
+                        Using pmReader = pmCmd.ExecuteReader()
+                            While pmReader.Read()
+                                _loadedProducts.Add(StockService.ReadProduct(pmReader))
+                            End While
+                        End Using
+                    End Using
+                    Using cCmd = pmConn.CreateCommand()
+                        cCmd.CommandText = "SELECT Id, Name, Description, IsDeleted, DeletedBy, DeletedAt, " &
+                                           "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                           "FROM Inv_ProductCategories WHERE IsDeleted = 0 ORDER BY Name"
+                        Using cReader = cCmd.ExecuteReader()
+                            While cReader.Read()
+                                _loadedCategories.Add(New ProductCategory With {
+                                    .Id = cReader.GetInt32(0),
+                                    .Name = cReader.GetString(1),
+                                    .Description = If(cReader.IsDBNull(2), Nothing, cReader.GetString(2)),
+                                    .IsDeleted = cReader.GetBoolean(3),
+                                    .DeletedBy = If(cReader.IsDBNull(4), Nothing, cReader.GetString(4)),
+                                    .DeletedAt = If(cReader.IsDBNull(5), Nothing, CType(cReader.GetDateTime(5), DateTime?)),
+                                    .CreatedBy = cReader.GetString(6),
+                                    .CreatedAt = cReader.GetDateTime(7),
+                                    .ModifiedBy = If(cReader.IsDBNull(8), Nothing, cReader.GetString(8)),
+                                    .ModifiedAt = If(cReader.IsDBNull(9), Nothing, CType(cReader.GetDateTime(9), DateTime?))
+                                })
+                            End While
+                        End Using
+                    End Using
+                End Using
+                Dim categoryLookup = _loadedCategories.ToDictionary(Function(c) c.Id)
+                For Each p In _loadedProducts
+                    Dim cat As ProductCategory = Nothing
+                    If categoryLookup.TryGetValue(p.CategoryId, cat) Then p.Category = cat
+                Next
+                Dim dbProducts As List(Of Product) = _loadedProducts
+                Dim dbCategories As List(Of ProductCategory) = _loadedCategories
 
                 _allProducts = dbProducts.
                     Select(Function(p) New ProductManagementRowItem With {
@@ -357,11 +401,6 @@ Namespace ViewModels
                         .Description = If(p.Description, String.Empty)
                     }).
                     ToList()
-
-                Dim dbCategories = Await _db.ProductCategories.
-                    Where(Function(c) Not c.IsDeleted).
-                    OrderBy(Function(c) c.Name).
-                    ToListAsync()
 
                 Dim countMap = dbProducts.
                     GroupBy(Function(p) p.CategoryId).

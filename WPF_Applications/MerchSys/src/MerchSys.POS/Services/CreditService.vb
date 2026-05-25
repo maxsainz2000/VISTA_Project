@@ -1,4 +1,5 @@
 Imports System.Threading
+Imports Microsoft.Data.Sqlite
 Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.POS.Data
 Imports MerchSys.POS.Entities
@@ -24,6 +25,8 @@ Namespace Services
         Private ReadOnly _context As POSDbContext
         Private ReadOnly _eventBus As IEventBus
         Private ReadOnly _repository As ISyncableRepository(Of POSDbContext)
+        Private _creditAccountList As List(Of CreditAccount)
+        Private _creditPaymentList As List(Of CreditPayment)
 
         Public Sub New(context As POSDbContext,
                        eventBus As IEventBus,
@@ -56,22 +59,46 @@ Namespace Services
         End Function
 
         Public Async Function GetAllAccountsAsync() As Task(Of List(Of CreditAccount)) Implements ICreditService.GetAllAccountsAsync
-            Dim accounts = Await _context.CreditAccounts _
-                .Where(Function(a) Not a.IsDeleted) _
-                .OrderBy(Function(a) a.CustomerName) _
-                .ToListAsync()
-            Return accounts
+            _creditAccountList = New List(Of CreditAccount)()
+            Dim gaConnStr = _context.Database.GetConnectionString()
+            Using gaConn As New SqliteConnection(gaConnStr)
+                Await gaConn.OpenAsync()
+                Using gaCmd = gaConn.CreateCommand()
+                    gaCmd.CommandText = "SELECT Id, CustomerName, Phone, Address, CurrentBalance, TotalCreditExtended, " &
+                                        "TotalPaymentsReceived, IsBlocked, LastTransactionDate, Notes, " &
+                                        "IsDeleted, DeletedBy, DeletedAt, CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                        "FROM Pos_CreditAccounts WHERE IsDeleted = 0 ORDER BY CustomerName"
+                    Using gaReader = gaCmd.ExecuteReader()
+                        While gaReader.Read()
+                            _creditAccountList.Add(ReadCreditAccount(gaReader))
+                        End While
+                    End Using
+                End Using
+            End Using
+            Return _creditAccountList
         End Function
 
         Public Async Function SearchAccountsAsync(searchTerm As String) As Task(Of List(Of CreditAccount)) Implements ICreditService.SearchAccountsAsync
-            Dim term = searchTerm.ToLower()
-            Dim accounts = Await _context.CreditAccounts _
-                .Where(Function(a) Not a.IsDeleted AndAlso
-                                   (a.CustomerName.ToLower().Contains(term) OrElse
-                                    a.Phone.ToLower().Contains(term))) _
-                .OrderBy(Function(a) a.CustomerName) _
-                .ToListAsync()
-            Return accounts
+            _creditAccountList = New List(Of CreditAccount)()
+            Dim saConnStr = _context.Database.GetConnectionString()
+            Using saConn As New SqliteConnection(saConnStr)
+                Await saConn.OpenAsync()
+                Using saCmd = saConn.CreateCommand()
+                    saCmd.CommandText = "SELECT Id, CustomerName, Phone, Address, CurrentBalance, TotalCreditExtended, " &
+                                        "TotalPaymentsReceived, IsBlocked, LastTransactionDate, Notes, " &
+                                        "IsDeleted, DeletedBy, DeletedAt, CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                        "FROM Pos_CreditAccounts " &
+                                        "WHERE IsDeleted = 0 AND (lower(CustomerName) LIKE @term OR lower(Phone) LIKE @term) " &
+                                        "ORDER BY CustomerName"
+                    saCmd.Parameters.Add(New SqliteParameter("@term", "%" & searchTerm.ToLower() & "%"))
+                    Using saReader = saCmd.ExecuteReader()
+                        While saReader.Read()
+                            _creditAccountList.Add(ReadCreditAccount(saReader))
+                        End While
+                    End Using
+                End Using
+            End Using
+            Return _creditAccountList
         End Function
 
         ''' <summary>
@@ -145,11 +172,36 @@ Namespace Services
         End Function
 
         Public Async Function GetPaymentHistoryAsync(customerId As Integer) As Task(Of List(Of CreditPayment)) Implements ICreditService.GetPaymentHistoryAsync
-            Dim payments = Await _context.CreditPayments _
-                .Where(Function(p) p.CreditAccountId = customerId) _
-                .OrderByDescending(Function(p) p.PaymentDate) _
-                .ToListAsync()
-            Return payments
+            _creditPaymentList = New List(Of CreditPayment)()
+            Dim phConnStr = _context.Database.GetConnectionString()
+            Using phConn As New SqliteConnection(phConnStr)
+                Await phConn.OpenAsync()
+                Using phCmd = phConn.CreateCommand()
+                    phCmd.CommandText = "SELECT Id, CreditAccountId, PaymentAmount, PaymentDate, PaymentMethod, Notes, ReceivedBy, " &
+                                        "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                        "FROM Pos_CreditPayments WHERE CreditAccountId = @customerId " &
+                                        "ORDER BY PaymentDate DESC"
+                    phCmd.Parameters.Add(New SqliteParameter("@customerId", customerId))
+                    Using phReader = phCmd.ExecuteReader()
+                        While phReader.Read()
+                            _creditPaymentList.Add(New CreditPayment With {
+                                .Id = phReader.GetInt32(0),
+                                .CreditAccountId = phReader.GetInt32(1),
+                                .PaymentAmount = phReader.GetDecimal(2),
+                                .PaymentDate = phReader.GetDateTime(3),
+                                .PaymentMethod = CType(phReader.GetInt32(4), PaymentMethod),
+                                .Notes = If(phReader.IsDBNull(5), Nothing, phReader.GetString(5)),
+                                .ReceivedBy = phReader.GetString(6),
+                                .CreatedBy = phReader.GetString(7),
+                                .CreatedAt = phReader.GetDateTime(8),
+                                .ModifiedBy = If(phReader.IsDBNull(9), Nothing, phReader.GetString(9)),
+                                .ModifiedAt = If(phReader.IsDBNull(10), Nothing, CType(phReader.GetDateTime(10), DateTime?))
+                            })
+                        End While
+                    End Using
+                End Using
+            End Using
+            Return _creditPaymentList
         End Function
 
         Public Async Function GetTotalOutstandingAsync() As Task(Of Decimal) Implements ICreditService.GetTotalOutstandingAsync
@@ -164,13 +216,49 @@ Namespace Services
         ''' </summary>
         Public Async Function GetOverdueAccountsAsync() As Task(Of List(Of CreditAccount)) Implements ICreditService.GetOverdueAccountsAsync
             Dim cutoff = DateTime.UtcNow.AddDays(-30)
-            Dim accounts = Await _context.CreditAccounts _
-                .Where(Function(a) Not a.IsDeleted AndAlso
-                                   a.CurrentBalance > 0D AndAlso
-                                   (a.LastTransactionDate Is Nothing OrElse a.LastTransactionDate.GetValueOrDefault() < cutoff)) _
-                .OrderByDescending(Function(a) a.CurrentBalance) _
-                .ToListAsync()
-            Return accounts
+            _creditAccountList = New List(Of CreditAccount)()
+            Dim odConnStr = _context.Database.GetConnectionString()
+            Using odConn As New SqliteConnection(odConnStr)
+                Await odConn.OpenAsync()
+                Using odCmd = odConn.CreateCommand()
+                    odCmd.CommandText = "SELECT Id, CustomerName, Phone, Address, CurrentBalance, TotalCreditExtended, " &
+                                        "TotalPaymentsReceived, IsBlocked, LastTransactionDate, Notes, " &
+                                        "IsDeleted, DeletedBy, DeletedAt, CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                        "FROM Pos_CreditAccounts " &
+                                        "WHERE IsDeleted = 0 AND CurrentBalance > 0 " &
+                                        "AND (LastTransactionDate IS NULL OR LastTransactionDate < @cutoff) " &
+                                        "ORDER BY CurrentBalance DESC"
+                    odCmd.Parameters.Add(New SqliteParameter("@cutoff", cutoff.ToString("o")))
+                    Using odReader = odCmd.ExecuteReader()
+                        While odReader.Read()
+                            _creditAccountList.Add(ReadCreditAccount(odReader))
+                        End While
+                    End Using
+                End Using
+            End Using
+            Return _creditAccountList
+        End Function
+
+        Private Shared Function ReadCreditAccount(r As Microsoft.Data.Sqlite.SqliteDataReader) As CreditAccount
+            Return New CreditAccount With {
+                .Id = r.GetInt32(0),
+                .CustomerName = r.GetString(1),
+                .Phone = r.GetString(2),
+                .Address = If(r.IsDBNull(3), Nothing, r.GetString(3)),
+                .CurrentBalance = r.GetDecimal(4),
+                .TotalCreditExtended = r.GetDecimal(5),
+                .TotalPaymentsReceived = r.GetDecimal(6),
+                .IsBlocked = r.GetBoolean(7),
+                .LastTransactionDate = If(r.IsDBNull(8), CType(Nothing, DateTime?), CType(r.GetDateTime(8), DateTime?)),
+                .Notes = If(r.IsDBNull(9), Nothing, r.GetString(9)),
+                .IsDeleted = r.GetBoolean(10),
+                .DeletedBy = If(r.IsDBNull(11), Nothing, r.GetString(11)),
+                .DeletedAt = If(r.IsDBNull(12), Nothing, CType(r.GetDateTime(12), DateTime?)),
+                .CreatedBy = r.GetString(13),
+                .CreatedAt = r.GetDateTime(14),
+                .ModifiedBy = If(r.IsDBNull(15), Nothing, r.GetString(15)),
+                .ModifiedAt = If(r.IsDBNull(16), Nothing, CType(r.GetDateTime(16), DateTime?))
+            }
         End Function
 
     End Class

@@ -1,3 +1,4 @@
+Imports Microsoft.Data.Sqlite
 Imports Microsoft.EntityFrameworkCore
 Imports Microsoft.Extensions.Logging
 Imports MerchSys.Inventory.Data
@@ -12,6 +13,7 @@ Namespace Services
 
         Private ReadOnly _db As InventoryDbContext
         Private ReadOnly _logger As ILogger(Of StockDashboardService)
+        Private _dashboardProductList As List(Of Product)
 
         Public Sub New(db As InventoryDbContext, logger As ILogger(Of StockDashboardService))
             _db = db
@@ -26,12 +28,74 @@ Namespace Services
             Dim today As DateTime = DateTime.UtcNow.Date
             Dim nearExpiryThreshold As DateTime = today.AddDays(NearExpiryDays)
 
-            Dim products As List(Of Product) = Await _db.Products.
-                Where(Function(p) Not p.IsDeleted AndAlso p.IsActive).
-                Include(Function(p) p.Category).
-                Include(Function(p) p.StockBatches).
-                OrderBy(Function(p) p.Name).
-                ToListAsync()
+            _dashboardProductList = New List(Of Product)()
+            Dim dashConnStr = _db.Database.GetConnectionString()
+            Using dashConn As New SqliteConnection(dashConnStr)
+                Await dashConn.OpenAsync()
+                Using dashCmd = dashConn.CreateCommand()
+                    dashCmd.CommandText = "SELECT Id, Name, Sku, CategoryId, Description, RetailPrice, Unit, HasExpiry, " &
+                                          "MinimumThreshold, IsActive, IsDeleted, DeletedBy, DeletedAt, " &
+                                          "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                          "FROM Inv_Products WHERE IsDeleted = 0 AND IsActive = 1 ORDER BY Name"
+                    Using dashReader = dashCmd.ExecuteReader()
+                        While dashReader.Read()
+                            _dashboardProductList.Add(StockService.ReadProduct(dashReader))
+                        End While
+                    End Using
+                End Using
+
+                If _dashboardProductList.Count > 0 Then
+                    Dim pIds = String.Join(",", _dashboardProductList.Select(Function(p) p.Id))
+
+                    Dim batchMap As New Dictionary(Of Integer, List(Of StockBatch))()
+                    Using bCmd = dashConn.CreateCommand()
+                        bCmd.CommandText = "SELECT Id, ProductId, QuantityReceived, QuantityRemaining, UnitCost, " &
+                                           "ReceiptDate, ExpiryDate, SourcePurchaseOrderId, " &
+                                           "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                           $"FROM Inv_StockBatches WHERE ProductId IN ({pIds})"
+                        Using bReader = bCmd.ExecuteReader()
+                            While bReader.Read()
+                                Dim b = StockService.ReadStockBatch(bReader)
+                                If Not batchMap.ContainsKey(b.ProductId) Then batchMap(b.ProductId) = New List(Of StockBatch)()
+                                batchMap(b.ProductId).Add(b)
+                            End While
+                        End Using
+                    End Using
+
+                    Dim catIds = String.Join(",", _dashboardProductList.Select(Function(p) p.CategoryId).Distinct())
+                    Dim categoryMap As New Dictionary(Of Integer, ProductCategory)()
+                    Using cCmd = dashConn.CreateCommand()
+                        cCmd.CommandText = "SELECT Id, Name, Description, IsDeleted, DeletedBy, DeletedAt, " &
+                                           "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                           $"FROM Inv_ProductCategories WHERE Id IN ({catIds})"
+                        Using cReader = cCmd.ExecuteReader()
+                            While cReader.Read()
+                                Dim cat As New ProductCategory With {
+                                    .Id = cReader.GetInt32(0),
+                                    .Name = cReader.GetString(1),
+                                    .Description = If(cReader.IsDBNull(2), Nothing, cReader.GetString(2)),
+                                    .IsDeleted = cReader.GetBoolean(3),
+                                    .DeletedBy = If(cReader.IsDBNull(4), Nothing, cReader.GetString(4)),
+                                    .DeletedAt = If(cReader.IsDBNull(5), Nothing, CType(cReader.GetDateTime(5), DateTime?)),
+                                    .CreatedBy = cReader.GetString(6),
+                                    .CreatedAt = cReader.GetDateTime(7),
+                                    .ModifiedBy = If(cReader.IsDBNull(8), Nothing, cReader.GetString(8)),
+                                    .ModifiedAt = If(cReader.IsDBNull(9), Nothing, CType(cReader.GetDateTime(9), DateTime?))
+                                }
+                                categoryMap(cat.Id) = cat
+                            End While
+                        End Using
+                    End Using
+
+                    For Each p In _dashboardProductList
+                        Dim pBatches As List(Of StockBatch) = Nothing
+                        p.StockBatches = If(batchMap.TryGetValue(p.Id, pBatches), pBatches, New List(Of StockBatch)())
+                        Dim cat As ProductCategory = Nothing
+                        If categoryMap.TryGetValue(p.CategoryId, cat) Then p.Category = cat
+                    Next
+                End If
+            End Using
+            Dim products As List(Of Product) = _dashboardProductList
 
             Dim summaries As New List(Of ProductSummaryDto)()
             Dim totalStockValue As Decimal = 0D

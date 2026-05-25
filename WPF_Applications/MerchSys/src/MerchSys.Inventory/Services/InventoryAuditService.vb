@@ -1,4 +1,5 @@
 Imports System.Threading
+Imports Microsoft.Data.Sqlite
 Imports Microsoft.EntityFrameworkCore
 Imports Microsoft.Extensions.Logging
 Imports MerchSys.Inventory.Data
@@ -13,6 +14,7 @@ Namespace Services
         Private ReadOnly _db As InventoryDbContext
         Private ReadOnly _logger As ILogger(Of InventoryAuditService)
         Private ReadOnly _repository As ISyncableRepository(Of InventoryDbContext)
+        Private _auditHistoryList As List(Of StockAuditRecord)
 
         Public Sub New(db As InventoryDbContext,
                        logger As ILogger(Of InventoryAuditService),
@@ -139,21 +141,67 @@ Namespace Services
         End Function
 
         Public Async Function GetAuditHistoryAsync(Optional productId As Integer? = Nothing, Optional startDate As DateTime? = Nothing, Optional endDate As DateTime? = Nothing) As Task(Of List(Of StockAuditRecord)) Implements IInventoryAuditService.GetAuditHistoryAsync
-            Dim query = _db.StockAuditRecords _
-                .Include(Function(a) a.Product) _
-                .AsQueryable()
+            _auditHistoryList = New List(Of StockAuditRecord)()
+            Dim ahConnStr = _db.Database.GetConnectionString()
+            Using ahConn As New SqliteConnection(ahConnStr)
+                Await ahConn.OpenAsync()
 
-            If productId.HasValue Then
-                query = query.Where(Function(a) a.ProductId = productId.Value)
-            End If
-            If startDate.HasValue Then
-                query = query.Where(Function(a) a.AuditedAt >= startDate.Value)
-            End If
-            If endDate.HasValue Then
-                query = query.Where(Function(a) a.AuditedAt <= endDate.Value)
-            End If
+                Dim ahSql = "SELECT Id, ProductId, ExpectedQuantity, PhysicalCount, Variance, Reason, Notes, " &
+                             "PerformedBy, AuditedAt, CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                             "FROM Inv_StockAuditRecords WHERE 1=1"
+                If productId.HasValue Then ahSql &= " AND ProductId = @productId"
+                If startDate.HasValue Then ahSql &= " AND AuditedAt >= @startDate"
+                If endDate.HasValue Then ahSql &= " AND AuditedAt <= @endDate"
+                ahSql &= " ORDER BY AuditedAt DESC"
 
-            Return Await query.OrderByDescending(Function(a) a.AuditedAt).ToListAsync()
+                Using ahCmd = ahConn.CreateCommand()
+                    ahCmd.CommandText = ahSql
+                    If productId.HasValue Then ahCmd.Parameters.Add(New SqliteParameter("@productId", productId.Value))
+                    If startDate.HasValue Then ahCmd.Parameters.Add(New SqliteParameter("@startDate", startDate.Value.ToString("o")))
+                    If endDate.HasValue Then ahCmd.Parameters.Add(New SqliteParameter("@endDate", endDate.Value.ToString("o")))
+                    Using ahReader = ahCmd.ExecuteReader()
+                        While ahReader.Read()
+                            _auditHistoryList.Add(New StockAuditRecord With {
+                                .Id = ahReader.GetInt32(0),
+                                .ProductId = ahReader.GetInt32(1),
+                                .ExpectedQuantity = ahReader.GetInt32(2),
+                                .PhysicalCount = ahReader.GetInt32(3),
+                                .Variance = ahReader.GetInt32(4),
+                                .Reason = ahReader.GetString(5),
+                                .Notes = If(ahReader.IsDBNull(6), Nothing, ahReader.GetString(6)),
+                                .PerformedBy = ahReader.GetString(7),
+                                .AuditedAt = ahReader.GetDateTime(8),
+                                .CreatedBy = ahReader.GetString(9),
+                                .CreatedAt = ahReader.GetDateTime(10),
+                                .ModifiedBy = If(ahReader.IsDBNull(11), Nothing, ahReader.GetString(11)),
+                                .ModifiedAt = If(ahReader.IsDBNull(12), Nothing, CType(ahReader.GetDateTime(12), DateTime?))
+                            })
+                        End While
+                    End Using
+                End Using
+
+                If _auditHistoryList.Count > 0 Then
+                    Dim pIds = String.Join(",", _auditHistoryList.Select(Function(a) a.ProductId).Distinct())
+                    Dim productMap As New Dictionary(Of Integer, Product)()
+                    Using pCmd = ahConn.CreateCommand()
+                        pCmd.CommandText = "SELECT Id, Name, Sku, CategoryId, Description, RetailPrice, Unit, HasExpiry, " &
+                                           "MinimumThreshold, IsActive, IsDeleted, DeletedBy, DeletedAt, " &
+                                           "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                           $"FROM Inv_Products WHERE Id IN ({pIds})"
+                        Using pReader = pCmd.ExecuteReader()
+                            While pReader.Read()
+                                Dim p = StockService.ReadProduct(pReader)
+                                productMap(p.Id) = p
+                            End While
+                        End Using
+                    End Using
+                    For Each rec In _auditHistoryList
+                        Dim prod As Product = Nothing
+                        If productMap.TryGetValue(rec.ProductId, prod) Then rec.Product = prod
+                    Next
+                End If
+            End Using
+            Return _auditHistoryList
         End Function
 
         Public Async Function GetLatestAuditPerProductAsync() As Task(Of List(Of StockAuditRecord)) Implements IInventoryAuditService.GetLatestAuditPerProductAsync
