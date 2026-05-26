@@ -1,22 +1,13 @@
 ---
 created: 2026-05-17
 source: Pending_Tasks audit reports (2026-05-17)
+last-synced: 2026-05-26
 ---
 
 # Deferred Features Backlog
 
 > These features were identified during the 2026-05-17 module audit as explicitly deferred.
 > They are **not** in scope for any current plan. When the time comes, create a proper plan file in `Plans/VISTA_Modules/<module>/` for each one.
-
----
-
-## 1. BIR VAT Relief Report
-
-**Module:** Accounting (or POS — to be decided)
-**Source:** POS-14 What's Next
-**Description:** A monthly summary report showing totals for all three VAT buckets (Vatable, VAT-Exempt, Zero-Rated). This is needed for BIR compliance reporting.
-**Why deferred:** The core VAT calculation and receipt system had to be built first. This is a reporting layer on top of existing data.
-**Depends on:** ACC-10, ACC-11 (VAT ledger and reporting service — both completed).
 
 ---
 

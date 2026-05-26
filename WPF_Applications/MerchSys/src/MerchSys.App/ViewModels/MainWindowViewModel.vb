@@ -186,7 +186,8 @@ Namespace ViewModels
                 New NavigationGroup("Accounting", New List(Of NavigationItem) From {
                     New NavigationItem With {.DisplayName = "Financial Overview", .ViewType = GetType(Views.Accounting.FinancialOverviewView)},
                     New NavigationItem With {.DisplayName = "Income Statement", .ViewType = GetType(Views.Accounting.IncomeStatementView)},
-                    New NavigationItem With {.DisplayName = "Sales Summary", .ViewType = GetType(Views.Accounting.SalesSummaryView)}
+                    New NavigationItem With {.DisplayName = "Sales Summary", .ViewType = GetType(Views.Accounting.SalesSummaryView)},
+                    New NavigationItem With {.DisplayName = "VAT Relief Report", .ViewType = GetType(Views.Accounting.VatReliefReportView)}
                 })
             }
         End Function
@@ -210,7 +211,8 @@ Namespace ViewModels
                 New NavigationItem With {.DisplayName = "Financial Overview", .ViewType = GetType(Views.Accounting.FinancialOverviewView)},
                 New NavigationItem With {.DisplayName = "Income Statement", .ViewType = GetType(Views.Accounting.IncomeStatementView)},
                 New NavigationItem With {.DisplayName = "Sales Summary", .ViewType = GetType(Views.Accounting.SalesSummaryView)},
-                New NavigationItem With {.DisplayName = "Tamper Audit Report", .ViewType = GetType(Views.Accounting.TamperAuditReportView)}
+                New NavigationItem With {.DisplayName = "Tamper Audit Report", .ViewType = GetType(Views.Accounting.TamperAuditReportView)},
+                New NavigationItem With {.DisplayName = "VAT Relief Report", .ViewType = GetType(Views.Accounting.VatReliefReportView)}
             }
             ' INT-02 convention (type-based NavigationItem); view source ACC-11; Manager-only per BIR access rules
             If _session.CurrentRole = UserRole.Manager Then

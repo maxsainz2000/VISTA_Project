@@ -110,11 +110,13 @@ Class Application
                                       services.AddScoped(Of IVatReportingService, VatReportingService)()
                                       services.AddScoped(Of IVatReturnExporter, VatReturnExporter)()
                                       services.AddScoped(Of ITamperAuditQueryService, TamperAuditQueryService)()
+                                      services.AddScoped(Of IVatReliefReportService, VatReliefReportService)()
                                       services.AddTransient(Of FinancialOverviewViewModel)()
                                       services.AddTransient(Of IncomeStatementViewModel)()
                                       services.AddTransient(Of SalesSummaryViewModel)()
                                       services.AddTransient(Of VatReturnViewModel)()
                                       services.AddTransient(Of TamperAuditReportViewModel)()
+                                      services.AddTransient(Of VatReliefReportViewModel)()
 
                                       ' ── Owner Dashboard (INFRA-16) ────────────────────────
                                       services.AddTransient(Of OwnerDashboardViewModel)()
@@ -140,6 +142,7 @@ Class Application
                                       services.AddTransient(Of Views.Accounting.SalesSummaryView)()
                                       services.AddTransient(Of Views.Accounting.VatReturnView)()
                                       services.AddTransient(Of Views.Accounting.TamperAuditReportView)()
+                                      services.AddTransient(Of Views.Accounting.VatReliefReportView)()
                                       services.AddTransient(Of Views.Accounting.Components.VatPayableTile)()
 
                                       ' ── Shell ─────────────────────────────────────────────
