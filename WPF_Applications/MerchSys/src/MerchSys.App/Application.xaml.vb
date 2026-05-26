@@ -1,3 +1,4 @@
+Imports Microsoft.Extensions.Configuration
 Imports Microsoft.Extensions.DependencyInjection
 Imports Microsoft.Extensions.Hosting
 Imports MerchSys.App.Configuration
@@ -15,12 +16,16 @@ Imports MerchSys.Accounting.ViewModels
 Imports MerchSys.Purchasing.Extensions
 Imports MerchSys.Purchasing.ViewModels
 Imports MerchSys.Accounting.Services.Insights
+Imports System.Windows.Threading
 
 Class Application
 
     Private _host As IHost
     Private _loginView As LoginView = Nothing
     Private _mainWindow As MainWindow = Nothing
+    Private _idleMonitor As IIdleMonitor
+    Private _warningView As SessionTimeoutWarningView
+    Private _warningTimer As DispatcherTimer
 
     Private Sub Application_Startup(sender As Object, e As StartupEventArgs)
         Dim builder = Host.CreateDefaultBuilder()
@@ -67,6 +72,27 @@ Class Application
 
                                       ' Infrastructure: per-module syncable repositories (INFRA-09)
                                       services.AddSyncableRepositories()
+
+                                      ' Infrastructure: Idle monitor (DA2)
+                                      services.AddSingleton(Of IdleMonitorOptions)(
+                                          Function(sp)
+                                              Dim cfg = sp.GetRequiredService(Of IConfiguration)()
+                                              Return New IdleMonitorOptions With {
+                                                  .IdleTimeoutMinutes = cfg.GetValue(Of Integer)("Session:IdleTimeoutMinutes", 20),
+                                                  .WarningLeadSeconds = cfg.GetValue(Of Integer)("Session:WarningLeadSeconds", 60)
+                                              }
+                                          End Function)
+#If DEBUG Then
+                                      If Environment.GetEnvironmentVariable("VISTA_DISABLE_IDLE_TIMEOUT") = "1" Then
+                                          services.AddSingleton(Of IIdleMonitor, NoOpIdleMonitor)()
+                                      Else
+                                          services.AddSingleton(Of IIdleMonitor, WpfIdleMonitor)()
+                                      End If
+#Else
+                                      services.AddSingleton(Of IIdleMonitor, WpfIdleMonitor)()
+#End If
+                                      services.AddTransient(Of SessionTimeoutWarningViewModel)()
+                                      services.AddTransient(Of SessionTimeoutWarningView)()
 
                                       ' ── Purchasing ────────────────────────────────────────
                                       services.AddPurchasingServices()
@@ -173,6 +199,11 @@ Class Application
         Dim mainVm = _host.Services.GetRequiredService(Of MainWindowViewModel)()
         AddHandler mainVm.LogoutRequested, AddressOf HandleLogoutRequested
 
+        ' Wire idle monitor — monitoring starts only after successful login (DA2)
+        _idleMonitor = _host.Services.GetRequiredService(Of IIdleMonitor)()
+        AddHandler _idleMonitor.WarningShown, AddressOf HandleIdleWarning
+        AddHandler _idleMonitor.SessionExpired, AddressOf HandleSessionExpired
+
         ShowLoginView()
     End Sub
 
@@ -200,9 +231,13 @@ Class Application
         mainVm.RefreshNavigation()
         _mainWindow.Show()
         mainVm.NavigateToDefault()
+        ' Idle monitoring begins here; no clock runs while LoginView is active (DA2)
+        _idleMonitor.Start()
     End Sub
 
     Private Sub HandleLogoutRequested(sender As Object, e As EventArgs)
+        _idleMonitor.Stop()
+        CloseWarningDialogIfOpen()
         _mainWindow.Hide()
         ShowLoginView()
     End Sub
@@ -217,8 +252,77 @@ Class Application
     End Sub
 
     Private Sub Application_Exit(sender As Object, e As ExitEventArgs)
+        ' Stop the idle monitor before disposing the host so no timer callbacks fire
+        ' against a disposed DI container.
+        If _idleMonitor IsNot Nothing Then _idleMonitor.Stop()
         _host?.StopAsync().GetAwaiter().GetResult()
         _host?.Dispose()
+    End Sub
+
+    ' ── Idle timeout (DA2) ────────────────────────────────────────────────────
+
+    Private Sub HandleIdleWarning(sender As Object, e As IdleMonitorWarningEventArgs)
+        ' Edge case: if MainWindow is not visible the user already logged out
+        If _mainWindow Is Nothing OrElse Not _mainWindow.IsVisible Then
+            HandleSessionExpired(Me, EventArgs.Empty)
+            Return
+        End If
+
+        CloseWarningDialogIfOpen()
+
+        _warningView = _host.Services.GetRequiredService(Of SessionTimeoutWarningView)()
+        _warningView.Owner = _mainWindow
+        _warningView.ViewModel.Tick(e.RemainingSeconds)
+
+        AddHandler _warningView.ViewModel.StayRequested, AddressOf HandleStayRequested
+        AddHandler _warningView.ViewModel.SignOutRequested, AddressOf HandleWarningSignOut
+
+        _warningTimer = New DispatcherTimer() With {.Interval = TimeSpan.FromSeconds(1)}
+        AddHandler _warningTimer.Tick, AddressOf OnWarningTimerTick
+        _warningTimer.Start()
+
+        _warningView.Show()
+    End Sub
+
+    Private Sub OnWarningTimerTick(sender As Object, e As EventArgs)
+        If _warningView IsNot Nothing Then
+            _warningView.ViewModel.Tick(_idleMonitor.RemainingSeconds)
+        End If
+    End Sub
+
+    Private Sub HandleStayRequested(sender As Object, e As EventArgs)
+        _idleMonitor.RecordActivity()
+        CloseWarningDialogIfOpen()
+    End Sub
+
+    Private Sub HandleWarningSignOut(sender As Object, e As EventArgs)
+        CloseWarningDialogIfOpen()
+        Dim mainVm = _host.Services.GetRequiredService(Of MainWindowViewModel)()
+        mainVm.LogoutCommand.Execute(Nothing)
+    End Sub
+
+    Private Sub HandleSessionExpired(sender As Object, e As EventArgs)
+        CloseWarningDialogIfOpen()
+        Dim session = _host.Services.GetRequiredService(Of LoginSessionService)()
+        session.ClearUser()
+        Dim mainVm = _host.Services.GetRequiredService(Of MainWindowViewModel)()
+        mainVm.LogoutCommand.Execute(Nothing)
+    End Sub
+
+    Private Sub CloseWarningDialogIfOpen()
+        If _warningTimer IsNot Nothing Then
+            _warningTimer.Stop()
+            RemoveHandler _warningTimer.Tick, AddressOf OnWarningTimerTick
+            _warningTimer = Nothing
+        End If
+        If _warningView IsNot Nothing Then
+            Dim view = _warningView
+            _warningView = Nothing
+            RemoveHandler view.ViewModel.StayRequested, AddressOf HandleStayRequested
+            RemoveHandler view.ViewModel.SignOutRequested, AddressOf HandleWarningSignOut
+            view.MarkDecisionMade()
+            view.Close()
+        End If
     End Sub
 
 End Class

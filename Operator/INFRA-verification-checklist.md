@@ -525,19 +525,23 @@ last-synced: 2026-05-26
 
 ---
 
-## INFRA-15 — Session Inactivity Timeout (DA2 Partial)
+## INFRA-19 — Session Inactivity Timeout
 
-### ⏳ Deferred: Session inactivity timeout
+**Setup:** Set `Session:IdleTimeoutMinutes = 1` in `appsettings.json` for testing convenience (revert to 20 before final acceptance).
 
-**What to do:**
-- Nothing right now. DA2 specifies a 15–30 minute inactivity timeout that invalidates the session and returns to the login screen. This requires idle detection (keyboard/mouse activity monitoring), a warning dialog before timeout, and session token invalidation.
+1. Log in as `manager`. Do not touch the keyboard or mouse.
+2. **Expected:** After ~0 minutes (with `WarningLeadSeconds = 60` clamped against the 1-minute timeout — warning fires immediately), the countdown dialog appears.
+3. Click **Stay signed in** → dialog closes, you remain logged in.
+4. Stop touching the input. Wait through the full countdown.
+5. **Expected:** App returns to `LoginView`. Logging back in works normally.
+6. Revert `Session:IdleTimeoutMinutes` to 20 before signing off.
 
-**When to do it:**
-- Once a follow-up plan is created for idle detection + countdown warning dialog. INFRA-15 implemented authentication but explicitly deferred this non-trivial UI concern.
-
-> **Source:** INFRA-15 What's Next. Also tracked in [deferred-features-backlog.md](../../Plans/Future/deferred-features-backlog.md) item #6.
-
-- [ ] ⏳ Deferred — requires follow-up plan for idle detection + warning dialog
+- [ ] Countdown warning dialog appears after idle threshold
+- [ ] **Stay signed in** dismisses dialog and resets idle clock
+- [ ] **Sign out now** returns to LoginView via existing logout flow
+- [ ] Closing dialog via X also returns to LoginView (treated as sign out)
+- [ ] Auto-logout after full countdown with no input
+- [ ] Re-login after auto-logout works normally
 
 ---
 
