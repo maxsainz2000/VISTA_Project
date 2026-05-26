@@ -4,6 +4,7 @@ source: Pending_Tasks audit reports (2026-05-17, 2026-05-26)
 last-synced: 2026-05-26
 infra-19-completed: 2026-05-26
 infra-20-completed: 2026-05-26
+item-11-mooted: 2026-05-26
 ---
 
 # Deferred Features Backlog
@@ -86,16 +87,6 @@ infra-20-completed: 2026-05-26
 
 ---
 
-## 11. CanEdit Property on Financial/Income/Sales ViewModels
-
-**Module:** Infrastructure
-**Source:** INFRA-16 What's Next
-**Description:** Consider adding a `CanEdit` property to `FinancialOverviewViewModel`, `IncomeStatementViewModel`, and `SalesSummaryViewModel` if write-capable actions are discovered in those views. This would mirror the pattern already applied to shared views in INFRA-16.
-**Why deferred:** These views are currently read-only for all roles. The property is only needed if future features add write actions.
-**Depends on:** INFRA-16 (completed).
-
----
-
 ## 12. Codebase Wiki Audit for Infrastructure Module
 
 **Module:** Infrastructure
@@ -123,3 +114,19 @@ infra-20-completed: 2026-05-26
 **Description:** If new Rule 14 true positives surface in code merged after 2026-05-24, open a follow-up plan INT-17b to rename them. This is a contingent item — only actionable if new violations appear.
 **Why deferred:** No new violations have been detected. This item exists as a reminder to check after future code merges.
 **Depends on:** INT-17 (completed).
+
+---
+
+## 15. ESC/POS Thermal Receipt Renderer
+
+**Module:** POS
+**Source:** POS-19 scope decision (2026-05-26)
+**Description:** Add an `EscPosThermalRenderer` implementation of `IReceiptRenderer` that emits raw ESC/POS bytes through the Windows print spooler to a configured thermal printer (80mm ≈ 48 chars, 58mm ≈ 32 chars). Includes:
+- ESC/POS init / encoding / paper feed / partial cut opcodes
+- Width-limited line wrapping (`ReceiptWidthFormatter`)
+- "₱" → "PHP " substitution for ASCII-only code pages (`ReceiptCurrencyTransform`)
+- P/Invoke wrapper (`RawPrinterHelper`) for `OpenPrinter`/`WritePrinter`/`ClosePrinter`
+- Configuration under `POS:Receipt:Thermal` (printer name, paper width, code page, auto-cut)
+- Add `Thermal` value to `ReceiptRenderTarget` enum and wire selection in `PosServiceRegistration`
+**Why deferred:** No physical thermal printer is available at Villon Farm Supply for hardware verification. Shipping ESC/POS bytes unverified risks deploy-time bugs (wrong opcodes, code-page mismatches, P/Invoke handle leaks) that cannot be caught at build time. POS-19 ships the `IReceiptRenderer` abstraction and a PDF renderer; thermal slots in cleanly when a printer arrives.
+**Depends on:** POS-19 (in progress).

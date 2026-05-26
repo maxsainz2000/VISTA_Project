@@ -5,6 +5,7 @@ Imports MerchSys.POS.Data
 Imports MerchSys.POS.Entities
 Imports MerchSys.SharedKernel.Enums
 Imports MerchSys.SharedKernel.Persistence
+Imports MerchSys.POS.Services.ReceiptRendering
 
 Namespace Services
 
@@ -19,12 +20,14 @@ Namespace Services
         Private ReadOnly _businessTIN As String
         Private ReadOnly _isVatRegistered As Boolean
         Private ReadOnly _repository As ISyncableRepository(Of POSDbContext)
+        Private ReadOnly _renderer As IReceiptRenderer
 
         Public Sub New(context As POSDbContext,
                        configuration As IConfiguration,
                        receiptIntegrity As IReceiptIntegrityService,
                        bodyComposer As IReceiptBodyComposer,
-                       repository As ISyncableRepository(Of POSDbContext))
+                       repository As ISyncableRepository(Of POSDbContext),
+                       renderer As IReceiptRenderer)
             _context = context
             _receiptIntegrity = receiptIntegrity
             _bodyComposer = bodyComposer
@@ -33,6 +36,7 @@ Namespace Services
             _businessTIN = If(configuration("POS:BusinessTIN"), "")
             _isVatRegistered = String.Equals(configuration("POS:IsVatRegistered"), "true", StringComparison.OrdinalIgnoreCase)
             _repository = repository
+            _renderer = renderer
         End Sub
 
         ''' <summary>
@@ -124,8 +128,7 @@ Namespace Services
                    New List(Of SalesTransactionLine)().AsReadOnly())
 
             Dim body = Await _bodyComposer.ComposeAsync(receipt, lineItems, vatConfig)
-            Dim rendered = String.Join(Environment.NewLine, body.AllLines)
-            Console.WriteLine(rendered)
+            Await _renderer.RenderAsync(receipt, body, CancellationToken.None)
         End Function
 
     End Class
