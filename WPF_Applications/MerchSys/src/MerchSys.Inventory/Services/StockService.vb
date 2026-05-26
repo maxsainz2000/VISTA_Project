@@ -18,11 +18,11 @@ Namespace Services
         Public Property RequestedQuantity As Integer
         Public Property AvailableQuantity As Integer
 
-        Public Sub New(productId As Integer, requestedQty As Integer, availableQty As Integer)
-            MyBase.New($"Insufficient stock for product {productId}. Requested: {requestedQty}, Available: {availableQty}.")
-            Me.ProductId = productId
-            Me.RequestedQuantity = requestedQty
-            Me.AvailableQuantity = availableQty
+        Public Sub New(product As Integer, requested As Integer, available As Integer)
+            MyBase.New($"Insufficient stock for product {product}. Requested: {requested}, Available: {available}.")
+            Me.ProductId = product
+            Me.RequestedQuantity = requested
+            Me.AvailableQuantity = available
         End Sub
 
     End Class

@@ -13,10 +13,10 @@ Namespace Views
             End Get
         End Property
 
-        Public Sub New(viewModel As LoginViewModel)
+        Public Sub New(vm As LoginViewModel)
             InitializeComponent()
-            _viewModel = viewModel
-            DataContext = viewModel
+            _viewModel = vm
+            DataContext = vm
         End Sub
 
     End Class

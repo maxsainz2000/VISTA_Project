@@ -25,9 +25,9 @@ Namespace Models
         Public Property GroupName As String
         Public Property Items As List(Of NavigationItem)
 
-        Public Sub New(groupName As String, items As List(Of NavigationItem))
-            Me.GroupName = groupName
-            Me.Items = items
+        Public Sub New(name As String, navigationItems As List(Of NavigationItem))
+            Me.GroupName = name
+            Me.Items = navigationItems
         End Sub
 
     End Class

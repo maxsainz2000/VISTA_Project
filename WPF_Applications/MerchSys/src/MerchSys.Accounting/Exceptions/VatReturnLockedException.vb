@@ -23,12 +23,12 @@ Namespace Exceptions
         ''' <summary>BIR form type of the locked return.</summary>
         Public ReadOnly Property FormType As VatReturnFormType
 
-        Public Sub New(returnId As Integer, year As Integer, period As Integer, formType As VatReturnFormType)
-            MyBase.New($"VAT return #{returnId} for {formType} {year}/P{period} has already been filed with BIR and cannot be regenerated. Use AmendReturnAsync to correct a filed return.")
-            Me.ReturnId = returnId
-            Me.Year = year
-            Me.Period = period
-            Me.FormType = formType
+        Public Sub New(lockedReturnId As Integer, lockedYear As Integer, lockedPeriod As Integer, lockedFormType As VatReturnFormType)
+            MyBase.New($"VAT return #{lockedReturnId} for {lockedFormType} {lockedYear}/P{lockedPeriod} has already been filed with BIR and cannot be regenerated. Use AmendReturnAsync to correct a filed return.")
+            Me.ReturnId = lockedReturnId
+            Me.Year = lockedYear
+            Me.Period = lockedPeriod
+            Me.FormType = lockedFormType
         End Sub
 
     End Class
