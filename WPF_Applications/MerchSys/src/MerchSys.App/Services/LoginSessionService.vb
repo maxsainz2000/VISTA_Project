@@ -23,7 +23,7 @@ Namespace Services
             _currentUser = Nothing
         End Sub
 
-        Public ReadOnly Property IsAuthenticated As Boolean
+        Public ReadOnly Property IsAuthenticated As Boolean Implements ISessionService.IsAuthenticated
             Get
                 Return _currentUser IsNot Nothing
             End Get

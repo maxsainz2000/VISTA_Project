@@ -3,6 +3,7 @@ created: 2026-05-17
 source: Pending_Tasks audit reports (2026-05-17, 2026-05-26)
 last-synced: 2026-05-26
 infra-19-completed: 2026-05-26
+infra-20-completed: 2026-05-26
 ---
 
 # Deferred Features Backlog
@@ -52,16 +53,6 @@ infra-19-completed: 2026-05-26
 **Description:** The `Acc_TamperAuditLog` table has SQLite immutability triggers (deployed by ACC-15), but no MariaDB equivalents for the central replica. This is a SQL-only task similar to INFRA-08 (which added MariaDB triggers for POS tables, but not Acc_* tables).
 **Why deferred:** The central MariaDB deployment is not yet live, and a formal DB admin account hasn't been established yet.
 **Depends on:** ACC-15 (completed), INFRA-08 (completed), DB admin account (not yet created).
-
----
-
-## 7. DA5 Data-Layer Write Rejection for Owner Role
-
-**Module:** Infrastructure
-**Source:** INFRA-16 What's Next
-**Description:** OWASP DA5 requires Owner read-only enforcement at the data-access layer, not just the UI. INFRA-16 implemented UI-layer enforcement (navigation filtering + `CanEdit` property on shared ViewModels) but the repository and service layer does not yet reject writes from Owner sessions. A future plan should add role-based write guards in the repository or service layer to fully satisfy DA5.
-**Why deferred:** UI enforcement was prioritized to unblock operator checklist tests (ACC Test 8, POS Test 13). Data-layer enforcement requires auditing all write paths across all four modules.
-**Depends on:** INFRA-15 (completed), INFRA-16 (completed).
 
 ---
 

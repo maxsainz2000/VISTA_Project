@@ -5,6 +5,7 @@ Imports Microsoft.Extensions.Logging
 Imports MerchSys.Accounting.Data
 Imports MerchSys.Accounting.Entities
 Imports MerchSys.SharedKernel.Events
+Imports MerchSys.SharedKernel.Interfaces
 
 Namespace Handlers
 
@@ -23,10 +24,12 @@ Namespace Handlers
         Implements INotificationHandler(Of ReceiptTamperDetectedEvent)
 
         Private ReadOnly _db As AccountingDbContext
+        Private ReadOnly _writeContext As IWriteContextScope
         Private ReadOnly _logger As ILogger(Of ReceiptTamperDetectedHandler)
 
-        Public Sub New(db As AccountingDbContext, logger As ILogger(Of ReceiptTamperDetectedHandler))
+        Public Sub New(db As AccountingDbContext, writeContext As IWriteContextScope, logger As ILogger(Of ReceiptTamperDetectedHandler))
             _db = db
+            _writeContext = writeContext
             _logger = logger
         End Sub
 
@@ -35,53 +38,54 @@ Namespace Handlers
             cancellationToken As CancellationToken
         ) As Task Implements INotificationHandler(Of ReceiptTamperDetectedEvent).Handle
 
-    #Disable Warning CA1416
-        Dim windowsUser = WindowsIdentity.GetCurrent()?.Name
+            Using _writeContext.Enter(WriteContextKind.System)
+#Disable Warning CA1416
+                Dim windowsUser = WindowsIdentity.GetCurrent()?.Name
 #Enable Warning CA1416
-            If String.IsNullOrEmpty(windowsUser) Then
-                windowsUser = Environment.UserName
-            End If
+                If String.IsNullOrEmpty(windowsUser) Then
+                    windowsUser = Environment.UserName
+                End If
 
-            Dim entry As New TamperAuditEntry With {
-                .DetectedAt = notification.DetectedAt,
-                .ReceiptId = notification.ReceiptId,
-                .ReceiptNumber = notification.ReceiptNumber,
-                .TamperKind = "HashMismatch",
-                .DetectedByService = notification.DetectedBy,
-                .ExpectedValue = notification.ExpectedHash,
-                .ActualValue = notification.ActualHash,
-                .AdditionalContextJson = Nothing,
-                .MachineName = Environment.MachineName,
-                .OperatingUser = windowsUser,
-                .CreatedAt = DateTime.UtcNow,
-                .CreatedBy = NameOf(ReceiptTamperDetectedHandler)
-            }
+                Dim entry As New TamperAuditEntry With {
+                    .DetectedAt = notification.DetectedAt,
+                    .ReceiptId = notification.ReceiptId,
+                    .ReceiptNumber = notification.ReceiptNumber,
+                    .TamperKind = "HashMismatch",
+                    .DetectedByService = notification.DetectedBy,
+                    .ExpectedValue = notification.ExpectedHash,
+                    .ActualValue = notification.ActualHash,
+                    .AdditionalContextJson = Nothing,
+                    .MachineName = Environment.MachineName,
+                    .OperatingUser = windowsUser,
+                    .CreatedAt = DateTime.UtcNow,
+                    .CreatedBy = NameOf(ReceiptTamperDetectedHandler)
+                }
 
-            _logger.LogInformation(
-                "Persisting tamper audit entry for receipt {ReceiptId} ({ReceiptNumber}), kind={TamperKind}.",
-                entry.ReceiptId, entry.ReceiptNumber, entry.TamperKind)
+                _logger.LogInformation(
+                    "Persisting tamper audit entry for receipt {ReceiptId} ({ReceiptNumber}), kind={TamperKind}.",
+                    entry.ReceiptId, entry.ReceiptNumber, entry.TamperKind)
 
-            Dim saveEx As Exception = Nothing
-            Try
-                _db.TamperAuditEntries.Add(entry)
-                Await _db.SaveChangesAsync(cancellationToken)
-            Catch ex As Exception
-                saveEx = ex
-            End Try
+                Dim saveEx As Exception = Nothing
+                Try
+                    _db.TamperAuditEntries.Add(entry)
+                    Await _db.SaveChangesAsync(cancellationToken)
+                Catch ex As Exception
+                    saveEx = ex
+                End Try
 
-            If saveEx IsNot Nothing Then
-                _logger.LogCritical(
-                    saveEx,
-                    "CRITICAL: Failed to persist TamperAuditEntry for receipt {ReceiptId}. " &
-                    "The tamper event was raised but the audit record was NOT saved.",
-                    notification.ReceiptId)
-                Throw saveEx
-            End If
+                If saveEx IsNot Nothing Then
+                    _logger.LogCritical(
+                        saveEx,
+                        "CRITICAL: Failed to persist TamperAuditEntry for receipt {ReceiptId}. " &
+                        "The tamper event was raised but the audit record was NOT saved.",
+                        notification.ReceiptId)
+                    Throw saveEx
+                End If
 
-            _logger.LogInformation(
-                "Tamper audit entry {AuditId} saved for receipt {ReceiptId}.",
-                entry.Id, entry.ReceiptId)
-
+                _logger.LogInformation(
+                    "Tamper audit entry {AuditId} saved for receipt {ReceiptId}.",
+                    entry.Id, entry.ReceiptId)
+            End Using
         End Function
 
     End Class

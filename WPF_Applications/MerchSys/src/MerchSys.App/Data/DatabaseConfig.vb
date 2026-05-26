@@ -6,6 +6,7 @@ Imports MerchSys.Accounting.Data
 Imports MerchSys.Inventory.Data
 Imports MerchSys.POS.Data
 Imports MerchSys.Purchasing.Data
+Imports MerchSys.SharedKernel.Data
 
 Namespace Data
 
@@ -43,16 +44,28 @@ Namespace Data
             Dim connectionString = $"Data Source={DatabasePath}"
 
             services.AddDbContext(Of PurchasingDbContext)(
-                Sub(options) options.UseSqlite(connectionString))
+                Sub(sp, options)
+                    options.UseSqlite(connectionString)
+                    options.AddInterceptors(sp.GetRequiredService(Of RoleGuardInterceptor)())
+                End Sub)
 
             services.AddDbContext(Of InventoryDbContext)(
-                Sub(options) options.UseSqlite(connectionString))
+                Sub(sp, options)
+                    options.UseSqlite(connectionString)
+                    options.AddInterceptors(sp.GetRequiredService(Of RoleGuardInterceptor)())
+                End Sub)
 
             services.AddDbContext(Of POSDbContext)(
-                Sub(options) options.UseSqlite(connectionString))
+                Sub(sp, options)
+                    options.UseSqlite(connectionString)
+                    options.AddInterceptors(sp.GetRequiredService(Of RoleGuardInterceptor)())
+                End Sub)
 
             services.AddDbContext(Of AccountingDbContext)(
-                Sub(options) options.UseSqlite(connectionString))
+                Sub(sp, options)
+                    options.UseSqlite(connectionString)
+                    options.AddInterceptors(sp.GetRequiredService(Of RoleGuardInterceptor)())
+                End Sub)
         End Sub
 
     End Module

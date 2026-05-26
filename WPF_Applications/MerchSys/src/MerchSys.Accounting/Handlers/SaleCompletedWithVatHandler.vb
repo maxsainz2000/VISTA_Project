@@ -7,6 +7,7 @@ Imports MerchSys.Accounting.Entities
 Imports MerchSys.SharedKernel.Enums
 Imports MerchSys.SharedKernel.Events
 Imports MerchSys.SharedKernel.Queries
+Imports MerchSys.SharedKernel.Interfaces
 
 Namespace Handlers
 
@@ -25,71 +26,75 @@ Namespace Handlers
 
         Private ReadOnly _db As AccountingDbContext
         Private ReadOnly _mediator As IMediator
+        Private ReadOnly _writeContext As IWriteContextScope
         Private ReadOnly _logger As ILogger(Of SaleCompletedWithVatHandler)
 
-        Public Sub New(db As AccountingDbContext, mediator As IMediator, logger As ILogger(Of SaleCompletedWithVatHandler))
+        Public Sub New(db As AccountingDbContext, mediator As IMediator, writeContext As IWriteContextScope, logger As ILogger(Of SaleCompletedWithVatHandler))
             _db = db
             _mediator = mediator
+            _writeContext = writeContext
             _logger = logger
         End Sub
 
         Public Async Function Handle(notification As SaleCompletedWithVatEvent, cancellationToken As CancellationToken) As Task _
             Implements INotificationHandler(Of SaleCompletedWithVatEvent).Handle
 
-            _logger.LogInformation("SaleCompletedWithVatHandler: TransactionId={TransactionId} ({ItemCount} items).",
-                notification.TransactionId, notification.Items.Count)
+            Using _writeContext.Enter(WriteContextKind.System)
+                _logger.LogInformation("SaleCompletedWithVatHandler: TransactionId={TransactionId} ({ItemCount} items).",
+                    notification.TransactionId, notification.Items.Count)
 
-            For Each item In notification.Items
-                Dim existing = Await _db.RevenueRecords.
-                    FirstOrDefaultAsync(
-                        Function(r) r.SourceTransactionId = notification.TransactionId AndAlso
-                                    r.ProductId = item.ProductId,
-                        cancellationToken)
+                For Each item In notification.Items
+                    Dim existing = Await _db.RevenueRecords.
+                        FirstOrDefaultAsync(
+                            Function(r) r.SourceTransactionId = notification.TransactionId AndAlso
+                                        r.ProductId = item.ProductId,
+                            cancellationToken)
 
-                If existing IsNot Nothing Then
-                    ' Update VAT columns on record already created by SaleCompletedAccountingHandler
-                    existing.VatableAmount = item.VatableAmount
-                    existing.VatExemptAmount = item.VatExemptAmount
-                    existing.ZeroRatedAmount = item.ZeroRatedAmount
-                    existing.OutputVat = item.OutputVat
-                    existing.InputVat = 0D
-                    existing.VatTreatment = item.Treatment
-                Else
-                    ' Create full record (VAT event arrived before legacy event, or running VAT-only mode)
-                    Dim grossAmount = item.UnitPrice * item.Quantity
-                    Dim netAmount = grossAmount - item.DiscountAmount
+                    If existing IsNot Nothing Then
+                        ' Update VAT columns on record already created by SaleCompletedAccountingHandler
+                        existing.VatableAmount = item.VatableAmount
+                        existing.VatExemptAmount = item.VatExemptAmount
+                        existing.ZeroRatedAmount = item.ZeroRatedAmount
+                        existing.OutputVat = item.OutputVat
+                        existing.InputVat = 0D
+                        existing.VatTreatment = item.Treatment
+                    Else
+                        ' Create full record (VAT event arrived before legacy event, or running VAT-only mode)
+                        Dim grossAmount = item.UnitPrice * item.Quantity
+                        Dim netAmount = grossAmount - item.DiscountAmount
 
-                    Dim costResult = Await _mediator.Send(
-                        New GetProductCostQuery() With {.ProductId = item.ProductId},
-                        cancellationToken)
-                    Dim cogs = costResult.FifoUnitCost * item.Quantity
+                        Dim costResult = Await _mediator.Send(
+                            New GetProductCostQuery() With {.ProductId = item.ProductId},
+                            cancellationToken)
+                        Dim cogs = costResult.FifoUnitCost * item.Quantity
 
-                    Dim revenue As New RevenueRecord With {
-                        .RecordDate = notification.TransactionDate,
-                        .SourceTransactionId = notification.TransactionId,
-                        .PaymentMethod = notification.PaymentMethod,
-                        .ProductId = item.ProductId,
-                        .ProductName = item.ProductName,
-                        .QuantitySold = item.Quantity,
-                        .GrossAmount = grossAmount,
-                        .DiscountAmount = item.DiscountAmount,
-                        .NetAmount = netAmount,
-                        .VatAmount = item.OutputVat,
-                        .COGS = cogs,
-                        .GrossProfit = netAmount - cogs,
-                        .VatableAmount = item.VatableAmount,
-                        .VatExemptAmount = item.VatExemptAmount,
-                        .ZeroRatedAmount = item.ZeroRatedAmount,
-                        .OutputVat = item.OutputVat,
-                        .InputVat = 0D,
-                        .VatTreatment = item.Treatment
-                    }
-                    _db.RevenueRecords.Add(revenue)
-                End If
-            Next
+                        Dim revenue As New RevenueRecord With {
+                            .RecordDate = notification.TransactionDate,
+                            .SourceTransactionId = notification.TransactionId,
+                            .PaymentMethod = notification.PaymentMethod,
+                            .ProductId = item.ProductId,
+                            .ProductName = item.ProductName,
+                            .QuantitySold = item.Quantity,
+                            .GrossAmount = grossAmount,
+                            .DiscountAmount = item.DiscountAmount,
+                            .NetAmount = netAmount,
+                            .VatAmount = item.OutputVat,
+                            .COGS = cogs,
+                            .GrossProfit = netAmount - cogs,
+                            .VatableAmount = item.VatableAmount,
+                            .VatExemptAmount = item.VatExemptAmount,
+                            .ZeroRatedAmount = item.ZeroRatedAmount,
+                            .OutputVat = item.OutputVat,
+                            .InputVat = 0D,
+                            .VatTreatment = item.Treatment
+                        }
+                        _db.RevenueRecords.Add(revenue)
+                    End If
+                Next
 
-            Await _db.SaveChangesAsync(cancellationToken)
-            _logger.LogInformation("SaleCompletedWithVatHandler: VAT columns saved for TransactionId={TransactionId}.", notification.TransactionId)
+                Await _db.SaveChangesAsync(cancellationToken)
+                _logger.LogInformation("SaleCompletedWithVatHandler: VAT columns saved for TransactionId={TransactionId}.", notification.TransactionId)
+            End Using
         End Function
 
     End Class

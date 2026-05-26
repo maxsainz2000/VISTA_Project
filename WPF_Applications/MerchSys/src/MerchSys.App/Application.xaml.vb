@@ -10,6 +10,7 @@ Imports MerchSys.App.ViewModels.Shell
 Imports MerchSys.App.Views
 Imports MerchSys.Inventory.Services
 Imports MerchSys.SharedKernel.Interfaces
+Imports MerchSys.SharedKernel.Data
 Imports MerchSys.Inventory.ViewModels
 Imports MerchSys.Accounting.Services
 Imports MerchSys.Accounting.ViewModels
@@ -40,6 +41,10 @@ Class Application
                                       services.AddSingleton(Of LoginSessionService)()
                                       services.AddSingleton(Of ISessionService)(Function(sp) sp.GetRequiredService(Of LoginSessionService)())
 
+                                      ' Infrastructure: Write context + role guard (DA5)
+                                      services.AddSingleton(Of IWriteContextScope, WriteContextScope)()
+                                      services.AddScoped(Of RoleGuardInterceptor)()
+
 #If DEBUG Then
                                       ' ── DEBUG bypass: set VISTA_BYPASS_LOGIN=1 to skip authentication ────
                                       ' The #If DEBUG guard ensures this code cannot ship to production.
@@ -52,7 +57,10 @@ Class Application
 
                                       ' Infrastructure: Authentication
                                       services.AddTransient(Of IAuthenticationService)(
-                                          Function(sp) New AuthenticationService($"Data Source={DatabaseConfig.DatabasePath}"))
+                                          Function(sp) New AuthenticationService(
+                                              $"Data Source={DatabaseConfig.DatabasePath}",
+                                              sp.GetRequiredService(Of ISessionService)(),
+                                              sp.GetRequiredService(Of IWriteContextScope)()))
 
                                       ' Infrastructure: Login UI
                                       services.AddTransient(Of LoginViewModel)()

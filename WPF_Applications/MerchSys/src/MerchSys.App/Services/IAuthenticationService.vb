@@ -4,6 +4,7 @@ Imports Konscious.Security.Cryptography
 Imports Microsoft.Data.Sqlite
 Imports MerchSys.SharedKernel.Entities
 Imports MerchSys.SharedKernel.Enums
+Imports MerchSys.SharedKernel.Interfaces
 
 Namespace Services
 
@@ -49,9 +50,13 @@ Namespace Services
         Implements IAuthenticationService
 
         Private ReadOnly _connectionString As String
+        Private ReadOnly _session As ISessionService
+        Private ReadOnly _writeContext As IWriteContextScope
 
-        Public Sub New(connectionString As String)
+        Public Sub New(connectionString As String, session As ISessionService, writeContext As IWriteContextScope)
             _connectionString = connectionString
+            _session = session
+            _writeContext = writeContext
         End Sub
 
         ' ── AuthenticateAsync ──────────────────────────────────────────────────
@@ -86,13 +91,15 @@ Namespace Services
 
             Dim passwordOk = PasswordHashHelper.Verify(password, user.PasswordHash)
 
-            Using conn As New SqliteConnection(_connectionString)
-                conn.Open()
-                If passwordOk Then
-                    ClearFailedAttempts(conn, user.Id)
-                Else
-                    BumpFailedAttempts(conn, user.Id, user.FailedLoginAttempts)
-                End If
+            Using _writeContext.Enter(WriteContextKind.System)
+                Using conn As New SqliteConnection(_connectionString)
+                    conn.Open()
+                    If passwordOk Then
+                        ClearFailedAttempts(conn, user.Id)
+                    Else
+                        BumpFailedAttempts(conn, user.Id, user.FailedLoginAttempts)
+                    End If
+                End Using
             End Using
 
             If Not passwordOk Then
@@ -122,46 +129,61 @@ Namespace Services
             End If
 
             Dim storedHash As String = Nothing
+            Dim targetUsername As String = Nothing
             Using conn As New SqliteConnection(_connectionString)
                 conn.Open()
                 Using cmd = conn.CreateCommand()
-                    cmd.CommandText = "SELECT PasswordHash FROM Sys_UserAccounts WHERE Id=@id"
+                    cmd.CommandText = "SELECT Username, PasswordHash FROM Sys_UserAccounts WHERE Id=@id"
                     cmd.Parameters.AddWithValue("@id", userId)
-                    Dim scalar = cmd.ExecuteScalar()
-                    If scalar Is Nothing OrElse IsDBNull(scalar) Then
-                        Return New PasswordChangeResult With {
-                            .Success = False,
-                            .ValidationErrors = New List(Of String) From {"User not found."}
-                        }
-                    End If
-                    storedHash = CStr(scalar)
+                    Using rdr = cmd.ExecuteReader()
+                        If Not rdr.Read() Then
+                            Return New PasswordChangeResult With {
+                                .Success = False,
+                                .ValidationErrors = New List(Of String) From {"User not found."}
+                            }
+                        End If
+                        targetUsername = CStr(rdr("Username"))
+                        storedHash = CStr(rdr("PasswordHash"))
+                    End Using
                 End Using
             End Using
 
-            If Not PasswordHashHelper.Verify(currentPassword, storedHash) Then
-                Return New PasswordChangeResult With {
-                    .Success = False,
-                    .ValidationErrors = New List(Of String) From {"Current password is incorrect."}
-                }
+            ' DA5 Role Check for raw-SQL write path: Owners can only change their own password.
+            If _session.IsAuthenticated AndAlso _session.CurrentRole = UserRole.Owner Then
+                If Not String.Equals(targetUsername, _session.CurrentUsername, StringComparison.OrdinalIgnoreCase) Then
+                    Return New PasswordChangeResult With {
+                        .Success = False,
+                        .ValidationErrors = New List(Of String) From {"Owner accounts are not permitted to change credentials of other users."}
+                    }
+                End If
             End If
 
-            If PasswordHashHelper.Verify(newPassword, storedHash) Then
-                Return New PasswordChangeResult With {
-                    .Success = False,
-                    .ValidationErrors = New List(Of String) From {"New password must differ from the current password."}
-                }
-            End If
+            Using _writeContext.Enter(WriteContextKind.AuthSelfService, targetUsername)
+                If Not PasswordHashHelper.Verify(currentPassword, storedHash) Then
+                    Return New PasswordChangeResult With {
+                        .Success = False,
+                        .ValidationErrors = New List(Of String) From {"Current password is incorrect."}
+                    }
+                End If
 
-            Dim newHash = PasswordHashHelper.Hash(newPassword)
-            Using conn As New SqliteConnection(_connectionString)
-                conn.Open()
-                Using cmd = conn.CreateCommand()
-                    cmd.CommandText =
-                        "UPDATE Sys_UserAccounts SET PasswordHash=@h, LastPasswordChangeAt=@t, ModifiedAt=@t WHERE Id=@id"
-                    cmd.Parameters.AddWithValue("@h", newHash)
-                    cmd.Parameters.AddWithValue("@t", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"))
-                    cmd.Parameters.AddWithValue("@id", userId)
-                    cmd.ExecuteNonQuery()
+                If PasswordHashHelper.Verify(newPassword, storedHash) Then
+                    Return New PasswordChangeResult With {
+                        .Success = False,
+                        .ValidationErrors = New List(Of String) From {"New password must differ from the current password."}
+                    }
+                End If
+
+                Dim newHash = PasswordHashHelper.Hash(newPassword)
+                Using conn As New SqliteConnection(_connectionString)
+                    conn.Open()
+                    Using cmd = conn.CreateCommand()
+                        cmd.CommandText =
+                            "UPDATE Sys_UserAccounts SET PasswordHash=@h, LastPasswordChangeAt=@t, ModifiedAt=@t WHERE Id=@id"
+                        cmd.Parameters.AddWithValue("@h", newHash)
+                        cmd.Parameters.AddWithValue("@t", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"))
+                        cmd.Parameters.AddWithValue("@id", userId)
+                        cmd.ExecuteNonQuery()
+                    End Using
                 End Using
             End Using
 

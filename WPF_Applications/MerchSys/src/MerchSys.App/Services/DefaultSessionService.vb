@@ -23,6 +23,12 @@ Namespace Services
             End Get
         End Property
 
+        Public ReadOnly Property IsAuthenticated As Boolean Implements ISessionService.IsAuthenticated
+            Get
+                Return True
+            End Get
+        End Property
+
     End Class
 
 End Namespace

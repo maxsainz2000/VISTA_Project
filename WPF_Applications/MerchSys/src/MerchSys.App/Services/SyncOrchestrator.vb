@@ -18,6 +18,7 @@ Namespace Services
         Private ReadOnly _transmitter As ISyncTransmitter
         Private ReadOnly _notifications As INotificationService
         Private ReadOnly _settings As IOptionsMonitor(Of SyncSettings)
+        Private ReadOnly _writeContext As IWriteContextScope
         Private ReadOnly _logger As ILogger(Of SyncOrchestrator)
 
         ' Canonical sync order: Purchasing first (source of inventory cost), then Inventory,
@@ -32,6 +33,7 @@ Namespace Services
                        transmitter As ISyncTransmitter,
                        notifications As INotificationService,
                        settings As IOptionsMonitor(Of SyncSettings),
+                       writeContext As IWriteContextScope,
                        logger As ILogger(Of SyncOrchestrator))
             _repositories = repositories
             _mariaDb = mariaDb
@@ -40,6 +42,7 @@ Namespace Services
             _transmitter = transmitter
             _notifications = notifications
             _settings = settings
+            _writeContext = writeContext
             _logger = logger
         End Sub
 
@@ -51,19 +54,21 @@ Namespace Services
         ''' probe cycle.
         ''' </summary>
         Public Async Function RunAsync(cancellationToken As CancellationToken) As Task
-            Dim ordered = _repositories.
-                OrderBy(Function(r) IndexOf(r.ModuleName)).
-                ToList()
+            Using _writeContext.Enter(WriteContextKind.System)
+                Dim ordered = _repositories.
+                    OrderBy(Function(r) IndexOf(r.ModuleName)).
+                    ToList()
 
-            For Each repo In ordered
-                If cancellationToken.IsCancellationRequested Then Exit For
-                Try
-                    Await RunForModuleAsync(repo, cancellationToken)
-                Catch ex As Exception When Not TypeOf ex Is OperationCanceledException
-                    _logger.LogError(ex, "Sync: module {Module} failed; stopping this cycle", repo.ModuleName)
-                    Return
-                End Try
-            Next
+                For Each repo In ordered
+                    If cancellationToken.IsCancellationRequested Then Exit For
+                    Try
+                        Await RunForModuleAsync(repo, cancellationToken)
+                    Catch ex As Exception When Not TypeOf ex Is OperationCanceledException
+                        _logger.LogError(ex, "Sync: module {Module} failed; stopping this cycle", repo.ModuleName)
+                        Return
+                    End Try
+                Next
+            End Using
         End Function
 
         Private Async Function RunForModuleAsync(repo As ISyncableRepository, cancellationToken As CancellationToken) As Task

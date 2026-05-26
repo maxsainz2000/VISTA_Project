@@ -8,6 +8,7 @@ Namespace Interfaces
     Public Interface ISessionService
         ReadOnly Property CurrentUsername As String
         ReadOnly Property CurrentRole As UserRole
+        ReadOnly Property IsAuthenticated As Boolean
     End Interface
 
 End Namespace

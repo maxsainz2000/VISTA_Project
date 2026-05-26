@@ -545,30 +545,51 @@ last-synced: 2026-05-26
 
 ---
 
-## INFRA-16 — DA5 Data-Layer Write Rejection for Owner Role
+## INFRA-20 — DA5 Data-Layer Write Rejection (Owner Role)
 
-### ⏳ Deferred: Repository/service-layer write guards
+### Test 22: Data-access layer write rejection
 
 **What to do:**
-- Nothing right now. OWASP DA5 requires Owner read-only enforcement at the data-access layer, not just the UI. INFRA-16 implemented UI-layer enforcement (navigation filtering + `CanEdit` property on shared ViewModels), but the repository and service layer does not yet reject writes from Owner sessions.
+1. Log in as `owner`. Open the **Transaction History** view.
+2. In a debug run, trigger a write operation (e.g. use developer tools, trigger an event handler, or run a debug helper that attempts a write on any of the four module DbContexts).
+3. Observe the result.
 
-**When to do it:**
-- Once a follow-up plan is created to audit all write paths across all four modules and add role-based write guards in the repository or service layer.
+**What you should see:**
+- The write fails by throwing `UnauthorizedWriteException`.
+- The database transaction rolls back, and no row is inserted, updated, or deleted.
 
-> **Source:** INFRA-16 What's Next. Also tracked in [deferred-features-backlog.md](../../Plans/Future/deferred-features-backlog.md) item #7.
-
-- [ ] ⏳ Deferred — requires follow-up plan to audit all module write paths
+- [ ] Owner write attempts are rejected at database transaction boundaries with UnauthorizedWriteException
 
 ---
 
-### ⏳ Deferred: CanEdit on Financial/Income/Sales ViewModels
+### Test 23: Owner self-service credentials update
 
 **What to do:**
-- Nothing right now. Consider adding a `CanEdit` property to `FinancialOverviewViewModel`, `IncomeStatementViewModel`, and `SalesSummaryViewModel` if write-capable actions are discovered in those views.
+1. Log in as `owner`.
+2. Navigate to the credentials panel or trigger a password change flow.
+3. Change your own password.
 
-**When to do it:**
-- During the DA5 data-layer enforcement work above, or when new features add write actions to these views.
+**What you should see:**
+- The password change completes successfully (the `AuthSelfService` context allows the Owner user to modify their own `UserAccount` row).
 
-> **Source:** INFRA-16 What's Next.
+- [ ] Owner is able to successfully update their own password
 
-- [ ] ⏳ Deferred — conditional on write-capable actions being added to these views
+---
+
+### Test 24: Owner credentials modification restriction
+
+**What to do:**
+1. Log in as `owner`.
+2. Attempt to change the password of another user (e.g. `manager`) by sending a password update request with the manager's `userId`.
+
+**What you should see:**
+- The request is rejected.
+- A descriptive validation error is returned ("Owner accounts are not permitted to change credentials of other users.").
+
+- [ ] Owner is blocked from modifying credentials of any other user
+
+---
+
+### INFRA-16 Follow-Up: CanEdit on Financial/Income/Sales ViewModels
+
+- [x] Moot — UI bindings are no longer the sole line of defense; the database layer enforces write rejection robustly across all models for Owner sessions.
