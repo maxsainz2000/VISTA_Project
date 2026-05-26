@@ -145,6 +145,8 @@ This page documents the composition root in `MerchSys.App`.
 | `INotificationService` | `DefaultNotificationService` | Singleton |
 | `ISyncProbe` | `DualConditionSyncProbe` | Singleton |
 | `ISessionService` | `LoginSessionService` | Singleton |
+| `IWriteContextScope` | `WriteContextScope` | Singleton |
+| `RoleGuardInterceptor` | `RoleGuardInterceptor` | Scoped |
 | `IAuthenticationService` | `AuthenticationService` | Transient |
 | `IIdleMonitor` | `WpfIdleMonitor` | Singleton |
 | `IdleMonitorOptions` | (Configuration) | Singleton |

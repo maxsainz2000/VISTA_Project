@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.SharedKernel
 layer: Entities
-last-updated: 2026-05-16
+last-updated: 2026-05-26
 ---
 
 # MerchSys.SharedKernel — Entities & Data Types
@@ -35,6 +35,8 @@ last-updated: 2026-05-16
 |---|---|---|---|
 | `Data/BaseDbContext.vb` | `BaseDbContext` | `DbContext` | Handles Auditing and Soft Deletes in `SaveChanges` |
 | `Data/AuditInterceptor.vb` | `AuditInterceptor` | `SaveChangesInterceptor` | Intercepts saves to update IAuditable fields |
+| `Data/RoleGuardInterceptor.vb` | `RoleGuardInterceptor` | `SaveChangesInterceptor` | SaveChangesInterceptor that enforces OWASP DA5 role-based write rejection. |
+| `Data/WriteContextScope.vb` | `WriteContextScope` | `IWriteContextScope` | Default scoped implementation utilizing AsyncLocal to carry write context metadata safely across asynchronous boundaries. |
 | `Sync/SyncJournalDbContext.vb` | `SyncJournalDbContext` | `BaseDbContext` | Context for the `Sync_Journal` table. |
 | `Sync/MariaDbSyncContext.vb` | `MariaDbSyncContext` | `DbContext` (Pomelo) | Remote MariaDB context for data transmission. |
 
@@ -42,3 +44,4 @@ last-updated: 2026-05-16
 | File Path | Class | Inherits | Description |
 |---|---|---|---|
 | `Exceptions/ImmutableEntityException.vb` | `ImmutableEntityException` | `Exception` | Thrown when attempting to modify/delete BIR-immutable records. |
+| `Exceptions/UnauthorizedWriteException.vb` | `UnauthorizedWriteException` | `UnauthorizedAccessException` | Thrown when attempting an unauthorized write (e.g. by an Owner account) to operational databases. |
