@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.App
 layer: Services
-last-updated: 2026-05-15
+last-updated: 2026-05-26
 ---
 
 # MerchSys.App — Services
@@ -29,6 +29,7 @@ This page details the Service implementations specifically located within the **
 | `src/MerchSys.App/Services/DefaultNotificationService.vb` | `INotificationService`<br>`DefaultNotificationService` | Singleton that surfaces sync status changes and tracks `LastSuccessfulPushAt` for the UI shell. |
 | `src/MerchSys.App/Services/IAuthenticationService.vb` | `IAuthenticationService`<br>`AuthenticationService` | Validates credentials and returns authenticated user. Implements Argon2id hashing and lockout policy. |
 | `src/MerchSys.App/Services/LoginSessionService.vb` | `ISessionService`<br>`LoginSessionService` | Session service backed by authenticated UserAccount. Replaces DefaultSessionService. |
+| `src/MerchSys.App/Services/IIdleMonitor.vb`<br>`src/MerchSys.App/Services/WpfIdleMonitor.vb` | `IIdleMonitor`<br>`WpfIdleMonitor` | OWASP DA2 session inactivity timeout. Hooks DispatcherTimer and InputManager.PreProcessInput to monitor user activity, prompting warning dialog or forced logout (includes NoOpIdleMonitor stub under DEBUG). |
 | `src/MerchSys.App/Helpers/PasswordBoxHelper.vb` | `PasswordBoxHelper` | Attached-property bridge for PasswordBox.Password binding to ViewModel string. |
 
 ## Debug & Utilities

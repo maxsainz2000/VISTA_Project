@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.App
 layer: UI
-last-updated: 2026-05-23
+last-updated: 2026-05-26
 ---
 
 # MerchSys.App — UI (Views)
@@ -24,6 +24,9 @@ This page details the WPF View implementations (XAML and code-behind) in the **M
 | `src/MerchSys.App/Views/OwnerDashboardView.xaml`<br>`src/MerchSys.App/Views/OwnerDashboardView.xaml.vb` | `OwnerDashboardView` | Owner Dashboard with KPI cards and plain-language interpretations. | `OwnerDashboardViewModel` (Constructor Injection) |
 | `src/MerchSys.App/ViewModels/LoginViewModel.vb` | `LoginViewModel` | Manages login flow, error display, and password change logic. | `IAuthenticationService`, `LoginSessionService` (Constructor Injection) |
 | `src/MerchSys.App/ViewModels/OwnerDashboardViewModel.vb` | `OwnerDashboardViewModel` | MVVM hub for the Owner dashboard. Sourced from all four modules to aggregate business metrics and display plain-language interpretations. | `ISessionService`, `IStockDashboardService`, `ILowStockAlertService`, `IExpiryTrackingService`, `IPurchaseOrderService`, `IVendorService`, `IAccountsPayableService`, `IDailySummaryService`, `IFinancialOverviewService`, `IIncomeStatementService` (Constructor Injection) |
+| `src/MerchSys.App/Views/SessionTimeoutWarningView.xaml`<br>`src/MerchSys.App/Views/SessionTimeoutWarningView.xaml.vb` | `SessionTimeoutWarningView` | Modal countdown dialog for session inactivity. Prompts user to extend session or sign out; automatically logs out on timeout (OWASP DA2). | `SessionTimeoutWarningViewModel` (Transient) |
+| `src/MerchSys.App/ViewModels/SessionTimeoutWarningViewModel.vb` | `SessionTimeoutWarningViewModel` | Countdown ViewModel. Formats remaining idle seconds as "M:SS" and exposes commands to stay signed in or sign out. | (none) |
+
 
 
 ## Accounting Views

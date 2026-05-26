@@ -110,6 +110,7 @@ This page documents the composition root in `MerchSys.App`.
 | `VatReliefReportView` | Accounting | Transient |
 | `LoginView` | (Shell) | Transient |
 | `OwnerDashboardView` | (Shell) | Transient |
+| `SessionTimeoutWarningView` | (Shell) | Transient |
 | `SyncStatusIndicator` | (Shell) | Singleton |
 
 
@@ -120,6 +121,7 @@ This page documents the composition root in `MerchSys.App`.
 | `MainWindow` | Singleton | Main application window. |
 | `LoginViewModel` | Transient | VM for the standalone login window. |
 | `OwnerDashboardViewModel` | Transient | VM for the owner dashboard. |
+| `SessionTimeoutWarningViewModel` | Transient | VM for the inactivity warning countdown dialog. |
 | `SyncStatusIndicatorViewModel` | Singleton | VM for the sync status shell indicator. |
 
 
@@ -144,6 +146,8 @@ This page documents the composition root in `MerchSys.App`.
 | `ISyncProbe` | `DualConditionSyncProbe` | Singleton |
 | `ISessionService` | `LoginSessionService` | Singleton |
 | `IAuthenticationService` | `AuthenticationService` | Transient |
+| `IIdleMonitor` | `WpfIdleMonitor` | Singleton |
+| `IdleMonitorOptions` | (Configuration) | Singleton |
 | `SyncOrchestrator` | `SyncOrchestrator` | Scoped |
 | `ISyncTransmitter` | `MariaDbSyncTransmitter` | Scoped |
 | `SyncWorker` | `SyncWorker` | Singleton (HostedService) |
