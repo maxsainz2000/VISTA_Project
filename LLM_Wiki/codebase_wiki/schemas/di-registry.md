@@ -24,6 +24,10 @@ This page documents the composition root in `MerchSys.App`.
 | `IReceiptArchivalService` | `ReceiptArchivalService` | Scoped |
 | (none) | `ReceiptArchivalService` | Singleton (HostedService) |
 | `IOptions(Of ReceiptArchivalOptions)` | (Configuration) | Singleton |
+| `IReceiptRenderer` | `ConsoleReceiptRenderer` or `PdfReceiptRenderer` (from configuration) | Scoped |
+| `ConsoleReceiptRenderer` | `ConsoleReceiptRenderer` | Scoped |
+| `PdfReceiptRenderer` | `PdfReceiptRenderer` | Scoped |
+| `IOptions(Of ReceiptPdfOptions)` | (Configuration) | Singleton |
 | (none) | `SalesCartViewModel` | Transient |
 | (none) | `CreditManagementViewModel` | Transient |
 | (none) | `TransactionHistoryViewModel` | Transient |
