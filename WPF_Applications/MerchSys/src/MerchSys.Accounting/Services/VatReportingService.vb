@@ -6,6 +6,7 @@
 
 Imports System.Threading
 Imports MediatR
+Imports Microsoft.Data.Sqlite
 Imports Microsoft.EntityFrameworkCore
 Imports Microsoft.Extensions.Logging
 Imports MerchSys.Accounting.Data
@@ -25,6 +26,9 @@ Namespace Services
         Private ReadOnly _mediator As IMediator
         Private ReadOnly _logger As ILogger(Of VatReportingService)
         Private ReadOnly _repository As ISyncableRepository(Of AccountingDbContext)
+        Private _vatReturnList As List(Of VatReturn)
+        Private _revenueRecordList As List(Of RevenueRecord)
+        Private _expenseRecordList As List(Of ExpenseRecord)
 
         Public Sub New(db As AccountingDbContext,
                        mediator As IMediator,
@@ -161,14 +165,55 @@ Namespace Services
         Public Async Function ListReturnsAsync(year As Integer?) As Task(Of IReadOnlyList(Of VatReturn)) _
             Implements IVatReportingService.ListReturnsAsync
 
-            Dim query = _db.VatReturns.AsQueryable()
-            If year.HasValue Then
-                query = query.Where(Function(r) r.Year = year.Value)
-            End If
-            Dim result = Await query.OrderByDescending(Function(r) r.Year).
-                ThenByDescending(Function(r) r.Period).
-                ToListAsync()
-            Return result.AsReadOnly()
+            _vatReturnList = New List(Of VatReturn)()
+            Dim lrConnStr = _db.Database.GetConnectionString()
+            Using lrConn As New SqliteConnection(lrConnStr)
+                Await lrConn.OpenAsync()
+                Using lrCmd = lrConn.CreateCommand()
+                    If year.HasValue Then
+                        lrCmd.CommandText = "SELECT Id, Year, Period, PeriodType, FormType, TotalVatableSales, " &
+                                            "TotalVatExemptSales, TotalZeroRatedSales, TotalOutputVat, TotalVatablePurchases, " &
+                                            "TotalInputVat, VatPayable, FilingStatus, FiledAt, FiledBy, GeneratedAt, " &
+                                            "IsVatRegisteredSnapshot, CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                            "FROM Acc_VatReturns WHERE Year = @year ORDER BY Year DESC, Period DESC"
+                        lrCmd.Parameters.Add(New SqliteParameter("@year", year.Value))
+                    Else
+                        lrCmd.CommandText = "SELECT Id, Year, Period, PeriodType, FormType, TotalVatableSales, " &
+                                            "TotalVatExemptSales, TotalZeroRatedSales, TotalOutputVat, TotalVatablePurchases, " &
+                                            "TotalInputVat, VatPayable, FilingStatus, FiledAt, FiledBy, GeneratedAt, " &
+                                            "IsVatRegisteredSnapshot, CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                            "FROM Acc_VatReturns ORDER BY Year DESC, Period DESC"
+                    End If
+                    Using lrReader = lrCmd.ExecuteReader()
+                        While lrReader.Read()
+                            _vatReturnList.Add(New VatReturn With {
+                                .Id = lrReader.GetInt32(0),
+                                .Year = lrReader.GetInt32(1),
+                                .Period = lrReader.GetInt32(2),
+                                .PeriodType = CType(lrReader.GetInt32(3), VatReturnPeriodType),
+                                .FormType = CType(lrReader.GetInt32(4), VatReturnFormType),
+                                .TotalVatableSales = lrReader.GetDecimal(5),
+                                .TotalVatExemptSales = lrReader.GetDecimal(6),
+                                .TotalZeroRatedSales = lrReader.GetDecimal(7),
+                                .TotalOutputVat = lrReader.GetDecimal(8),
+                                .TotalVatablePurchases = lrReader.GetDecimal(9),
+                                .TotalInputVat = lrReader.GetDecimal(10),
+                                .VatPayable = lrReader.GetDecimal(11),
+                                .FilingStatus = CType(lrReader.GetInt32(12), VatFilingStatus),
+                                .FiledAt = If(lrReader.IsDBNull(13), CType(Nothing, DateTime?), CType(lrReader.GetDateTime(13), DateTime?)),
+                                .FiledBy = If(lrReader.IsDBNull(14), Nothing, lrReader.GetString(14)),
+                                .GeneratedAt = lrReader.GetDateTime(15),
+                                .IsVatRegisteredSnapshot = lrReader.GetBoolean(16),
+                                .CreatedBy = If(lrReader.IsDBNull(17), Nothing, lrReader.GetString(17)),
+                                .CreatedAt = lrReader.GetDateTime(18),
+                                .ModifiedBy = If(lrReader.IsDBNull(19), Nothing, lrReader.GetString(19)),
+                                .ModifiedAt = If(lrReader.IsDBNull(20), Nothing, CType(lrReader.GetDateTime(20), DateTime?))
+                            })
+                        End While
+                    End Using
+                End Using
+            End Using
+            Return _vatReturnList.AsReadOnly()
         End Function
 
         ''' <summary>
@@ -265,24 +310,68 @@ Namespace Services
         ' ─── Private Helpers ────────────────────────────────────────────────────────
 
         Private Async Function CollectLedgerDataAsync(windowStart As DateTime, windowEnd As DateTime) As Task(Of LedgerData)
-            Dim revenues = Await _db.RevenueRecords.
-                Where(Function(r) r.RecordDate >= windowStart AndAlso r.RecordDate < windowEnd).
-                ToListAsync()
+            _revenueRecordList = New List(Of RevenueRecord)()
+            _expenseRecordList = New List(Of ExpenseRecord)()
+            Dim wsStr = windowStart.ToString("o")
+            Dim weStr = windowEnd.ToString("o")
+            Dim ldConnStr = _db.Database.GetConnectionString()
+            Using ldConn As New SqliteConnection(ldConnStr)
+                Await ldConn.OpenAsync()
 
-            Dim expenses = Await _db.ExpenseRecords.
-                Where(Function(e) e.RecordDate >= windowStart AndAlso e.RecordDate < windowEnd AndAlso
-                                  e.SourceModule = "Purchasing").
-                ToListAsync()
+                Using revCmd = ldConn.CreateCommand()
+                    revCmd.CommandText = "SELECT Id, RecordDate, VatableAmount, VatExemptAmount, ZeroRatedAmount, " &
+                                         "OutputVat, InputVat, VatTreatment " &
+                                         "FROM Acc_RevenueRecords WHERE RecordDate >= @ws AND RecordDate < @we"
+                    revCmd.Parameters.Add(New SqliteParameter("@ws", wsStr))
+                    revCmd.Parameters.Add(New SqliteParameter("@we", weStr))
+                    Using revReader = revCmd.ExecuteReader()
+                        While revReader.Read()
+                            _revenueRecordList.Add(New RevenueRecord With {
+                                .Id = revReader.GetInt32(0),
+                                .RecordDate = revReader.GetDateTime(1),
+                                .VatableAmount = revReader.GetDecimal(2),
+                                .VatExemptAmount = revReader.GetDecimal(3),
+                                .ZeroRatedAmount = revReader.GetDecimal(4),
+                                .OutputVat = revReader.GetDecimal(5),
+                                .InputVat = revReader.GetDecimal(6),
+                                .VatTreatment = CType(revReader.GetInt32(7), VatTreatment)
+                            })
+                        End While
+                    End Using
+                End Using
+
+                Using expCmd = ldConn.CreateCommand()
+                    expCmd.CommandText = "SELECT Id, RecordDate, VatableAmount, VatExemptAmount, ZeroRatedAmount, " &
+                                         "OutputVat, InputVat, VatTreatment " &
+                                         "FROM Acc_ExpenseRecords WHERE RecordDate >= @ws AND RecordDate < @we AND SourceModule = 'Purchasing'"
+                    expCmd.Parameters.Add(New SqliteParameter("@ws", wsStr))
+                    expCmd.Parameters.Add(New SqliteParameter("@we", weStr))
+                    Using expReader = expCmd.ExecuteReader()
+                        While expReader.Read()
+                            _expenseRecordList.Add(New ExpenseRecord With {
+                                .Id = expReader.GetInt32(0),
+                                .RecordDate = expReader.GetDateTime(1),
+                                .VatableAmount = expReader.GetDecimal(2),
+                                .VatExemptAmount = expReader.GetDecimal(3),
+                                .ZeroRatedAmount = expReader.GetDecimal(4),
+                                .OutputVat = expReader.GetDecimal(5),
+                                .InputVat = expReader.GetDecimal(6),
+                                .VatTreatment = CType(expReader.GetInt32(7), VatTreatment)
+                            })
+                        End While
+                    End Using
+                End Using
+            End Using
 
             Return New LedgerData With {
-                .TotalVatableSales = revenues.Sum(Function(r) r.VatableAmount),
-                .TotalVatExemptSales = revenues.Sum(Function(r) r.VatExemptAmount),
-                .TotalZeroRatedSales = revenues.Sum(Function(r) r.ZeroRatedAmount),
-                .TotalOutputVat = revenues.Sum(Function(r) r.OutputVat),
-                .TotalVatablePurchases = expenses.Sum(Function(e) e.VatableAmount),
-                .TotalInputVat = expenses.Sum(Function(e) e.InputVat),
-                .RevenueRecords = revenues,
-                .ExpenseRecords = expenses
+                .TotalVatableSales = _revenueRecordList.Sum(Function(r) r.VatableAmount),
+                .TotalVatExemptSales = _revenueRecordList.Sum(Function(r) r.VatExemptAmount),
+                .TotalZeroRatedSales = _revenueRecordList.Sum(Function(r) r.ZeroRatedAmount),
+                .TotalOutputVat = _revenueRecordList.Sum(Function(r) r.OutputVat),
+                .TotalVatablePurchases = _expenseRecordList.Sum(Function(e) e.VatableAmount),
+                .TotalInputVat = _expenseRecordList.Sum(Function(e) e.InputVat),
+                .RevenueRecords = _revenueRecordList,
+                .ExpenseRecords = _expenseRecordList
             }
         End Function
 

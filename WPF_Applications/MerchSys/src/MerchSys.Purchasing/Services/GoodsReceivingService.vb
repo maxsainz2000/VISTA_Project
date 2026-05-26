@@ -1,5 +1,6 @@
 Imports System.Threading
 Imports MediatR
+Imports Microsoft.Data.Sqlite
 Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.Purchasing.Data
 Imports MerchSys.Purchasing.Dtos
@@ -20,6 +21,7 @@ Namespace Services
         Private ReadOnly _priceChangeService As IPriceChangeService
         Private ReadOnly _vatCalculator As GoodsReceiptVatCalculator
         Private ReadOnly _repository As ISyncableRepository(Of PurchasingDbContext)
+        Private _grListForPO As List(Of GoodsReceipt)
 
         Public Sub New(db As PurchasingDbContext,
                        mediator As IMediator,
@@ -156,10 +158,70 @@ Namespace Services
         End Function
 
         Public Async Function GetReceiptsForPOAsync(purchaseOrderId As Integer) As Task(Of List(Of GoodsReceipt)) Implements IGoodsReceivingService.GetReceiptsForPOAsync
-            Return Await _db.GoodsReceipts.
-                Include(Function(r) r.Lines).
-                Where(Function(r) r.PurchaseOrderId = purchaseOrderId).
-                ToListAsync()
+            _grListForPO = New List(Of GoodsReceipt)()
+            Dim rfpConnStr = _db.Database.GetConnectionString()
+            Using rfpConn As New SqliteConnection(rfpConnStr)
+                Await rfpConn.OpenAsync()
+                Using rfpCmd = rfpConn.CreateCommand()
+                    rfpCmd.CommandText = "SELECT Id, PurchaseOrderId, ReceiptNumber, ReceivedDate, ReceivedBy, Notes, " &
+                                         "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                         "FROM Pur_GoodsReceipts WHERE PurchaseOrderId = @poId"
+                    rfpCmd.Parameters.Add(New SqliteParameter("@poId", purchaseOrderId))
+                    Using rfpReader = rfpCmd.ExecuteReader()
+                        While rfpReader.Read()
+                            _grListForPO.Add(New GoodsReceipt With {
+                                .Id = rfpReader.GetInt32(0),
+                                .PurchaseOrderId = rfpReader.GetInt32(1),
+                                .ReceiptNumber = rfpReader.GetString(2),
+                                .ReceivedDate = rfpReader.GetDateTime(3),
+                                .ReceivedBy = If(rfpReader.IsDBNull(4), Nothing, rfpReader.GetString(4)),
+                                .Notes = If(rfpReader.IsDBNull(5), Nothing, rfpReader.GetString(5)),
+                                .CreatedBy = If(rfpReader.IsDBNull(6), Nothing, rfpReader.GetString(6)),
+                                .CreatedAt = rfpReader.GetDateTime(7),
+                                .ModifiedBy = If(rfpReader.IsDBNull(8), Nothing, rfpReader.GetString(8)),
+                                .ModifiedAt = If(rfpReader.IsDBNull(9), Nothing, CType(rfpReader.GetDateTime(9), DateTime?))
+                            })
+                        End While
+                    End Using
+                End Using
+
+                If _grListForPO.Any() Then
+                    Dim grIds As String = String.Join(",", _grListForPO.Select(Function(receipt) receipt.Id))
+                    Dim grMap = _grListForPO.ToDictionary(Function(receipt) receipt.Id)
+                    Using lineCmd = rfpConn.CreateCommand()
+                        lineCmd.CommandText = "SELECT Id, GoodsReceiptId, ProductId, ProductName, QuantityOrdered, " &
+                                              "QuantityReceived, UnitCost, ExpiryDate, HasDiscrepancy, DiscrepancyNotes, " &
+                                              "VatClassification, VatAmount, VatableSales, " &
+                                              "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                              $"FROM Pur_GoodsReceiptLines WHERE GoodsReceiptId IN ({grIds})"
+                        Using lineReader = lineCmd.ExecuteReader()
+                            While lineReader.Read()
+                                Dim lineGrId = lineReader.GetInt32(1)
+                                Dim grl As New GoodsReceiptLine With {
+                                    .Id = lineReader.GetInt32(0),
+                                    .GoodsReceiptId = lineGrId,
+                                    .ProductId = lineReader.GetInt32(2),
+                                    .ProductName = lineReader.GetString(3),
+                                    .QuantityOrdered = lineReader.GetInt32(4),
+                                    .QuantityReceived = lineReader.GetInt32(5),
+                                    .UnitCost = lineReader.GetDecimal(6),
+                                    .ExpiryDate = If(lineReader.IsDBNull(7), CType(Nothing, DateTime?), CType(lineReader.GetDateTime(7), DateTime?)),
+                                    .HasDiscrepancy = lineReader.GetBoolean(8),
+                                    .DiscrepancyNotes = If(lineReader.IsDBNull(9), Nothing, lineReader.GetString(9)),
+                                    .VatClassification = CType(lineReader.GetInt32(10), VatTreatment),
+                                    .VatAmount = lineReader.GetDecimal(11),
+                                    .VatableSales = lineReader.GetDecimal(12)
+                                }
+                                Dim parentGr As GoodsReceipt = Nothing
+                                If grMap.TryGetValue(lineGrId, parentGr) Then
+                                    parentGr.Lines.Add(grl)
+                                End If
+                            End While
+                        End Using
+                    End Using
+                End If
+            End Using
+            Return _grListForPO
         End Function
 
     End Class

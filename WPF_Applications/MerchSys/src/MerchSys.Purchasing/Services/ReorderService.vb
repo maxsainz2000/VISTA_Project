@@ -1,5 +1,6 @@
 Imports System.Threading
 Imports MediatR
+Imports Microsoft.Data.Sqlite
 Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.Purchasing.Data
 Imports MerchSys.Purchasing.Entities
@@ -16,6 +17,8 @@ Namespace Services
         Private ReadOnly _db As PurchasingDbContext
         Private ReadOnly _mediator As IMediator
         Private ReadOnly _repository As ISyncableRepository(Of PurchasingDbContext)
+        Private _reorderSuggestionList As List(Of ReorderSuggestion)
+        Private _reorderConfigList As List(Of ReorderConfig)
 
         Public Sub New(db As PurchasingDbContext,
                        mediator As IMediator,
@@ -29,10 +32,69 @@ Namespace Services
             Dim stockResult = Await _mediator.Send(New GetCurrentStockQuery())
             Dim stockMap = stockResult.Items.ToDictionary(Function(s) s.ProductId)
 
-            Dim configs = Await _db.ReorderConfigs.
-                Include(Function(c) c.PreferredVendor).
-                Where(Function(c) c.IsActive).
-                ToListAsync()
+            _reorderConfigList = New List(Of ReorderConfig)()
+            Dim genConnStr = _db.Database.GetConnectionString()
+            Using genConn As New SqliteConnection(genConnStr)
+                Await genConn.OpenAsync()
+                Using genCmd = genConn.CreateCommand()
+                    genCmd.CommandText = "SELECT Id, ProductId, ProductName, PreferredVendorId, MinimumThreshold, SafetyStock, " &
+                                         "DefaultOrderQuantity, LeadTimeDays, IsSeasonalItem, SeasonalMultiplier, IsActive, " &
+                                         "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                         "FROM Pur_ReorderConfigs WHERE IsActive = 1"
+                    Using genReader = genCmd.ExecuteReader()
+                        While genReader.Read()
+                            _reorderConfigList.Add(New ReorderConfig With {
+                                .Id = genReader.GetInt32(0),
+                                .ProductId = genReader.GetInt32(1),
+                                .ProductName = genReader.GetString(2),
+                                .PreferredVendorId = If(genReader.IsDBNull(3), CType(Nothing, Integer?), genReader.GetInt32(3)),
+                                .MinimumThreshold = genReader.GetInt32(4),
+                                .SafetyStock = genReader.GetInt32(5),
+                                .DefaultOrderQuantity = genReader.GetInt32(6),
+                                .LeadTimeDays = genReader.GetInt32(7),
+                                .IsSeasonalItem = genReader.GetBoolean(8),
+                                .SeasonalMultiplier = genReader.GetDecimal(9),
+                                .IsActive = genReader.GetBoolean(10)
+                            })
+                        End While
+                    End Using
+                End Using
+
+                Dim vendorIdSet = _reorderConfigList.
+                    Where(Function(cfg) cfg.PreferredVendorId.HasValue).
+                    Select(Function(cfg) cfg.PreferredVendorId.Value).Distinct().ToList()
+
+                If vendorIdSet.Any() Then
+                    Dim genVendorDict As New Dictionary(Of Integer, Vendor)()
+                    Dim genVidList As String = String.Join(",", vendorIdSet)
+                    Using genVCmd = genConn.CreateCommand()
+                        genVCmd.CommandText = "SELECT Id, Name, ContactPerson, Phone, Email, Address, DefaultLeadTimeDays, Notes " &
+                                              $"FROM Pur_Vendors WHERE Id IN ({genVidList})"
+                        Using genVReader = genVCmd.ExecuteReader()
+                            While genVReader.Read()
+                                Dim gv As New Vendor With {
+                                    .Id = genVReader.GetInt32(0),
+                                    .Name = genVReader.GetString(1),
+                                    .ContactPerson = genVReader.GetString(2),
+                                    .Phone = genVReader.GetString(3),
+                                    .Email = If(genVReader.IsDBNull(4), Nothing, genVReader.GetString(4)),
+                                    .Address = genVReader.GetString(5),
+                                    .DefaultLeadTimeDays = genVReader.GetInt32(6),
+                                    .Notes = If(genVReader.IsDBNull(7), Nothing, genVReader.GetString(7))
+                                }
+                                genVendorDict(gv.Id) = gv
+                            End While
+                        End Using
+                    End Using
+                    For Each cfg In _reorderConfigList
+                        Dim gv As Vendor = Nothing
+                        If cfg.PreferredVendorId.HasValue AndAlso genVendorDict.TryGetValue(cfg.PreferredVendorId.Value, gv) Then
+                            cfg.PreferredVendor = gv
+                        End If
+                    Next
+                End If
+            End Using
+            Dim configs = _reorderConfigList
 
             ' Collect product IDs that already have a pending suggestion to avoid duplicates.
             Dim pendingProductIds As New HashSet(Of Integer)(
@@ -87,10 +149,23 @@ Namespace Services
         End Function
 
         Public Async Function GetPendingSuggestionsAsync() As Task(Of List(Of ReorderSuggestion)) Implements IReorderService.GetPendingSuggestionsAsync
-            Return Await _db.ReorderSuggestions.
-                Where(Function(s) s.Status = "Pending").
-                OrderByDescending(Function(s) s.CreatedAt).
-                ToListAsync()
+            _reorderSuggestionList = New List(Of ReorderSuggestion)()
+            Dim psConnStr = _db.Database.GetConnectionString()
+            Using psConn As New SqliteConnection(psConnStr)
+                Await psConn.OpenAsync()
+                Using psCmd = psConn.CreateCommand()
+                    psCmd.CommandText = "SELECT Id, ProductId, ProductName, CurrentStock, ReorderPoint, SuggestedQuantity, " &
+                                        "PreferredVendorId, PreferredVendorName, EstimatedLeadTimeDays, IsSeasonalAdjusted, " &
+                                        "Status, ConvertedToPOId, CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                        "FROM Pur_ReorderSuggestions WHERE Status = 'Pending' ORDER BY CreatedAt DESC"
+                    Using psReader = psCmd.ExecuteReader()
+                        While psReader.Read()
+                            _reorderSuggestionList.Add(ReadReorderSuggestion(psReader))
+                        End While
+                    End Using
+                End Using
+            End Using
+            Return _reorderSuggestionList
         End Function
 
         Public Async Function AcceptSuggestionAsync(id As Integer) As Task(Of PurchaseOrder) Implements IReorderService.AcceptSuggestionAsync
@@ -185,16 +260,110 @@ Namespace Services
         End Function
 
         Public Async Function GetAllConfigsAsync() As Task(Of List(Of ReorderConfig)) Implements IReorderService.GetAllConfigsAsync
-            Return Await _db.ReorderConfigs.
-                Include(Function(c) c.PreferredVendor).
-                OrderBy(Function(c) c.ProductName).
-                ToListAsync()
+            _reorderConfigList = New List(Of ReorderConfig)()
+            Dim acConnStr = _db.Database.GetConnectionString()
+            Using acConn As New SqliteConnection(acConnStr)
+                Await acConn.OpenAsync()
+                Using acCmd = acConn.CreateCommand()
+                    acCmd.CommandText = "SELECT Id, ProductId, ProductName, PreferredVendorId, MinimumThreshold, SafetyStock, " &
+                                        "DefaultOrderQuantity, LeadTimeDays, IsSeasonalItem, SeasonalMultiplier, IsActive, " &
+                                        "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                        "FROM Pur_ReorderConfigs ORDER BY ProductName ASC"
+                    Using acReader = acCmd.ExecuteReader()
+                        While acReader.Read()
+                            _reorderConfigList.Add(New ReorderConfig With {
+                                .Id = acReader.GetInt32(0),
+                                .ProductId = acReader.GetInt32(1),
+                                .ProductName = acReader.GetString(2),
+                                .PreferredVendorId = If(acReader.IsDBNull(3), CType(Nothing, Integer?), acReader.GetInt32(3)),
+                                .MinimumThreshold = acReader.GetInt32(4),
+                                .SafetyStock = acReader.GetInt32(5),
+                                .DefaultOrderQuantity = acReader.GetInt32(6),
+                                .LeadTimeDays = acReader.GetInt32(7),
+                                .IsSeasonalItem = acReader.GetBoolean(8),
+                                .SeasonalMultiplier = acReader.GetDecimal(9),
+                                .IsActive = acReader.GetBoolean(10)
+                            })
+                        End While
+                    End Using
+                End Using
+
+                Dim acVendorSet = _reorderConfigList.
+                    Where(Function(cfg) cfg.PreferredVendorId.HasValue).
+                    Select(Function(cfg) cfg.PreferredVendorId.Value).Distinct().ToList()
+
+                If acVendorSet.Any() Then
+                    Dim acVendorDict As New Dictionary(Of Integer, Vendor)()
+                    Dim acVidList As String = String.Join(",", acVendorSet)
+                    Using acVCmd = acConn.CreateCommand()
+                        acVCmd.CommandText = "SELECT Id, Name, ContactPerson, Phone, Email, Address, DefaultLeadTimeDays, Notes " &
+                                             $"FROM Pur_Vendors WHERE Id IN ({acVidList})"
+                        Using acVReader = acVCmd.ExecuteReader()
+                            While acVReader.Read()
+                                Dim acV As New Vendor With {
+                                    .Id = acVReader.GetInt32(0),
+                                    .Name = acVReader.GetString(1),
+                                    .ContactPerson = acVReader.GetString(2),
+                                    .Phone = acVReader.GetString(3),
+                                    .Email = If(acVReader.IsDBNull(4), Nothing, acVReader.GetString(4)),
+                                    .Address = acVReader.GetString(5),
+                                    .DefaultLeadTimeDays = acVReader.GetInt32(6),
+                                    .Notes = If(acVReader.IsDBNull(7), Nothing, acVReader.GetString(7))
+                                }
+                                acVendorDict(acV.Id) = acV
+                            End While
+                        End Using
+                    End Using
+                    For Each cfg In _reorderConfigList
+                        Dim acV As Vendor = Nothing
+                        If cfg.PreferredVendorId.HasValue AndAlso acVendorDict.TryGetValue(cfg.PreferredVendorId.Value, acV) Then
+                            cfg.PreferredVendor = acV
+                        End If
+                    Next
+                End If
+            End Using
+            Return _reorderConfigList
         End Function
 
         Public Async Function GetAllSuggestionsAsync() As Task(Of List(Of ReorderSuggestion)) Implements IReorderService.GetAllSuggestionsAsync
-            Return Await _db.ReorderSuggestions.
-                OrderByDescending(Function(s) s.CreatedAt).
-                ToListAsync()
+            _reorderSuggestionList = New List(Of ReorderSuggestion)()
+            Dim asConnStr = _db.Database.GetConnectionString()
+            Using asConn As New SqliteConnection(asConnStr)
+                Await asConn.OpenAsync()
+                Using asCmd = asConn.CreateCommand()
+                    asCmd.CommandText = "SELECT Id, ProductId, ProductName, CurrentStock, ReorderPoint, SuggestedQuantity, " &
+                                        "PreferredVendorId, PreferredVendorName, EstimatedLeadTimeDays, IsSeasonalAdjusted, " &
+                                        "Status, ConvertedToPOId, CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                        "FROM Pur_ReorderSuggestions ORDER BY CreatedAt DESC"
+                    Using asReader = asCmd.ExecuteReader()
+                        While asReader.Read()
+                            _reorderSuggestionList.Add(ReadReorderSuggestion(asReader))
+                        End While
+                    End Using
+                End Using
+            End Using
+            Return _reorderSuggestionList
+        End Function
+
+        Private Shared Function ReadReorderSuggestion(r As SqliteDataReader) As ReorderSuggestion
+            Return New ReorderSuggestion With {
+                .Id = r.GetInt32(0),
+                .ProductId = r.GetInt32(1),
+                .ProductName = r.GetString(2),
+                .CurrentStock = r.GetInt32(3),
+                .ReorderPoint = r.GetInt32(4),
+                .SuggestedQuantity = r.GetInt32(5),
+                .PreferredVendorId = If(r.IsDBNull(6), CType(Nothing, Integer?), r.GetInt32(6)),
+                .PreferredVendorName = If(r.IsDBNull(7), Nothing, r.GetString(7)),
+                .EstimatedLeadTimeDays = r.GetInt32(8),
+                .IsSeasonalAdjusted = r.GetBoolean(9),
+                .Status = r.GetString(10),
+                .ConvertedToPOId = If(r.IsDBNull(11), CType(Nothing, Integer?), r.GetInt32(11)),
+                .CreatedBy = If(r.IsDBNull(12), Nothing, r.GetString(12)),
+                .CreatedAt = r.GetDateTime(13),
+                .ModifiedBy = If(r.IsDBNull(14), Nothing, r.GetString(14)),
+                .ModifiedAt = If(r.IsDBNull(15), Nothing, CType(r.GetDateTime(15), DateTime?))
+            }
         End Function
 
     End Class

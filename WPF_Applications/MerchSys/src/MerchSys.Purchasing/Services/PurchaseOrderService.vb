@@ -1,4 +1,5 @@
 Imports System.Threading
+Imports Microsoft.Data.Sqlite
 Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.Purchasing.Data
 Imports MerchSys.Purchasing.Entities
@@ -13,6 +14,9 @@ Namespace Services
 
         Private ReadOnly _db As PurchasingDbContext
         Private ReadOnly _repository As ISyncableRepository(Of PurchasingDbContext)
+        Private _poList As List(Of PurchaseOrder)
+        Private _poLineList As List(Of PurchaseOrderLine)
+        Private _poVendorList As List(Of Vendor)
 
         Public Sub New(db As PurchasingDbContext,
                        repository As ISyncableRepository(Of PurchasingDbContext))
@@ -65,16 +69,100 @@ Namespace Services
         End Function
 
         Public Async Function GetAllAsync(Optional status As PurchaseOrderStatus? = Nothing) As Task(Of List(Of PurchaseOrder)) Implements IPurchaseOrderService.GetAllAsync
-            Dim query = _db.PurchaseOrders.
-                Include(Function(po) po.Lines).
-                Include(Function(po) po.Vendor).
-                AsQueryable()
+            ' Step 1: load PurchaseOrders
+            _poList = New List(Of PurchaseOrder)()
+            Dim connStr = _db.Database.GetConnectionString()
+            Using conn As New SqliteConnection(connStr)
+                Await conn.OpenAsync()
+                Using cmd = conn.CreateCommand()
+                    If status.HasValue Then
+                        cmd.CommandText = "SELECT Id, OrderNumber, VendorId, Status, OrderDate, ExpectedDeliveryDate, TotalAmount, Notes " &
+                                          "FROM Pur_PurchaseOrders WHERE Status = @status ORDER BY OrderDate DESC"
+                        cmd.Parameters.Add(New SqliteParameter("@status", CInt(status.Value)))
+                    Else
+                        cmd.CommandText = "SELECT Id, OrderNumber, VendorId, Status, OrderDate, ExpectedDeliveryDate, TotalAmount, Notes " &
+                                          "FROM Pur_PurchaseOrders ORDER BY OrderDate DESC"
+                    End If
+                    Using reader = cmd.ExecuteReader()
+                        While reader.Read()
+                            _poList.Add(New PurchaseOrder With {
+                                .Id = reader.GetInt32(0),
+                                .OrderNumber = reader.GetString(1),
+                                .VendorId = reader.GetInt32(2),
+                                .Status = CType(reader.GetInt32(3), PurchaseOrderStatus),
+                                .OrderDate = reader.GetDateTime(4),
+                                .ExpectedDeliveryDate = If(reader.IsDBNull(5), CType(Nothing, DateTime?), CType(reader.GetDateTime(5), DateTime?)),
+                                .TotalAmount = reader.GetDecimal(6),
+                                .Notes = If(reader.IsDBNull(7), Nothing, reader.GetString(7))
+                            })
+                        End While
+                    End Using
+                End Using
 
-            If status.HasValue Then
-                query = query.Where(Function(po) po.Status = status.Value)
-            End If
+                If Not _poList.Any() Then Return _poList
 
-            Return Await query.OrderByDescending(Function(po) po.OrderDate).ToListAsync()
+                ' Step 2: load PurchaseOrderLines
+                _poLineList = New List(Of PurchaseOrderLine)()
+                Dim poIds As String = String.Join(",", _poList.Select(Function(po) po.Id))
+                Using lnCmd = conn.CreateCommand()
+                    lnCmd.CommandText = "SELECT Id, PurchaseOrderId, ProductId, ProductName, QuantityOrdered, UnitCost, LineTotal " &
+                                        $"FROM Pur_PurchaseOrderLines WHERE PurchaseOrderId IN ({poIds})"
+                    Using lnReader = lnCmd.ExecuteReader()
+                        While lnReader.Read()
+                            _poLineList.Add(New PurchaseOrderLine With {
+                                .Id = lnReader.GetInt32(0),
+                                .PurchaseOrderId = lnReader.GetInt32(1),
+                                .ProductId = lnReader.GetInt32(2),
+                                .ProductName = lnReader.GetString(3),
+                                .QuantityOrdered = lnReader.GetInt32(4),
+                                .UnitCost = lnReader.GetDecimal(5),
+                                .LineTotal = lnReader.GetDecimal(6)
+                            })
+                        End While
+                    End Using
+                End Using
+
+                ' Step 3: load Vendors
+                _poVendorList = New List(Of Vendor)()
+                Dim vendorIds As String = String.Join(",", _poList.Select(Function(po) po.VendorId).Distinct())
+                Using vnCmd = conn.CreateCommand()
+                    vnCmd.CommandText = "SELECT Id, Name, ContactPerson, Phone, Email, Address, DefaultLeadTimeDays, Notes " &
+                                        $"FROM Pur_Vendors WHERE Id IN ({vendorIds})"
+                    Using vnReader = vnCmd.ExecuteReader()
+                        While vnReader.Read()
+                            _poVendorList.Add(New Vendor With {
+                                .Id = vnReader.GetInt32(0),
+                                .Name = vnReader.GetString(1),
+                                .ContactPerson = vnReader.GetString(2),
+                                .Phone = vnReader.GetString(3),
+                                .Email = If(vnReader.IsDBNull(4), Nothing, vnReader.GetString(4)),
+                                .Address = vnReader.GetString(5),
+                                .DefaultLeadTimeDays = vnReader.GetInt32(6),
+                                .Notes = If(vnReader.IsDBNull(7), Nothing, vnReader.GetString(7))
+                            })
+                        End While
+                    End Using
+                End Using
+            End Using
+
+            ' Step 4: reassemble
+            Dim vendorDict = _poVendorList.ToDictionary(Function(v) v.Id)
+            Dim linesByPo As New Dictionary(Of Integer, List(Of PurchaseOrderLine))()
+            For Each ln In _poLineList
+                If Not linesByPo.ContainsKey(ln.PurchaseOrderId) Then linesByPo(ln.PurchaseOrderId) = New List(Of PurchaseOrderLine)()
+                linesByPo(ln.PurchaseOrderId).Add(ln)
+            Next
+            For Each po In _poList
+                Dim foundVendor As Vendor = Nothing
+                If vendorDict.TryGetValue(po.VendorId, foundVendor) Then po.Vendor = foundVendor
+                Dim poLines As List(Of PurchaseOrderLine) = Nothing
+                If linesByPo.TryGetValue(po.Id, poLines) Then
+                    For Each ln In poLines
+                        po.Lines.Add(ln)
+                    Next
+                End If
+            Next
+            Return _poList
         End Function
 
         Public Async Function UpdateDraftAsync(id As Integer,

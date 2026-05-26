@@ -1,4 +1,5 @@
 Imports System.Threading
+Imports Microsoft.Data.Sqlite
 Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.Purchasing.Data
 Imports MerchSys.Purchasing.Entities
@@ -11,6 +12,7 @@ Namespace Services
 
         Private ReadOnly _db As PurchasingDbContext
         Private ReadOnly _repository As ISyncableRepository(Of PurchasingDbContext)
+        Private _priceAlertList As List(Of PriceChangeAlert)
 
         Public Sub New(db As PurchasingDbContext,
                        repository As ISyncableRepository(Of PurchasingDbContext))
@@ -77,10 +79,23 @@ Namespace Services
         End Function
 
         Public Async Function GetUnacknowledgedAsync() As Task(Of List(Of PriceChangeAlert)) Implements IPriceChangeService.GetUnacknowledgedAsync
-            Return Await _db.PriceChangeAlerts.
-                Where(Function(a) Not a.IsAcknowledged).
-                OrderByDescending(Function(a) a.CreatedAt).
-                ToListAsync()
+            _priceAlertList = New List(Of PriceChangeAlert)()
+            Dim uaConnStr = _db.Database.GetConnectionString()
+            Using uaConn As New SqliteConnection(uaConnStr)
+                Await uaConn.OpenAsync()
+                Using uaCmd = uaConn.CreateCommand()
+                    uaCmd.CommandText = "SELECT Id, ProductId, ProductName, VendorId, VendorName, PreviousUnitCost, " &
+                                        "NewUnitCost, ChangePercent, ChangeDirection, GoodsReceiptId, IsAcknowledged, AcknowledgedAt, " &
+                                        "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                        "FROM Pur_PriceChangeAlerts WHERE IsAcknowledged = 0 ORDER BY CreatedAt DESC"
+                    Using uaReader = uaCmd.ExecuteReader()
+                        While uaReader.Read()
+                            _priceAlertList.Add(ReadPriceChangeAlert(uaReader))
+                        End While
+                    End Using
+                End Using
+            End Using
+            Return _priceAlertList
         End Function
 
         Public Async Function AcknowledgeAsync(alertId As Integer) As Task Implements IPriceChangeService.AcknowledgeAsync
@@ -97,10 +112,45 @@ Namespace Services
         End Function
 
         Public Async Function GetHistoryForProductAsync(productId As Integer) As Task(Of List(Of PriceChangeAlert)) Implements IPriceChangeService.GetHistoryForProductAsync
-            Return Await _db.PriceChangeAlerts.
-                Where(Function(a) a.ProductId = productId).
-                OrderByDescending(Function(a) a.CreatedAt).
-                ToListAsync()
+            _priceAlertList = New List(Of PriceChangeAlert)()
+            Dim hpConnStr = _db.Database.GetConnectionString()
+            Using hpConn As New SqliteConnection(hpConnStr)
+                Await hpConn.OpenAsync()
+                Using hpCmd = hpConn.CreateCommand()
+                    hpCmd.CommandText = "SELECT Id, ProductId, ProductName, VendorId, VendorName, PreviousUnitCost, " &
+                                        "NewUnitCost, ChangePercent, ChangeDirection, GoodsReceiptId, IsAcknowledged, AcknowledgedAt, " &
+                                        "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                        "FROM Pur_PriceChangeAlerts WHERE ProductId = @productId ORDER BY CreatedAt DESC"
+                    hpCmd.Parameters.Add(New SqliteParameter("@productId", productId))
+                    Using hpReader = hpCmd.ExecuteReader()
+                        While hpReader.Read()
+                            _priceAlertList.Add(ReadPriceChangeAlert(hpReader))
+                        End While
+                    End Using
+                End Using
+            End Using
+            Return _priceAlertList
+        End Function
+
+        Private Shared Function ReadPriceChangeAlert(r As SqliteDataReader) As PriceChangeAlert
+            Return New PriceChangeAlert With {
+                .Id = r.GetInt32(0),
+                .ProductId = r.GetInt32(1),
+                .ProductName = r.GetString(2),
+                .VendorId = r.GetInt32(3),
+                .VendorName = r.GetString(4),
+                .PreviousUnitCost = r.GetDecimal(5),
+                .NewUnitCost = r.GetDecimal(6),
+                .ChangePercent = r.GetDecimal(7),
+                .ChangeDirection = r.GetString(8),
+                .GoodsReceiptId = r.GetInt32(9),
+                .IsAcknowledged = r.GetBoolean(10),
+                .AcknowledgedAt = If(r.IsDBNull(11), CType(Nothing, DateTime?), CType(r.GetDateTime(11), DateTime?)),
+                .CreatedBy = If(r.IsDBNull(12), Nothing, r.GetString(12)),
+                .CreatedAt = r.GetDateTime(13),
+                .ModifiedBy = If(r.IsDBNull(14), Nothing, r.GetString(14)),
+                .ModifiedAt = If(r.IsDBNull(15), Nothing, CType(r.GetDateTime(15), DateTime?))
+            }
         End Function
 
     End Class

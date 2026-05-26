@@ -1,4 +1,5 @@
 Imports System.Threading
+Imports Microsoft.Data.Sqlite
 Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.Purchasing.Data
 Imports MerchSys.Purchasing.Entities
@@ -11,6 +12,8 @@ Namespace Services
 
         Private ReadOnly _db As PurchasingDbContext
         Private ReadOnly _repository As ISyncableRepository(Of PurchasingDbContext)
+        Private _vendorList As List(Of Vendor)
+        Private _grListVendorHistory As List(Of GoodsReceipt)
 
         Public Sub New(db As PurchasingDbContext,
                        repository As ISyncableRepository(Of PurchasingDbContext))
@@ -52,10 +55,30 @@ Namespace Services
         End Function
 
         Public Async Function GetAllAsync() As Task(Of List(Of Vendor)) Implements IVendorService.GetAllAsync
-            Return Await _db.Vendors.
-                Where(Function(v) Not v.IsDeleted).
-                OrderBy(Function(v) v.Name).
-                ToListAsync()
+            _vendorList = New List(Of Vendor)()
+            Dim connStr = _db.Database.GetConnectionString()
+            Using conn As New SqliteConnection(connStr)
+                Await conn.OpenAsync()
+                Using cmd = conn.CreateCommand()
+                    cmd.CommandText = "SELECT Id, Name, ContactPerson, Phone, Email, Address, DefaultLeadTimeDays, Notes " &
+                                      "FROM Pur_Vendors WHERE IsDeleted = 0 ORDER BY Name"
+                    Using reader = cmd.ExecuteReader()
+                        While reader.Read()
+                            _vendorList.Add(New Vendor With {
+                                .Id = reader.GetInt32(0),
+                                .Name = reader.GetString(1),
+                                .ContactPerson = reader.GetString(2),
+                                .Phone = reader.GetString(3),
+                                .Email = If(reader.IsDBNull(4), Nothing, reader.GetString(4)),
+                                .Address = reader.GetString(5),
+                                .DefaultLeadTimeDays = reader.GetInt32(6),
+                                .Notes = If(reader.IsDBNull(7), Nothing, reader.GetString(7))
+                            })
+                        End While
+                    End Using
+                End Using
+            End Using
+            Return _vendorList
         End Function
 
         Public Async Function UpdateAsync(id As Integer, dto As UpdateVendorDto) As Task(Of Vendor) Implements IVendorService.UpdateAsync
@@ -110,16 +133,33 @@ Namespace Services
                 Return Await GetAllAsync()
             End If
 
-            Dim term As String = searchTerm.ToLower()
-
-            Return Await _db.Vendors.
-                Where(Function(v) Not v.IsDeleted AndAlso (
-                    v.Name.ToLower().Contains(term) OrElse
-                    v.ContactPerson.ToLower().Contains(term) OrElse
-                    v.Phone.ToLower().Contains(term)
-                )).
-                OrderBy(Function(v) v.Name).
-                ToListAsync()
+            _vendorList = New List(Of Vendor)()
+            Dim saConnStr = _db.Database.GetConnectionString()
+            Using saConn As New SqliteConnection(saConnStr)
+                Await saConn.OpenAsync()
+                Using saCmd = saConn.CreateCommand()
+                    saCmd.CommandText = "SELECT Id, Name, ContactPerson, Phone, Email, Address, DefaultLeadTimeDays, Notes " &
+                                        "FROM Pur_Vendors WHERE IsDeleted = 0 AND " &
+                                        "(lower(Name) LIKE @term OR lower(ContactPerson) LIKE @term OR lower(Phone) LIKE @term) " &
+                                        "ORDER BY Name"
+                    saCmd.Parameters.Add(New SqliteParameter("@term", "%" & searchTerm.ToLower() & "%"))
+                    Using saReader = saCmd.ExecuteReader()
+                        While saReader.Read()
+                            _vendorList.Add(New Vendor With {
+                                .Id = saReader.GetInt32(0),
+                                .Name = saReader.GetString(1),
+                                .ContactPerson = saReader.GetString(2),
+                                .Phone = saReader.GetString(3),
+                                .Email = If(saReader.IsDBNull(4), Nothing, saReader.GetString(4)),
+                                .Address = saReader.GetString(5),
+                                .DefaultLeadTimeDays = saReader.GetInt32(6),
+                                .Notes = If(saReader.IsDBNull(7), Nothing, saReader.GetString(7))
+                            })
+                        End While
+                    End Using
+                End Using
+            End Using
+            Return _vendorList
         End Function
 
         Public Async Function GetVendorWithPurchaseHistoryAsync(id As Integer) As Task(Of VendorDetailDto) Implements IVendorService.GetVendorWithPurchaseHistoryAsync
@@ -136,9 +176,31 @@ Namespace Services
             Dim totalSpent As Decimal = orders.Sum(Function(po) po.TotalAmount)
             Dim lastOrderDate As DateTime? = If(orders.Any(), orders.Max(Function(po) po.OrderDate), CType(Nothing, DateTime?))
 
-            Dim receipts = Await _db.GoodsReceipts.
-                Where(Function(gr) orders.Select(Function(po) po.Id).Contains(gr.PurchaseOrderId)).
-                ToListAsync()
+            _grListVendorHistory = New List(Of GoodsReceipt)()
+            If orders.Any() Then
+                Dim poIdList As String = String.Join(",", orders.Select(Function(po) po.Id))
+                Dim ghConnStr = _db.Database.GetConnectionString()
+                Using ghConn As New SqliteConnection(ghConnStr)
+                    Await ghConn.OpenAsync()
+                    Using ghCmd = ghConn.CreateCommand()
+                        ghCmd.CommandText = "SELECT Id, PurchaseOrderId, ReceiptNumber, ReceivedDate, ReceivedBy, Notes " &
+                                            "FROM Pur_GoodsReceipts WHERE PurchaseOrderId IN (" & poIdList & ")"
+                        Using ghReader = ghCmd.ExecuteReader()
+                            While ghReader.Read()
+                                _grListVendorHistory.Add(New GoodsReceipt With {
+                                    .Id = ghReader.GetInt32(0),
+                                    .PurchaseOrderId = ghReader.GetInt32(1),
+                                    .ReceiptNumber = ghReader.GetString(2),
+                                    .ReceivedDate = ghReader.GetDateTime(3),
+                                    .ReceivedBy = If(ghReader.IsDBNull(4), Nothing, ghReader.GetString(4)),
+                                    .Notes = If(ghReader.IsDBNull(5), Nothing, ghReader.GetString(5))
+                                })
+                            End While
+                        End Using
+                    End Using
+                End Using
+            End If
+            Dim receipts = _grListVendorHistory
 
             Dim averageLeadTimeDays As Double = 0
             If receipts.Any() Then
