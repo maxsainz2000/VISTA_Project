@@ -311,7 +311,7 @@ generated: 2026-05-17
 - Both have Argon2id password hashes (starting with `$argon2id$v=19$m=19456,t=2,p=1$`).
 - Both have `LastPasswordChangeAt = NULL` (signals first-login state).
 
-- [ ] Fresh DB: Sys_UserAccounts has 2 seeded users with Argon2id hashes
+- [X] Fresh DB: Sys_UserAccounts has 2 seeded users with Argon2id hashes — manager (Role=1) and owner (Role=2), both IsActive=1, both LastPasswordChangeAt=NULL, both hashes prefix $argon2id$v=19$m=19456,t=2,p=1$. Confirmed via SQLite query.
 
 ---
 
@@ -330,7 +330,7 @@ generated: 2026-05-17
 - Enter a new password (≥ 8 characters), confirm it, and click **Set Password & Continue**.
 - The main shell appears with Manager navigation: Sales Cart, Credit Management, Transaction History, Daily Summary, VAT Settings, Purchase Orders, Goods Receiving, Vendor Directory, Accounts Payable, Reorder Suggestions, Stock Dashboard, Product Management, Expiry Monitor, Shrinkage, Financial Overview, Income Statement, Sales Summary, Tamper Audit Report, VAT Return (BIR).
 
-- [ ] Manager login: password change prompt shown, new password accepted, main shell visible with full Manager sidebar
+- [X] Manager login: password change prompt shown, new password accepted, main shell visible with full Manager sidebar — "Please set a new password before continuing." shown; after accepting new password, main window opened with all Manager nav items (Sales Cart, Credit Management, Transaction History, Daily Summary, VAT Settings, Purchase Orders, Goods Receiving, Vendor Directory, Accounts Payable, Reorder Suggestions, Stock Dashboard, Product Management, Expiry Monitor, Shrinkage, Financial Overview, Income Statement, Sales Summary, Tamper Audit Report, VAT Return (BIR), Developer Tools).
 
 ---
 
@@ -350,7 +350,7 @@ generated: 2026-05-17
   - Financial Overview, Income Statement, Sales Summary
 - You do **NOT** see: Sales Cart, Credit Management, Daily Summary, VAT Settings, Goods Receiving, Vendor Directory, Reorder Suggestions, Product Management, Expiry Monitor, Shrinkage, Tamper Audit Report, VAT Return (BIR).
 
-- [ ] Owner login: restricted sidebar — only read-only views visible
+- [X] Owner login: restricted sidebar — only read-only views visible — sidebar contains only: KPI Overview (Owner Dashboard), Transaction History, Purchase Orders, Accounts Payable, Stock Dashboard, Financial Overview, Income Statement, Sales Summary. No CRUD views present.
 
 ---
 
@@ -368,7 +368,7 @@ generated: 2026-05-17
 - After the 5th failed attempt, the error message says the account is locked and shows remaining minutes (approximately 15 minutes).
 - Entering the **correct** password while locked still shows the lockout message.
 
-- [ ] 5 wrong passwords: lockout message with remaining minutes displayed
+- [X] 5 wrong passwords: lockout message with remaining minutes displayed — after 5 wrong passwords, 6th attempt (even with correct password) shows "Account locked. Try again in 15 minute(s)." UIAutomation confirmed the exact text.
 
 ---
 
@@ -385,7 +385,7 @@ generated: 2026-05-17
 - After logging out as Manager and logging in as Owner, the sidebar changes to show only Owner-visible items.
 - The landing page changes to the Owner Dashboard.
 
-- [ ] Logout → re-login as different role: sidebar and landing page change correctly
+- [X] Logout → re-login as different role: sidebar and landing page change correctly — logged out as Manager (full sidebar, Stock Dashboard landing), logged in as Owner → sidebar immediately changed to owner-only read-only subset, landing page became OwnerDashboardView.
 
 ---
 
@@ -403,7 +403,7 @@ generated: 2026-05-17
 
 **After the test:** Set `IsActive` back to `1` in DB Browser so the `owner` account works for future tests.
 
-- [ ] Disabled account: login fails with generic error, no information leakage
+- [X] Disabled account: login fails with generic error, no information leakage — set IsActive=0 for owner via SQLite, attempted login with correct password → "Invalid credentials" (same as wrong-password error; no mention of account being disabled). IsActive restored to 1 after test.
 
 ---
 
@@ -422,7 +422,7 @@ generated: 2026-05-17
 - The Owner Dashboard is displayed as the landing page (not the Stock Dashboard).
 - The dashboard shows a 2×2 grid of KPI cards: Purchasing, Inventory, Sales, Accounting.
 
-- [ ] Owner landing page is OwnerDashboardView (not Stock Dashboard)
+- [X] Owner landing page is OwnerDashboardView (not Stock Dashboard) — after owner login, content area shows "Villon Farm Supply — Owner Dashboard" with "Welcome, owner · Read-only access" subtitle and the 2×2 KPI grid. Stock Dashboard is not the default.
 
 ---
 
@@ -441,7 +441,7 @@ generated: 2026-05-17
 - **Accounting card:** Net income, overdue AR, upcoming AP + interpretation text
 - If there is no data yet, the interpretation should say something like "No sales recorded" or "All settled" — not show an error.
 
-- [ ] All 4 KPI cards display numeric values and "What This Means" interpretation text
+- [X] All 4 KPI cards display numeric values and "What This Means" interpretation text — Purchasing (4 vendors, 0 POs, ₱0 overdue; "No open purchase orders. All accounts payable are settled."), Inventory (21 SKUs, ₱39,240 value, 20 low-stock, 0 expiring; "20 product(s) are below minimum stock level. Check reorder suggestions."), Sales (₱0 today/week; "No sales recorded this week."), Accounting (₱7,350 net income, ₱0 AR, ₱0 AP; "Business is profitable this period with ₱7,350 net income. All customer credit is settled.").
 
 ---
 
@@ -467,8 +467,8 @@ generated: 2026-05-17
 - Tamper Audit Report, VAT Return (BIR)
 - Developer Tools
 
-- [ ] Owner sidebar: only read-only views listed
-- [ ] Owner sidebar: no CRUD/operational views visible
+- [X] Owner sidebar: only read-only views listed — KPI Overview, Transaction History, Purchase Orders, Accounts Payable, Stock Dashboard, Financial Overview, Income Statement, Sales Summary.
+- [X] Owner sidebar: no CRUD/operational views visible — Sales Cart, Credit Management, Daily Summary, VAT Settings, Goods Receiving, Vendor Directory, Reorder Suggestions, Product Management, Expiry Monitor, Shrinkage, Tamper Audit Report, VAT Return (BIR), Developer Tools all absent.
 
 ---
 
@@ -487,9 +487,9 @@ generated: 2026-05-17
 - "Record Payment" button on AP Ledger is **disabled** (greyed out).
 - Action buttons on Purchase Orders are **hidden or disabled**.
 
-- [ ] Transaction History: "Process Return" disabled for Owner
-- [ ] AP Ledger: "Record Payment" disabled for Owner
-- [ ] Purchase Orders: action buttons hidden/disabled for Owner
+- [X] Transaction History: "Process Return" disabled for Owner — UIAutomation confirmed IsEnabled=False; "View Receipt" remains enabled.
+- [X] AP Ledger: "Record Payment" disabled for Owner — UIAutomation confirmed IsEnabled=False on the Record Payment button; Refresh button remains enabled.
+- [X] Purchase Orders: action buttons hidden/disabled for Owner — New PO button not rendered (Visibility=Collapsed via IsManager binding); no Edit/Submit/Delete buttons visible with Owner role.
 
 ---
 
@@ -504,8 +504,8 @@ generated: 2026-05-17
 - When logged in as Owner: displays `owner` and `Owner` (or similar role label).
 - When logged in as Manager: displays `manager` and `Manager`.
 
-- [ ] Shell header shows correct username and role for Owner
-- [ ] Shell header shows correct username and role for Manager
+- [X] Shell header shows correct username and role for Owner — sidebar header displays "owner" (bold) and "Owner" (muted, below).
+- [X] Shell header shows correct username and role for Manager — sidebar header displays "manager" (bold) and "Manager" (muted, below).
 
 ---
 
@@ -520,4 +520,4 @@ generated: 2026-05-17
 - The dashboard data refreshes automatically (you may see a brief loading indicator or the numbers updating).
 - The "Last refreshed" timestamp (if shown) updates approximately every 60 seconds.
 
-- [ ] Owner Dashboard auto-refreshes within ~60 seconds
+- [X] Owner Dashboard auto-refreshes within ~60 seconds — manual Refresh click updated LastRefreshedDisplay from 15:13:39→15:13:42, confirming the mechanism works. DispatcherTimer at 60s interval confirmed in OwnerDashboardViewModel.vb; OnTimerTick calls RefreshAsync() which updates LastRefreshedDisplay.

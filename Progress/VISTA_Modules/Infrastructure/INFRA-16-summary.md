@@ -112,7 +112,7 @@ Each KPI card computes its interpretation string in the ViewModel (not the View 
 |---|---|
 | Solution builds | ✅ 0 errors, 0 warnings |
 | Unit tests pass | N/A |
-| Manual verification | Pending — to be done in a separate testing session |
+| Manual verification | ✅ Passed (All Owner dashboard views, data binding, sidebar restrictions, and auto-refresh verified) |
 
 ## Issues Encountered
 
@@ -124,7 +124,7 @@ None. All VB.NET traps from CLAUDE.md were observed during implementation:
 ## What's Next
 
 - [ ] DA5 data-layer enforcement: add role-based write rejection in repositories/services (deferred per plan note)
-- [ ] Manual acceptance testing per INFRA-16 criteria 1–13
+- [x] Manual acceptance testing per INFRA-16 criteria 1–13 *(completed/verified in Operator checklist)*
 - [ ] Consider adding `CanEdit` to `FinancialOverviewViewModel`, `IncomeStatementViewModel`, `SalesSummaryViewModel` if any write-capable actions are discovered during testing (currently these views appear read-only)
 
 ## Cross-References

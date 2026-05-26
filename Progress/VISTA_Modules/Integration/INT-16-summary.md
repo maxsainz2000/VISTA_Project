@@ -186,7 +186,7 @@ Build result: `Build succeeded. 0 Warning(s), 0 Error(s)` — `Time Elapsed 00:0
 
 ## What's Next
 
-- [ ] INT-17 or subsequent integration plan (if any) — verify dependency chain in Plans/VISTA_Modules/Integration/
+- [x] INT-17 or subsequent integration plan (if any) — verify dependency chain in Plans/VISTA_Modules/Integration/ *(completed in INT-17)*
 
 ## Cross-References
 

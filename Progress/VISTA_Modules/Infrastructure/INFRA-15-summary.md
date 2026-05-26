@@ -66,7 +66,7 @@ Application_Startup
 |---|---|
 | Solution builds | ✅ 0 errors, 0 warnings |
 | Unit tests pass | N/A |
-| Manual verification | Pending operator testing session |
+| Manual verification | ✅ Passed (Argon2id hashing, mandatory password change, role-based sidebar, and account lockout verified) |
 
 ## Issues Encountered
 
@@ -74,10 +74,10 @@ None — build succeeded on first attempt.
 
 ## What's Next
 
-- [ ] Operator verification: log in as `manager` / `Vista2026!` — should trigger mandatory password change prompt (DA6 criterion 6)
-- [ ] Operator verification: log in as `owner` / new password — should show Owner-restricted navigation (no VAT Settings, no VAT Return) (criterion 5)
-- [ ] Operator verification: 5 consecutive wrong passwords triggers lockout with remaining-minutes message (criterion 8)
-- [ ] Operator verification: Log Out → log in as Owner in same session → nav items change (criterion 11 / POS-13)
+- [x] Operator verification: log in as `manager` / `Vista2026!` — should trigger mandatory password change prompt (DA6 criterion 6) *(completed/verified in Operator checklist)*
+- [x] Operator verification: log in as `owner` / new password — should show Owner-restricted navigation (no VAT Settings, no VAT Return) (criterion 5) *(completed/verified in Operator checklist)*
+- [x] Operator verification: 5 consecutive wrong passwords triggers lockout with remaining-minutes message (criterion 8) *(completed/verified in Operator checklist)*
+- [x] Operator verification: Log Out → log in as Owner in same session → nav items change (criterion 11 / POS-13) *(completed/verified in Operator checklist)*
 - [ ] **Deferred:** Session inactivity timeout (DA2 partial — 15–30 min idle detection + warning dialog). Non-trivial UI concern; follow-up plan required. Documented here per plan spec.
 
 ## Cross-References

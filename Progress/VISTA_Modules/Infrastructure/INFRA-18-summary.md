@@ -259,11 +259,11 @@ Contract section was already updated.
 
 ## What's Next
 
-- [ ] INT-14 (if it depends on Rule 3 detector output): now unblocked — corrected
-  detector produces ~35-40 Rule 3 findings vs. the 63 false-positive-inflated baseline.
-- [ ] Rule 3 remediation (Workstream B from the improvement plan): the corrected
+- [x] INT-14 (if it depends on Rule 3 detector output): now unblocked — corrected
+  detector produces ~35-40 Rule 3 findings vs. the 63 false-positive-inflated baseline. *(completed in INT-14)*
+- [x] Rule 3 remediation (Workstream B from the improvement plan): the corrected
   ~35-40 finding list is the authoritative input for the ToListAsync remediation
-  campaign across the 14 affected service classes.
+  campaign across the 14 affected service classes. *(completed in INT-15 and INT-16)*
 
 ---
 

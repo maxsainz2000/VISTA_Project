@@ -88,7 +88,9 @@
       "Bash(grep *)",
       "Bash(Get-Content \"C:\\\\Users\\\\Admin\\\\Documents\\\\VISTA_Project\\\\WPF_Applications\\\\MerchSys\\\\src\\\\MerchSys.Accounting\\\\Debug\\\\VatLedgerSchemaHarnessRunner.vb\")",
       "Bash(Select-Object -Index 36)",
-      "Bash(Select-String \"Count\")"
+      "Bash(Select-String \"Count\")",
+      "PowerShell(pip *)",
+      "PowerShell(python \"C:\\\\Users\\\\Admin\\\\AppData\\\\Local\\\\Temp\\\\gen_hash.py\")"
     ]
   }
 }

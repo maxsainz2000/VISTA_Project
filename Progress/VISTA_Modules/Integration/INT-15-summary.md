@@ -66,7 +66,7 @@ Applied the raw `SqliteConnection` + synchronous `reader.Read()` fix to all 27 I
 
 ## What's Next
 
-- [ ] INT-16: Apply the same raw `SqliteConnection` fix to the 20 remaining Purchasing + Accounting methods (rows 28–47 in the checklist)
+- [x] INT-16: Apply the same raw `SqliteConnection` fix to the 20 remaining Purchasing + Accounting methods (rows 28–47 in the checklist) *(completed in INT-16)*
 
 ## Cross-References
 

@@ -67,10 +67,10 @@ The deepest graph is `ReceiptIntegrityService.ValidateChainAsync` (row 27), whic
 
 ## What's Next
 
-- [ ] INT-15 — apply raw SqliteConnection fix to 27 Inventory + POS methods (ordered by row sequence in checklist)
-- [ ] INT-16 — apply raw SqliteConnection fix to 20 Purchasing + Accounting methods (ordered by row sequence in checklist)
-- [ ] INT-15 / INT-16 — budget extra time for the 9 `graph` rows (manual JOIN SQL + entity reassembly)
-- [ ] Fill `Fix applied` and `Verified` columns in the checklist as each method is fixed and tested
+- [x] INT-15 — apply raw SqliteConnection fix to 27 Inventory + POS methods (ordered by row sequence in checklist) *(completed in INT-15)*
+- [x] INT-16 — apply raw SqliteConnection fix to 20 Purchasing + Accounting methods (ordered by row sequence in checklist) *(completed in INT-16)*
+- [x] INT-15 / INT-16 — budget extra time for the 9 `graph` rows (manual JOIN SQL + entity reassembly) *(completed in INT-15 and INT-16)*
+- [x] Fill `Fix applied` and `Verified` columns in the checklist as each method is fixed and tested *(completed in INT-15 and INT-16)*
 
 ## Cross-References
 
