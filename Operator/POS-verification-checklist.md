@@ -1,7 +1,8 @@
 ---
 module: POS
-source: POS-audit-2026-05-17.md
-generated: 2026-05-17
+source: POS-audit-2026-05-26.md
+originally-generated: 2026-05-17
+last-synced: 2026-05-26
 ---
 
 # Operator Verification Checklist — POS

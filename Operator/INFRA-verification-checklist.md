@@ -1,13 +1,14 @@
 ---
 module: Infrastructure
-source: Infrastructure-audit-2026-05-17.md
-generated: 2026-05-17
+source: Infrastructure-audit-2026-05-26.md
+originally-generated: 2026-05-17
+last-synced: 2026-05-26
 ---
 
 # Operator Verification Checklist — Infrastructure
 
 > Extracted from the 2026-05-17 module audit. Only operator/manual verification tasks are listed here.
-> All 16 Infrastructure plans are completed. These are the remaining acceptance tests.
+> All 18 Infrastructure plans are completed. These are the remaining acceptance tests.
 >
 > **How to use:** Do each step in order. Check the box when done. Write what you saw next to each item.
 >
@@ -521,3 +522,49 @@ generated: 2026-05-17
 - The "Last refreshed" timestamp (if shown) updates approximately every 60 seconds.
 
 - [X] Owner Dashboard auto-refreshes within ~60 seconds — manual Refresh click updated LastRefreshedDisplay from 15:13:39→15:13:42, confirming the mechanism works. DispatcherTimer at 60s interval confirmed in OwnerDashboardViewModel.vb; OnTimerTick calls RefreshAsync() which updates LastRefreshedDisplay.
+
+---
+
+## INFRA-15 — Session Inactivity Timeout (DA2 Partial)
+
+### ⏳ Deferred: Session inactivity timeout
+
+**What to do:**
+- Nothing right now. DA2 specifies a 15–30 minute inactivity timeout that invalidates the session and returns to the login screen. This requires idle detection (keyboard/mouse activity monitoring), a warning dialog before timeout, and session token invalidation.
+
+**When to do it:**
+- Once a follow-up plan is created for idle detection + countdown warning dialog. INFRA-15 implemented authentication but explicitly deferred this non-trivial UI concern.
+
+> **Source:** INFRA-15 What's Next. Also tracked in [deferred-features-backlog.md](../../Plans/Future/deferred-features-backlog.md) item #6.
+
+- [ ] ⏳ Deferred — requires follow-up plan for idle detection + warning dialog
+
+---
+
+## INFRA-16 — DA5 Data-Layer Write Rejection for Owner Role
+
+### ⏳ Deferred: Repository/service-layer write guards
+
+**What to do:**
+- Nothing right now. OWASP DA5 requires Owner read-only enforcement at the data-access layer, not just the UI. INFRA-16 implemented UI-layer enforcement (navigation filtering + `CanEdit` property on shared ViewModels), but the repository and service layer does not yet reject writes from Owner sessions.
+
+**When to do it:**
+- Once a follow-up plan is created to audit all write paths across all four modules and add role-based write guards in the repository or service layer.
+
+> **Source:** INFRA-16 What's Next. Also tracked in [deferred-features-backlog.md](../../Plans/Future/deferred-features-backlog.md) item #7.
+
+- [ ] ⏳ Deferred — requires follow-up plan to audit all module write paths
+
+---
+
+### ⏳ Deferred: CanEdit on Financial/Income/Sales ViewModels
+
+**What to do:**
+- Nothing right now. Consider adding a `CanEdit` property to `FinancialOverviewViewModel`, `IncomeStatementViewModel`, and `SalesSummaryViewModel` if write-capable actions are discovered in those views.
+
+**When to do it:**
+- During the DA5 data-layer enforcement work above, or when new features add write actions to these views.
+
+> **Source:** INFRA-16 What's Next.
+
+- [ ] ⏳ Deferred — conditional on write-capable actions being added to these views

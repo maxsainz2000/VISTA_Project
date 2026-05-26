@@ -1,6 +1,7 @@
 ---
 plan-id: INT-12
 generated: 2026-05-17
+last-synced: 2026-05-26
 ---
 
 # Runtime Event Chain Verification — Checklist

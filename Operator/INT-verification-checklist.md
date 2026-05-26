@@ -1,13 +1,14 @@
 ---
 module: Integration
-source: Integration-audit-2026-05-17.md
-generated: 2026-05-17
+source: Integration-audit-2026-05-26.md
+originally-generated: 2026-05-17
+last-synced: 2026-05-26
 ---
 
 # Operator Verification Checklist — Integration
 
 > Extracted from the 2026-05-17 module audit. Only operator/manual verification tasks are listed here.
-> All 13 Integration plans are completed. These are the remaining acceptance tests.
+> All 17 Integration plans are completed. These are the remaining acceptance tests.
 >
 > **How to use:** Do each step in order. Check the box when done. Write what you saw next to each item.
 > INT-12 items are also tracked in the dedicated [INT-12-checklist.md](INT-12-checklist.md) file.
@@ -192,3 +193,27 @@ generated: 2026-05-17
 - This confirms ACC-14 followed the correct pattern required by INT-13.
 
 - [x] VatReturnView navigation uses type-based resolution, not string key
+
+---
+
+## INT-17 — Rename Parameters That Shadow Properties (Rule 14)
+
+### Test 9: Re-run Rule 14 detector on affected files
+
+**What to do:**
+1. Open a terminal in the project root.
+2. Run the INFRA-18 Rule 14 detector script against the 5 files that were renamed in INT-17:
+   - `MerchSys.POS\Services\ReceiptIntegrityService.vb`
+   - `MerchSys.POS\Services\VatAwareReceiptService.vb`
+   - `MerchSys.Purchasing\Services\GoodsReceivingService.vb`
+   - `MerchSys.Purchasing\Services\PurchaseOrderService.vb`
+   - `MerchSys.Inventory\Services\StockService.vb`
+3. Read the output.
+
+**What you should see:**
+- Zero Rule 14 hits across all 5 files.
+- All parameter-shadows-property patterns were resolved by the INT-17 renames.
+
+> **Source:** INT-17 What's Next. If new Rule 14 true positives surface in code merged after 2026-05-24, open INT-17b.
+
+- [x] Rule 14 detector shows 0 hits on the 5 INT-17 affected files — verified 2026-05-26

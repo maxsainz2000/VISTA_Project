@@ -1,6 +1,6 @@
 ---
 created: 2026-05-17
-source: Pending_Tasks audit reports (2026-05-17)
+source: Pending_Tasks audit reports (2026-05-17, 2026-05-26)
 last-synced: 2026-05-26
 ---
 
@@ -71,3 +71,73 @@ last-synced: 2026-05-26
 **Description:** OWASP DA5 requires Owner read-only enforcement at the data-access layer, not just the UI. INFRA-16 implemented UI-layer enforcement (navigation filtering + `CanEdit` property on shared ViewModels) but the repository and service layer does not yet reject writes from Owner sessions. A future plan should add role-based write guards in the repository or service layer to fully satisfy DA5.
 **Why deferred:** UI enforcement was prioritized to unblock operator checklist tests (ACC Test 8, POS Test 13). Data-layer enforcement requires auditing all write paths across all four modules.
 **Depends on:** INFRA-15 (completed), INFRA-16 (completed).
+
+---
+
+## 8. MariaDB Trigger DEFINER Fix
+
+**Module:** Infrastructure
+**Source:** INFRA-08 What's Next
+**Description:** The INFRA-06 immutability triggers use the anonymous default DEFINER. Once a formal DB admin account is established, these triggers should be recreated with `DEFINER = <admin_account>` to follow MariaDB security best practices.
+**Why deferred:** No formal DB admin account exists yet. The triggers work correctly with the current DEFINER.
+**Depends on:** INFRA-06 (completed), INFRA-08 (completed), DB admin account (not yet created).
+
+---
+
+## 9. ISyncableRepository Write-Path Migration — Accounting Handlers
+
+**Module:** Infrastructure
+**Source:** INFRA-13 What's Next
+**Description:** Migrate `Accounting/Handlers` write paths to use `ISyncableRepository` so that writes from accounting event handlers are captured in the `Sync_Journal` for central replication.
+**Why deferred:** Scope decision pending — it's unclear whether accounting handler writes need to be synced to the central MariaDB.
+**Depends on:** INFRA-13 (completed).
+
+---
+
+## 10. ISyncableRepository Write-Path Migration — ProductManagementViewModel
+
+**Module:** Infrastructure / Inventory
+**Source:** INFRA-13 What's Next
+**Description:** Migrate `Inventory/ViewModels/ProductManagementViewModel.vb` write paths to use `ISyncableRepository` so that product edits are captured in the `Sync_Journal`.
+**Why deferred:** Scope decision pending — whether to bring `ProductManagementViewModel` into sync scope hasn't been decided.
+**Depends on:** INFRA-13 (completed).
+
+---
+
+## 11. CanEdit Property on Financial/Income/Sales ViewModels
+
+**Module:** Infrastructure
+**Source:** INFRA-16 What's Next
+**Description:** Consider adding a `CanEdit` property to `FinancialOverviewViewModel`, `IncomeStatementViewModel`, and `SalesSummaryViewModel` if write-capable actions are discovered in those views. This would mirror the pattern already applied to shared views in INFRA-16.
+**Why deferred:** These views are currently read-only for all roles. The property is only needed if future features add write actions.
+**Depends on:** INFRA-16 (completed).
+
+---
+
+## 12. Codebase Wiki Audit for Infrastructure Module
+
+**Module:** Infrastructure
+**Source:** INFRA-17 What's Next
+**Description:** Run a codebase wiki audit for the Infrastructure module to align Data Access Layer manifests with the removal of Pomelo and the fact that `MariaDbSyncContext` is no longer a DbContext (it's now a raw ADO.NET wrapper using MySqlConnector).
+**Why deferred:** Housekeeping task with no runtime impact. The code works correctly; only the documentation is out of date.
+**Depends on:** INFRA-17 (completed).
+
+---
+
+## 13. Rule 14 Detector Re-Run Confirmation
+
+**Module:** Integration
+**Source:** INT-17 What's Next
+**Description:** Re-run the INFRA-18 Rule 14 detector on the 5 files affected by INT-17 parameter renames to formally confirm zero hits. This is a verification step, not a code change.
+**Why deferred:** Low priority — the renames were applied and build-verified, but the detector hasn't been re-run for formal confirmation.
+**Depends on:** INT-17 (completed), INFRA-18 (completed).
+
+---
+
+## 14. INT-17b — Contingent Rule 14 Follow-Up
+
+**Module:** Integration
+**Source:** INT-17 What's Next
+**Description:** If new Rule 14 true positives surface in code merged after 2026-05-24, open a follow-up plan INT-17b to rename them. This is a contingent item — only actionable if new violations appear.
+**Why deferred:** No new violations have been detected. This item exists as a reminder to check after future code merges.
+**Depends on:** INT-17 (completed).
