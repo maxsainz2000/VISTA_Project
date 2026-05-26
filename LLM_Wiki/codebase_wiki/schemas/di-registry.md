@@ -1,6 +1,6 @@
 ---
 type: schema-map
-last-updated: 2026-05-15
+last-updated: 2026-05-26
 ---
 
 # Dependency Injection Registry
@@ -76,11 +76,13 @@ This page documents the composition root in `MerchSys.App`.
 | `IVatReportingService` | `VatReportingService` | Scoped |
 | `IVatReturnExporter` | `VatReturnExporter` | Scoped |
 | `ITamperAuditQueryService` | `TamperAuditQueryService` | Scoped |
+| `IVatReliefReportService` | `VatReliefReportService` | Scoped |
 | (none) | `FinancialOverviewViewModel` | Transient |
 | (none) | `IncomeStatementViewModel` | Transient |
 | (none) | `SalesSummaryViewModel` | Transient |
 | (none) | `VatReturnViewModel` | Transient |
 | (none) | `TamperAuditReportViewModel` | Transient |
+| (none) | `VatReliefReportViewModel` | Transient |
 
 ## Views (UserControls)
 | View | Module | Lifetime |
@@ -105,6 +107,7 @@ This page documents the composition root in `MerchSys.App`.
 | `VatReturnView` | Accounting | Transient |
 | `VatPayableTile` | Accounting | Transient |
 | `TamperAuditReportView` | Accounting | Transient |
+| `VatReliefReportView` | Accounting | Transient |
 | `LoginView` | (Shell) | Transient |
 | `OwnerDashboardView` | (Shell) | Transient |
 | `SyncStatusIndicator` | (Shell) | Singleton |

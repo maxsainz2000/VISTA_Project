@@ -13,10 +13,10 @@ This is the central directory for the VISTA codebase wiki. Use these links to na
 | MerchSys.POS | In Progress | 67 | [[pos/index\|POS Index]] |
 | MerchSys.Purchasing | In Progress | 49 | [[purchasing/index\|Purchasing Index]] |
 | MerchSys.Inventory | In Progress | 50 | [[inventory/index\|Inventory Index]] |
-| MerchSys.Accounting | In Progress | 61 | [[accounting/index|Accounting Index]] |
+| MerchSys.Accounting | In Progress | 66 | [[accounting/index|Accounting Index]] |
 | MerchSys.App | Infrastructure / In Progress | 77 | [[app/index|App Index]] |
 
-*(Total tracked source files: 361)*
+*(Total tracked source files: 366)*
 
 
 ## Cross-Cutting Registries
