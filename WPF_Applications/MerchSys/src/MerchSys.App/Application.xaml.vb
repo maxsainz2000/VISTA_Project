@@ -17,6 +17,8 @@ Imports MerchSys.Accounting.ViewModels
 Imports MerchSys.Purchasing.Extensions
 Imports MerchSys.Purchasing.ViewModels
 Imports MerchSys.Accounting.Services.Insights
+Imports QuestPDF.Infrastructure
+Imports MerchSys.Accounting.Services.Reporting
 Imports System.Windows.Threading
 
 Class Application
@@ -145,6 +147,14 @@ Class Application
                                       services.AddScoped(Of IVatReturnExporter, VatReturnExporter)()
                                       services.AddScoped(Of ITamperAuditQueryService, TamperAuditQueryService)()
                                       services.AddScoped(Of IVatReliefReportService, VatReliefReportService)()
+
+                                      ' QuestPDF Community License declaration for Accounting exports.
+                                      ' Setting it here is idempotent with PosServiceRegistration; both modules ship the same
+                                      ' Community License declaration so neither depends on the other being loaded first.
+                                      QuestPDF.Settings.License = LicenseType.Community
+
+                                      services.AddOptions(Of TamperReportExportOptions)().BindConfiguration("Accounting:TamperReport:Export")
+                                      services.AddScoped(Of ITamperReportExporter, TamperReportExporter)()
                                       services.AddTransient(Of FinancialOverviewViewModel)()
                                       services.AddTransient(Of IncomeStatementViewModel)()
                                       services.AddTransient(Of SalesSummaryViewModel)()

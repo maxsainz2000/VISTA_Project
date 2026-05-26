@@ -42,7 +42,10 @@ Namespace Handlers
             Return New GetVatConfigurationResult With {
                 .IsVatRegistered = config.IsVatRegistered,
                 .VatRate = config.VatRate,
-                .NonVatPercentageTaxRate = config.NonVatPercentageTaxRate
+                .NonVatPercentageTaxRate = config.NonVatPercentageTaxRate,
+                .BusinessTIN = config.BusinessTIN,
+                .BusinessName = config.BusinessName,
+                .BusinessAddress = config.BusinessAddress
             }
         End Function
 

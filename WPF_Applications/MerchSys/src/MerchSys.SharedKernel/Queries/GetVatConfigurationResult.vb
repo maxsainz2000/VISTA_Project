@@ -15,6 +15,15 @@ Namespace Queries
         ''' <summary>Percentage tax rate for non-VAT filers (default 0.03). Multiplied against gross receipts for Form 2551Q.</summary>
         Public Property NonVatPercentageTaxRate As Decimal
 
+        ''' <summary>BIR-issued Tax Identification Number for the business.</summary>
+        Public Property BusinessTIN As String
+
+        ''' <summary>Legal name of the business as registered with BIR.</summary>
+        Public Property BusinessName As String
+
+        ''' <summary>Registered address of the business.</summary>
+        Public Property BusinessAddress As String
+
     End Class
 
 End Namespace

@@ -93,6 +93,16 @@
                 <Button Content="Apply Filter"
                         Style="{StaticResource ApplyButton}"
                         Command="{Binding LoadCommand}"/>
+                <Button Content="Export to CSV"
+                        Style="{StaticResource ApplyButton}"
+                        Margin="16,0,0,0"
+                        IsEnabled="{Binding HasEntries}"
+                        Click="ExportCsv_Click"/>
+                <Button Content="Export to PDF"
+                        Style="{StaticResource ApplyButton}"
+                        Margin="8,0,0,0"
+                        IsEnabled="{Binding HasEntries}"
+                        Click="ExportPdf_Click"/>
                 <TextBlock Text="Loading…"
                            VerticalAlignment="Center" FontSize="12" Foreground="#7F8C8D"
                            Margin="16,0,0,0"
