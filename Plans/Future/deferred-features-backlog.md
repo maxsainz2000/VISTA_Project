@@ -5,6 +5,8 @@ last-synced: 2026-05-26
 infra-19-completed: 2026-05-26
 infra-20-completed: 2026-05-26
 item-11-mooted: 2026-05-26
+item-12-completed: 2026-05-26
+item-13-completed: 2026-05-26
 ---
 
 # Deferred Features Backlog
@@ -84,26 +86,6 @@ item-11-mooted: 2026-05-26
 **Description:** Migrate `Inventory/ViewModels/ProductManagementViewModel.vb` write paths to use `ISyncableRepository` so that product edits are captured in the `Sync_Journal`.
 **Why deferred:** Scope decision pending — whether to bring `ProductManagementViewModel` into sync scope hasn't been decided.
 **Depends on:** INFRA-13 (completed).
-
----
-
-## 12. Codebase Wiki Audit for Infrastructure Module
-
-**Module:** Infrastructure
-**Source:** INFRA-17 What's Next
-**Description:** Run a codebase wiki audit for the Infrastructure module to align Data Access Layer manifests with the removal of Pomelo and the fact that `MariaDbSyncContext` is no longer a DbContext (it's now a raw ADO.NET wrapper using MySqlConnector).
-**Why deferred:** Housekeeping task with no runtime impact. The code works correctly; only the documentation is out of date.
-**Depends on:** INFRA-17 (completed).
-
----
-
-## 13. Rule 14 Detector Re-Run Confirmation
-
-**Module:** Integration
-**Source:** INT-17 What's Next
-**Description:** Re-run the INFRA-18 Rule 14 detector on the 5 files affected by INT-17 parameter renames to formally confirm zero hits. This is a verification step, not a code change.
-**Why deferred:** Low priority — the renames were applied and build-verified, but the detector hasn't been re-run for formal confirmation.
-**Depends on:** INT-17 (completed), INFRA-18 (completed).
 
 ---
 

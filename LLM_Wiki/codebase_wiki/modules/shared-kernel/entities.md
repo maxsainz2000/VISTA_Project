@@ -38,7 +38,7 @@ last-updated: 2026-05-26
 | `Data/RoleGuardInterceptor.vb` | `RoleGuardInterceptor` | `SaveChangesInterceptor` | SaveChangesInterceptor that enforces OWASP DA5 role-based write rejection. |
 | `Data/WriteContextScope.vb` | `WriteContextScope` | `IWriteContextScope` | Default scoped implementation utilizing AsyncLocal to carry write context metadata safely across asynchronous boundaries. |
 | `Sync/SyncJournalDbContext.vb` | `SyncJournalDbContext` | `BaseDbContext` | Context for the `Sync_Journal` table. |
-| `Sync/MariaDbSyncContext.vb` | `MariaDbSyncContext` | `DbContext` (Pomelo) | Remote MariaDB context for data transmission. |
+| `Sync/MariaDbSyncContext.vb` | `MariaDbSyncContext` | N/A (MySqlConnector wrapper) | Lightweight remote MariaDB connection wrapper. Replaces former Pomelo-backed DbContext to prevent runtime binary incompatibilities. |
 
 ## Common Exceptions
 | File Path | Class | Inherits | Description |
