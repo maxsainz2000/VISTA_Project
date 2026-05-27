@@ -348,9 +348,40 @@
                         <DataGridTextColumn Header="Unit" Width="55"
                                            Binding="{Binding Unit}"/>
 
-                        <DataGridTextColumn Header="Price" Width="80"
-                                           SortMemberPath="RetailPrice"
-                                           Binding="{Binding RetailPrice, StringFormat='₱{0:N2}'}">
+                        <DataGridTextColumn Width="85"
+                                            SortMemberPath="RetailPrice"
+                                            Binding="{Binding RetailPrice, StringFormat='₱{0:N2}'}">
+                            <DataGridTextColumn.Header>
+                                <TextBlock Text="Retail Price" ToolTip="Selling price set in Product Management." />
+                            </DataGridTextColumn.Header>
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                                    <Setter Property="Padding" Value="0,0,4,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Width="80"
+                                            SortMemberPath="AverageUnitCost"
+                                            Binding="{Binding AverageUnitCost, StringFormat='₱{0:N2}'}">
+                            <DataGridTextColumn.Header>
+                                <TextBlock Text="Avg Cost" ToolTip="Weighted-average purchase cost across remaining non-expired batches." />
+                            </DataGridTextColumn.Header>
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                                    <Setter Property="Padding" Value="0,0,4,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Width="80"
+                                            SortMemberPath="FifoOldestUnitCost"
+                                            Binding="{Binding FifoOldestUnitCost, StringFormat='₱{0:N2}'}">
+                            <DataGridTextColumn.Header>
+                                <TextBlock Text="FIFO Cost" ToolTip="Unit cost of the oldest batch — the cost the next sale will draw from." />
+                            </DataGridTextColumn.Header>
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="HorizontalAlignment" Value="Right"/>

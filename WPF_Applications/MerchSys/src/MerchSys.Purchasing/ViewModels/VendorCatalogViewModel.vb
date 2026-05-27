@@ -64,9 +64,16 @@ Namespace ViewModels
             End Get
             Set(value As Vendor)
                 If SetProperty(_selectedVendor, value) Then
+                    OnPropertyChanged(NameOf(HasSelectedVendor))
                     Dim t = LoadCatalogAsync()
                 End If
             End Set
+        End Property
+
+        Public ReadOnly Property HasSelectedVendor As Boolean
+            Get
+                Return _selectedVendor IsNot Nothing
+            End Get
         End Property
 
         Private _selectedEntry As VendorProductDto

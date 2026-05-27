@@ -90,7 +90,10 @@
       "Bash(Select-Object -Index 36)",
       "Bash(Select-String \"Count\")",
       "PowerShell(pip *)",
-      "PowerShell(python \"C:\\\\Users\\\\Admin\\\\AppData\\\\Local\\\\Temp\\\\gen_hash.py\")"
+      "PowerShell(python \"C:\\\\Users\\\\Admin\\\\AppData\\\\Local\\\\Temp\\\\gen_hash.py\")",
+      "Bash(git commit *)",
+      "PowerShell($mysql = \"C:\\\\xampp\\\\mysql\\\\bin\\\\mysql.exe\"; $tables = & $mysql -u root -N -e \"SELECT table_name FROM information_schema.tables WHERE table_schema='merchsys_central';\" 2>&1; $stmts = \"SET FOREIGN_KEY_CHECKS=0;`n\" + \\(\\($tables | ForEach-Object { \"TRUNCATE TABLE ``$_``;\" }\\) -join \"`n\"\\) + \"`nSET FOREIGN_KEY_CHECKS=1;\"; $stmts | & $mysql -u root merchsys_central 2>&1; \"---After---\"; & $mysql -u root merchsys_central -e \"SELECT TABLE_NAME, TABLE_ROWS FROM information_schema.TABLES WHERE TABLE_SCHEMA='merchsys_central' AND TABLE_ROWS > 0 ORDER BY TABLE_NAME;\" 2>&1; \"\\(no rows above = success\\)\")",
+      "PowerShell($mysql = \"C:\\\\xampp\\\\mysql\\\\bin\\\\mysql.exe\"; \"---Confirm Inv_SaleCogs exists in central DB---\"; & $mysql -u root merchsys_central -e \"SHOW CREATE TABLE Inv_SaleCogs\\\\G\" 2>&1)"
     ]
   }
 }

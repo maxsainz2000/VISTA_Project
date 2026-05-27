@@ -27,6 +27,7 @@ verdict: (pending)
 | Owner Dashboard ViewModel | `WPF_Applications\MerchSys\src\MerchSys.App\ViewModels\OwnerDashboardViewModel.vb` |
 | Main Sidebar View Model (Nav) | `WPF_Applications\MerchSys\src\MerchSys.App\ViewModels\MainWindowViewModel.vb` |
 | SQLite Database File | `%LOCALAPPDATA%\MerchSys\merchsys.db` |
+| Central MariaDB | `localhost:3306/merchsys_central` (XAMPP) — query via `C:\xampp\mysql\bin\mysql.exe -u root merchsys_central` |
 | Security Exception | `WPF_Applications\MerchSys\src\MerchSys.SharedKernel\Exceptions\UnauthorizedWriteException.vb` (or equivalent data layer rule) |
 
 ---
@@ -89,7 +90,7 @@ verdict: (pending)
 - [ ] **Purchasing** group contains:
   - `Purchase Orders` (read-only list of POs)
   - `Accounts Payable` (read-only AP ledger)
-  - *HIDDEN:* Goods Receiving, Vendor Directory, and Reorder Suggestions are completely absent.
+  - *HIDDEN:* Goods Receiving, Vendor Directory, Reorder Suggestions, and Vendor Product Catalog are completely absent.
 - [ ] **Inventory** group contains:
   - `Stock Dashboard` (read-only inventory status list)
   - *HIDDEN:* Product Management, Expiry Monitor, and Shrinkage are completely absent.
@@ -235,6 +236,7 @@ verdict: (pending)
 - [ ] Product grid, filters, and search load and function correctly showing 20 products.
 - [ ] Selecting a product opens the detail panel — batch and movement sub-grids are visible but empty (no data after factory reset).
 - [ ] *HIDDEN:* Any action items, reorder suggestion triggers, or stock adjustment buttons are completely absent or disabled.
+- [ ] **INV-15 columns visible (read-only):** **Retail Price**, **Avg Cost**, and **FIFO Cost** columns render in the product grid for the Owner exactly as they do for the Manager — no role-gated hiding. Tooltips on each header are readable.
 
 *Observed:* _______________
 
@@ -312,6 +314,174 @@ verdict: (pending)
 *Status Check:*
 - **Cross-user modification request failed:** _______________
 - **Error message returned:** _______________
+
+---
+
+## Part 6: ACC-21 / ACC-22 / INV-15 — Read-Only Verification of Bug-Fix Correctness
+
+> **Goal:** Confirm that the 2026-05-27 bug-fix trio surfaces correctly through the Owner's read-only views — no duplicated revenue lines, accurate per-batch COGS, and the new Stock Dashboard cost columns visible.
+>
+> **Prerequisite:** The Manager checklist Test 7.3 has been executed at least once (30-unit break-even sale across three batches at ₱1,200 / ₱1,100 / ₱1,000) so there is real data to read. If only Manager Test 5/6 have run, the queries below will return no rows — that itself is a valid pre-condition to flag.
+
+### Test 6.1: Stock Dashboard Cost Columns Visible to Owner (INV-15 read path)
+*Owner is read-only, but the INV-15 columns must still surface so the Owner can compare cost vs. retail at a glance.*
+
+**What to do:**
+1. While logged in as `owner`, navigate to **Inventory → Stock Dashboard**.
+2. Identify a product that has received stock (run Manager Test 7.2 first if needed).
+3. Compare what the Owner sees against the Manager's view of the same row.
+
+**What you should see:**
+- [ ] **Retail Price**, **Avg Cost**, **FIFO Cost** columns are all visible (none are role-gated).
+- [ ] Hovering each column header shows the same tooltip text as on the Manager view.
+- [ ] Values match what the Manager sees (read-only does not mutate).
+- [ ] No "Edit Price" / "Adjust Cost" / "Override Cost" buttons exist near the new columns (cost data is read-only for Owner; INV-15 introduced no edit affordance for either role).
+
+*Status Check:*
+- **Three cost columns visible to Owner:** _______________
+- **Values match Manager-side view:** _______________
+- **No edit affordances on cost columns:** _______________
+
+---
+
+### Test 6.2: Financial Overview Reflects Single Accurate Revenue Row (ACC-21 + ACC-22)
+*The KPI tiles must not double-count revenue and must reflect the corrected COGS.*
+
+**Prerequisite:** Manager Test 7.3 complete — the 30-unit break-even sale exists.
+
+**What to do:**
+1. Navigate to **Accounting → Financial Overview**.
+2. Inspect the period-to-date Revenue, COGS, and Gross Profit tiles for the period containing today's date.
+3. Cross-check the values against the raw `Acc_RevenueRecords` table via DB Browser.
+
+**What you should see:**
+- [ ] The PTD revenue contribution from the test sale equals exactly `₱33,000.00` (NOT `₱66,000` — which would indicate the pre-ACC-22 duplicate revenue row).
+- [ ] PTD COGS includes exactly `₱33,000.00` for that sale (NOT `₱36,000` — which would indicate the pre-ACC-21 single-batch COGS bug).
+- [ ] PTD Gross Profit for that sale = `₱0.00` (break-even, no phantom loss, no phantom profit).
+- [ ] The tile's plain-language interpretation handles `₱0` gross profit gracefully (no spurious "operating at a loss" warning triggered solely by this transaction).
+
+*Status Check:*
+- **Revenue tile value:** _______________ (expected: includes ₱33,000 only once)
+- **COGS tile value:** _______________ (expected: includes ₱33,000)
+- **Gross Profit:** _______________ (expected: ₱0.00 from this sale)
+- **No phantom "loss" warning:** _______________
+
+---
+
+### Test 6.3: Income Statement & Sales Summary — Same Sale Appears Once (ACC-22)
+*The duplicate-writer race would inflate both reports by 2×. Confirm neither does.*
+
+**Prerequisite:** Manager Test 7.3 complete.
+
+**What to do:**
+1. Navigate to **Accounting → Income Statement** for the current month. Note the total Sales Revenue and total COGS lines.
+2. Navigate to **Accounting → Sales Summary**. Look at the per-product row for the product used in the test sale.
+
+**What you should see:**
+- [ ] **Income Statement** — Sales Revenue contains the ₱33,000 test sale exactly **once**, COGS contains the ₱33,000 expense exactly **once**.
+- [ ] **Sales Summary** — the test product row shows `QuantitySold = 30` (not 60), and the corresponding Gross Profit for the row matches the Financial Overview.
+- [ ] Drilling into the product's per-transaction breakdown (if supported) lists **one** line for the test transaction, not two.
+
+*Status Check:*
+- **Income Statement Sales Revenue total looks single-counted:** _______________
+- **Sales Summary QuantitySold for test product:** _______________ (expected: 30, NOT 60)
+- **Single transaction line per product in drilldown:** _______________
+
+---
+
+### Test 6.4: Direct SQLite Read — Acc_RevenueRecords Integrity (ACC-22)
+*Owner cannot write, but can read the DB to verify integrity. Useful when the Manager is not present to run Test 7.3.*
+
+**What to do:**
+1. Open `%LOCALAPPDATA%\MerchSys\merchsys.db` in DB Browser for SQLite (read-only).
+2. Run:
+```sql
+SELECT SourceTransactionId, ProductId, COUNT(*) AS row_count
+FROM Acc_RevenueRecords
+GROUP BY SourceTransactionId, ProductId
+HAVING COUNT(*) > 1;
+```
+3. Then run:
+```sql
+SELECT COUNT(*) AS sale_cogs_rows FROM Inv_SaleCogs;
+```
+
+**What you should see:**
+- [ ] The first query returns **zero rows** — confirms no `(Tx, Product)` pair has more than one revenue record system-wide (ACC-22 invariant holds).
+- [ ] The second query returns a **positive integer** if at least one sale has been completed since the bug-fix deployment (ACC-21 ledger is populated). Zero is acceptable only if no sales have occurred since deployment.
+
+*Status Check:*
+- **Duplicate `(Tx, Product)` revenue rows:** _______________ (expected: 0)
+- **`Inv_SaleCogs` row count:** _______________ (expected: ≥ 0; ≥ 1 if any sale has run)
+
+---
+
+### Test 6.5: Central MariaDB Mirror — Cross-DB Reconciliation (INFRA-22 + sync verification)
+*Owner is read-only on every DB. This test verifies the central MariaDB replica mirrors the local SQLite for every synced table — proves the offline-first sync pipeline works end-to-end.*
+
+**Prerequisite:** Manager protocol (Tests 4.1 → 7.5) has been executed at least once. Wait at least 90 s after the last Manager-side write to allow the 30 s sync probe to drain the journal.
+
+**What to do:**
+1. Pull local SQLite counts:
+```powershell
+$db = "$env:LOCALAPPDATA\MerchSys\merchsys.db"
+sqlite3 $db "SELECT 'local_Inv_SaleCogs' AS k, COUNT(*) FROM Inv_SaleCogs UNION ALL SELECT 'local_Acc_RevenueRecords', COUNT(*) FROM Acc_RevenueRecords UNION ALL SELECT 'local_Pos_SalesTransactions', COUNT(*) FROM Pos_SalesTransactions UNION ALL SELECT 'local_Inv_StockBatches', COUNT(*) FROM Inv_StockBatches UNION ALL SELECT 'local_Inv_StockMovements', COUNT(*) FROM Inv_StockMovements;"
+```
+2. Pull central MariaDB counts for the same tables:
+```sql
+-- mysql -u root merchsys_central
+SELECT 'central_Inv_SaleCogs' AS k, COUNT(*) AS c FROM Inv_SaleCogs UNION ALL
+SELECT 'central_Acc_RevenueRecords', COUNT(*) FROM Acc_RevenueRecords UNION ALL
+SELECT 'central_Pos_SalesTransactions', COUNT(*) FROM Pos_SalesTransactions UNION ALL
+SELECT 'central_Inv_StockBatches', COUNT(*) FROM Inv_StockBatches UNION ALL
+SELECT 'central_Inv_StockMovements', COUNT(*) FROM Inv_StockMovements;
+```
+3. Compare row-for-row content on the two highest-stakes tables:
+```sql
+-- Central per-batch COGS for the latest sale (must mirror local exactly)
+SELECT TransactionId, ProductId, BatchId, QuantityDeducted, UnitCost, Cogs
+FROM Inv_SaleCogs ORDER BY Id;
+
+-- Central revenue ledger (no duplicates allowed)
+SELECT Id, SourceTransactionId, ProductId, QuantitySold, NetAmount, COGS, GrossProfit
+FROM Acc_RevenueRecords ORDER BY Id;
+```
+
+**What you should see:**
+- [ ] All five `local_*` and `central_*` count pairs are **equal**. A central count that is **lower than local** means sync is failing — that table either has no sync map entry (regression) or rows are stuck in `Sync_Journal`.
+- [ ] After the ACC-21 reproduction sale (Manager Test 7.3), central `Inv_SaleCogs` shows **3 rows** for the spanning transaction with COGS values `12000.0000`, `11000.0000`, `10000.0000`. **Identical to local.**
+- [ ] Central `Acc_RevenueRecords` has no `(SourceTransactionId, ProductId)` duplicate (ACC-22 holds on central side too).
+- [ ] Seeded reference tables (`Inv_Products`, `Pur_Vendors`, `Inv_ProductCategories`, `Pos_CreditAccounts`) on central show **0 rows** — seeded data is `<NoSync>` by design.
+
+*Status Check:*
+- **Local Inv_SaleCogs / Central Inv_SaleCogs:** _______________ / _______________ (must match)
+- **Local Acc_RevenueRecords / Central Acc_RevenueRecords:** _______________ / _______________
+- **Local Pos_SalesTransactions / Central Pos_SalesTransactions:** _______________ / _______________
+- **Local Inv_StockBatches / Central Inv_StockBatches:** _______________ / _______________
+- **Local Inv_StockMovements / Central Inv_StockMovements:** _______________ / _______________
+- **Inv_Products on central (expected 0, seeded data is NoSync):** _______________
+
+---
+
+### Test 6.6: Local Sync_Journal Drain Check
+*Confirms every locally-written row has been transmitted to the central DB (or is being retried).*
+
+**What to do:**
+1. Query the local `Sync_Journal`:
+```powershell
+$db = "$env:LOCALAPPDATA\MerchSys\merchsys.db"
+sqlite3 $db "SELECT TableName, SyncStatus, COUNT(*) FROM Sync_Journal GROUP BY TableName, SyncStatus ORDER BY TableName, SyncStatus;"
+```
+
+**What you should see:**
+- [ ] Every row has `SyncStatus = 'Synced'` (or the equivalent terminal state).
+- [ ] No rows in `Failed` / `Pending` status after the 90 s settling period.
+- [ ] If a row is stuck `Pending` for a `TableName` listed in any `*SyncMap.Tables`, sync has stalled — surface in Session Notes.
+- [ ] If a row is stuck for `Pur_VendorProducts`, that is the **known PUR-16 sync-map gap** (candidate INFRA-23), not a regression.
+
+*Status Check:*
+- **All Sync_Journal rows in Synced state:** _______________
+- **Any stuck Pending rows (record TableName + count):** _______________
 
 ---
 

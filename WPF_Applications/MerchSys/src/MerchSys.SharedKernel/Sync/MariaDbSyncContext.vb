@@ -73,8 +73,13 @@ Namespace Sync
             Dim wasCreated = True
 
             Try
+                Dim selectCol = "ModifiedAt"
+                If tableName.Equals("Inv_SaleCogs", StringComparison.OrdinalIgnoreCase) Then
+                    selectCol = "DeductedAt"
+                End If
+
                 Using cmd = conn.CreateCommand()
-                    cmd.CommandText = $"SELECT `ModifiedAt` FROM `{tableName}` WHERE `Id` = @id LIMIT 1"
+                    cmd.CommandText = $"SELECT `{selectCol}` FROM `{tableName}` WHERE `Id` = @id LIMIT 1"
                     cmd.Parameters.AddWithValue("@id", entityId)
 
                     Using reader = Await cmd.ExecuteReaderAsync()

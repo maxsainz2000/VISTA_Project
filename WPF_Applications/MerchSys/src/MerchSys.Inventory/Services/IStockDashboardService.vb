@@ -33,7 +33,22 @@ Namespace Services
         ''' <summary>"HasExpired" if any live batch is past expiry, "NearExpiry" if within alert window, "OK" otherwise.</summary>
         Public Property ExpiryStatus As String
         Public Property HasExpiry As Boolean
+
+        ''' <summary>
+        ''' Weighted-average purchase cost across non-expired batches with remaining stock:
+        ''' SUM(QuantityRemaining × UnitCost) / SUM(QuantityRemaining).
+        ''' Zero when no non-expired stock remains.
+        ''' </summary>
+        Public Property AverageUnitCost As Decimal
+
+        ''' <summary>
+        ''' UnitCost of the FIFO-oldest non-expired batch with remaining stock —
+        ''' the unit cost that the Inventory FIFO deduction engine would consume next.
+        ''' Zero when no non-expired stock remains.
+        ''' </summary>
+        Public Property FifoOldestUnitCost As Decimal
     End Class
+
 
     Public Class ProductDetailDto
         Public Property ProductId As Integer

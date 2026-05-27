@@ -116,6 +116,16 @@ Namespace Services
                 Dim stockValue As Decimal = nonExpiredBatches.Sum(Function(b) CDec(b.QuantityRemaining) * b.UnitCost)
                 totalStockValue += stockValue
 
+                Dim weightedCost As Decimal = 0D
+                Dim fifoOldestCost As Decimal = 0D
+                If currentStock > 0 Then
+                    weightedCost = stockValue / CDec(currentStock)
+                    Dim oldestBatch = nonExpiredBatches.OrderBy(Function(b) b.ReceiptDate).FirstOrDefault()
+                    If oldestBatch IsNot Nothing Then
+                        fifoOldestCost = oldestBatch.UnitCost
+                    End If
+                End If
+
                 Dim stockStatus As String
                 If currentStock = 0 Then
                     stockStatus = "Out"
@@ -159,7 +169,9 @@ Namespace Services
                     .MinThreshold = product.MinimumThreshold,
                     .StockStatus = stockStatus,
                     .ExpiryStatus = expiryStatus,
-                    .HasExpiry = product.HasExpiry
+                    .HasExpiry = product.HasExpiry,
+                    .AverageUnitCost = weightedCost,
+                    .FifoOldestUnitCost = fifoOldestCost
                 })
             Next
 

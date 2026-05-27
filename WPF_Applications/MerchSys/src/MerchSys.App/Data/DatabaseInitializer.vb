@@ -38,6 +38,8 @@ Namespace Data
                 ApplyIfPending(conn, "20260527100000_AddProductPriceHistory", AddressOf ApplyProductPriceHistory)
                 ' PUR-16: Vendor-Product Catalog
                 ApplyIfPending(conn, "20260527110000_AddVendorProductCatalog", AddressOf ApplyVendorProductCatalog)
+                ' ACC-21: Per-Batch FIFO COGS Accuracy
+                ApplyIfPending(conn, "20260527120000_AddInvSaleCogs", AddressOf ApplyInvSaleCogs)
             End Using
         End Sub
 
@@ -1129,6 +1131,29 @@ Namespace Data
                 "CREATE UNIQUE INDEX IF NOT EXISTS ""UX_Pur_VendorProducts_Vendor_Product"" " &
                 "ON ""Pur_VendorProducts"" (""VendorId"", ""ProductId"") " &
                 "WHERE ""IsDeleted"" = 0")
+        End Sub
+
+        Private Sub ApplyInvSaleCogs(conn As SqliteConnection)
+            Exec(conn,
+                "CREATE TABLE IF NOT EXISTS ""Inv_SaleCogs"" (" &
+                """Id"" INTEGER NOT NULL CONSTRAINT ""PK_Inv_SaleCogs"" PRIMARY KEY AUTOINCREMENT, " &
+                """TransactionId"" INTEGER NOT NULL, " &
+                """ProductId"" INTEGER NOT NULL, " &
+                """BatchId"" INTEGER NOT NULL, " &
+                """QuantityDeducted"" INTEGER NOT NULL, " &
+                """UnitCost"" TEXT NOT NULL, " &
+                """Cogs"" TEXT NOT NULL, " &
+                """DeductedAt"" TEXT NOT NULL, " &
+                "CONSTRAINT ""FK_Inv_SaleCogs_Inv_StockBatches_BatchId"" FOREIGN KEY (""BatchId"") REFERENCES ""Inv_StockBatches"" (""Id"") ON DELETE RESTRICT" &
+                ")")
+
+            Exec(conn,
+                "CREATE INDEX IF NOT EXISTS ""IX_Inv_SaleCogs_Tx_Product"" " &
+                "ON ""Inv_SaleCogs"" (""TransactionId"", ""ProductId"")")
+
+            Exec(conn,
+                "CREATE INDEX IF NOT EXISTS ""IX_Inv_SaleCogs_Batch"" " &
+                "ON ""Inv_SaleCogs"" (""BatchId"")")
         End Sub
 
     End Module
