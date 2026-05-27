@@ -11,6 +11,9 @@ item-10-closed: 2026-05-27 (out-of-scope, single-branch)
 item-11-mooted: 2026-05-26
 item-12-completed: 2026-05-26
 item-13-completed: 2026-05-26
+item-14-checked-clean: 2026-05-27
+item-16-promoted: 2026-05-27
+item-17-promoted: 2026-05-27
 ---
 
 # Deferred Features Backlog
@@ -79,6 +82,7 @@ item-13-completed: 2026-05-26
 
 ## 14. INT-17b — Contingent Rule 14 Follow-Up
 
+**Status:** Checked clean 2026-05-27 — no new violations in code merged 2026-05-24 → 2026-05-27 (INFRA-19, INFRA-20, INFRA-21, ACC-19, ACC-20, POS-19). Remains contingent — re-check after the next merge window.
 **Module:** Integration
 **Source:** INT-17 What's Next
 **Description:** If new Rule 14 true positives surface in code merged after 2026-05-24, open a follow-up plan INT-17b to rename them. This is a contingent item — only actionable if new violations appear.
@@ -100,3 +104,26 @@ item-13-completed: 2026-05-26
 - Add `Thermal` value to `ReceiptRenderTarget` enum and wire selection in `PosServiceRegistration`
 **Why deferred:** No physical thermal printer is available at Villon Farm Supply for hardware verification. Shipping ESC/POS bytes unverified risks deploy-time bugs (wrong opcodes, code-page mismatches, P/Invoke handle leaks) that cannot be caught at build time. POS-19 ships the `IReceiptRenderer` abstraction and a PDF renderer; thermal slots in cleanly when a printer arrives.
 **Depends on:** POS-19 (in progress).
+
+---
+
+## 16. Vendor-Product Catalog & PO Auto-configuration
+
+**Status:** PROMOTED (2026-05-27) — see `Plans/VISTA_Modules/Purchasing/16-vendor-product-catalog.md` (PUR-16). ProductId=0 bug fix folded into the same plan.
+**Module:** Purchasing
+**Source:** User Observation (2026-05-27)
+**Description:** Implement a relationship between Vendors and Products (Vendor Catalog).
+- During Purchase Order creation, clicking "Add Line" should present a dropdown of products filtered specifically to what the selected Vendor supplies, instead of requiring manual text input.
+- Upon selecting a product, the unit cost should automatically configure based on the most recent vendor price or agreed pricing list, so the user only needs to input the quantity.
+- Bug fix required: The Product ID currently stays 0 when clicking "Add Line" multiple times in the PO screen.
+**Why deferred:** The current Purchasing module focuses on a simple, unstructured PO flow. A formal vendor-product relationship requires new DB tables (e.g., `VendorProducts`), UI redesign for vendor catalogs, and more complex PO line creation logic.
+
+---
+
+## 17. Price Change History Tracking
+
+**Status:** PROMOTED (2026-05-27) — see `Plans/VISTA_Modules/Inventory/14-price-change-history.md` (INV-14). Scope narrowed to retail price only; vendor unit cost history remains deferred (implicit via `StockBatch.UnitCost` + `Pur_PriceChangeAlerts`).
+**Module:** Inventory / Purchasing
+**Source:** User Question (2026-05-27)
+**Description:** Add a formal history log or tracking system for changes to `RetailPrice` and Vendor Unit Costs over time. Currently, `RetailPrice` is a simple mutable field on the `Product` entity, and `UnitCost` is locked into individual `StockBatch` records. 
+**Why deferred:** The current system handles Cost of Goods using a FIFO deduction engine out-of-the-box (by looking at individual stock batches), meaning historical cost is inherently preserved per batch. Retail prices are updated ad-hoc without historical tracking. A dedicated price change history table/UI is a nice-to-have but not critical for MVP.

@@ -14,10 +14,12 @@ Namespace Extensions
             services.AddScoped(Of IPriceChangeService, PriceChangeService)()
             services.AddScoped(Of IGoodsReceivingService, GoodsReceivingService)()
             services.AddScoped(Of IVendorService, VendorService)()
+            services.AddScoped(Of IVendorProductService, VendorProductService)()
             services.AddScoped(Of IAccountsPayableService, AccountsPayableService)()
             services.AddScoped(Of IReorderService, ReorderService)()
             services.AddTransient(Of ViewModels.APLedgerViewModel)()
             services.AddTransient(Of ViewModels.ReorderSuggestionsViewModel)()
+            services.AddTransient(Of ViewModels.VendorCatalogViewModel)()
             Return services
         End Function
 

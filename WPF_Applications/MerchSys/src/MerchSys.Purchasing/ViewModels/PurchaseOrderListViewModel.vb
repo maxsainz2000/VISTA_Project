@@ -37,6 +37,8 @@ Namespace ViewModels
         Private ReadOnly _poService As IPurchaseOrderService
         Private ReadOnly _vendorService As IVendorService
         Private ReadOnly _db As PurchasingDbContext
+        Private ReadOnly _notifications As INotificationService
+        Private ReadOnly _vendorProductService As IVendorProductService
 
         Private _allOrders As List(Of PORowItem) = New List(Of PORowItem)()
         Private _vendorList As List(Of Vendor) = New List(Of Vendor)()
@@ -44,15 +46,20 @@ Namespace ViewModels
         Public Sub New(session As ISessionService,
                        poService As IPurchaseOrderService,
                        vendorService As IVendorService,
-                       db As PurchasingDbContext)
+                       db As PurchasingDbContext,
+                       notifications As INotificationService,
+                       vendorProductService As IVendorProductService)
             _session = session
             _poService = poService
             _vendorService = vendorService
             _db = db
+            _notifications = notifications
+            _vendorProductService = vendorProductService
 
             Orders = New ObservableCollection(Of PORowItem)()
             StatusOptions = New ObservableCollection(Of String) From {"All", "Draft", "Submitted", "Received", "Verified", "Closed"}
             Editor = New PurchaseOrderEditorViewModel()
+            AddHandler Editor.PropertyChanged, AddressOf OnEditorPropertyChanged
 
             RefreshCommand = New AsyncRelayCommand(AddressOf LoadDataAsync)
             NewPOCommand = New AsyncRelayCommand(AddressOf OpenNewEditorAsync)
@@ -333,16 +340,46 @@ Namespace ViewModels
                 StatusMessage = "Please add at least one line item."
                 Return
             End If
+
+            ' Pre-save validator: block saving if any line has ProductId = 0
+            Dim invalidLines As New List(Of Integer)()
+            For i As Integer = 0 To Editor.LineItems.Count - 1
+                If Editor.LineItems(i).ProductId = 0 Then
+                    invalidLines.Add(i + 1)
+                End If
+            Next
+
+            If invalidLines.Count > 0 Then
+                Dim errorMsg = $"Cannot save: Lines {String.Join(", ", invalidLines)} have no product selected (Product ID is 0)."
+                _notifications.ShowError(errorMsg)
+                StatusMessage = errorMsg
+                Return
+            End If
+
             IsBusy = True
             Try
                 Dim lineDtos = Editor.ToLineDtos()
+                Dim savedPO As PurchaseOrder
                 If Editor.IsNewPO Then
-                    Await _poService.CreateDraftAsync(Editor.SelectedVendor.Id, lineDtos,
+                    savedPO = Await _poService.CreateDraftAsync(Editor.SelectedVendor.Id, lineDtos,
                                                       Editor.Notes, Editor.ExpectedDeliveryDate)
                 Else
-                    Await _poService.UpdateDraftAsync(Editor.EditingPOId.Value, lineDtos,
+                    savedPO = Await _poService.UpdateDraftAsync(Editor.EditingPOId.Value, lineDtos,
                                                       Editor.Notes, Editor.ExpectedDeliveryDate)
                 End If
+
+                ' Write back modified unit costs to vendor product catalog
+                If Editor.SelectedVendor IsNot Nothing Then
+                    For Each line In Editor.LineItems
+                        Dim cat = Editor.VendorCatalog.FirstOrDefault(Function(c) c.ProductId = line.ProductId)
+                        If cat IsNot Nothing AndAlso line.UnitCost <> cat.LastUnitCost Then
+                            Await _vendorProductService.UpdateLastUnitCostAsync(Editor.SelectedVendor.Id, line.ProductId, line.UnitCost)
+                        End If
+                    Next
+                    ' Reload catalog to refresh the in-memory last unit costs
+                    Await Editor.LoadVendorCatalogAsync(_vendorProductService, Editor.SelectedVendor.Id)
+                End If
+
                 CloseEditor()
                 Await LoadDataAsync()
                 StatusMessage = "Draft saved."
@@ -363,6 +400,22 @@ Namespace ViewModels
                 StatusMessage = "Please add at least one line item."
                 Return
             End If
+
+            ' Pre-save validator: block saving if any line has ProductId = 0
+            Dim invalidLines As New List(Of Integer)()
+            For i As Integer = 0 To Editor.LineItems.Count - 1
+                If Editor.LineItems(i).ProductId = 0 Then
+                    invalidLines.Add(i + 1)
+                End If
+            Next
+
+            If invalidLines.Count > 0 Then
+                Dim errorMsg = $"Cannot save: Lines {String.Join(", ", invalidLines)} have no product selected (Product ID is 0)."
+                _notifications.ShowError(errorMsg)
+                StatusMessage = errorMsg
+                Return
+            End If
+
             IsBusy = True
             Try
                 Dim lineDtos = Editor.ToLineDtos()
@@ -374,6 +427,19 @@ Namespace ViewModels
                     savedPO = Await _poService.UpdateDraftAsync(Editor.EditingPOId.Value, lineDtos,
                                                                 Editor.Notes, Editor.ExpectedDeliveryDate)
                 End If
+
+                ' Write back modified unit costs to vendor product catalog
+                If Editor.SelectedVendor IsNot Nothing Then
+                    For Each line In Editor.LineItems
+                        Dim cat = Editor.VendorCatalog.FirstOrDefault(Function(c) c.ProductId = line.ProductId)
+                        If cat IsNot Nothing AndAlso line.UnitCost <> cat.LastUnitCost Then
+                            Await _vendorProductService.UpdateLastUnitCostAsync(Editor.SelectedVendor.Id, line.ProductId, line.UnitCost)
+                        End If
+                    Next
+                    ' Reload catalog to refresh the in-memory last unit costs
+                    Await Editor.LoadVendorCatalogAsync(_vendorProductService, Editor.SelectedVendor.Id)
+                End If
+
                 Await _poService.SubmitAsync(savedPO.Id)
                 CloseEditor()
                 Await LoadDataAsync()
@@ -383,6 +449,27 @@ Namespace ViewModels
             Finally
                 IsBusy = False
             End Try
+        End Function
+
+        Private Async Sub OnEditorPropertyChanged(sender As Object, e As System.ComponentModel.PropertyChangedEventArgs)
+            If e.PropertyName = NameOf(PurchaseOrderEditorViewModel.SelectedVendor) Then
+                Await OnSelectedVendorChangedAsync()
+            End If
+        End Sub
+
+        Private Async Function OnSelectedVendorChangedAsync() As Task
+            If Editor.SelectedVendor IsNot Nothing Then
+                IsBusy = True
+                Try
+                    Await Editor.LoadVendorCatalogAsync(_vendorProductService, Editor.SelectedVendor.Id)
+                Catch ex As Exception
+                    StatusMessage = $"[ERROR] Failed to load catalog: {ex.Message}"
+                Finally
+                    IsBusy = False
+                End Try
+            Else
+                Editor.VendorCatalog.Clear()
+            End If
         End Function
 
     End Class

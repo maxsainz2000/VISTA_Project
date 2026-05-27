@@ -59,17 +59,10 @@ Namespace Services
             Dim riskLevel As String
 
             If v.AvgDailySales = 0D Then
-                If v.CurrentStock = 0 Then
-                    ' No stock and no sales velocity — already out or imminently critical.
-                    daysUntilStockout = 0D
-                    stockoutDate = today
-                    riskLevel = "Critical"
-                Else
-                    ' Dead stock: has inventory but no sales movement — will not stockout from sales.
-                    daysUntilStockout = Nothing
-                    stockoutDate = Nothing
-                    riskLevel = "OK"
-                End If
+                ' No stock and/or no sales velocity — cannot predict stockout.
+                daysUntilStockout = Nothing
+                stockoutDate = Nothing
+                riskLevel = "OK"
             Else
                 Dim days As Decimal = Math.Round(CDec(v.CurrentStock) / v.AvgDailySales, 1)
                 daysUntilStockout = days

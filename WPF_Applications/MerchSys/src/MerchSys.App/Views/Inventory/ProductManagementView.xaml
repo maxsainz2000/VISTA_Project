@@ -219,6 +219,8 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="8"/>
                                     <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
 
                                 <TextBlock Grid.Column="0" Text="Category:" Style="{StaticResource FilterLabel}"/>
@@ -265,8 +267,14 @@
                                     </Button.Style>
                                 </Button>
 
+                                <!-- Price History -->
+                                <Button Grid.Column="12" Content="Price History"
+                                        Click="ViewPriceHistory_Click"
+                                        IsEnabled="{Binding HasSelectedProduct}"
+                                        Style="{StaticResource SecondaryButton}"/>
+ 
                                 <!-- Refresh -->
-                                <Button Grid.Column="12" Content="Refresh"
+                                <Button Grid.Column="14" Content="Refresh"
                                         Command="{Binding LoadDataCommand}"
                                         Style="{StaticResource SecondaryButton}"/>
                             </Grid>
@@ -525,6 +533,10 @@
 
                             <TextBlock Text="Retail Price (₱) *" Style="{StaticResource FormLabel}"/>
                             <TextBox Text="{Binding EditorRetailPriceText, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource FormInput}"/>
+
+                            <TextBlock Text="Price Change Reason (optional)" Style="{StaticResource FormLabel}"/>
+                            <TextBox Text="{Binding EditorPriceChangeReason, UpdateSourceTrigger=PropertyChanged}"
                                      Style="{StaticResource FormInput}"/>
                         </StackPanel>
 

@@ -21,6 +21,7 @@ Namespace Data
         Public Property ReorderConfigs As DbSet(Of ReorderConfig)
         Public Property ReorderSuggestions As DbSet(Of ReorderSuggestion)
         Public Property PriceChangeAlerts As DbSet(Of PriceChangeAlert)
+        Public Property VendorProducts As DbSet(Of VendorProduct)
 
         Public Sub New(options As DbContextOptions(Of PurchasingDbContext))
             MyBase.New(options)

@@ -139,6 +139,7 @@ Namespace ViewModels
                     New NavigationItem With {.DisplayName = "Purchase Orders", .ViewType = GetType(Views.Purchasing.PurchaseOrderListView)},
                     New NavigationItem With {.DisplayName = "Goods Receiving", .ViewType = GetType(Views.Purchasing.GoodsReceivingView)},
                     New NavigationItem With {.DisplayName = "Vendor Directory", .ViewType = GetType(Views.Purchasing.VendorDirectoryView)},
+                    New NavigationItem With {.DisplayName = "Vendor Product Catalog", .ViewType = GetType(Views.Purchasing.VendorCatalogView)},
                     New NavigationItem With {.DisplayName = "Accounts Payable", .ViewType = GetType(Views.Purchasing.APLedgerView)},
                     New NavigationItem With {.DisplayName = "Reorder Suggestions", .ViewType = GetType(Views.Purchasing.ReorderSuggestionsView)}
                 }),

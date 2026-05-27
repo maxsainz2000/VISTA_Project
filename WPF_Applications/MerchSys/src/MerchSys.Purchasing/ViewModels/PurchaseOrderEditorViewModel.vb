@@ -64,6 +64,20 @@ Namespace ViewModels
             End Get
         End Property
 
+        Private _selectedCatalogEntry As Dtos.VendorProductDto
+        Public Property SelectedCatalogEntry As Dtos.VendorProductDto
+            Get
+                Return _selectedCatalogEntry
+            End Get
+            Set(value As Dtos.VendorProductDto)
+                If SetProperty(_selectedCatalogEntry, value) AndAlso value IsNot Nothing Then
+                    ProductId = value.ProductId
+                    ProductName = value.ProductName
+                    UnitCost = value.LastUnitCost
+                End If
+            End Set
+        End Property
+
     End Class
 
     ''' <summary>
@@ -78,6 +92,7 @@ Namespace ViewModels
         Public Sub New()
             LineItems = New ObservableCollection(Of POLineItem)()
             Vendors = New ObservableCollection(Of Vendor)()
+            VendorCatalog = New ObservableCollection(Of Dtos.VendorProductDto)()
             AddLineCommand = New RelayCommand(AddressOf AddEmptyLine)
             RemoveLineCommand = New RelayCommand(Of POLineItem)(AddressOf RemoveLineItem)
         End Sub
@@ -85,6 +100,7 @@ Namespace ViewModels
         ' ─── Vendors ─────────────────────────────────────────────────────────────
 
         Public Property Vendors As ObservableCollection(Of Vendor)
+        Public Property VendorCatalog As ObservableCollection(Of Dtos.VendorProductDto)
 
         Private _selectedVendor As Vendor
         Public Property SelectedVendor As Vendor
@@ -248,9 +264,33 @@ Namespace ViewModels
             Next
         End Sub
 
+        Public Async Function LoadVendorCatalogAsync(vendorProductService As IVendorProductService, vendorId As Integer) As Task
+            VendorCatalog.Clear()
+            Dim catalog = Await vendorProductService.GetCatalogForVendorAsync(vendorId)
+            For Each item In catalog
+                VendorCatalog.Add(item)
+            Next
+
+            ' Wire up SelectedCatalogEntry for existing line items
+            For Each item In LineItems
+                item.SelectedCatalogEntry = VendorCatalog.FirstOrDefault(Function(c) c.ProductId = item.ProductId)
+            Next
+        End Function
+
         Private Sub OnLinePropertyChanged(sender As Object, e As PropertyChangedEventArgs)
+            Dim item = DirectCast(sender, POLineItem)
             If e.PropertyName = NameOf(POLineItem.LineTotal) Then
                 OnPropertyChanged(NameOf(TotalAmount))
+            ElseIf e.PropertyName = NameOf(POLineItem.ProductId) Then
+                ' Auto-populate when ProductId changes (e.g. from combobox selection)
+                If VendorCatalog IsNot Nothing AndAlso item.ProductId <> 0 Then
+                    Dim cat = VendorCatalog.FirstOrDefault(Function(c) c.ProductId = item.ProductId)
+                    If cat IsNot Nothing Then
+                        item.ProductName = cat.ProductName
+                        item.UnitCost = cat.LastUnitCost
+                        item.SelectedCatalogEntry = cat
+                    End If
+                End If
             End If
         End Sub
 

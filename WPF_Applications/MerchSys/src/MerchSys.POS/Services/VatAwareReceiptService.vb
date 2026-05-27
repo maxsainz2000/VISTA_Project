@@ -14,9 +14,9 @@ Namespace Services
     ''' Decorator over <see cref="ReceiptService"/> that stampes the BIR three-bucket VAT totals
     ''' onto the <see cref="SalesTransaction"/> and each <see cref="SalesTransactionLine"/> before
     ''' delegating to the inner service to produce the <see cref="OfficialReceipt"/>.
-    ''' After the receipt is generated it computes the POS-13 hash chain and then publishes both
-    ''' <see cref="SaleCompletedWithVatEvent"/> and the legacy <see cref="SaleCompletedEvent"/>.
-    ''' Both events carry the same <c>TransactionId</c>; downstream handlers must be idempotent.
+    ''' After the receipt is generated it computes the POS-13 hash chain and publishes
+    ''' <see cref="SaleCompletedWithVatEvent"/>. The base <see cref="SaleCompletedEvent"/> is
+    ''' published by <see cref="PaymentService"/> and must not be re-published here.
     ''' </summary>
     Public Class VatAwareReceiptService
         Implements IReceiptService
@@ -149,23 +149,6 @@ Namespace Services
                 .OutputVat = totals.OutputVat,
                 .IsVatRegistered = config.IsVatRegistered,
                 .Items = vatItems
-            })
-
-            Await _mediator.Publish(New SaleCompletedEvent With {
-                .TransactionId = transaction.Id,
-                .TransactionDate = transaction.TransactionDate,
-                .PaymentMethod = transaction.PaymentMethod,
-                .TotalAmount = transaction.TotalAmount,
-                .CustomerId = transaction.CustomerId,
-                .Items = transaction.Lines.Select(Function(l)
-                                                      Return New SaleCompletedEvent.SaleItem With {
-                                                          .ProductId = l.ProductId,
-                                                          .ProductName = l.ProductName,
-                                                          .Quantity = l.Quantity,
-                                                          .UnitPrice = l.UnitPrice,
-                                                          .DiscountAmount = l.DiscountAmount
-                                                      }
-                                                  End Function).ToList()
             })
 
             Return receipt

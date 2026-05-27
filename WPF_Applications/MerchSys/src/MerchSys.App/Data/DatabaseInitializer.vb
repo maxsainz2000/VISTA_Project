@@ -34,6 +34,10 @@ Namespace Data
                 ApplyIfPending(conn, "20260516140000_AddGoodsReceiptLineVatColumns", AddressOf ApplyGoodsReceiptLineVatColumns)
                 ' DA6: Sys_UserAccounts with seeded manager/owner accounts (first-login password-change required)
                 ApplyIfPending(conn, "20260522100000_AddUserAccounts", AddressOf ApplyUserAccounts)
+                ' INV-14: Product RetailPrice Change History
+                ApplyIfPending(conn, "20260527100000_AddProductPriceHistory", AddressOf ApplyProductPriceHistory)
+                ' PUR-16: Vendor-Product Catalog
+                ApplyIfPending(conn, "20260527110000_AddVendorProductCatalog", AddressOf ApplyVendorProductCatalog)
             End Using
         End Sub
 
@@ -1080,6 +1084,51 @@ Namespace Data
             Exec(conn, "ALTER TABLE ""Pur_GoodsReceiptLines"" ADD COLUMN ""VatClassification"" INTEGER NOT NULL DEFAULT 0")
             Exec(conn, "ALTER TABLE ""Pur_GoodsReceiptLines"" ADD COLUMN ""VatAmount"" TEXT NOT NULL DEFAULT '0'")
             Exec(conn, "ALTER TABLE ""Pur_GoodsReceiptLines"" ADD COLUMN ""VatableSales"" TEXT NOT NULL DEFAULT '0'")
+        End Sub
+
+        ' ── Product RetailPrice Change History (20260527100000) ───────────────────
+        Private Sub ApplyProductPriceHistory(conn As SqliteConnection)
+            Exec(conn,
+                "CREATE TABLE IF NOT EXISTS ""Inv_ProductPriceHistory"" (" &
+                """Id"" INTEGER NOT NULL CONSTRAINT ""PK_Inv_ProductPriceHistory"" PRIMARY KEY AUTOINCREMENT, " &
+                """ProductId"" INTEGER NOT NULL, " &
+                """OldPrice"" TEXT NOT NULL, " &
+                """NewPrice"" TEXT NOT NULL, " &
+                """ChangedAt"" TEXT NOT NULL, " &
+                """ChangedBy"" TEXT NOT NULL, " &
+                """Reason"" TEXT NULL, " &
+                "CONSTRAINT ""FK_Inv_ProductPriceHistory_Inv_Products_ProductId"" " &
+                "FOREIGN KEY (""ProductId"") REFERENCES ""Inv_Products"" (""Id"") ON DELETE RESTRICT" &
+                ")")
+
+            Exec(conn,
+                "CREATE INDEX IF NOT EXISTS ""IX_Inv_ProductPriceHistory_ProductId_ChangedAt"" " &
+                "ON ""Inv_ProductPriceHistory"" (""ProductId"", ""ChangedAt"" DESC)")
+        End Sub
+
+        Private Sub ApplyVendorProductCatalog(conn As SqliteConnection)
+            Exec(conn,
+                "CREATE TABLE IF NOT EXISTS ""Pur_VendorProducts"" (" &
+                """Id"" INTEGER NOT NULL CONSTRAINT ""PK_Pur_VendorProducts"" PRIMARY KEY AUTOINCREMENT, " &
+                """VendorId"" INTEGER NOT NULL, " &
+                """ProductId"" INTEGER NOT NULL, " &
+                """ProductName"" TEXT NOT NULL, " &
+                """LastUnitCost"" TEXT NOT NULL DEFAULT '0', " &
+                """Notes"" TEXT NULL, " &
+                """IsDeleted"" INTEGER NOT NULL DEFAULT 0, " &
+                """DeletedBy"" TEXT NULL, " &
+                """DeletedAt"" TEXT NULL, " &
+                """CreatedBy"" TEXT NULL, " &
+                """CreatedAt"" TEXT NOT NULL, " &
+                """ModifiedBy"" TEXT NULL, " &
+                """ModifiedAt"" TEXT NULL, " &
+                "CONSTRAINT ""FK_Pur_VendorProducts_Pur_Vendors_VendorId"" FOREIGN KEY (""VendorId"") REFERENCES ""Pur_Vendors"" (""Id"") ON DELETE RESTRICT" &
+                ")")
+
+            Exec(conn,
+                "CREATE UNIQUE INDEX IF NOT EXISTS ""UX_Pur_VendorProducts_Vendor_Product"" " &
+                "ON ""Pur_VendorProducts"" (""VendorId"", ""ProductId"") " &
+                "WHERE ""IsDeleted"" = 0")
         End Sub
 
     End Module

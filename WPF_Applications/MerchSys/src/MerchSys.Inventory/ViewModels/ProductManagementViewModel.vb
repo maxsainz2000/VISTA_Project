@@ -6,6 +6,7 @@ Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.Inventory.Data
 Imports MerchSys.Inventory.Entities
 Imports MerchSys.Inventory.Services
+Imports MerchSys.SharedKernel.Interfaces
 
 Namespace ViewModels
 
@@ -36,12 +37,14 @@ Namespace ViewModels
         Inherits ObservableObject
 
         Private ReadOnly _db As InventoryDbContext
+        Private ReadOnly _session As ISessionService
         Private _allProducts As List(Of ProductManagementRowItem) = New List(Of ProductManagementRowItem)()
         Private _loadedProducts As List(Of Product)
         Private _loadedCategories As List(Of ProductCategory)
 
-        Public Sub New(db As InventoryDbContext)
+        Public Sub New(db As InventoryDbContext, session As ISessionService)
             _db = db
+            _session = session
 
             Products = New ObservableCollection(Of ProductManagementRowItem)()
             Categories = New ObservableCollection(Of CategoryManagementItem)()
@@ -233,6 +236,16 @@ Namespace ViewModels
             End Get
             Set(value As String)
                 SetProperty(_editorDescription, value)
+            End Set
+        End Property
+
+        Private _editorPriceChangeReason As String = String.Empty
+        Public Property EditorPriceChangeReason As String
+            Get
+                Return _editorPriceChangeReason
+            End Get
+            Set(value As String)
+                SetProperty(_editorPriceChangeReason, value)
             End Set
         End Property
 
@@ -463,6 +476,7 @@ Namespace ViewModels
             EditorHasExpiry = False
             EditorMinThresholdText = "0"
             EditorDescription = String.Empty
+            EditorPriceChangeReason = String.Empty
             EditorError = String.Empty
             IsEditorOpen = True
         End Sub
@@ -556,6 +570,20 @@ Namespace ViewModels
                     existing.Name = EditorName.Trim()
                     existing.Sku = EditorSku.Trim()
                     existing.CategoryId = EditorCategoryId
+
+                    Dim oldPrice As Decimal = existing.RetailPrice
+                    If oldPrice <> price Then
+                        Dim historyRow As New ProductPriceHistory With {
+                            .ProductId = existing.Id,
+                            .OldPrice = oldPrice,
+                            .NewPrice = price,
+                            .ChangedAt = DateTime.UtcNow,
+                            .ChangedBy = If(_session IsNot Nothing AndAlso Not String.IsNullOrEmpty(_session.CurrentUsername), _session.CurrentUsername, Environment.UserName),
+                            .Reason = If(String.IsNullOrWhiteSpace(EditorPriceChangeReason), Nothing, EditorPriceChangeReason.Trim())
+                        }
+                        _db.ProductPriceHistory.Add(historyRow)
+                    End If
+
                     existing.RetailPrice = price
                     existing.Unit = EditorUnit
                     existing.HasExpiry = EditorHasExpiry

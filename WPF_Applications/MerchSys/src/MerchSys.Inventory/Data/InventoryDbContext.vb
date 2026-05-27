@@ -20,6 +20,7 @@ Namespace Data
         Public Property ProductCategories As DbSet(Of ProductCategory)
         Public Property StockMovements As DbSet(Of StockMovement)
         Public Property StockAuditRecords As DbSet(Of StockAuditRecord)
+        Public Property ProductPriceHistory As DbSet(Of ProductPriceHistory)
 
         Public Sub New(options As DbContextOptions(Of InventoryDbContext))
             MyBase.New(options)

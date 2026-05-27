@@ -296,18 +296,24 @@
                           FontSize="12">
                     <DataGrid.Columns>
 
-                        <DataGridTextColumn Header="Product ID" Width="90"
-                                           Binding="{Binding ProductId, Mode=TwoWay, UpdateSourceTrigger=LostFocus}">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="HorizontalAlignment" Value="Right"/>
-                                    <Setter Property="Padding" Value="0,0,4,0"/>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
-
-                        <DataGridTextColumn Header="Product Name" Width="*" MinWidth="160"
-                                           Binding="{Binding ProductName, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                        <DataGridTemplateColumn Header="Product" Width="*" MinWidth="200">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding ProductName}" Padding="4,2"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                            <DataGridTemplateColumn.CellEditingTemplate>
+                                <DataTemplate>
+                                    <ComboBox ItemsSource="{Binding DataContext.Editor.VendorCatalog,
+                                                           RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                              SelectedValue="{Binding ProductId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              SelectedValuePath="ProductId"
+                                              DisplayMemberPath="ProductName"
+                                              IsSynchronizedWithCurrentItem="False"
+                                              Padding="4,2"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellEditingTemplate>
+                        </DataGridTemplateColumn>
 
                         <DataGridTextColumn Header="Qty" Width="70"
                                            Binding="{Binding QuantityOrdered, Mode=TwoWay, UpdateSourceTrigger=LostFocus}">

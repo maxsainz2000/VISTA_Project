@@ -116,6 +116,22 @@ Namespace Services
                 Throw New InsufficientStockException(productId, quantity, quantity - remaining)
             End If
 
+            ' Batches were loaded via raw SqliteConnection, so EF change tracker does not track
+            ' their QuantityRemaining changes. Write the updated values back explicitly.
+            Dim touchedBatchIds = results.Select(Function(r) r.BatchId).ToHashSet()
+            Using batchUpdateConn As New SqliteConnection(fifoConnStr)
+                Await batchUpdateConn.OpenAsync()
+                For Each b In batches.Where(Function(x) touchedBatchIds.Contains(x.Id))
+                    Using updateCmd = batchUpdateConn.CreateCommand()
+                        updateCmd.CommandText = "UPDATE Inv_StockBatches SET QuantityRemaining = @qty, ModifiedAt = @now WHERE Id = @id"
+                        updateCmd.Parameters.Add(New SqliteParameter("@qty", b.QuantityRemaining))
+                        updateCmd.Parameters.Add(New SqliteParameter("@now", DateTime.UtcNow.ToString("o")))
+                        updateCmd.Parameters.Add(New SqliteParameter("@id", b.Id))
+                        Await updateCmd.ExecuteNonQueryAsync()
+                    End Using
+                Next
+            End Using
+
             _db.StockMovements.Add(New StockMovement With {
                 .ProductId = productId,
                 .MovementType = MovementType.Sale,

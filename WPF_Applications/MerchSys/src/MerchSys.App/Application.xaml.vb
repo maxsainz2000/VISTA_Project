@@ -126,6 +126,7 @@ Class Application
                                       services.AddTransient(Of ProductManagementViewModel)()
                                       services.AddTransient(Of ExpiryMonitorViewModel)()
                                       services.AddTransient(Of ShrinkageViewModel)()
+                                      services.AddTransient(Of ProductPriceHistoryViewModel)()
 
                                       ' ── POS ───────────────────────────────────────────────
                                       services.AddPosModule()
@@ -175,12 +176,14 @@ Class Application
                                       services.AddTransient(Of Views.Purchasing.PurchaseOrderListView)()
                                       services.AddTransient(Of Views.Purchasing.GoodsReceivingView)()
                                       services.AddTransient(Of Views.Purchasing.VendorDirectoryView)()
+                                      services.AddTransient(Of Views.Purchasing.VendorCatalogView)()
                                       services.AddTransient(Of Views.Purchasing.APLedgerView)()
                                       services.AddTransient(Of Views.Purchasing.ReorderSuggestionsView)()
                                       services.AddTransient(Of Views.Inventory.StockDashboardView)()
                                       services.AddTransient(Of Views.Inventory.ProductManagementView)()
                                       services.AddTransient(Of Views.Inventory.ExpiryMonitorView)()
                                       services.AddTransient(Of Views.Inventory.ShrinkageView)()
+                                      services.AddTransient(Of Views.Inventory.ProductPriceHistoryView)()
                                       services.AddTransient(Of Views.Accounting.FinancialOverviewView)()
                                       services.AddTransient(Of Views.Accounting.IncomeStatementView)()
                                       services.AddTransient(Of Views.Accounting.SalesSummaryView)()
