@@ -5,6 +5,7 @@ Imports MerchSys.Accounting.Data
 Imports MerchSys.Accounting.Entities
 Imports MerchSys.SharedKernel.Events
 Imports MerchSys.SharedKernel.Interfaces
+Imports MerchSys.SharedKernel.Persistence
 
 Namespace Handlers
 
@@ -16,11 +17,13 @@ Namespace Handlers
         Implements INotificationHandler(Of ShrinkageRecordedEvent)
 
         Private ReadOnly _db As AccountingDbContext
+        Private ReadOnly _repository As ISyncableRepository(Of AccountingDbContext)
         Private ReadOnly _writeContext As IWriteContextScope
         Private ReadOnly _logger As ILogger(Of ShrinkageAccountingHandler)
 
-        Public Sub New(db As AccountingDbContext, writeContext As IWriteContextScope, logger As ILogger(Of ShrinkageAccountingHandler))
+        Public Sub New(db As AccountingDbContext, repository As ISyncableRepository(Of AccountingDbContext), writeContext As IWriteContextScope, logger As ILogger(Of ShrinkageAccountingHandler))
             _db = db
+            _repository = repository
             _writeContext = writeContext
             _logger = logger
         End Sub
@@ -40,7 +43,7 @@ Namespace Handlers
                 }
 
                 _db.ExpenseRecords.Add(expense)
-                Await _db.SaveChangesAsync(cancellationToken)
+                Await _repository.SaveChangesWithJournalAsync(cancellationToken)
 
                 _logger.LogInformation("Shrinkage expense recorded for {ProductName}: Amount={Amount}.",
                     notification.ProductName, notification.TotalValue)

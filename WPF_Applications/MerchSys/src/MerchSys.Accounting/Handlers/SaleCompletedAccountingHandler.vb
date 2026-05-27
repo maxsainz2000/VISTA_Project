@@ -6,6 +6,7 @@ Imports MerchSys.Accounting.Entities
 Imports MerchSys.SharedKernel.Events
 Imports MerchSys.SharedKernel.Queries
 Imports MerchSys.SharedKernel.Interfaces
+Imports MerchSys.SharedKernel.Persistence
 
 Namespace Handlers
 
@@ -18,12 +19,14 @@ Namespace Handlers
         Implements INotificationHandler(Of SaleCompletedEvent)
 
         Private ReadOnly _db As AccountingDbContext
+        Private ReadOnly _repository As ISyncableRepository(Of AccountingDbContext)
         Private ReadOnly _mediator As IMediator
         Private ReadOnly _writeContext As IWriteContextScope
         Private ReadOnly _logger As ILogger(Of SaleCompletedAccountingHandler)
 
-        Public Sub New(db As AccountingDbContext, mediator As IMediator, writeContext As IWriteContextScope, logger As ILogger(Of SaleCompletedAccountingHandler))
+        Public Sub New(db As AccountingDbContext, repository As ISyncableRepository(Of AccountingDbContext), mediator As IMediator, writeContext As IWriteContextScope, logger As ILogger(Of SaleCompletedAccountingHandler))
             _db = db
+            _repository = repository
             _mediator = mediator
             _writeContext = writeContext
             _logger = logger
@@ -70,7 +73,7 @@ Namespace Handlers
                     _db.ExpenseRecords.Add(cogsExpense)
                 Next
 
-                Await _db.SaveChangesAsync(cancellationToken)
+                Await _repository.SaveChangesWithJournalAsync(cancellationToken)
 
                 _logger.LogInformation("Revenue and COGS records saved for TransactionId={TransactionId}.", notification.TransactionId)
             End Using

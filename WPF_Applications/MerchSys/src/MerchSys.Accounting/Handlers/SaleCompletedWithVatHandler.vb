@@ -8,6 +8,7 @@ Imports MerchSys.SharedKernel.Enums
 Imports MerchSys.SharedKernel.Events
 Imports MerchSys.SharedKernel.Queries
 Imports MerchSys.SharedKernel.Interfaces
+Imports MerchSys.SharedKernel.Persistence
 
 Namespace Handlers
 
@@ -25,12 +26,14 @@ Namespace Handlers
         Implements INotificationHandler(Of SaleCompletedWithVatEvent)
 
         Private ReadOnly _db As AccountingDbContext
+        Private ReadOnly _repository As ISyncableRepository(Of AccountingDbContext)
         Private ReadOnly _mediator As IMediator
         Private ReadOnly _writeContext As IWriteContextScope
         Private ReadOnly _logger As ILogger(Of SaleCompletedWithVatHandler)
 
-        Public Sub New(db As AccountingDbContext, mediator As IMediator, writeContext As IWriteContextScope, logger As ILogger(Of SaleCompletedWithVatHandler))
+        Public Sub New(db As AccountingDbContext, repository As ISyncableRepository(Of AccountingDbContext), mediator As IMediator, writeContext As IWriteContextScope, logger As ILogger(Of SaleCompletedWithVatHandler))
             _db = db
+            _repository = repository
             _mediator = mediator
             _writeContext = writeContext
             _logger = logger
@@ -92,7 +95,7 @@ Namespace Handlers
                     End If
                 Next
 
-                Await _db.SaveChangesAsync(cancellationToken)
+                Await _repository.SaveChangesWithJournalAsync(cancellationToken)
                 _logger.LogInformation("SaleCompletedWithVatHandler: VAT columns saved for TransactionId={TransactionId}.", notification.TransactionId)
             End Using
         End Function
