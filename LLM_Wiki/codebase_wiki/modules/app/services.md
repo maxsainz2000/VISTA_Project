@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.App
 layer: Services
-last-updated: 2026-05-26
+last-updated: 2026-05-27
 ---
 
 # MerchSys.App — Services
@@ -15,7 +15,7 @@ This page details the Service implementations specifically located within the **
 |---|---|---|
 | `src/MerchSys.App/Configuration/ConnectionStringLoader.vb` | `ConnectionStringLoader` (Module) | Provides three-state overlay logic for production configuration. Loads `appsettings.Production.json` from `%LOCALAPPDATA%\VISTA\` to override connection strings without committing credentials. |
 | `src/MerchSys.App/Data/DatabaseConfig.vb` | `DatabaseConfig` (Module) | Centralizes the SQLite database path (`%LOCALAPPDATA%\MerchSys\merchsys.db`) and provides the `AddModuleDbContexts` extension for DI registration of all four module contexts, injecting the `RoleGuardInterceptor` interceptor for OWASP DA5 database-level write rejection. |
-| `src/MerchSys.App/Data/DatabaseInitializer.vb` | `DatabaseInitializer` (Module) | Applies all module migrations to the shared SQLite database on first run using ADO.NET. Workaround for EF Core 10's inability to discover VB.NET migration classes at runtime. |
+| `src/MerchSys.App/Data/DatabaseInitializer.vb` | `DatabaseInitializer` (Module) | Applies all module migrations to the shared SQLite database on first run using ADO.NET. Workaround for EF Core 10's inability to discover VB.NET migration classes at runtime. Now registers `AddInvSaleCogs` (ACC-21) to establish the `Inv_SaleCogs` SQLite table and indexes on startup. |
 | `src/MerchSys.App/Services/DefaultSessionService.vb` | `ISessionService`<br>`DefaultSessionService` | Stub singleton returning "Manager" session. Implements `IsAuthenticated = True`. |
 | `src/MerchSys.App/Services/MediatREventBus.vb` | `IEventBus`<br>`MediatREventBus` | Thin adapter that delegates `IEventBus.PublishAsync` to MediatR's `IMediator.Publish`. Keeps module code depending on the narrower `IEventBus` interface. |
 | `src/MerchSys.App/Services/WpfLowStockNotifier.vb` | `ILowStockNotifier`<br>`WpfLowStockNotifier` | WPF-specific implementation for low-stock alerts. Uses `Notification.Wpf`'s `NotificationManager` to display desktop toast notifications. Lives in the App layer to prevent WPF dependencies in the Inventory library. |

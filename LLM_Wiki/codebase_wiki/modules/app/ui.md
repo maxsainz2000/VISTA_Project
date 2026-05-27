@@ -49,7 +49,7 @@ This page details the WPF View implementations (XAML and code-behind) in the **M
 | `src/MerchSys.App/Views/Inventory/ProductManagementView.xaml`<br>`src/MerchSys.App/Views/Inventory/ProductManagementView.xaml.vb` | `ProductManagementView` | Product catalog management interface. | `ProductManagementViewModel` (Constructor Injection) |
 | `src/MerchSys.App/Views/Inventory/ProductPriceHistoryView.xaml`<br>`src/MerchSys.App/Views/Inventory/ProductPriceHistoryView.xaml.vb` | `ProductPriceHistoryView` | Read-only popup window showcasing a premium DataGrid ledger with color-coded price changes. | `ProductPriceHistoryViewModel` (Constructor Injection) |
 | `src/MerchSys.App/Views/Inventory/ShrinkageView.xaml`<br>`src/MerchSys.App/Views/Inventory/ShrinkageView.xaml.vb` | `ShrinkageView` | Shrinkage reporting and analysis interface. | `ShrinkageViewModel` (Constructor Injection) |
-| `src/MerchSys.App/Views/Inventory/StockDashboardView.xaml`<br>`src/MerchSys.App/Views/Inventory/StockDashboardView.xaml.vb` | `StockDashboardView` | Primary inventory tracking dashboard. | `StockDashboardViewModel` (Constructor Injection) |
+| `src/MerchSys.App/Views/Inventory/StockDashboardView.xaml`<br>`src/MerchSys.App/Views/Inventory/StockDashboardView.xaml.vb` | `StockDashboardView` | Primary inventory tracking dashboard. Displays Retail Price, Avg Cost, and FIFO Cost side-by-side (INV-15). | `StockDashboardViewModel` (Constructor Injection) |
 
 ## POS Views
 

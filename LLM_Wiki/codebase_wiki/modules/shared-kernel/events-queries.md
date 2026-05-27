@@ -27,6 +27,7 @@ last-updated: 2026-05-27
 | `Queries/GetInventoryValuationQuery.vb`| `GetInventoryValuationQuery` | `GetInventoryValuationResult`| `AsOfDate` | Inventory |
 | `Queries/GetProductCatalogQuery.vb`| `GetProductCatalogQuery`| `GetProductCatalogResult`| `SearchTerm`, `ProductId` | Inventory |
 | `Queries/GetProductCostQuery.vb` | `GetProductCostQuery` | `GetProductCostResult` | `ProductId` | Inventory |
+| `Queries/GetSaleCogsBreakdownQuery.vb` | `GetSaleCogsBreakdownQuery` | `GetSaleCogsBreakdownResult` | `TransactionId`, `ProductId` | Inventory |
 | `Queries/GetTotalARQuery.vb` | `GetTotalARQuery` | `Decimal` | N/A | POS |
 | `Queries/GetTotalAPQuery.vb` | `GetTotalAPQuery` | `Decimal` | N/A | Purchasing |
 | `Queries/GetLowStockAlertCountQuery.vb` | `GetLowStockAlertCountQuery` | `Integer` | N/A | Inventory |
@@ -40,5 +41,6 @@ last-updated: 2026-05-27
 | `Queries/GetInventoryValuationResult.vb` | `GetInventoryValuationResult` |
 | `Queries/GetProductCatalogResult.vb` | `GetProductCatalogResult` |
 | `Queries/GetProductCostResult.vb` | `GetProductCostResult` |
+| `Queries/GetSaleCogsBreakdownQuery.vb` | `GetSaleCogsBreakdownResult`<br>`SaleCogsLine` |
 | `Queries/GetVatConfigurationResult.vb` | `GetVatConfigurationResult` |
 | `Queries/GetProductsForCatalogQuery.vb` | `ProductLookupDto` |
