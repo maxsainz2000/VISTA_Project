@@ -1,6 +1,6 @@
 ---
 type: dependency-map
-last-updated: 2026-05-26
+last-updated: 2026-05-27
 ---
 
 # NuGet Packages
@@ -18,3 +18,4 @@ Pinned package versions used across the solution.
 | `Microsoft.Extensions.DependencyInjection` | Latest Stable | `MerchSys.App` |
 | `Microsoft.Extensions.Hosting` | Latest Stable | `MerchSys.App` |
 | `Notification.Wpf` | Latest Stable | `MerchSys.App` |
+| `QuestPDF` | `2026.5.0` | `POS`, `Accounting` |

@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.Accounting
 layer: ViewModels
-last-updated: 2026-05-26
+last-updated: 2026-05-27
 ---
 
 # MerchSys.Accounting — ViewModels
@@ -18,7 +18,7 @@ This page details the ViewModel implementations for the **MerchSys.Accounting** 
 | `src/MerchSys.Accounting/ViewModels/SalesSummaryViewModel.vb` | `SalesSummaryViewModel` | ViewModel for the Sales Summary View. Provides Daily/Weekly/Monthly breakdowns by payment method, KPI summary cards, and mandatory interpretation logic. | `ISalesSummaryService`, `IWhatThisMeansService` |
 | `src/MerchSys.Accounting/ViewModels/VatReturnViewModel.vb` | `VatReturnViewModel` | ViewModel for BIR VAT reporting. Manages form state (2550M/Q, 2551Q), triggers generation/filing/amendment, and raises `ExportReady` events for the View to handle file I/O. | `IVatReportingService`, `IVatReturnExporter`, `IWhatThisMeansService` |
 | `src/MerchSys.Accounting/ViewModels/VatReliefReportViewModel.vb` | `VatReliefReportViewModel` | ViewModel for the monthly VAT Relief Report. Manages loading monthly aggregates and trailing-month trends, and generates local plain-language explanations of Net VAT payable/credit status. | `IVatReliefReportService` |
-| `src/MerchSys.Accounting/ViewModels/TamperAuditReportViewModel.vb` | `TamperAuditReportViewModel` | ViewModel for the tamper audit report. Coordinates loading filterable tamper incident lists from the query service and tracks incident distribution statistics for Manager review. | `ITamperAuditQueryService` |
+| `src/MerchSys.Accounting/ViewModels/TamperAuditReportViewModel.vb` | `TamperAuditReportViewModel` | ViewModel for the tamper audit report. Coordinates loading filterable tamper incident lists from the query service, tracks incident distribution statistics for Manager review, and exposes `ExportCsvCommand` and `ExportPdfCommand` for BIR compliance exporting. | `ITamperAuditQueryService`, `ITamperReportExporter`, `IOptions(Of TamperReportExportOptions)` |
 
 ## Support Classes
 

@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.Accounting
 layer: Services
-last-updated: 2026-05-26
+last-updated: 2026-05-27
 ---
 
 # MerchSys.Accounting — Services
@@ -24,4 +24,5 @@ This page details the Service implementations for the **MerchSys.Accounting** mo
 | `src/MerchSys.Accounting/Services/IVatReliefReportService.vb`<br>`src/MerchSys.Accounting/Services/VatReliefReportService.vb` | `IVatReliefReportService`<br>`VatReliefReportService` | BIR VAT Relief Report service. Aggregates monthly three-bucket VAT totals across sales and purchases directly from revenue and expense ledger tables. Supports chronological multi-month trends using a raw SQLite reader workaround. |
 | `src/MerchSys.Accounting/Services/VatReturnExporter.vb` | `IVatReturnExporter`<br>`VatReturnExporter` | BIR Form exporter. Generates CSV for electronic filing and plain-text PDF templates for human-readable output using placeholder substitution. (Note: Interface `IVatReturnExporter` is declared in the same file). |
 | `src/MerchSys.Accounting/Services/ITamperAuditQueryService.vb` | `ITamperAuditQueryService`<br>`TamperAuditQueryService` | Provides read-side access to the tamper audit ledger. Returns incidents ordered by detection date and provides in-memory grouping for incident counts by kind to avoid EF translation edge cases. |
+| `src/MerchSys.Accounting/Services/Reporting/ITamperReportExporter.vb`<br>`src/MerchSys.Accounting/Services/Reporting/TamperReportExporter.vb` | `ITamperReportExporter`<br>`TamperReportExporter` | Tamper report exporter. Generates BIR compliance-friendly CSV (RFC 4180 with UTF-8 BOM) and professional A4 PDF reports (QuestPDF) of tamper incidents with strict no-overwrite protection. Supports the strongly-typed `TamperReportExportOptions` model. |
 | (Resource) | `Reports/Templates/*.template` | Embedded plain-text templates for BIR Forms 2550M, 2550Q, and 2551Q used by the exporter. |

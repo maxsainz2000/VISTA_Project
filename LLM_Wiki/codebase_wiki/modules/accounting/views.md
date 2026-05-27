@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.Accounting
 layer: Views
-last-updated: 2026-05-26
+last-updated: 2026-05-27
 ---
 
 # MerchSys.Accounting — Views
@@ -20,4 +20,4 @@ This page details the Views for the **MerchSys.Accounting** module.
 | `src/MerchSys.App/Views/Accounting/VatReliefReportView.xaml` | `VatReliefReportView` | `.xaml.vb` | Read-only compliance view displaying the monthly VAT Relief Report with side-by-side sales/purchases summaries, large color-coded Net VAT banner, "What This Means" strip, and trailing 12-month trend grid. |
 | `src/MerchSys.App/Views/Accounting/Components/VatPayableTile.xaml` | `VatPayableTile` | `.xaml.vb` | KPI tile for the dashboard displaying current VAT liability and filing deadline with severity-based styling. |
 | `src/MerchSys.Accounting/Debug/VatTileSmokeHarness.vb` | `VatTileSmokeHarness` | (Harness) | `#If DEBUG`-gated E2E smoke harness for VAT tile logic; seeds scratch DB and verifies computed payable values. |
-| `src/MerchSys.App/Views/Accounting/TamperAuditReportView.xaml` | `TamperAuditReportView` | `.xaml.vb` | Read-only compliance view allowing Manager and Owner roles to review filterable receipt tamper incidents. |
+| `src/MerchSys.App/Views/Accounting/TamperAuditReportView.xaml` | `TamperAuditReportView` | `.xaml.vb` | Compliance view allowing Manager and Owner roles to review filterable receipt tamper incidents, with added options to export data to CSV and PDF formats via code-behind `SaveFileDialog` click handlers. |

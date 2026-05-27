@@ -1,6 +1,6 @@
 ---
 type: schema-map
-last-updated: 2026-05-26
+last-updated: 2026-05-27
 ---
 
 # Dependency Injection Registry
@@ -80,6 +80,8 @@ This page documents the composition root in `MerchSys.App`.
 | `IVatReportingService` | `VatReportingService` | Scoped |
 | `IVatReturnExporter` | `VatReturnExporter` | Scoped |
 | `ITamperAuditQueryService` | `TamperAuditQueryService` | Scoped |
+| `ITamperReportExporter` | `TamperReportExporter` | Scoped |
+| `IOptions(Of TamperReportExportOptions)` | (Configuration) | Singleton |
 | `IVatReliefReportService` | `VatReliefReportService` | Scoped |
 | (none) | `FinancialOverviewViewModel` | Transient |
 | (none) | `IncomeStatementViewModel` | Transient |
