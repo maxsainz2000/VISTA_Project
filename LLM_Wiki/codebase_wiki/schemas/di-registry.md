@@ -51,6 +51,7 @@ This page documents the composition root in `MerchSys.App`.
 | (none) | `ExpiryMonitorViewModel` | Transient |
 | (none) | `ShrinkageViewModel` | Transient |
 | `IInventoryAuditService` | `InventoryAuditService` | Scoped |
+| (none) | `ProductPriceHistoryViewModel` | Transient |
 
 ## Purchasing Services
 | Interface | Implementation | Lifetime |
@@ -61,12 +62,14 @@ This page documents the composition root in `MerchSys.App`.
 | `IVendorService` | `VendorService` | Scoped |
 | `IAccountsPayableService` | `AccountsPayableService` | Scoped |
 | `IReorderService` | `ReorderService` | Scoped |
+| `IVendorProductService` | `VendorProductService` | Scoped |
 | (none) | `GoodsReceiptVatCalculator` | Scoped |
 | (none) | `PurchaseOrderListViewModel` | Transient |
 | (none) | `GoodsReceivingViewModel` | Transient |
 | (none) | `VendorListViewModel` | Transient |
 | (none) | `APLedgerViewModel` | Transient |
 | (none) | `ReorderSuggestionsViewModel` | Transient |
+| (none) | `VendorCatalogViewModel` | Transient |
 
 ## Accounting Services
 | Interface | Implementation | Lifetime |
@@ -101,10 +104,12 @@ This page documents the composition root in `MerchSys.App`.
 | `PurchaseOrderListView` | Purchasing | Transient |
 | `GoodsReceivingView` | Purchasing | Transient |
 | `VendorDirectoryView` | Purchasing | Transient |
+| `VendorCatalogView` | Purchasing | Transient |
 | `APLedgerView` | Purchasing | Transient |
 | `ReorderSuggestionsView` | Purchasing | Transient |
 | `StockDashboardView` | Inventory | Transient |
 | `ProductManagementView` | Inventory | Transient |
+| `ProductPriceHistoryView` | Inventory | Transient |
 | `ExpiryMonitorView` | Inventory | Transient |
 | `ShrinkageView` | Inventory | Transient |
 | `FinancialOverviewView` | Accounting | Transient |

@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.App
 layer: UI
-last-updated: 2026-05-26
+last-updated: 2026-05-27
 ---
 
 # MerchSys.App — UI (Views)
@@ -47,6 +47,7 @@ This page details the WPF View implementations (XAML and code-behind) in the **M
 |---|---|---|---|
 | `src/MerchSys.App/Views/Inventory/ExpiryMonitorView.xaml`<br>`src/MerchSys.App/Views/Inventory/ExpiryMonitorView.xaml.vb` | `ExpiryMonitorView` | Expiry monitor dashboard for tracking soon-to-expire products. | `ExpiryMonitorViewModel` (Constructor Injection) |
 | `src/MerchSys.App/Views/Inventory/ProductManagementView.xaml`<br>`src/MerchSys.App/Views/Inventory/ProductManagementView.xaml.vb` | `ProductManagementView` | Product catalog management interface. | `ProductManagementViewModel` (Constructor Injection) |
+| `src/MerchSys.App/Views/Inventory/ProductPriceHistoryView.xaml`<br>`src/MerchSys.App/Views/Inventory/ProductPriceHistoryView.xaml.vb` | `ProductPriceHistoryView` | Read-only popup window showcasing a premium DataGrid ledger with color-coded price changes. | `ProductPriceHistoryViewModel` (Constructor Injection) |
 | `src/MerchSys.App/Views/Inventory/ShrinkageView.xaml`<br>`src/MerchSys.App/Views/Inventory/ShrinkageView.xaml.vb` | `ShrinkageView` | Shrinkage reporting and analysis interface. | `ShrinkageViewModel` (Constructor Injection) |
 | `src/MerchSys.App/Views/Inventory/StockDashboardView.xaml`<br>`src/MerchSys.App/Views/Inventory/StockDashboardView.xaml.vb` | `StockDashboardView` | Primary inventory tracking dashboard. | `StockDashboardViewModel` (Constructor Injection) |
 
@@ -68,6 +69,7 @@ This page details the WPF View implementations (XAML and code-behind) in the **M
 | `src/MerchSys.App/Views/Purchasing/GoodsReceivingView.xaml`<br>`src/MerchSys.App/Views/Purchasing/GoodsReceivingView.xaml.vb` | `GoodsReceivingView` | Goods receiving interface for inbound shipments. | `GoodsReceivingViewModel` (Constructor Injection) |
 | `src/MerchSys.App/Views/Purchasing/PurchaseOrderListView.xaml`<br>`src/MerchSys.App/Views/Purchasing/PurchaseOrderListView.xaml.vb` | `PurchaseOrderListView` | Active and historical purchase orders tracking. | `PurchaseOrderListViewModel` (Constructor Injection) |
 | `src/MerchSys.App/Views/Purchasing/ReorderSuggestionsView.xaml`<br>`src/MerchSys.App/Views/Purchasing/ReorderSuggestionsView.xaml.vb` | `ReorderSuggestionsView` | Automated reorder suggestions based on velocity. | `ReorderSuggestionsViewModel` (Constructor Injection) |
+| `src/MerchSys.App/Views/Purchasing/VendorCatalogView.xaml`<br>`src/MerchSys.App/Views/Purchasing/VendorCatalogView.xaml.vb` | `VendorCatalogView` | Master-detail catalog editor interface allowing Managers to manage vendor products. | `VendorCatalogViewModel` (Constructor Injection) |
 | `src/MerchSys.App/Views/Purchasing/VendorDirectoryView.xaml`<br>`src/MerchSys.App/Views/Purchasing/VendorDirectoryView.xaml.vb` | `VendorDirectoryView` | Vendor catalog and contact management. | `VendorListViewModel` (Constructor Injection) |
 ## SQL Resources
 

@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.Inventory
 layer: Handlers
-last-updated: 2026-05-09
+last-updated: 2026-05-27
 ---
 
 # MerchSys.Inventory — Handlers
@@ -26,4 +26,5 @@ This page details the MediatR Handlers for the **MerchSys.Inventory** module.
 | `src/MerchSys.Inventory/Handlers/GetProductCatalogQueryHandler.vb` | `GetProductCatalogQueryHandler` | `GetProductCatalogQuery` | Returns active products with stock levels for POS search; filters by SearchTerm/ProductId. |
 | `src/MerchSys.Inventory/Handlers/GetProductCostQueryHandler.vb` | `GetProductCostQueryHandler` | `GetProductCostQuery` | Returns current FIFO unit cost (oldest available non-expired batch) for a product. |
 | `src/MerchSys.Inventory/Handlers/GetLowStockAlertCountQueryHandler.vb` | `GetLowStockAlertCountQueryHandler` | `GetLowStockAlertCountQuery` | Returns count of active low-stock alerts via `LowStockAlertService`. |
+| `src/MerchSys.Inventory/Handlers/GetProductsForCatalogQueryHandler.vb` | `GetProductsForCatalogQueryHandler` | `GetProductsForCatalogQuery` | Handles query for populating vendor catalog selection list by querying active products using a raw SQLite connection. |
 

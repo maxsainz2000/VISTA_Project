@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.Purchasing
 layer: Views
-last-updated: 2026-05-05
+last-updated: 2026-05-27
 ---
 
 # MerchSys.Purchasing — Views & ViewModels
@@ -18,3 +18,4 @@ This page details the Presentation layer (Views and ViewModels) for the **MerchS
 | `src/MerchSys.App/Views/Purchasing/VendorDirectoryView.xaml`<br>`src/MerchSys.App/Views/Purchasing/VendorDirectoryView.xaml.vb` | `src/MerchSys.Purchasing/ViewModels/VendorListViewModel.vb`<br>`src/MerchSys.Purchasing/ViewModels/VendorEditorViewModel.vb` | WPF View and ViewModels for vendor management. Provides a full vendor directory with real-time search, inline create/edit panel with 8-field form validation (Name, Contact, Phone, Email, Address, Lead Time, Notes), and a detail panel showing purchase history (total spent, average lead time) and last 10 recent orders. |
 | `src/MerchSys.App/Views/Purchasing/APLedgerView.xaml`<br>`src/MerchSys.App/Views/Purchasing/APLedgerView.xaml.vb` | `src/MerchSys.Purchasing/ViewModels/APLedgerViewModel.vb` | WPF View and ViewModel for accounts payable management. Provides a full AP ledger with status filtering (All, Outstanding, Overdue, Paid), vendor-specific filtering, and overdue row highlighting. Supports recording payments via an inline dialog with balance validation. |
 | `src/MerchSys.App/Views/Purchasing/ReorderSuggestionsView.xaml`<br>`src/MerchSys.App/Views/Purchasing/ReorderSuggestionsView.xaml.vb` | `src/MerchSys.Purchasing/ViewModels/ReorderSuggestionsViewModel.vb` | WPF View and ViewModel for reviewing reorder suggestions. Supports generating suggestions, status filtering (Pending, Accepted, Dismissed), and bulk/single acceptance (auto-creates draft POs). Includes a secondary tab for editing per-product reorder configuration (thresholds, safety stock, seasonal multipliers). |
+| `src/MerchSys.App/Views/Purchasing/VendorCatalogView.xaml`<br>`src/MerchSys.App/Views/Purchasing/VendorCatalogView.xaml.vb` | `src/MerchSys.Purchasing/ViewModels/VendorCatalogViewModel.vb` | Manager-only master-detail catalog editor interface for managing vendor-product catalog entries. Supports adding products (via a search dialog powered by `GetProductsForCatalogQuery`), updating last unit cost, updating notes, and soft-deleting catalog entries. |

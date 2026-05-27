@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.Purchasing
 layer: Entities
-last-updated: 2026-05-05
+last-updated: 2026-05-27
 ---
 
 # MerchSys.Purchasing — Entities
@@ -22,3 +22,4 @@ This page details the Entities for the **MerchSys.Purchasing** module.
 | `src/MerchSys.Purchasing/Entities/ReorderConfig.vb` | `ReorderConfig` | `AuditableEntity` | ProductId, ProductName, PreferredVendorId (nullable FK → Vendor), MinimumThreshold, SafetyStock, DefaultOrderQuantity, LeadTimeDays, IsSeasonalItem, SeasonalMultiplier, IsActive. |
 | `src/MerchSys.Purchasing/Entities/ReorderSuggestion.vb` | `ReorderSuggestion` | `AuditableEntity` | ProductId, ProductName, CurrentStock, ReorderPoint, SuggestedQuantity, PreferredVendorId, PreferredVendorName, EstimatedLeadTimeDays, IsSeasonalAdjusted, Status ("Pending"/"Accepted"/"Dismissed"), ConvertedToPOId (nullable FK). |
 | `src/MerchSys.Purchasing/Entities/PriceChangeAlert.vb` | `PriceChangeAlert` | `AuditableEntity` | ProductId, ProductName, VendorId, VendorName, PreviousUnitCost, NewUnitCost, ChangePercent (rounded to 4 dp), ChangeDirection ("Increase"/"Decrease"), GoodsReceiptId (FK to triggering receipt), IsAcknowledged, AcknowledgedAt (nullable). |
+| `src/MerchSys.Purchasing/Entities/VendorProduct.vb` | `VendorProduct` | `SoftDeletableEntity` | VendorId, ProductId, ProductName, LastUnitCost, Notes. Represents a product supplied by a specific vendor with its last recorded unit cost. |

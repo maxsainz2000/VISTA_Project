@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.Inventory
 layer: Entities
-last-updated: 2026-05-09
+last-updated: 2026-05-27
 ---
 
 # MerchSys.Inventory — Entities
@@ -21,3 +21,4 @@ This page details the Entities for the **MerchSys.Inventory** module.
 | `src/MerchSys.Inventory/Entities/StockAlertConfig.vb` | `StockAlertConfig` | `AuditableEntity` | Alert config: `MinimumThreshold`, `ExpiryAlertDays`, `IsAlertEnabled`. |
 | `src/MerchSys.Inventory/Entities/StockBatch.vb` | `StockBatch` | `AuditableEntity` | FIFO core: `QuantityReceived`, `QuantityRemaining`, `UnitCost`, `ReceiptDate`, `ExpiryDate`, `IsExpired`, `IsFullyConsumed`. |
 | `src/MerchSys.Inventory/Entities/StockMovement.vb` | `StockMovement` | `AuditableEntity` | Change log: `ProductId`, `MovementType`, `Quantity`, `OccurredAt`. Enables windowed velocity queries. |
+| `src/MerchSys.Inventory/Entities/ProductPriceHistory.vb` | `ProductPriceHistory` | `Entity` | ProductId, OldPrice, NewPrice, ChangedAt, ChangedBy, Reason. Represents an append-only retail price change history record for a product. |

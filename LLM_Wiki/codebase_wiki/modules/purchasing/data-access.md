@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.Purchasing
 layer: Data Access
-last-updated: 2026-05-09
+last-updated: 2026-05-27
 ---
 
 # MerchSys.Purchasing — Data Access
@@ -29,8 +29,10 @@ Configures the `PurchasingDbContext` with EF Core entity configurations for all 
 | `src/MerchSys.Purchasing/Data/Configurations/ReorderConfigConfiguration.vb` | `ReorderConfigConfiguration` | Table: `Pur_ReorderConfigs`. Unique index on ProductId, nullable FK PreferredVendorId → Pur_Vendors (SetNull on delete). |
 | `src/MerchSys.Purchasing/Data/Configurations/ReorderSuggestionConfiguration.vb` | `ReorderSuggestionConfiguration` | Table: `Pur_ReorderSuggestions`. Composite index on (ProductId, Status). |
 | `src/MerchSys.Purchasing/Data/Configurations/PriceChangeAlertConfiguration.vb` | `PriceChangeAlertConfiguration` | Table: `Pur_PriceChangeAlerts`. precision(18,4) on PreviousUnitCost, NewUnitCost, ChangePercent. Indexes on IsAcknowledged and ProductId. |
+| `src/MerchSys.Purchasing/Data/Configurations/VendorProductConfiguration.vb` | `VendorProductConfiguration` | Table: `Pur_VendorProducts`. Unique composite index on `(VendorId, ProductId)` filtered to `IsDeleted = 0`. Cascade `Restrict` to Vendor. |
 | `src/MerchSys.Purchasing/Data/SeedData/PurchasingSeedData.vb` | `PurchasingSeedData` | Seeds 3 sample vendors: AgriChem Supplies, FarmFresh Seeds Corp., Golden Feeds Trading. |
 | `src/MerchSys.Purchasing/Migrations/20260507100001_InitialPurchasing.vb` | `InitialPurchasing` | Manual EF Core migration (Sqlite) for 9 Purchasing tables and seed data. |
 | `src/MerchSys.Purchasing/Data/Migrations/AddGoodsReceiptLineVatColumns.vb` | `AddGoodsReceiptLineVatColumns` | Manual EF Core migration adding per-line VAT columns to Pur_GoodsReceiptLines. |
+| `src/MerchSys.Purchasing/Migrations/20260527110000_AddVendorProductCatalog.vb` | `AddVendorProductCatalog` | Manual EF Core migration establishing the `Pur_VendorProducts` table and index on application startup. |
 | `src/MerchSys.Purchasing/Migrations/PurchasingDbContextModelSnapshot.vb` | `PurchasingDbContextModelSnapshot` | EF Core model snapshot for the Purchasing module. |
 

@@ -1,6 +1,6 @@
 ---
 type: schema-map
-last-updated: 2026-05-15
+last-updated: 2026-05-27
 ---
 
 # Database Schema Mapping
@@ -35,6 +35,7 @@ This page maps the EF Core entities across all modules to their SQLite/MariaDB t
 | `ReorderConfig` | `Pur_ReorderConfigs` | PK `Id`, Unique Index on `ProductId`, Index on `IsActive` |
 | `ReorderSuggestion` | `Pur_ReorderSuggestions` | PK `Id`, Index on `Status`, Index on `ProductId`+`Status` |
 | `PriceChangeAlert` | `Pur_PriceChangeAlerts` | PK `Id`, Index on `IsAcknowledged`, Index on `ProductId` |
+| `VendorProduct` | `Pur_VendorProducts` | PK `Id`, Unique Index `(VendorId, ProductId)` where `IsDeleted = 0`, FK `VendorId` |
 
 ## MerchSys.Inventory (`Inv_` prefix)
 | Entity | DB Table | Key Constraints |
@@ -46,6 +47,7 @@ This page maps the EF Core entities across all modules to their SQLite/MariaDB t
 | `StockAlertConfig` | `Inv_StockAlertConfigs` | PK `Id` |
 | `StockMovement` | `Inv_StockMovements` | PK `Id`, Composite Index (`ProductId`, `OccurredAt`) |
 | `StockAuditRecord` | `Inv_StockAuditRecords` | PK `Id`, FK `ProductId` -> `Inv_Products`, Index on `AuditedAt` |
+| `ProductPriceHistory` | `Inv_ProductPriceHistory` | PK `Id`, Composite Index `(ProductId, ChangedAt DESC)`, FK `ProductId` |
 
 ## MerchSys.Accounting (`Acc_` prefix)
 | Entity | DB Table | Key Constraints |
