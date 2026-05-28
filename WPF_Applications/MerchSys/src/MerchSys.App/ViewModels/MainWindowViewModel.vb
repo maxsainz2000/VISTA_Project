@@ -4,7 +4,6 @@ Imports CommunityToolkit.Mvvm.Input
 Imports Microsoft.Extensions.DependencyInjection
 Imports MerchSys.App.Models
 Imports MerchSys.App.Services
-Imports MerchSys.App.ViewModels.Shell
 Imports MerchSys.SharedKernel.Enums
 Imports MerchSys.SharedKernel.Interfaces
 
@@ -16,16 +15,13 @@ Namespace ViewModels
         Private ReadOnly _services As IServiceProvider
         Private ReadOnly _session As ISessionService
         Private ReadOnly _loginSession As LoginSessionService
-        Private _activeItem As NavigationItem
 
-        Private ReadOnly _syncStatusIndicator As SyncStatusIndicatorViewModel
-        Public ReadOnly Property SyncStatusIndicator As SyncStatusIndicatorViewModel
-            Get
-                Return _syncStatusIndicator
-            End Get
-        End Property
-
+        Private _activeNavItem As NavigationItem
         Private _currentView As Object
+        Private _activeModule As AppModule = AppModule.Inventory
+
+        ' ── Current view ─────────────────────────────────────────────────────────
+
         Public Property CurrentView As Object
             Get
                 Return _currentView
@@ -35,81 +31,144 @@ Namespace ViewModels
             End Set
         End Property
 
-        ''' <summary>Display name of the currently authenticated user for the shell header.</summary>
+        ' ── Session display ──────────────────────────────────────────────────────
+
+        ''' <summary>Display name of the currently authenticated user.</summary>
         Public ReadOnly Property CurrentUsername As String
             Get
                 Return _session.CurrentUsername
             End Get
         End Property
 
-        ''' <summary>Role string for the shell header (e.g. "Manager", "Owner").</summary>
+        ''' <summary>Role string for the sidebar (e.g. "Manager", "Owner").</summary>
         Public ReadOnly Property CurrentRoleDisplay As String
             Get
                 Return _session.CurrentRole.ToString()
             End Get
         End Property
 
-        Public ReadOnly Property NavigationGroups As ObservableCollection(Of NavigationGroup)
-        Public ReadOnly Property NavigateCommand As RelayCommand(Of NavigationItem)
-        Public ReadOnly Property LogoutCommand As RelayCommand
+        ' ── Active module ────────────────────────────────────────────────────────
 
         ''' <summary>
-        ''' Raised when the user clicks Log Out. Application.xaml.vb handles hiding MainWindow
-        ''' and showing a fresh LoginView.
+        ''' The module currently selected in the Activity Rail.
+        ''' Changing this updates ActiveModuleName and ActiveModuleItems.
         ''' </summary>
+        Public Property ActiveModule As AppModule
+            Get
+                Return _activeModule
+            End Get
+            Set(value As AppModule)
+                If SetProperty(_activeModule, value) Then
+                    OnPropertyChanged(NameOf(ActiveModuleName))
+                    RebuildActiveModuleItems()
+                End If
+            End Set
+        End Property
+
+        ''' <summary>Display name for the active module header in the Module Detail Panel.</summary>
+        Public ReadOnly Property ActiveModuleName As String
+            Get
+                Select Case _activeModule
+                    Case AppModule.Purchasing : Return "Purchasing"
+                    Case AppModule.Inventory : Return "Inventory"
+                    Case AppModule.POS : Return "Point of Sale"
+                    Case AppModule.Accounting : Return "Accounting"
+                    Case AppModule.DeveloperTools : Return "Developer Tools"
+                    Case Else : Return String.Empty
+                End Select
+            End Get
+        End Property
+
+        ' ── Per-module navigation items ──────────────────────────────────────────
+
+        Public ReadOnly Property PurchasingItems As ObservableCollection(Of NavigationItem)
+        Public ReadOnly Property InventoryItems As ObservableCollection(Of NavigationItem)
+        Public ReadOnly Property PosItems As ObservableCollection(Of NavigationItem)
+        Public ReadOnly Property AccountingItems As ObservableCollection(Of NavigationItem)
+        Public ReadOnly Property DeveloperToolsItems As ObservableCollection(Of NavigationItem)
+
+        ' Legacy flat-group collection (kept for reference; new UI uses per-module collections above)
+        Public ReadOnly Property NavigationGroups As ObservableCollection(Of NavigationGroup)
+
+        ' ── Commands ─────────────────────────────────────────────────────────────
+
+        Public ReadOnly Property NavigateCommand As RelayCommand(Of NavigationItem)
+        Public ReadOnly Property SelectModuleCommand As RelayCommand(Of AppModule)
+        Public ReadOnly Property LogoutCommand As RelayCommand
+
+        ''' <summary>Raised when the user clicks Log Out.</summary>
         Public Event LogoutRequested As EventHandler
 
+        ' ── Constructor ──────────────────────────────────────────────────────────
+
         Public Sub New(services As IServiceProvider, session As ISessionService,
-                       loginSession As LoginSessionService,
-                       syncStatusIndicator As SyncStatusIndicatorViewModel)
+                       loginSession As LoginSessionService)
             _services = services
             _session = session
             _loginSession = loginSession
-            _syncStatusIndicator = syncStatusIndicator
+
+            PurchasingItems = New ObservableCollection(Of NavigationItem)()
+            InventoryItems = New ObservableCollection(Of NavigationItem)()
+            PosItems = New ObservableCollection(Of NavigationItem)()
+            AccountingItems = New ObservableCollection(Of NavigationItem)()
+            DeveloperToolsItems = New ObservableCollection(Of NavigationItem)()
             NavigationGroups = New ObservableCollection(Of NavigationGroup)(BuildNavigationGroups())
+
             NavigateCommand = New RelayCommand(Of NavigationItem)(AddressOf Navigate)
+            SelectModuleCommand = New RelayCommand(Of AppModule)(AddressOf DoSelectModule)
             LogoutCommand = New RelayCommand(AddressOf DoLogout)
+
+            RebuildModuleCollections()
         End Sub
+
+        ' ── Navigation ───────────────────────────────────────────────────────────
 
         Private Sub Navigate(item As NavigationItem)
             If item Is Nothing Then Return
-            If _activeItem IsNot Nothing Then _activeItem.IsActive = False
-            _activeItem = item
-            _activeItem.IsActive = True
+            If _activeNavItem IsNot Nothing Then _activeNavItem.IsActive = False
+            _activeNavItem = item
+            _activeNavItem.IsActive = True
             CurrentView = _services.GetRequiredService(item.ViewType)
         End Sub
 
-        ''' <summary>
-        ''' Navigates to the role-appropriate default landing page.
-        ''' Owner → OwnerDashboardView; Manager → StockDashboardView (unchanged).
-        ''' </summary>
+        ''' <summary>Navigate to the role-appropriate default landing page.</summary>
         Public Sub NavigateToDefault()
             If _session.CurrentRole = UserRole.Owner Then
-                Dim ownerItem = NavigationGroups _
-                    .SelectMany(Function(g) g.Items) _
-                    .FirstOrDefault(Function(i) i.ViewType = GetType(Views.OwnerDashboardView))
-                If ownerItem IsNot Nothing Then Navigate(ownerItem)
+                ActiveModule = AppModule.Accounting
+                Dim item = AccountingItems.FirstOrDefault(
+                    Function(i) i.ViewType = GetType(Views.Accounting.FinancialOverviewView))
+                If item IsNot Nothing Then Navigate(item)
             Else
-                Dim defaultItem = NavigationGroups _
-                    .SelectMany(Function(g) g.Items) _
-                    .FirstOrDefault(Function(i) i.ViewType = GetType(Views.Inventory.StockDashboardView))
-                If defaultItem IsNot Nothing Then Navigate(defaultItem)
+                ActiveModule = AppModule.Inventory
+                Dim item = InventoryItems.FirstOrDefault(
+                    Function(i) i.ViewType = GetType(Views.Inventory.StockDashboardView))
+                If item IsNot Nothing Then Navigate(item)
             End If
         End Sub
 
         ''' <summary>
-        ''' Rebuilds navigation groups using the current session role and notifies the shell
-        ''' so role-specific items correctly reflect the newly authenticated user.
+        ''' Rebuilds all navigation for the current role and resets state.
+        ''' Call after login to reflect the newly authenticated user.
         ''' </summary>
         Public Sub RefreshNavigation()
             NavigationGroups.Clear()
             For Each grp In BuildNavigationGroups()
                 NavigationGroups.Add(grp)
             Next
+            RebuildModuleCollections()
             OnPropertyChanged(NameOf(CurrentUsername))
             OnPropertyChanged(NameOf(CurrentRoleDisplay))
-            _activeItem = Nothing
+            _activeNavItem = Nothing
             CurrentView = Nothing
+        End Sub
+
+        Private Sub DoSelectModule(m As AppModule)
+            ActiveModule = m
+            ' Navigate to first item in the newly selected module
+            Dim items = GetItemsForModule(m)
+            If items IsNot Nothing AndAlso items.Count > 0 Then
+                Navigate(items(0))
+            End If
         End Sub
 
         Private Sub DoLogout()
@@ -117,109 +176,130 @@ Namespace ViewModels
             RaiseEvent LogoutRequested(Me, EventArgs.Empty)
         End Sub
 
-        ''' <summary>
-        ''' Dispatches to role-specific navigation builders.
-        ''' Owner sees a read-only subset; Manager sees the full operational sidebar.
-        ''' Derived from system plan Section 7 access matrix.
-        ''' </summary>
-        Private Function BuildNavigationGroups() As List(Of NavigationGroup)
+        ' ── Module collection builders ────────────────────────────────────────────
+
+        Private Sub RebuildModuleCollections()
+            RebuildCollection(PurchasingItems, BuildRoleAwarePurchasingItems())
+            RebuildCollection(InventoryItems, BuildRoleAwareInventoryItems())
+            RebuildCollection(PosItems, BuildRoleAwarePosItems())
+            RebuildCollection(AccountingItems, BuildRoleAwareAccountingItems())
+            RebuildCollection(DeveloperToolsItems, BuildDeveloperToolsItems())
+        End Sub
+
+        Private Sub RebuildActiveModuleItems()
+            ' No-op — the per-module collections don't change when the active module changes.
+            ' Module panels bind directly to PurchasingItems / InventoryItems etc.
+        End Sub
+
+        Private Shared Sub RebuildCollection(target As ObservableCollection(Of NavigationItem),
+                                              sourceList As List(Of NavigationItem))
+            target.Clear()
+            For Each itm In sourceList
+                target.Add(itm)
+            Next
+        End Sub
+
+        Private Function GetItemsForModule(m As AppModule) As ObservableCollection(Of NavigationItem)
+            Select Case m
+                Case AppModule.Purchasing : Return PurchasingItems
+                Case AppModule.Inventory : Return InventoryItems
+                Case AppModule.POS : Return PosItems
+                Case AppModule.Accounting : Return AccountingItems
+                Case AppModule.DeveloperTools : Return DeveloperToolsItems
+                Case Else : Return Nothing
+            End Select
+        End Function
+
+        ' ── Role-aware nav item builders ─────────────────────────────────────────
+
+        Private Function BuildRoleAwarePurchasingItems() As List(Of NavigationItem)
             If _session.CurrentRole = UserRole.Owner Then
-                Return BuildOwnerNavigationGroups()
-            End If
-            Return BuildManagerNavigationGroups()
-        End Function
-
-        ''' <summary>
-        ''' Manager navigation — full operational access (unchanged from prior implementation).
-        ''' </summary>
-        Private Function BuildManagerNavigationGroups() As List(Of NavigationGroup)
-            Dim groups = New List(Of NavigationGroup) From {
-                New NavigationGroup("Point of Sale", BuildPosNavItems()),
-                New NavigationGroup("Purchasing", New List(Of NavigationItem) From {
-                    New NavigationItem With {.DisplayName = "Purchase Orders", .ViewType = GetType(Views.Purchasing.PurchaseOrderListView)},
-                    New NavigationItem With {.DisplayName = "Goods Receiving", .ViewType = GetType(Views.Purchasing.GoodsReceivingView)},
-                    New NavigationItem With {.DisplayName = "Vendor Directory", .ViewType = GetType(Views.Purchasing.VendorDirectoryView)},
-                    New NavigationItem With {.DisplayName = "Vendor Product Catalog", .ViewType = GetType(Views.Purchasing.VendorCatalogView)},
-                    New NavigationItem With {.DisplayName = "Accounts Payable", .ViewType = GetType(Views.Purchasing.APLedgerView)},
-                    New NavigationItem With {.DisplayName = "Reorder Suggestions", .ViewType = GetType(Views.Purchasing.ReorderSuggestionsView)}
-                }),
-                New NavigationGroup("Inventory", New List(Of NavigationItem) From {
-                    New NavigationItem With {.DisplayName = "Stock Dashboard", .ViewType = GetType(Views.Inventory.StockDashboardView)},
-                    New NavigationItem With {.DisplayName = "Product Management", .ViewType = GetType(Views.Inventory.ProductManagementView)},
-                    New NavigationItem With {.DisplayName = "Expiry Monitor", .ViewType = GetType(Views.Inventory.ExpiryMonitorView)},
-                    New NavigationItem With {.DisplayName = "Shrinkage", .ViewType = GetType(Views.Inventory.ShrinkageView)}
-                }),
-                New NavigationGroup("Accounting", BuildAccountingNavItems())
-            }
-#If DEBUG Then
-            ' Developer Tools group — visible only in Debug configuration (ACC-17).
-            groups.Add(New NavigationGroup("Developer Tools", New List(Of NavigationItem) From {
-                New NavigationItem With {
-                    .DisplayName = "Run VAT Schema Harness",
-                    .ViewType = GetType(Views.Debug.DebugMenuView)
-                }
-            }))
-#End If
-            Return groups
-        End Function
-
-        ''' <summary>
-        ''' Owner navigation — read-only subset per system plan Section 7.
-        ''' Owner Dashboard is the landing page; CRUD and operational views are excluded.
-        ''' No Developer Tools, VAT Settings, VAT Return, Goods Receiving, Vendor Directory,
-        ''' Reorder Suggestions, Product Management, Expiry Monitor, Shrinkage, Tamper Audit.
-        ''' </summary>
-        Private Function BuildOwnerNavigationGroups() As List(Of NavigationGroup)
-            Return New List(Of NavigationGroup) From {
-                New NavigationGroup("Owner Dashboard", New List(Of NavigationItem) From {
-                    New NavigationItem With {.DisplayName = "KPI Overview", .ViewType = GetType(Views.OwnerDashboardView)}
-                }),
-                New NavigationGroup("Point of Sale", New List(Of NavigationItem) From {
-                    New NavigationItem With {.DisplayName = "Transaction History", .ViewType = GetType(Views.POS.TransactionHistoryView)}
-                }),
-                New NavigationGroup("Purchasing", New List(Of NavigationItem) From {
+                Return New List(Of NavigationItem) From {
                     New NavigationItem With {.DisplayName = "Purchase Orders", .ViewType = GetType(Views.Purchasing.PurchaseOrderListView)},
                     New NavigationItem With {.DisplayName = "Accounts Payable", .ViewType = GetType(Views.Purchasing.APLedgerView)}
-                }),
-                New NavigationGroup("Inventory", New List(Of NavigationItem) From {
-                    New NavigationItem With {.DisplayName = "Stock Dashboard", .ViewType = GetType(Views.Inventory.StockDashboardView)}
-                }),
-                New NavigationGroup("Accounting", New List(Of NavigationItem) From {
-                    New NavigationItem With {.DisplayName = "Financial Overview", .ViewType = GetType(Views.Accounting.FinancialOverviewView)},
-                    New NavigationItem With {.DisplayName = "Income Statement", .ViewType = GetType(Views.Accounting.IncomeStatementView)},
-                    New NavigationItem With {.DisplayName = "Sales Summary", .ViewType = GetType(Views.Accounting.SalesSummaryView)},
-                    New NavigationItem With {.DisplayName = "VAT Relief Report", .ViewType = GetType(Views.Accounting.VatReliefReportView)}
-                })
+                }
+            End If
+            Return New List(Of NavigationItem) From {
+                New NavigationItem With {.DisplayName = "Purchase Orders", .ViewType = GetType(Views.Purchasing.PurchaseOrderListView)},
+                New NavigationItem With {.DisplayName = "Goods Receiving", .ViewType = GetType(Views.Purchasing.GoodsReceivingView)},
+                New NavigationItem With {.DisplayName = "Vendor Directory", .ViewType = GetType(Views.Purchasing.VendorDirectoryView)},
+                New NavigationItem With {.DisplayName = "Vendor Product Catalog", .ViewType = GetType(Views.Purchasing.VendorCatalogView)},
+                New NavigationItem With {.DisplayName = "Accounts Payable", .ViewType = GetType(Views.Purchasing.APLedgerView)},
+                New NavigationItem With {.DisplayName = "Reorder Suggestions", .ViewType = GetType(Views.Purchasing.ReorderSuggestionsView)}
             }
         End Function
 
-        Private Function BuildPosNavItems() As List(Of NavigationItem)
+        Private Function BuildRoleAwareInventoryItems() As List(Of NavigationItem)
+            If _session.CurrentRole = UserRole.Owner Then
+                Return New List(Of NavigationItem) From {
+                    New NavigationItem With {.DisplayName = "Stock Dashboard", .ViewType = GetType(Views.Inventory.StockDashboardView)}
+                }
+            End If
+            Return New List(Of NavigationItem) From {
+                New NavigationItem With {.DisplayName = "Stock Dashboard", .ViewType = GetType(Views.Inventory.StockDashboardView)},
+                New NavigationItem With {.DisplayName = "Product Management", .ViewType = GetType(Views.Inventory.ProductManagementView)},
+                New NavigationItem With {.DisplayName = "Expiry Monitor", .ViewType = GetType(Views.Inventory.ExpiryMonitorView)},
+                New NavigationItem With {.DisplayName = "Shrinkage", .ViewType = GetType(Views.Inventory.ShrinkageView)}
+            }
+        End Function
+
+        Private Function BuildRoleAwarePosItems() As List(Of NavigationItem)
             Dim items As New List(Of NavigationItem) From {
                 New NavigationItem With {.DisplayName = "Sales Cart", .ViewType = GetType(Views.POS.SalesCartView)},
                 New NavigationItem With {.DisplayName = "Credit Management", .ViewType = GetType(Views.POS.CreditManagementView)},
                 New NavigationItem With {.DisplayName = "Transaction History", .ViewType = GetType(Views.POS.TransactionHistoryView)},
                 New NavigationItem With {.DisplayName = "Daily Summary", .ViewType = GetType(Views.POS.DailySummaryView)}
             }
-            ' INT-02 convention (type-based NavigationItem); Manager-only per OWASP DA financial config access rules
             If _session.CurrentRole = UserRole.Manager Then
                 items.Add(New NavigationItem With {.DisplayName = "VAT Settings", .ViewType = GetType(Views.POS.VatSettingsView)})
+            End If
+            If _session.CurrentRole = UserRole.Owner Then
+                Return New List(Of NavigationItem) From {
+                    New NavigationItem With {.DisplayName = "Transaction History", .ViewType = GetType(Views.POS.TransactionHistoryView)}
+                }
             End If
             Return items
         End Function
 
-        Private Function BuildAccountingNavItems() As List(Of NavigationItem)
+        Private Function BuildRoleAwareAccountingItems() As List(Of NavigationItem)
             Dim items As New List(Of NavigationItem) From {
                 New NavigationItem With {.DisplayName = "Financial Overview", .ViewType = GetType(Views.Accounting.FinancialOverviewView)},
                 New NavigationItem With {.DisplayName = "Income Statement", .ViewType = GetType(Views.Accounting.IncomeStatementView)},
                 New NavigationItem With {.DisplayName = "Sales Summary", .ViewType = GetType(Views.Accounting.SalesSummaryView)},
-                New NavigationItem With {.DisplayName = "Tamper Audit Report", .ViewType = GetType(Views.Accounting.TamperAuditReportView)},
                 New NavigationItem With {.DisplayName = "VAT Relief Report", .ViewType = GetType(Views.Accounting.VatReliefReportView)}
             }
-            ' INT-02 convention (type-based NavigationItem); view source ACC-11; Manager-only per BIR access rules
             If _session.CurrentRole = UserRole.Manager Then
+                items.Add(New NavigationItem With {.DisplayName = "Tamper Audit Report", .ViewType = GetType(Views.Accounting.TamperAuditReportView)})
                 items.Add(New NavigationItem With {.DisplayName = "VAT Return (BIR)", .ViewType = GetType(Views.Accounting.VatReturnView)})
             End If
             Return items
+        End Function
+
+        Private Function BuildDeveloperToolsItems() As List(Of NavigationItem)
+#If DEBUG Then
+            Return New List(Of NavigationItem) From {
+                New NavigationItem With {.DisplayName = "Run VAT Schema Harness", .ViewType = GetType(Views.Debug.DebugMenuView)}
+            }
+#Else
+            Return New List(Of NavigationItem)()
+#End If
+        End Function
+
+        ' ── Legacy group builder (kept for compatibility) ─────────────────────────
+
+        Private Function BuildNavigationGroups() As List(Of NavigationGroup)
+            Dim groups = New List(Of NavigationGroup) From {
+                New NavigationGroup("Purchasing", BuildRoleAwarePurchasingItems()),
+                New NavigationGroup("Inventory", BuildRoleAwareInventoryItems()),
+                New NavigationGroup("Point of Sale", BuildRoleAwarePosItems()),
+                New NavigationGroup("Accounting", BuildRoleAwareAccountingItems())
+            }
+#If DEBUG Then
+            If _session.CurrentRole = UserRole.Manager Then
+                groups.Add(New NavigationGroup("Developer Tools", BuildDeveloperToolsItems()))
+            End If
+#End If
+            Return groups
         End Function
 
     End Class

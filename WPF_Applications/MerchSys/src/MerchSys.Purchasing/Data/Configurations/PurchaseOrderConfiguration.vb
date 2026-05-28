@@ -28,6 +28,11 @@ Namespace Data.Configurations
                     WithOne(Function(gr) gr.PurchaseOrder).
                     HasForeignKey(Function(gr) gr.PurchaseOrderId).
                     OnDelete(DeleteBehavior.Cascade)
+
+            builder.Property(Function(e) e.RowVersion).
+                IsRowVersion().
+                HasColumnType("TIMESTAMP(6)").
+                ValueGeneratedOnAddOrUpdate()
         End Sub
 
     End Class

@@ -1,4 +1,4 @@
-Imports Microsoft.Data.Sqlite
+Imports MySqlConnector
 Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.POS.Data
 Imports MerchSys.POS.Entities
@@ -41,15 +41,15 @@ Namespace Services
             _buildDailyTxList = New List(Of SalesTransaction)()
             _buildDailyRetList = New List(Of SalesReturn)()
             Dim dsConnStr = _context.Database.GetConnectionString()
-            Using dsConn As New SqliteConnection(dsConnStr)
+            Using dsConn As New MySqlConnection(dsConnStr)
                 Await dsConn.OpenAsync()
                 Using dsCmd = dsConn.CreateCommand()
                     dsCmd.CommandText = "SELECT Id, TransactionDate, PaymentMethod, TotalAmount " &
                                          "FROM Pos_SalesTransactions " &
                                          "WHERE TransactionDate >= @start AND TransactionDate <= @end " &
                                          "AND IsVoided = 0 AND IsDeleted = 0"
-                    dsCmd.Parameters.Add(New SqliteParameter("@start", dayStart.ToString("o")))
-                    dsCmd.Parameters.Add(New SqliteParameter("@end", dayEnd.ToString("o")))
+                    dsCmd.Parameters.Add(New MySqlParameter("@start", dayStart.ToString("o")))
+                    dsCmd.Parameters.Add(New MySqlParameter("@end", dayEnd.ToString("o")))
                     Using dsReader = dsCmd.ExecuteReader()
                         While dsReader.Read()
                             _buildDailyTxList.Add(New SalesTransaction With {
@@ -91,8 +91,8 @@ Namespace Services
                 Using retCmd = dsConn.CreateCommand()
                     retCmd.CommandText = "SELECT ReturnDate, RefundAmount FROM Pos_SalesReturns " &
                                           "WHERE ReturnDate >= @start AND ReturnDate <= @end"
-                    retCmd.Parameters.Add(New SqliteParameter("@start", dayStart.ToString("o")))
-                    retCmd.Parameters.Add(New SqliteParameter("@end", dayEnd.ToString("o")))
+                    retCmd.Parameters.Add(New MySqlParameter("@start", dayStart.ToString("o")))
+                    retCmd.Parameters.Add(New MySqlParameter("@end", dayEnd.ToString("o")))
                     Using retReader = retCmd.ExecuteReader()
                         While retReader.Read()
                             _buildDailyRetList.Add(New SalesReturn With {
@@ -153,15 +153,15 @@ Namespace Services
             _buildPeriodTxList = New List(Of SalesTransaction)()
             _buildPeriodRetList = New List(Of SalesReturn)()
             Dim psConnStr = _context.Database.GetConnectionString()
-            Using psConn As New SqliteConnection(psConnStr)
+            Using psConn As New MySqlConnection(psConnStr)
                 Await psConn.OpenAsync()
                 Using psCmd = psConn.CreateCommand()
                     psCmd.CommandText = "SELECT Id, TransactionDate, PaymentMethod, TotalAmount " &
                                          "FROM Pos_SalesTransactions " &
                                          "WHERE TransactionDate >= @start AND TransactionDate <= @end " &
                                          "AND IsVoided = 0 AND IsDeleted = 0"
-                    psCmd.Parameters.Add(New SqliteParameter("@start", periodStart.ToString("o")))
-                    psCmd.Parameters.Add(New SqliteParameter("@end", periodEnd.ToString("o")))
+                    psCmd.Parameters.Add(New MySqlParameter("@start", periodStart.ToString("o")))
+                    psCmd.Parameters.Add(New MySqlParameter("@end", periodEnd.ToString("o")))
                     Using psReader = psCmd.ExecuteReader()
                         While psReader.Read()
                             _buildPeriodTxList.Add(New SalesTransaction With {
@@ -203,8 +203,8 @@ Namespace Services
                 Using retCmd = psConn.CreateCommand()
                     retCmd.CommandText = "SELECT ReturnDate, RefundAmount FROM Pos_SalesReturns " &
                                           "WHERE ReturnDate >= @start AND ReturnDate <= @end"
-                    retCmd.Parameters.Add(New SqliteParameter("@start", periodStart.ToString("o")))
-                    retCmd.Parameters.Add(New SqliteParameter("@end", periodEnd.ToString("o")))
+                    retCmd.Parameters.Add(New MySqlParameter("@start", periodStart.ToString("o")))
+                    retCmd.Parameters.Add(New MySqlParameter("@end", periodEnd.ToString("o")))
                     Using retReader = retCmd.ExecuteReader()
                         While retReader.Read()
                             _buildPeriodRetList.Add(New SalesReturn With {

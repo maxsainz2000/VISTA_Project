@@ -131,8 +131,8 @@ Build result: **0 errors, 1 warning** (pre-existing `BC40000` in `VatConfigurati
 
 ## What's Next
 
-- [ ] Migration of `Accounting/Handlers` write paths (if determined to be in scope for a follow-up plan)
-- [ ] Migration of `Inventory/ViewModels/ProductManagementViewModel.vb` write paths (if ViewModels are brought into sync scope)
+- [x] Migration of `Accounting/Handlers` write paths ~~(if determined to be in scope for a follow-up plan)~~ — **Voided by INFRA-25/27 (2026-05-28).** INFRA-25 already migrated all handler write paths from `SaveChangesWithJournalAsync` → `SaveChangesAsync`. INFRA-27 then deleted the entire sync layer (`ISyncableRepository`, `SyncOrchestrator`, `Sync_Journal`). There is nothing left to migrate; the handlers write directly to MariaDB.
+- [x] Migration of `Inventory/ViewModels/ProductManagementViewModel.vb` write paths ~~(if ViewModels are brought into sync scope)~~ — **Voided by INFRA-27 (2026-05-28).** The sync scope concept no longer exists. ViewModels calling `SaveChangesAsync` on the MariaDB DbContext directly is the correct architecture.
 - [x] Runtime verification: execute a write through each migrated service and confirm a corresponding `Sync_Journal` row is created *(completed/verified in Operator checklist)*
 
 ## Codebase Wiki Discrepancies

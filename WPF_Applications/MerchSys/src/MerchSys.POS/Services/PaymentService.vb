@@ -13,14 +13,11 @@ Namespace Services
 
         Private ReadOnly _context As POSDbContext
         Private ReadOnly _eventBus As IEventBus
-        Private ReadOnly _repository As ISyncableRepository(Of POSDbContext)
 
         Public Sub New(context As POSDbContext,
-                       eventBus As IEventBus,
-                       repository As ISyncableRepository(Of POSDbContext))
+                       eventBus As IEventBus)
             _context = context
             _eventBus = eventBus
-            _repository = repository
         End Sub
 
         Public Async Function ProcessPaymentAsync(transactionId As Integer, paymentMethod As PaymentMethod, amountTendered As Decimal, Optional customerId As Integer? = Nothing) As Task(Of PaymentResultDto) Implements IPaymentService.ProcessPaymentAsync
@@ -67,7 +64,7 @@ Namespace Services
                     creditAccount.TotalCreditExtended += transaction.TotalAmount
                     creditAccount.LastTransactionDate = DateTime.UtcNow
                     creditAccount.IsBlocked = True
-                    Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _context.SaveChangesAsync() for sync journal population
+                    Await _context.SaveChangesAsync()
 
             End Select
 

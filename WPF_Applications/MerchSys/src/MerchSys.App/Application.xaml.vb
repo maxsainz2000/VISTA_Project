@@ -1,12 +1,12 @@
 Imports Microsoft.Extensions.Configuration
 Imports Microsoft.Extensions.DependencyInjection
 Imports Microsoft.Extensions.Hosting
+Imports Microsoft.Extensions.Logging
 Imports MerchSys.App.Configuration
 Imports MerchSys.App.Data
 Imports MerchSys.App.Services
 Imports MerchSys.App.Startup
 Imports MerchSys.App.ViewModels
-Imports MerchSys.App.ViewModels.Shell
 Imports MerchSys.App.Views
 Imports MerchSys.Inventory.Services
 Imports MerchSys.SharedKernel.Interfaces
@@ -37,7 +37,7 @@ Class Application
                                               cfg.AddProductionOverlay()
                                           End Sub)
 
-        builder.ConfigureServices(Sub(services)
+        builder.ConfigureServices(Sub(context, services)
 
                                       ' Infrastructure: Session (LoginSessionService replaces DefaultSessionService in all builds)
                                       services.AddSingleton(Of LoginSessionService)()
@@ -60,7 +60,7 @@ Class Application
                                       ' Infrastructure: Authentication
                                       services.AddTransient(Of IAuthenticationService)(
                                           Function(sp) New AuthenticationService(
-                                              $"Data Source={DatabaseConfig.DatabasePath}",
+                                              context.Configuration.GetConnectionString("MerchSysCentral"),
                                               sp.GetRequiredService(Of ISessionService)(),
                                               sp.GetRequiredService(Of IWriteContextScope)()))
 
@@ -72,16 +72,12 @@ Class Application
                                       services.AddScoped(Of IEventBus, MediatREventBus)()
 
                                       ' Infrastructure: DbContexts
-                                      services.AddModuleDbContexts()
+                                      services.AddModuleDbContexts(context.Configuration)
 
                                       ' Infrastructure: MediatR (all module handler assemblies)
                                       services.AddMediatRServices()
 
-                                      ' Infrastructure: Sync worker & probe
-                                      services.AddSyncServices($"Data Source={DatabaseConfig.DatabasePath}")
 
-                                      ' Infrastructure: per-module syncable repositories (INFRA-09)
-                                      services.AddSyncableRepositories()
 
                                       ' Infrastructure: Idle monitor (DA2)
                                       services.AddSingleton(Of IdleMonitorOptions)(
@@ -192,10 +188,15 @@ Class Application
                                       services.AddTransient(Of Views.Accounting.VatReliefReportView)()
                                       services.AddTransient(Of Views.Accounting.Components.VatPayableTile)()
 
+                                      ' ── Connection health monitor (INFRA-28) ──────────────
+                                      services.AddConnectionHealthMonitor()
+
                                       ' ── Shell ─────────────────────────────────────────────
-                                      services.AddSingleton(Of SyncStatusIndicatorViewModel)()
-                                      services.AddSingleton(Of Views.Shell.SyncStatusIndicator)()
                                       services.AddSingleton(Of MainWindowViewModel)()
+                                      ' INFRA-30: Activity Rail + Module Detail Panel (Singleton — created once with MainWindow)
+                                      services.AddSingleton(Of ViewModels.Shell.ActivityRailViewModel)()
+                                      services.AddSingleton(Of Views.Shell.ActivityRail)()
+                                      services.AddSingleton(Of Views.Shell.ModuleDetailPanel)()
                                       services.AddSingleton(Of MainWindow)()
 
 #If DEBUG Then
@@ -212,7 +213,23 @@ Class Application
         DebugHostHolder.CurrentHost = _host
 #End If
 
-        DatabaseInitializer.Initialize($"Data Source={DatabaseConfig.DatabasePath}")
+        Dim config = _host.Services.GetRequiredService(Of IConfiguration)()
+        Dim connStr = config.GetConnectionString("MerchSysCentral")
+        Dim loggerFactory = _host.Services.GetRequiredService(Of ILoggerFactory)()
+        Dim startupLogger = loggerFactory.CreateLogger("Startup")
+
+        Try
+            MariaDbSchemaInitializer.Initialize(connStr, startupLogger)
+        Catch ex As Exception
+            MessageBox.Show($"Cannot initialize database schema: {ex.Message}", "VISTA — Fatal", MessageBoxButton.OK, MessageBoxImage.Error)
+            Shutdown(1)
+            Return
+        End Try
+
+        ' Start connection health monitor — must run before MainWindow is shown
+        Dim connMonitor = _host.Services.GetRequiredService(Of IConnectionHealthMonitor)()
+        ConnectionHealthMonitorLocator.Current = connMonitor
+        connMonitor.Start()
 
         _host.Services.GetRequiredService(Of ILowStockNotifier)()
 
@@ -273,9 +290,11 @@ Class Application
     End Sub
 
     Private Sub Application_Exit(sender As Object, e As ExitEventArgs)
-        ' Stop the idle monitor before disposing the host so no timer callbacks fire
+        ' Stop monitors before disposing the host so no background callbacks fire
         ' against a disposed DI container.
         If _idleMonitor IsNot Nothing Then _idleMonitor.Stop()
+        Dim mon = ConnectionHealthMonitorLocator.Current
+        If mon IsNot Nothing Then mon.[Stop]()
         _host?.StopAsync().GetAwaiter().GetResult()
         _host?.Dispose()
     End Sub

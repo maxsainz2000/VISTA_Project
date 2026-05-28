@@ -29,6 +29,11 @@ Namespace Data.Configurations
                     WithMany().
                     HasForeignKey(Function(ap) ap.VendorId).
                     OnDelete(DeleteBehavior.Restrict)
+
+            builder.Property(Function(e) e.RowVersion).
+                IsRowVersion().
+                HasColumnType("TIMESTAMP(6)").
+                ValueGeneratedOnAddOrUpdate()
         End Sub
 
     End Class

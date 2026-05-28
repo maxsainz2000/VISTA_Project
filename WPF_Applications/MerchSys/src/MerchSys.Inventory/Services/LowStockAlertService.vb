@@ -1,5 +1,5 @@
 Imports System.Threading
-Imports Microsoft.Data.Sqlite
+Imports MySqlConnector
 Imports Microsoft.EntityFrameworkCore
 Imports Microsoft.Extensions.Logging
 Imports MerchSys.Inventory.Data
@@ -15,19 +15,16 @@ Namespace Services
         Private ReadOnly _stockService As IStockService
         Private ReadOnly _notifier As ILowStockNotifier
         Private ReadOnly _logger As ILogger(Of LowStockAlertService)
-        Private ReadOnly _repository As ISyncableRepository(Of InventoryDbContext)
         Private _alertConfigList As List(Of StockAlertConfig)
 
         Public Sub New(db As InventoryDbContext,
                        stockService As IStockService,
                        notifier As ILowStockNotifier,
-                       logger As ILogger(Of LowStockAlertService),
-                       repository As ISyncableRepository(Of InventoryDbContext))
+                       logger As ILogger(Of LowStockAlertService))
             _db = db
             _stockService = stockService
             _notifier = notifier
             _logger = logger
-            _repository = repository
         End Sub
 
         ''' <summary>
@@ -71,7 +68,7 @@ Namespace Services
                 product.MinimumThreshold = newThreshold
             End If
 
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
+            Await _db.SaveChangesAsync()
             _logger.LogInformation("Threshold updated: ProductId={ProductId}, Threshold={Threshold}", productId, newThreshold)
         End Function
 
@@ -80,7 +77,7 @@ Namespace Services
 
             _alertConfigList = New List(Of StockAlertConfig)()
             Dim acConnStr = _db.Database.GetConnectionString()
-            Using acConn As New SqliteConnection(acConnStr)
+            Using acConn As New MySqlConnection(acConnStr)
                 Await acConn.OpenAsync()
                 Using acCmd = acConn.CreateCommand()
                     acCmd.CommandText = "SELECT Id, ProductId, MinimumThreshold, ExpiryAlertDays, IsAlertEnabled, " &

@@ -101,7 +101,7 @@ With `movementLookup.Count > 0`, the `ComputeVelocity` branch that uses time-win
 - [x] Interactive 16-view navigation: **16/16 pass** — INT-11 DI fix applied; all 3 previously-failing POS views now resolve correctly; confirmed 2026-05-20
 - [x] Live GoodsReceived chain: create a PO → receive goods → verify `Inv_StockMovements` row appears with `Type=Receipt` via Python query script or DB browser *(completed/verified in Operator checklist)*
 - [x] Live SaleCompleted chain: complete a sale → verify `Inv_StockMovements` row appears with `Type=Sale` *(completed/verified in Operator checklist)*
-- [ ] EF Core VB.NET CLI limitation: continue monitoring `efcore10-vbnet-migration-discovery-bug.md` in agent wiki for upstream fix; no agent action required until then
+- [x] ~~EF Core VB.NET CLI limitation: continue monitoring `efcore10-vbnet-migration-discovery-bug.md` in agent wiki for upstream fix; no agent action required until then~~ — **Voided by INFRA-24 (2026-05-28).** The `DatabaseInitializer` ADO.NET workaround and all EF Core migration files have been replaced by `MariaDbSchemaInitializer` + raw SQL migration files. VISTA no longer uses the EF Core migration pipeline; the VB.NET CLI discovery bug is not relevant to this project.
 
 ## Cross-References
 

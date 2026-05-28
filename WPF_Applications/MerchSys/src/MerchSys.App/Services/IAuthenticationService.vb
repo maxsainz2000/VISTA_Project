@@ -1,7 +1,7 @@
 Imports System.Security.Cryptography
 Imports System.Text
 Imports Konscious.Security.Cryptography
-Imports Microsoft.Data.Sqlite
+Imports MySqlConnector
 Imports MerchSys.SharedKernel.Entities
 Imports MerchSys.SharedKernel.Enums
 Imports MerchSys.SharedKernel.Interfaces
@@ -68,7 +68,7 @@ Namespace Services
         Private Function AuthenticateCore(username As String, password As String) As AuthenticationResult
             Dim user As UserAccount = Nothing
 
-            Using conn As New SqliteConnection(_connectionString)
+            Using conn As New MySqlConnection(_connectionString)
                 conn.Open()
                 user = ReadUserByUsername(conn, username)
             End Using
@@ -92,7 +92,7 @@ Namespace Services
             Dim passwordOk = PasswordHashHelper.Verify(password, user.PasswordHash)
 
             Using _writeContext.Enter(WriteContextKind.System)
-                Using conn As New SqliteConnection(_connectionString)
+                Using conn As New MySqlConnection(_connectionString)
                     conn.Open()
                     If passwordOk Then
                         ClearFailedAttempts(conn, user.Id)
@@ -130,7 +130,7 @@ Namespace Services
 
             Dim storedHash As String = Nothing
             Dim targetUsername As String = Nothing
-            Using conn As New SqliteConnection(_connectionString)
+            Using conn As New MySqlConnection(_connectionString)
                 conn.Open()
                 Using cmd = conn.CreateCommand()
                     cmd.CommandText = "SELECT Username, PasswordHash FROM Sys_UserAccounts WHERE Id=@id"
@@ -174,7 +174,7 @@ Namespace Services
                 End If
 
                 Dim newHash = PasswordHashHelper.Hash(newPassword)
-                Using conn As New SqliteConnection(_connectionString)
+                Using conn As New MySqlConnection(_connectionString)
                     conn.Open()
                     Using cmd = conn.CreateCommand()
                         cmd.CommandText =
@@ -192,7 +192,7 @@ Namespace Services
 
         ' ── Private ADO.NET helpers ────────────────────────────────────────────
 
-        Private Shared Function ReadUserByUsername(conn As SqliteConnection, username As String) As UserAccount
+        Private Shared Function ReadUserByUsername(conn As MySqlConnection, username As String) As UserAccount
             Using cmd = conn.CreateCommand()
                 cmd.CommandText =
                     "SELECT Id, Username, PasswordHash, Role, IsActive, FailedLoginAttempts, " &
@@ -220,7 +220,7 @@ Namespace Services
             End Using
         End Function
 
-        Private Shared Sub ClearFailedAttempts(conn As SqliteConnection, userId As Integer)
+        Private Shared Sub ClearFailedAttempts(conn As MySqlConnection, userId As Integer)
             Using cmd = conn.CreateCommand()
                 cmd.CommandText =
                     "UPDATE Sys_UserAccounts SET FailedLoginAttempts=0, LockedUntil=NULL, ModifiedAt=@now WHERE Id=@id"
@@ -230,7 +230,7 @@ Namespace Services
             End Using
         End Sub
 
-        Private Shared Sub BumpFailedAttempts(conn As SqliteConnection, userId As Integer, current As Integer)
+        Private Shared Sub BumpFailedAttempts(conn As MySqlConnection, userId As Integer, current As Integer)
             Dim next_ = current + 1
             Using cmd = conn.CreateCommand()
                 If next_ >= 5 Then
@@ -253,7 +253,7 @@ Namespace Services
 End Namespace
 
 ' ─────────────────────────────────────────────────────────────────────────────
-' Argon2id password hashing helper — Friend so DatabaseInitializer can seed.
+' Argon2id password hashing helper — Friend scope for internal seeding use.
 ' Params: m=19456 KiB, t=2 iterations, p=1, 32-byte hash, 16-byte random salt.
 ' Format: $argon2id$v=19$m=19456,t=2,p=1$<base64Salt>$<base64Hash>
 ' NOTE: PasswordBox.SecureString is converted to String before reaching here;

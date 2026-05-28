@@ -7,7 +7,7 @@ Namespace Entities
     ''' Inherits <see cref="BaseEntity"/> and implements <see cref="IAuditable"/>.
     ''' </summary>
     Public MustInherit Class AuditableEntity
-        Inherits BaseEntity
+        Inherits ConcurrencyAwareEntity
         Implements IAuditable
 
         ''' <summary>Username of the user who created this record.</summary>

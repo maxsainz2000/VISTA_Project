@@ -19,12 +19,6 @@ Namespace Entities
         ''' <summary>The next OR sequence number to issue. Starts at 1; never gaps.</summary>
         Public Property NextValue As Integer
 
-        ''' <summary>
-        ''' EF Core optimistic concurrency token. Updated to a new <c>Guid.ToByteArray()</c>
-        ''' on every write to detect concurrent modifications across connections.
-        ''' </summary>
-        Public Property RowVersion As Byte()
-
     End Class
 
 End Namespace

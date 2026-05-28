@@ -1,6 +1,6 @@
 Imports System.Threading
 Imports MediatR
-Imports Microsoft.Data.Sqlite
+Imports MySqlConnector
 Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.Purchasing.Data
 Imports MerchSys.Purchasing.Entities
@@ -16,16 +16,13 @@ Namespace Services
 
         Private ReadOnly _db As PurchasingDbContext
         Private ReadOnly _mediator As IMediator
-        Private ReadOnly _repository As ISyncableRepository(Of PurchasingDbContext)
         Private _reorderSuggestionList As List(Of ReorderSuggestion)
         Private _reorderConfigList As List(Of ReorderConfig)
 
         Public Sub New(db As PurchasingDbContext,
-                       mediator As IMediator,
-                       repository As ISyncableRepository(Of PurchasingDbContext))
+                       mediator As IMediator)
             _db = db
             _mediator = mediator
-            _repository = repository
         End Sub
 
         Public Async Function GenerateSuggestionsAsync() As Task(Of List(Of ReorderSuggestion)) Implements IReorderService.GenerateSuggestionsAsync
@@ -34,7 +31,7 @@ Namespace Services
 
             _reorderConfigList = New List(Of ReorderConfig)()
             Dim genConnStr = _db.Database.GetConnectionString()
-            Using genConn As New SqliteConnection(genConnStr)
+            Using genConn As New MySqlConnection(genConnStr)
                 Await genConn.OpenAsync()
                 Using genCmd = genConn.CreateCommand()
                     genCmd.CommandText = "SELECT Id, ProductId, ProductName, PreferredVendorId, MinimumThreshold, SafetyStock, " &
@@ -142,7 +139,7 @@ Namespace Services
 
             If newSuggestions.Any() Then
                 _db.ReorderSuggestions.AddRange(newSuggestions)
-                Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
+                Await _db.SaveChangesAsync()
             End If
 
             Return newSuggestions
@@ -151,7 +148,7 @@ Namespace Services
         Public Async Function GetPendingSuggestionsAsync() As Task(Of List(Of ReorderSuggestion)) Implements IReorderService.GetPendingSuggestionsAsync
             _reorderSuggestionList = New List(Of ReorderSuggestion)()
             Dim psConnStr = _db.Database.GetConnectionString()
-            Using psConn As New SqliteConnection(psConnStr)
+            Using psConn As New MySqlConnection(psConnStr)
                 Await psConn.OpenAsync()
                 Using psCmd = psConn.CreateCommand()
                     psCmd.CommandText = "SELECT Id, ProductId, ProductName, CurrentStock, ReorderPoint, SuggestedQuantity, " &
@@ -207,11 +204,11 @@ Namespace Services
             })
 
             _db.PurchaseOrders.Add(po)
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
+            Await _db.SaveChangesAsync()
 
             suggestion.Status = "Accepted"
             suggestion.ConvertedToPOId = po.Id
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
+            Await _db.SaveChangesAsync()
 
             Return Await _db.PurchaseOrders.
                 Include(Function(p) p.Lines).
@@ -231,7 +228,7 @@ Namespace Services
             End If
 
             suggestion.Status = "Dismissed"
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
+            Await _db.SaveChangesAsync()
         End Function
 
         Public Async Function UpdateConfigAsync(config As ReorderConfig) As Task(Of ReorderConfig) Implements IReorderService.UpdateConfigAsync
@@ -252,7 +249,7 @@ Namespace Services
                 existing.IsActive = config.IsActive
             End If
 
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
+            Await _db.SaveChangesAsync()
 
             Return Await _db.ReorderConfigs.
                 Include(Function(c) c.PreferredVendor).
@@ -262,7 +259,7 @@ Namespace Services
         Public Async Function GetAllConfigsAsync() As Task(Of List(Of ReorderConfig)) Implements IReorderService.GetAllConfigsAsync
             _reorderConfigList = New List(Of ReorderConfig)()
             Dim acConnStr = _db.Database.GetConnectionString()
-            Using acConn As New SqliteConnection(acConnStr)
+            Using acConn As New MySqlConnection(acConnStr)
                 Await acConn.OpenAsync()
                 Using acCmd = acConn.CreateCommand()
                     acCmd.CommandText = "SELECT Id, ProductId, ProductName, PreferredVendorId, MinimumThreshold, SafetyStock, " &
@@ -328,7 +325,7 @@ Namespace Services
         Public Async Function GetAllSuggestionsAsync() As Task(Of List(Of ReorderSuggestion)) Implements IReorderService.GetAllSuggestionsAsync
             _reorderSuggestionList = New List(Of ReorderSuggestion)()
             Dim asConnStr = _db.Database.GetConnectionString()
-            Using asConn As New SqliteConnection(asConnStr)
+            Using asConn As New MySqlConnection(asConnStr)
                 Await asConn.OpenAsync()
                 Using asCmd = asConn.CreateCommand()
                     asCmd.CommandText = "SELECT Id, ProductId, ProductName, CurrentStock, ReorderPoint, SuggestedQuantity, " &
@@ -345,7 +342,7 @@ Namespace Services
             Return _reorderSuggestionList
         End Function
 
-        Private Shared Function ReadReorderSuggestion(r As SqliteDataReader) As ReorderSuggestion
+        Private Shared Function ReadReorderSuggestion(r As MySqlDataReader) As ReorderSuggestion
             Return New ReorderSuggestion With {
                 .Id = r.GetInt32(0),
                 .ProductId = r.GetInt32(1),

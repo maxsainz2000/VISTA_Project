@@ -1,7 +1,7 @@
 Imports System.Collections.ObjectModel
 Imports CommunityToolkit.Mvvm.ComponentModel
 Imports CommunityToolkit.Mvvm.Input
-Imports Microsoft.Data.Sqlite
+Imports MySqlConnector
 Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.Inventory.Data
 Imports MerchSys.Inventory.Entities
@@ -357,7 +357,7 @@ Namespace ViewModels
                 _loadedProducts = New List(Of Product)()
                 _loadedCategories = New List(Of ProductCategory)()
                 Dim pmConnStr = _db.Database.GetConnectionString()
-                Using pmConn As New SqliteConnection(pmConnStr)
+                Using pmConn As New MySqlConnection(pmConnStr)
                     Await pmConn.OpenAsync()
                     Using pmCmd = pmConn.CreateCommand()
                         pmCmd.CommandText = "SELECT Id, Name, Sku, CategoryId, Description, RetailPrice, Unit, HasExpiry, " &

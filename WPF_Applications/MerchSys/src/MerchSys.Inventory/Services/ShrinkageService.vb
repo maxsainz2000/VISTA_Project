@@ -1,6 +1,6 @@
 Imports System.Threading
 Imports MediatR
-Imports Microsoft.Data.Sqlite
+Imports MySqlConnector
 Imports Microsoft.EntityFrameworkCore
 Imports Microsoft.Extensions.Logging
 Imports MerchSys.Inventory.Data
@@ -18,18 +18,15 @@ Namespace Services
         Private ReadOnly _db As InventoryDbContext
         Private ReadOnly _mediator As IMediator
         Private ReadOnly _logger As ILogger(Of ShrinkageService)
-        Private ReadOnly _repository As ISyncableRepository(Of InventoryDbContext)
         Private _batchesForShrinkage As List(Of StockBatch)
         Private _shrinkageHistoryList As List(Of ShrinkageRecord)
 
         Public Sub New(db As InventoryDbContext,
                        mediator As IMediator,
-                       logger As ILogger(Of ShrinkageService),
-                       repository As ISyncableRepository(Of InventoryDbContext))
+                       logger As ILogger(Of ShrinkageService))
             _db = db
             _mediator = mediator
             _logger = logger
-            _repository = repository
         End Sub
 
         ''' <summary>
@@ -81,48 +78,70 @@ Namespace Services
                 ' FIFO: consume oldest batches first regardless of expiry status
                 _batchesForShrinkage = New List(Of StockBatch)()
                 Dim shrConnStr = _db.Database.GetConnectionString()
-                Using shrConn As New SqliteConnection(shrConnStr)
+                Using shrConn As New MySqlConnection(shrConnStr)
                     Await shrConn.OpenAsync()
-                    Using shrCmd = shrConn.CreateCommand()
-                        shrCmd.CommandText = "SELECT Id, ProductId, QuantityReceived, QuantityRemaining, UnitCost, " &
-                                             "ReceiptDate, ExpiryDate, SourcePurchaseOrderId, " &
-                                             "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
-                                             "FROM Inv_StockBatches " &
-                                             "WHERE ProductId = @productId AND QuantityRemaining > 0 " &
-                                             "ORDER BY ReceiptDate"
-                        shrCmd.Parameters.Add(New SqliteParameter("@productId", productId))
-                        Using shrReader = shrCmd.ExecuteReader()
-                            While shrReader.Read()
-                                _batchesForShrinkage.Add(StockService.ReadStockBatch(shrReader))
-                            End While
+                    Using tx = Await shrConn.BeginTransactionAsync(System.Data.IsolationLevel.ReadCommitted)
+                        ' 1. Select and lock batches with FOR UPDATE
+                        Using shrCmd = shrConn.CreateCommand()
+                            shrCmd.Transaction = tx
+                            shrCmd.CommandText = "SELECT Id, ProductId, QuantityReceived, QuantityRemaining, UnitCost, " &
+                                                 "ReceiptDate, ExpiryDate, SourcePurchaseOrderId, " &
+                                                 "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                                 "FROM Inv_StockBatches " &
+                                                 "WHERE ProductId = @productId AND QuantityRemaining > 0 " &
+                                                 "ORDER BY ReceiptDate ASC, Id ASC " &
+                                                 "FOR UPDATE"
+                            shrCmd.Parameters.Add(New MySqlParameter("@productId", productId))
+                            Using shrReader = Await shrCmd.ExecuteReaderAsync()
+                                While Await shrReader.ReadAsync()
+                                    _batchesForShrinkage.Add(StockService.ReadStockBatch(shrReader))
+                                End While
+                            End Using
                         End Using
+
+                        Dim batches As List(Of StockBatch) = _batchesForShrinkage
+                        Dim remaining As Integer = quantity
+
+                        For Each batch In batches
+                            If remaining = 0 Then Exit For
+                            Dim deduct As Integer = Math.Min(batch.QuantityRemaining, remaining)
+                            batch.QuantityRemaining -= deduct
+                            remaining -= deduct
+                            Dim record As New ShrinkageRecord With {
+                                .ProductId = productId,
+                                .StockBatchId = batch.Id,
+                                .QuantityLost = deduct,
+                                .UnitCost = batch.UnitCost,
+                                .TotalValue = CDec(deduct) * batch.UnitCost,
+                                .Reason = reason,
+                                .Notes = notes,
+                                .RecordedDate = now
+                            }
+                            _db.ShrinkageRecords.Add(record)
+                            created.Add(record)
+                        Next
+
+                        If remaining > 0 Then
+                            Throw New InsufficientStockException(productId, quantity, quantity - remaining)
+                        End If
+
+                        ' 2. Persist updated QuantityRemaining back to database on same transaction
+                        Dim touchedBatchIds = created.Select(Function(r) r.StockBatchId.Value).ToHashSet()
+                        For Each b In batches.Where(Function(x) touchedBatchIds.Contains(x.Id))
+                            Using updateCmd = shrConn.CreateCommand()
+                                updateCmd.Transaction = tx
+                                updateCmd.CommandText = "UPDATE Inv_StockBatches SET QuantityRemaining = @qty, ModifiedAt = @now WHERE Id = @id"
+                                updateCmd.Parameters.Add(New MySqlParameter("@qty", b.QuantityRemaining))
+                                updateCmd.Parameters.Add(New MySqlParameter("@now", DateTime.UtcNow))
+                                updateCmd.Parameters.Add(New MySqlParameter("@id", b.Id))
+                                Await updateCmd.ExecuteNonQueryAsync()
+                            End Using
+                        Next
+
+                        ' 3. Commit transaction
+                        Await tx.CommitAsync()
                     End Using
                 End Using
-                Dim batches As List(Of StockBatch) = _batchesForShrinkage
-
-                Dim remaining As Integer = quantity
-                For Each batch In batches
-                    If remaining = 0 Then Exit For
-                    Dim deduct As Integer = Math.Min(batch.QuantityRemaining, remaining)
-                    batch.QuantityRemaining -= deduct
-                    remaining -= deduct
-                    Dim record As New ShrinkageRecord With {
-                        .ProductId = productId,
-                        .StockBatchId = batch.Id,
-                        .QuantityLost = deduct,
-                        .UnitCost = batch.UnitCost,
-                        .TotalValue = CDec(deduct) * batch.UnitCost,
-                        .Reason = reason,
-                        .Notes = notes,
-                        .RecordedDate = now
-                    }
-                    _db.ShrinkageRecords.Add(record)
-                    created.Add(record)
-                Next
-
-                If remaining > 0 Then
-                    Throw New InsufficientStockException(productId, quantity, quantity - remaining)
-                End If
             End If
 
             Dim totalQtyForMovement As Integer = created.Sum(Function(r) r.QuantityLost)
@@ -132,7 +151,7 @@ Namespace Services
                 .Quantity = -totalQtyForMovement,
                 .OccurredAt = now
             })
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
+            Await _db.SaveChangesAsync()
 
             Dim totalQty As Integer = created.Sum(Function(r) r.QuantityLost)
             Dim totalValue As Decimal = created.Sum(Function(r) r.TotalValue)
@@ -158,7 +177,7 @@ Namespace Services
         Public Async Function GetShrinkageHistoryAsync(Optional productId As Integer? = Nothing) As Task(Of List(Of ShrinkageRecord)) Implements IShrinkageService.GetShrinkageHistoryAsync
             _shrinkageHistoryList = New List(Of ShrinkageRecord)()
             Dim shConnStr = _db.Database.GetConnectionString()
-            Using shConn As New SqliteConnection(shConnStr)
+            Using shConn As New MySqlConnection(shConnStr)
                 Await shConn.OpenAsync()
 
                 Dim shSql = "SELECT Id, ProductId, StockBatchId, QuantityLost, UnitCost, TotalValue, " &
@@ -171,7 +190,7 @@ Namespace Services
                 Using shCmd = shConn.CreateCommand()
                     shCmd.CommandText = shSql
                     If productId.HasValue Then
-                        shCmd.Parameters.Add(New SqliteParameter("@productId", productId.Value))
+                        shCmd.Parameters.Add(New MySqlParameter("@productId", productId.Value))
                     End If
                     Using shReader = shCmd.ExecuteReader()
                         While shReader.Read()

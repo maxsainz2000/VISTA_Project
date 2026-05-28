@@ -1,5 +1,5 @@
 Imports System.Threading
-Imports Microsoft.Data.Sqlite
+Imports MySqlConnector
 Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.POS.Data
 Imports MerchSys.POS.Entities
@@ -24,16 +24,13 @@ Namespace Services
 
         Private ReadOnly _context As POSDbContext
         Private ReadOnly _eventBus As IEventBus
-        Private ReadOnly _repository As ISyncableRepository(Of POSDbContext)
         Private _creditAccountList As List(Of CreditAccount)
         Private _creditPaymentList As List(Of CreditPayment)
 
         Public Sub New(context As POSDbContext,
-                       eventBus As IEventBus,
-                       repository As ISyncableRepository(Of POSDbContext))
+                       eventBus As IEventBus)
             _context = context
             _eventBus = eventBus
-            _repository = repository
         End Sub
 
         Public Async Function CreateAccountAsync(customerName As String, phone As String, Optional address As String = Nothing) As Task(Of CreditAccount) Implements ICreditService.CreateAccountAsync
@@ -47,7 +44,7 @@ Namespace Services
                 .IsBlocked = False
             }
             _context.CreditAccounts.Add(account)
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _context.SaveChangesAsync() for sync journal population
+            Await _context.SaveChangesAsync()
             Return account
         End Function
 
@@ -61,7 +58,7 @@ Namespace Services
         Public Async Function GetAllAccountsAsync() As Task(Of List(Of CreditAccount)) Implements ICreditService.GetAllAccountsAsync
             _creditAccountList = New List(Of CreditAccount)()
             Dim gaConnStr = _context.Database.GetConnectionString()
-            Using gaConn As New SqliteConnection(gaConnStr)
+            Using gaConn As New MySqlConnection(gaConnStr)
                 Await gaConn.OpenAsync()
                 Using gaCmd = gaConn.CreateCommand()
                     gaCmd.CommandText = "SELECT Id, CustomerName, Phone, Address, CurrentBalance, TotalCreditExtended, " &
@@ -81,7 +78,7 @@ Namespace Services
         Public Async Function SearchAccountsAsync(searchTerm As String) As Task(Of List(Of CreditAccount)) Implements ICreditService.SearchAccountsAsync
             _creditAccountList = New List(Of CreditAccount)()
             Dim saConnStr = _context.Database.GetConnectionString()
-            Using saConn As New SqliteConnection(saConnStr)
+            Using saConn As New MySqlConnection(saConnStr)
                 Await saConn.OpenAsync()
                 Using saCmd = saConn.CreateCommand()
                     saCmd.CommandText = "SELECT Id, CustomerName, Phone, Address, CurrentBalance, TotalCreditExtended, " &
@@ -90,7 +87,7 @@ Namespace Services
                                         "FROM Pos_CreditAccounts " &
                                         "WHERE IsDeleted = 0 AND (lower(CustomerName) LIKE @term OR lower(Phone) LIKE @term) " &
                                         "ORDER BY CustomerName"
-                    saCmd.Parameters.Add(New SqliteParameter("@term", "%" & searchTerm.ToLower() & "%"))
+                    saCmd.Parameters.Add(New MySqlParameter("@term", "%" & searchTerm.ToLower() & "%"))
                     Using saReader = saCmd.ExecuteReader()
                         While saReader.Read()
                             _creditAccountList.Add(ReadCreditAccount(saReader))
@@ -126,7 +123,7 @@ Namespace Services
             account.IsBlocked = True
             account.LastTransactionDate = DateTime.UtcNow
 
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _context.SaveChangesAsync() for sync journal population
+            Await _context.SaveChangesAsync()
         End Function
 
         Public Async Function RecordPaymentAsync(customerId As Integer, amount As Decimal, paymentMethod As PaymentMethod, receivedBy As String) As Task(Of CreditPayment) Implements ICreditService.RecordPaymentAsync
@@ -159,7 +156,7 @@ Namespace Services
                 .ReceivedBy = receivedBy
             }
             _context.CreditPayments.Add(payment)
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _context.SaveChangesAsync() for sync journal population
+            Await _context.SaveChangesAsync()
 
             Await _eventBus.PublishAsync(New CreditPaymentEvent() With {
                 .CustomerId = customerId,
@@ -174,14 +171,14 @@ Namespace Services
         Public Async Function GetPaymentHistoryAsync(customerId As Integer) As Task(Of List(Of CreditPayment)) Implements ICreditService.GetPaymentHistoryAsync
             _creditPaymentList = New List(Of CreditPayment)()
             Dim phConnStr = _context.Database.GetConnectionString()
-            Using phConn As New SqliteConnection(phConnStr)
+            Using phConn As New MySqlConnection(phConnStr)
                 Await phConn.OpenAsync()
                 Using phCmd = phConn.CreateCommand()
                     phCmd.CommandText = "SELECT Id, CreditAccountId, PaymentAmount, PaymentDate, PaymentMethod, Notes, ReceivedBy, " &
                                         "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
                                         "FROM Pos_CreditPayments WHERE CreditAccountId = @customerId " &
                                         "ORDER BY PaymentDate DESC"
-                    phCmd.Parameters.Add(New SqliteParameter("@customerId", customerId))
+                    phCmd.Parameters.Add(New MySqlParameter("@customerId", customerId))
                     Using phReader = phCmd.ExecuteReader()
                         While phReader.Read()
                             _creditPaymentList.Add(New CreditPayment With {
@@ -218,7 +215,7 @@ Namespace Services
             Dim cutoff = DateTime.UtcNow.AddDays(-30)
             _creditAccountList = New List(Of CreditAccount)()
             Dim odConnStr = _context.Database.GetConnectionString()
-            Using odConn As New SqliteConnection(odConnStr)
+            Using odConn As New MySqlConnection(odConnStr)
                 Await odConn.OpenAsync()
                 Using odCmd = odConn.CreateCommand()
                     odCmd.CommandText = "SELECT Id, CustomerName, Phone, Address, CurrentBalance, TotalCreditExtended, " &
@@ -228,7 +225,7 @@ Namespace Services
                                         "WHERE IsDeleted = 0 AND CurrentBalance > 0 " &
                                         "AND (LastTransactionDate IS NULL OR LastTransactionDate < @cutoff) " &
                                         "ORDER BY CurrentBalance DESC"
-                    odCmd.Parameters.Add(New SqliteParameter("@cutoff", cutoff.ToString("o")))
+                    odCmd.Parameters.Add(New MySqlParameter("@cutoff", cutoff.ToString("o")))
                     Using odReader = odCmd.ExecuteReader()
                         While odReader.Read()
                             _creditAccountList.Add(ReadCreditAccount(odReader))
@@ -239,7 +236,7 @@ Namespace Services
             Return _creditAccountList
         End Function
 
-        Private Shared Function ReadCreditAccount(r As Microsoft.Data.Sqlite.SqliteDataReader) As CreditAccount
+        Private Shared Function ReadCreditAccount(r As MySqlConnector.MySqlDataReader) As CreditAccount
             Return New CreditAccount With {
                 .Id = r.GetInt32(0),
                 .CustomerName = r.GetString(1),

@@ -1,11 +1,19 @@
 ---
 created: 2026-05-17
 source: Pending_Tasks audit reports (2026-05-17, 2026-05-26)
-last-synced: 2026-05-27
+last-synced: 2026-05-28
 item-18-added: 2026-05-27
 items-19-to-27-added: 2026-05-27
 infra-19-completed: 2026-05-26
 infra-20-completed: 2026-05-26
+infra-23-completed: 2026-05-28 (EF Core MariaDB provider evaluation and spike)
+infra-24-completed: 2026-05-28 (MariaDB schema bootstrap)
+infra-25-completed: 2026-05-28 (DbContext conversion to MariaDB)
+infra-26-completed: 2026-05-28 (optimistic concurrency + pessimistic FIFO locks)
+infra-27-completed: 2026-05-28 (sync layer decommission — SQLite fully removed)
+infra-28-completed: 2026-05-28 (connection status indicator + DisableOnOfflineBehavior)
+infra-29-completed: 2026-05-28 (operational runbook + nightly backup scripts)
+infra-30-completed: 2026-05-28 (Master-Detail Activity Rail sidebar)
 item-2-completed: 2026-05-26
 item-3-completed: 2026-05-26
 item-9-completed: 2026-05-27
@@ -17,6 +25,7 @@ item-14-checked-clean: 2026-05-27
 item-16-promoted: 2026-05-27
 item-17-promoted: 2026-05-27
 item-18-promoted: 2026-05-27
+item-20-completed: 2026-05-28 (INFRA-29 nightly backup runbook + PowerShell script)
 ---
 
 # Deferred Features Backlog
@@ -85,7 +94,7 @@ item-18-promoted: 2026-05-27
 
 ## 14. INT-17b — Contingent Rule 14 Follow-Up
 
-**Status:** Checked clean 2026-05-27 — no new violations in code merged 2026-05-24 → 2026-05-27 (INFRA-19, INFRA-20, INFRA-21, ACC-19, ACC-20, POS-19). Remains contingent — re-check after the next merge window.
+**Status:** Checked clean 2026-05-27 — no new violations in code merged 2026-05-24 → 2026-05-27 (INFRA-19, INFRA-20, INFRA-21, ACC-19, ACC-20, POS-19). Checked clean again 2026-05-28 — INFRA-23 through INFRA-30 added no new Rule 14 violations. Remains contingent — re-check after the next merge window.
 **Module:** Integration
 **Source:** INT-17 What's Next
 **Description:** If new Rule 14 true positives surface in code merged after 2026-05-24, open a follow-up plan INT-17b to rename them. This is a contingent item — only actionable if new violations appear.
@@ -260,10 +269,12 @@ The Inventory module (`StockService.DeductStockFIFOAsync`) correctly implements 
 
 ## 20. Automated Database Nightly Backup
 
+**Status:** COMPLETED (2026-05-28) — delivered by INFRA-29. See `Plans/VISTA_Modules/Infrastructure/runbooks/03-nightly-backup.md` and `runbooks/scripts/backup-mysqldump.ps1`.
 **Module:** Infrastructure / Database
 **Source:** `system_plan.md` Risk Mitigation Strategies (§11 - Data Loss)
-**Description:** Develop and configure a database utility script (PowerShell or Windows Batch) that automatically dumps the local SQLite databases (`design_time.db`, etc.) and the centralized XAMPP MariaDB databases nightly. The backups should be compressed and copied to a physical secondary location (such as an external secure drive or dedicated backup server) via Windows Task Scheduler.
-**Why deferred:** Standard manual database exports are sufficient for ongoing pre-live prototype validation. A full automated Task Scheduler backup schedule is deferred until operational launch.
+**Description:** Developed and configured a database utility script (PowerShell) that automatically dumps the central XAMPP MariaDB database (`merchsys_central`) nightly, compresses the output, and retains 7 daily / 4 weekly / 6 monthly copies. A Windows Task Scheduler XML (`vista-nightly-backup.xml`) automates execution at 02:00 daily even without a logged-in user.
+**Why deferred:** Was deferred pending a formal deployment; now addressed by INFRA-29 as part of the MariaDB client-server architecture rollout.
+**Depends on:** INFRA-29 (completed).
 
 ---
 

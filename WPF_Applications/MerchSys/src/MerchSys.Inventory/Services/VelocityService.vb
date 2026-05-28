@@ -1,4 +1,4 @@
-Imports Microsoft.Data.Sqlite
+Imports MySqlConnector
 Imports Microsoft.EntityFrameworkCore
 Imports Microsoft.Extensions.Logging
 Imports MerchSys.Inventory.Data
@@ -24,7 +24,7 @@ Namespace Services
         Public Async Function ClassifyAllProductsAsync(daysToAnalyze As Integer) As Task(Of List(Of ProductVelocityDto)) Implements IVelocityService.ClassifyAllProductsAsync
             _velocityProductList = New List(Of Product)()
             Dim velConnStr = _db.Database.GetConnectionString()
-            Using velConn As New SqliteConnection(velConnStr)
+            Using velConn As New MySqlConnection(velConnStr)
                 Await velConn.OpenAsync()
                 Using velCmd = velConn.CreateCommand()
                     velCmd.CommandText = "SELECT Id, Name, Sku, CategoryId, Description, RetailPrice, Unit, HasExpiry, " &

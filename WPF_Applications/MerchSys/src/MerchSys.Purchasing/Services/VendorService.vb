@@ -1,5 +1,5 @@
 Imports System.Threading
-Imports Microsoft.Data.Sqlite
+Imports MySqlConnector
 Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.Purchasing.Data
 Imports MerchSys.Purchasing.Entities
@@ -11,14 +11,11 @@ Namespace Services
         Implements IVendorService
 
         Private ReadOnly _db As PurchasingDbContext
-        Private ReadOnly _repository As ISyncableRepository(Of PurchasingDbContext)
         Private _vendorList As List(Of Vendor)
         Private _grListVendorHistory As List(Of GoodsReceipt)
 
-        Public Sub New(db As PurchasingDbContext,
-                       repository As ISyncableRepository(Of PurchasingDbContext))
+        Public Sub New(db As PurchasingDbContext)
             _db = db
-            _repository = repository
         End Sub
 
         Public Async Function CreateAsync(dto As CreateVendorDto) As Task(Of Vendor) Implements IVendorService.CreateAsync
@@ -43,7 +40,7 @@ Namespace Services
             }
 
             _db.Vendors.Add(vendor)
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
+            Await _db.SaveChangesAsync()
 
             Return Await GetByIdAsync(vendor.Id)
         End Function
@@ -57,7 +54,7 @@ Namespace Services
         Public Async Function GetAllAsync() As Task(Of List(Of Vendor)) Implements IVendorService.GetAllAsync
             _vendorList = New List(Of Vendor)()
             Dim connStr = _db.Database.GetConnectionString()
-            Using conn As New SqliteConnection(connStr)
+            Using conn As New MySqlConnection(connStr)
                 Await conn.OpenAsync()
                 Using cmd = conn.CreateCommand()
                     cmd.CommandText = "SELECT Id, Name, ContactPerson, Phone, Email, Address, DefaultLeadTimeDays, Notes " &
@@ -108,7 +105,7 @@ Namespace Services
             vendor.DefaultLeadTimeDays = dto.DefaultLeadTimeDays
             vendor.Notes = dto.Notes
 
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
+            Await _db.SaveChangesAsync()
 
             Return Await GetByIdAsync(id)
         End Function
@@ -123,7 +120,7 @@ Namespace Services
 
             vendor.IsDeleted = True
             vendor.DeletedAt = DateTime.UtcNow
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
+            Await _db.SaveChangesAsync()
 
             Return True
         End Function
@@ -135,14 +132,14 @@ Namespace Services
 
             _vendorList = New List(Of Vendor)()
             Dim saConnStr = _db.Database.GetConnectionString()
-            Using saConn As New SqliteConnection(saConnStr)
+            Using saConn As New MySqlConnection(saConnStr)
                 Await saConn.OpenAsync()
                 Using saCmd = saConn.CreateCommand()
                     saCmd.CommandText = "SELECT Id, Name, ContactPerson, Phone, Email, Address, DefaultLeadTimeDays, Notes " &
                                         "FROM Pur_Vendors WHERE IsDeleted = 0 AND " &
                                         "(lower(Name) LIKE @term OR lower(ContactPerson) LIKE @term OR lower(Phone) LIKE @term) " &
                                         "ORDER BY Name"
-                    saCmd.Parameters.Add(New SqliteParameter("@term", "%" & searchTerm.ToLower() & "%"))
+                    saCmd.Parameters.Add(New MySqlParameter("@term", "%" & searchTerm.ToLower() & "%"))
                     Using saReader = saCmd.ExecuteReader()
                         While saReader.Read()
                             _vendorList.Add(New Vendor With {
@@ -180,7 +177,7 @@ Namespace Services
             If orders.Any() Then
                 Dim poIdList As String = String.Join(",", orders.Select(Function(po) po.Id))
                 Dim ghConnStr = _db.Database.GetConnectionString()
-                Using ghConn As New SqliteConnection(ghConnStr)
+                Using ghConn As New MySqlConnection(ghConnStr)
                     Await ghConn.OpenAsync()
                     Using ghCmd = ghConn.CreateCommand()
                         ghCmd.CommandText = "SELECT Id, PurchaseOrderId, ReceiptNumber, ReceivedDate, ReceivedBy, Notes " &

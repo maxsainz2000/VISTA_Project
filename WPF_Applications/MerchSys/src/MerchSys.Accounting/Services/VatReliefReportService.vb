@@ -1,8 +1,8 @@
-' Raw SqliteConnection is used instead of EF Core ToListAsync() because EF Core 10 + VB.NET
+' Raw MySqlConnection is used instead of EF Core ToListAsync() because EF Core 10 + VB.NET
 ' silently returns an empty list for full entity queries.
 ' See: agent_wiki/errors/efcore10-vbnet-tolistasync-empty.md
 
-Imports Microsoft.Data.Sqlite
+Imports MySqlConnector
 Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.Accounting.Data
 
@@ -63,7 +63,7 @@ Namespace Services
             Dim inputVat As Decimal = 0D
             Dim purchaseCount As Integer = 0
 
-            Using conn As New SqliteConnection(connStr)
+            Using conn As New MySqlConnection(connStr)
                 Await conn.OpenAsync()
 
                 Using revCmd = conn.CreateCommand()
@@ -72,8 +72,8 @@ Namespace Services
                         "SUM(OutputVat), COUNT(*) " &
                         "FROM Acc_RevenueRecords " &
                         "WHERE RecordDate >= @ws AND RecordDate < @we"
-                    revCmd.Parameters.Add(New SqliteParameter("@ws", wsStr))
-                    revCmd.Parameters.Add(New SqliteParameter("@we", weStr))
+                    revCmd.Parameters.Add(New MySqlParameter("@ws", wsStr))
+                    revCmd.Parameters.Add(New MySqlParameter("@we", weStr))
                     Using revReader = revCmd.ExecuteReader()
                         If revReader.Read() Then
                             vatableSales = If(revReader.IsDBNull(0), 0D, revReader.GetDecimal(0))
@@ -91,8 +91,8 @@ Namespace Services
                         "SUM(InputVat), COUNT(*) " &
                         "FROM Acc_ExpenseRecords " &
                         "WHERE RecordDate >= @ws AND RecordDate < @we"
-                    expCmd.Parameters.Add(New SqliteParameter("@ws", wsStr))
-                    expCmd.Parameters.Add(New SqliteParameter("@we", weStr))
+                    expCmd.Parameters.Add(New MySqlParameter("@ws", wsStr))
+                    expCmd.Parameters.Add(New MySqlParameter("@we", weStr))
                     Using expReader = expCmd.ExecuteReader()
                         If expReader.Read() Then
                             vatablePurchases = If(expReader.IsDBNull(0), 0D, expReader.GetDecimal(0))

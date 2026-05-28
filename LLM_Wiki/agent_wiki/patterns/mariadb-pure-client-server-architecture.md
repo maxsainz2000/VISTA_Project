@@ -107,15 +107,17 @@ This serializes concurrent sales of the same product across all four clients wit
 - **Host laptop is UPS-backed** — operational hard requirement, not advisory.
 - **Nightly `mysqldump`** to a second machine via Task Scheduler — required for DR.
 
-## EF Core ↔ MySQL Provider — Open Question
+## EF Core ↔ MySQL Provider — Resolved in INFRA-23
 
-Pomelo 9.x has a binary incompatibility with EF Core 10 (`MissingMethodException` on `AbstractionsStrings.ArgumentIsEmpty`, see `Operator/debug-logs/INFRA-test-5.md`); Pomelo 10.x is unreleased. INFRA-23 must select between:
+Oracle's official provider **`MySql.EntityFrameworkCore` (10.0.7)** has been selected and validated for all module DbContexts. 
 
-- `MySql.EntityFrameworkCore` (Oracle official) — needs validation against EF Core 10
-- Stay on raw `MySqlConnector` for writes + thin query helper for reads
-- Downgrade EF Core to 9.x
+Spike testing (INFRA-23) confirmed the following under .NET 10 & EF Core 10.0.7 against MariaDB 11.4.x:
+- Compiles with 0 warnings/errors.
+- Correctly supports LINQ queries and materializes navigation properties via `Include()`.
+- Optimistic concurrency works natively when `IsRowVersion()` is configured on a `TIMESTAMP(6)` column (correctly throws `DbUpdateConcurrencyException`).
+- Pessimistic locking queries (`FOR UPDATE`) inside `BeginTransactionAsync` transaction blocks successfully serialize database writes.
 
-This pattern entry will be updated with the chosen provider after INFRA-23 lands.
+All future DB context migrations and project modifications should use `MySql.EntityFrameworkCore` version `10.0.7`.
 
 ## Related
 

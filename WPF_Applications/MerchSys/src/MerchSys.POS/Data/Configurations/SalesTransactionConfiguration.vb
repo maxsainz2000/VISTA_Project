@@ -47,6 +47,11 @@ Namespace Data.Configurations
                 WithMany(Function(c) c.Transactions).
                 HasForeignKey("CreditAccountId").
                 IsRequired(False)
+
+            builder.Property(Function(e) e.RowVersion).
+                IsRowVersion().
+                HasColumnType("TIMESTAMP(6)").
+                ValueGeneratedOnAddOrUpdate()
         End Sub
 
     End Class

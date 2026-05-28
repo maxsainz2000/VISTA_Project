@@ -1,7 +1,7 @@
 Imports System.Collections.ObjectModel
 Imports CommunityToolkit.Mvvm.ComponentModel
 Imports CommunityToolkit.Mvvm.Input
-Imports Microsoft.Data.Sqlite
+Imports MySqlConnector
 Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.POS.Data
 Imports MerchSys.POS.Entities
@@ -357,15 +357,15 @@ Namespace ViewModels
 
             _historyTxList = New List(Of SalesTransaction)()
             Dim htConnStr = _context.Database.GetConnectionString()
-            Using htConn As New SqliteConnection(htConnStr)
+            Using htConn As New MySqlConnection(htConnStr)
                 Await htConn.OpenAsync()
                 Using htCmd = htConn.CreateCommand()
                     htCmd.CommandText = "SELECT TransactionDate, TransactionNumber, TotalAmount " &
                                          "FROM Pos_SalesTransactions " &
                                          "WHERE CustomerId = @accountId AND PaymentMethod = @creditMethod AND IsDeleted = 0 " &
                                          "ORDER BY TransactionDate DESC"
-                    htCmd.Parameters.Add(New SqliteParameter("@accountId", account.Id))
-                    htCmd.Parameters.Add(New SqliteParameter("@creditMethod", CInt(PaymentMethod.Credit)))
+                    htCmd.Parameters.Add(New MySqlParameter("@accountId", account.Id))
+                    htCmd.Parameters.Add(New MySqlParameter("@creditMethod", CInt(PaymentMethod.Credit)))
                     Using htReader = htCmd.ExecuteReader()
                         While htReader.Read()
                             _historyTxList.Add(New SalesTransaction With {

@@ -8,6 +8,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 The repository is in **active implementation phase**. All source code lives under `WPF_Applications/MerchSys/`. The `Plans/` directory contains the detailed implementation plans, `Progress/` contains implementation summaries, and `LLM_Wiki/` is the authoritative three-tier knowledge base.
 
+> **⚠️ Architecture pivot — 2026-05-28.** SQLite and the entire sync layer are being removed in favour of pure client-server against a single centralized **MariaDB 11.4.x LTS** instance. See `LLM_Wiki/Sources/system_plan_amendment_2026-05-28.md` and `LLM_Wiki/wiki/concepts/centralized-database-architecture.md`. New code must target MariaDB only — do not add to SQLite code paths or the sync infrastructure. SQLite-era code is being torn out in INFRA-23 through INFRA-30; until those plans land, the codebase still contains SQLite + `Sync_Journal` + `SyncOrchestrator` etc. as historical scaffolding.
+
 ## Language
 
 All source code is **Visual Basic .NET (VB.NET)**. Every `dotnet new` command must include `--language VB`. All files use `.vb` extension. Do not generate C# syntax.
@@ -28,9 +30,9 @@ These are validated antipatterns from `LLM_Wiki/agent_wiki/` that every agent re
 | **XAML `clr-namespace` root prefix** | `xmlns:x="clr-namespace:Views.Foo"` is wrong. Must be `clr-namespace:MerchSys.App.Views.Foo` — VB.NET root namespace is not applied automatically by the XAML parser. `x:Class` is unaffected. | MC3074 |
 | **`Console` namespace shadow** | When `Imports Microsoft.Extensions.Logging` is present, `Console` resolves to MEL's class. Always use `System.Console.WriteLine()`. | BC30456 |
 | **`Await` in Catch/Finally** | `Await` is illegal inside `Catch`/`Finally` blocks (BC36943). Capture error state before the block, await after. | BC36943 |
-| **SQLite trigger + temp table** | SQLite triggers cannot reference `temp.*`. Use a persistent table with a TTL column instead. | SQLite Error 1 |
+| **SQLite trigger + temp table** *(historical)* | SQLite triggers cannot reference `temp.*`. SQLite is being removed post-2026-05-28; this trap only applies to legacy code still on SQLite. | SQLite Error 1 |
 | **Parameter shadows property** | A parameter named `vendors` shadows a property `Vendors` (VB.NET is case-insensitive). `Vendors.Clear()` clears the parameter, not the property — silent logic bug. Name parameters distinctly: `vendorList`, `inputItems`, etc. | silent |
-| **EF Core 10 VB.NET ToListAsync empty** | `ToListAsync()` on a full entity query silently returns an empty list. `CountAsync()` and scalar projections work. Use a fresh `SqliteConnection` + synchronous `reader.Read()` loop writing to a class field. | silent |
+| **EF Core 10 VB.NET ToListAsync empty** | `ToListAsync()` on a full entity query silently returns an empty list. `CountAsync()` and scalar projections work. **Pre-pivot workaround:** raw `SqliteConnection` + synchronous `reader.Read()`. **Post-pivot:** raw `MySqlConnector.MySqlConnection` reader loop — same bug class, different connection type. | silent |
 
 Full docs in `LLM_Wiki/agent_wiki/antipatterns/` and `LLM_Wiki/agent_wiki/errors/`.
 
@@ -58,9 +60,30 @@ dotnet new classlib --language VB --framework net10.0 -n MerchSys.<Module>
 # See agent_wiki/errors/efcore10-vbnet-migration-discovery-bug.md for the full workaround
 ```
 
-## SQLite CLI
+## MariaDB CLI
 
-SQLite 3 is installed via winget. Use it to query `merchsys.db` directly from PowerShell:
+MariaDB is hosted via **XAMPP** on the designated host laptop. From PowerShell on any client:
+
+```powershell
+# Local query (when running on the host laptop)
+& "C:\xampp\mysql\bin\mysql.exe" -u root merchsys_central -e "SELECT ... FROM ...;"
+
+# Remote query (from a client laptop on the LAN)
+& "C:\xampp\mysql\bin\mysql.exe" -h <host-ip-or-name> -u <user> -p merchsys_central -e "SELECT ...;"
+
+# Interactive shell
+& "C:\xampp\mysql\bin\mysql.exe" -u root merchsys_central
+```
+
+Connection string format (lives in `appsettings.json` per client):
+
+```
+Server=<host-ip-or-name>;Port=3306;Database=merchsys_central;User Id=<user>;Password=<password>;
+```
+
+### SQLite CLI *(historical — being removed)*
+
+Until the SQLite-removal plans (INFRA-23 → INFRA-30) land, the legacy local DB still exists at `%LOCALAPPDATA%\MerchSys\merchsys.db`. Query with:
 
 ```powershell
 $sqlite3 = "C:\Users\Admin\AppData\Local\Microsoft\WinGet\Packages\SQLite.SQLite_Microsoft.Winget.Source_8wekyb3d8bbwe\sqlite3.exe"
@@ -68,11 +91,11 @@ $db = "$env:LOCALAPPDATA\MerchSys\merchsys.db"
 & $sqlite3 "-header" "-column" $db "SELECT ... FROM ...;"
 ```
 
-The `sqlite3` alias is also available in new shells after the PATH refresh (open a new terminal and run `sqlite3 $db "..."` directly).
+Do not write new code that depends on this file — it is going away.
 
 ---
 
-**EF Core CLI is broken for VB.NET + EF Core 10.** Never use `dotnet ef migrations add` or `dotnet ef database update` in this project. Schema changes must be written as manual migration classes in `src/MerchSys.<Module>/Migrations/` and applied via `DatabaseInitializer` (raw `SqliteConnection` + `CREATE TABLE IF NOT EXISTS`) called from `Application_Startup`. See `agent_wiki/errors/efcore10-vbnet-migration-discovery-bug.md` for the exact pattern.
+**EF Core CLI is broken for VB.NET + EF Core 10.** Never use `dotnet ef migrations add` or `dotnet ef database update` in this project. Schema changes must be written as raw SQL applied at app startup via a startup-time initializer (raw `MySqlConnector.MySqlConnection` + `CREATE TABLE IF NOT EXISTS`). See `agent_wiki/errors/efcore10-vbnet-migration-discovery-bug.md` for the discovery-bug background; the post-pivot pattern uses the same raw-connection approach against MariaDB instead of SQLite.
 
 Build must complete with **0 errors, 0 warnings**. No test projects exist yet. (Testing and complex troubleshooting will be conducted in a separate phase after the modules are fully built).
 If the build fails, do not directly fix the error. Instead document all the errors in the Progress folder - the troubleshooting will be on a separated session.
@@ -100,12 +123,17 @@ Each module library has: `Entities/`, `Services/`, `Data/`, `Handlers/`, `ViewMo
 - Each module references `MerchSys.SharedKernel` only — **no cross-module project references**
 - Cross-module communication uses **MediatR events and queries exclusively** — never direct service calls or shared EF navigation properties
 
-**Database:**
-- One `DbContext` per module (`PurchasingDbContext`, `InventoryDbContext`, etc.)
-- Single SQLite file (`merchsys.db`) — offline-first, always available
-- Central **MariaDB 11.4.x** (via XAMPP) for sync — connected only when network + TCP probe succeeds
+**Database (post-2026-05-28 pivot):**
+- One `DbContext` per module (`PurchasingDbContext`, `InventoryDbContext`, etc.) — all bound to the **same** MariaDB connection string.
+- Single centralized **MariaDB 11.4.x LTS** instance (via XAMPP) on a designated host laptop on the LAN. **No local DB on any client. No sync layer.**
+- Up to 4 concurrent client laptops connect directly via TCP 3306.
 - Table prefixes: `Pur_`, `Inv_`, `Pos_`, `Acc_` — no cross-module foreign keys at DB level
 - All tables in 3NF; audit columns (`CreatedBy`, `CreatedAt`, `ModifiedBy`, `ModifiedAt`) on every table; soft deletes (`IsDeleted`) on all financial/inventory records
+- **Optimistic concurrency tokens** (`TIMESTAMP(6) ON UPDATE` or `RowVersion`) on all mutable rows (`Inv_StockBatches.QuantityRemaining`, `Pur_AccountsPayable.OutstandingBalance`, `Pos_CreditAccounts.OutstandingBalance`).
+- **`SELECT ... FOR UPDATE`** inside the FIFO inventory decrement transaction to serialize concurrent client writes.
+- On `DbUpdateConcurrencyException`, surface "Data changed elsewhere — refresh and retry" in the UI. **Never silently overwrite.**
+
+**Legacy SQLite + sync code (being removed):** The codebase still contains `Sync_Journal`, `SyncOrchestrator`, `SyncWorker`, `MariaDbSyncTransmitter`, `ISyncableRepository`, all `*SyncMap` classes, `ConflictResolver`, `NetworkAvailabilityChanged`, `SyncStatusIndicator`, and the SQLite `DatabaseInitializer`. All of this is targeted for deletion by INFRA-23 → INFRA-30. Do not extend any of it.
 
 **MediatR event contracts** (defined in `SharedKernel`):
 - `GoodsReceivedEvent` — Purchasing → Inventory, Accounting
@@ -122,11 +150,13 @@ Each module library has: `Entities/`, `Services/`, `Data/`, `Handlers/`, `ViewMo
 |---------|---------|
 | `MediatR` (latest stable) | SharedKernel + all modules |
 | `Microsoft.EntityFrameworkCore` 10.x | All module libraries |
-| `Microsoft.EntityFrameworkCore.Sqlite` 10.x | All module libraries |
+| `MySqlConnector` 2.x | All module libraries (raw ADO.NET adapter to MariaDB) |
+| EF Core ↔ MySQL provider | **To be selected in INFRA-23.** Pomelo 9.x has a binary incompat with EF Core 10 (see `Operator/debug-logs/INFRA-test-5.md`); Pomelo 10.x is unreleased. Candidates: `MySql.EntityFrameworkCore` (Oracle official), staying on raw `MySqlConnector` for write paths + a thin query helper, or downgrading EF Core. **Do not assume Pomelo.** |
 | `CommunityToolkit.Mvvm` (latest stable) | All module libraries |
 | `Microsoft.Extensions.DependencyInjection` (latest) | MerchSys.App |
 | `Microsoft.Extensions.Hosting` (latest) | MerchSys.App |
 | `Notification.Wpf` (latest stable) | MerchSys.App |
+| ~~`Microsoft.EntityFrameworkCore.Sqlite` 10.x~~ | **Removed post-pivot** (INFRA-23) |
 
 ## Planning & Progress Workflow
 
@@ -159,8 +189,11 @@ The repository uses a strict three-tier wiki system. You must adhere to these bo
 
 ### 1. Domain Wiki (`LLM_Wiki/wiki/`) — **READ ONLY**
 This is the authoritative domain knowledge base maintained by Antigravity. **You must not modify these files.** Read them to understand business rules and architecture. Key references:
+- `LLM_Wiki/Sources/system_plan_amendment_2026-05-28.md` — **authoritative architecture amendment** (supersedes the original §5.3, §5.4, §10, §11, §12 of `system_plan.md`)
+- `LLM_Wiki/wiki/concepts/centralized-database-architecture.md` — current data-access and concurrency model
+- `LLM_Wiki/wiki/concepts/offline-first-sync.md` — **superseded** historical record only
 - `LLM_Wiki/wiki/concepts/modular-monolith.md` — architecture pattern details
-- `LLM_Wiki/wiki/concepts/client-server-wpf.md` — WPF stack and sync behavior
+- `LLM_Wiki/wiki/concepts/client-server-wpf.md` — WPF stack
 - `LLM_Wiki/wiki/analysis/tech-stack-reference.md` — pinned versions
 - `LLM_Wiki/wiki/concepts/fifo-costing.md` — inventory valuation method
 - `LLM_Wiki/wiki/concepts/utang-credit-system.md` — informal credit (AR) model

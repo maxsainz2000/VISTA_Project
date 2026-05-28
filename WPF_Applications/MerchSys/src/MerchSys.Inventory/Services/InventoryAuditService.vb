@@ -1,5 +1,5 @@
 Imports System.Threading
-Imports Microsoft.Data.Sqlite
+Imports MySqlConnector
 Imports Microsoft.EntityFrameworkCore
 Imports Microsoft.Extensions.Logging
 Imports MerchSys.Inventory.Data
@@ -13,15 +13,12 @@ Namespace Services
 
         Private ReadOnly _db As InventoryDbContext
         Private ReadOnly _logger As ILogger(Of InventoryAuditService)
-        Private ReadOnly _repository As ISyncableRepository(Of InventoryDbContext)
         Private _auditHistoryList As List(Of StockAuditRecord)
 
         Public Sub New(db As InventoryDbContext,
-                       logger As ILogger(Of InventoryAuditService),
-                       repository As ISyncableRepository(Of InventoryDbContext))
+                       logger As ILogger(Of InventoryAuditService))
             _db = db
             _logger = logger
-            _repository = repository
         End Sub
 
         Public Async Function PerformStockCountAsync(productId As Integer, physicalCount As Integer, performedBy As String, notes As String) As Task(Of StockAuditRecord) Implements IInventoryAuditService.PerformStockCountAsync
@@ -73,7 +70,7 @@ Namespace Services
                 })
             End If
 
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
+            Await _db.SaveChangesAsync()
 
             _logger.LogInformation(
                 "Stock count performed: ProductId={ProductId}, Expected={Expected}, Physical={Physical}, Variance={Variance}, By={By}",
@@ -131,7 +128,7 @@ Namespace Services
                 })
             End If
 
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
+            Await _db.SaveChangesAsync()
 
             _logger.LogInformation(
                 "Stock adjustment recorded: ProductId={ProductId}, Adjusted={Adjusted}, Variance={Variance}, Reason={Reason}, By={By}",
@@ -143,7 +140,7 @@ Namespace Services
         Public Async Function GetAuditHistoryAsync(Optional productId As Integer? = Nothing, Optional startDate As DateTime? = Nothing, Optional endDate As DateTime? = Nothing) As Task(Of List(Of StockAuditRecord)) Implements IInventoryAuditService.GetAuditHistoryAsync
             _auditHistoryList = New List(Of StockAuditRecord)()
             Dim ahConnStr = _db.Database.GetConnectionString()
-            Using ahConn As New SqliteConnection(ahConnStr)
+            Using ahConn As New MySqlConnection(ahConnStr)
                 Await ahConn.OpenAsync()
 
                 Dim ahSql = "SELECT Id, ProductId, ExpectedQuantity, PhysicalCount, Variance, Reason, Notes, " &
@@ -156,9 +153,9 @@ Namespace Services
 
                 Using ahCmd = ahConn.CreateCommand()
                     ahCmd.CommandText = ahSql
-                    If productId.HasValue Then ahCmd.Parameters.Add(New SqliteParameter("@productId", productId.Value))
-                    If startDate.HasValue Then ahCmd.Parameters.Add(New SqliteParameter("@startDate", startDate.Value.ToString("o")))
-                    If endDate.HasValue Then ahCmd.Parameters.Add(New SqliteParameter("@endDate", endDate.Value.ToString("o")))
+                    If productId.HasValue Then ahCmd.Parameters.Add(New MySqlParameter("@productId", productId.Value))
+                    If startDate.HasValue Then ahCmd.Parameters.Add(New MySqlParameter("@startDate", startDate.Value.ToString("o")))
+                    If endDate.HasValue Then ahCmd.Parameters.Add(New MySqlParameter("@endDate", endDate.Value.ToString("o")))
                     Using ahReader = ahCmd.ExecuteReader()
                         While ahReader.Read()
                             _auditHistoryList.Add(New StockAuditRecord With {

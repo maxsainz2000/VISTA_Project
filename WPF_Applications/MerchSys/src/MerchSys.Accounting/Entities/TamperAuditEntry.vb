@@ -1,23 +1,18 @@
 Imports System.Security.Principal
-Imports MerchSys.SharedKernel.Persistence
 
 Namespace Entities
 
     ''' <summary>
     ''' Append-only security audit record for receipt tamper incidents raised by POS-13.
-    ''' Excluded from <c>Sync_Journal</c> appending — tamper evidence is local-only until
-    ''' a future plan defines central retention semantics.
     '''
     ''' Deliberate deviations from the CLAUDE.md standard audit-column convention:
     ''' • No <c>IsDeleted</c> / soft-delete — tamper records must be physically retained
     '''   (BIR §235 requires 10-year tamper-proof preservation; deletion would defeat the purpose).
     ''' • No <c>ModifiedBy</c> / <c>ModifiedAt</c> — the row is immutable after creation;
-    '''   SQLite-level UPDATE/DELETE triggers (see migration AddTamperAuditLog) enforce this at
-    '''   the database layer as well.
+    '''   MariaDB-level triggers enforce this at the database layer as well.
     ''' • No cross-module foreign key on <c>ReceiptId</c> — modular monolith rule; the
     '''   denormalised <c>ReceiptNumber</c> snapshot survives archival of the POS row.
     ''' </summary>
-    <NoSync>
     Public Class TamperAuditEntry
 
         ''' <summary>Surrogate primary key (auto-increment).</summary>

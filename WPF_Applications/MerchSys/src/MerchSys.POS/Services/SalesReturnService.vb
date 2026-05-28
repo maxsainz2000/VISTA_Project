@@ -1,5 +1,5 @@
 Imports System.Threading
-Imports Microsoft.Data.Sqlite
+Imports MySqlConnector
 Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.POS.Data
 Imports MerchSys.POS.Entities
@@ -15,16 +15,13 @@ Namespace Services
 
         Private ReadOnly _context As POSDbContext
         Private ReadOnly _eventBus As IEventBus
-        Private ReadOnly _repository As ISyncableRepository(Of POSDbContext)
         Private _returnsForTxList As List(Of SalesReturn)
         Private _returnHistoryList As List(Of SalesReturn)
 
         Public Sub New(context As POSDbContext,
-                       eventBus As IEventBus,
-                       repository As ISyncableRepository(Of POSDbContext))
+                       eventBus As IEventBus)
             _context = context
             _eventBus = eventBus
-            _repository = repository
         End Sub
 
         Public Async Function ProcessReturnAsync(
@@ -94,7 +91,7 @@ Namespace Services
                 account.LastTransactionDate = DateTime.UtcNow
             End If
 
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _context.SaveChangesAsync() for sync journal population
+            Await _context.SaveChangesAsync()
 
             If shouldRestock Then
                 Await _eventBus.PublishAsync(New StockReturnedEvent() With {
@@ -114,7 +111,7 @@ Namespace Services
         Public Async Function GetReturnsForTransactionAsync(transactionId As Integer) As Task(Of List(Of SalesReturn)) Implements ISalesReturnService.GetReturnsForTransactionAsync
             _returnsForTxList = New List(Of SalesReturn)()
             Dim rftConnStr = _context.Database.GetConnectionString()
-            Using rftConn As New SqliteConnection(rftConnStr)
+            Using rftConn As New MySqlConnection(rftConnStr)
                 Await rftConn.OpenAsync()
                 Using rftCmd = rftConn.CreateCommand()
                     rftCmd.CommandText = "SELECT Id, OriginalTransactionId, ReturnDate, ProductId, ProductName, " &
@@ -122,7 +119,7 @@ Namespace Services
                                          "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
                                          "FROM Pos_SalesReturns WHERE OriginalTransactionId = @txId " &
                                          "ORDER BY ReturnDate"
-                    rftCmd.Parameters.Add(New SqliteParameter("@txId", transactionId))
+                    rftCmd.Parameters.Add(New MySqlParameter("@txId", transactionId))
                     Using rftReader = rftCmd.ExecuteReader()
                         While rftReader.Read()
                             _returnsForTxList.Add(ReadSalesReturn(rftReader))
@@ -137,7 +134,7 @@ Namespace Services
             Dim endOfDay = endDate.Date.AddDays(1).AddTicks(-1)
             _returnHistoryList = New List(Of SalesReturn)()
             Dim rhConnStr = _context.Database.GetConnectionString()
-            Using rhConn As New SqliteConnection(rhConnStr)
+            Using rhConn As New MySqlConnection(rhConnStr)
                 Await rhConn.OpenAsync()
                 Using rhCmd = rhConn.CreateCommand()
                     rhCmd.CommandText = "SELECT Id, OriginalTransactionId, ReturnDate, ProductId, ProductName, " &
@@ -146,8 +143,8 @@ Namespace Services
                                          "FROM Pos_SalesReturns " &
                                          "WHERE ReturnDate >= @startDate AND ReturnDate <= @endOfDay " &
                                          "ORDER BY ReturnDate DESC"
-                    rhCmd.Parameters.Add(New SqliteParameter("@startDate", startDate.ToString("o")))
-                    rhCmd.Parameters.Add(New SqliteParameter("@endOfDay", endOfDay.ToString("o")))
+                    rhCmd.Parameters.Add(New MySqlParameter("@startDate", startDate.ToString("o")))
+                    rhCmd.Parameters.Add(New MySqlParameter("@endOfDay", endOfDay.ToString("o")))
                     Using rhReader = rhCmd.ExecuteReader()
                         While rhReader.Read()
                             _returnHistoryList.Add(ReadSalesReturn(rhReader))
@@ -170,7 +167,7 @@ Namespace Services
             Return New HashSet(Of Integer)(ids)
         End Function
 
-        Private Shared Function ReadSalesReturn(r As Microsoft.Data.Sqlite.SqliteDataReader) As SalesReturn
+        Private Shared Function ReadSalesReturn(r As MySqlConnector.MySqlDataReader) As SalesReturn
             Return New SalesReturn With {
                 .Id = r.GetInt32(0),
                 .OriginalTransactionId = r.GetInt32(1),

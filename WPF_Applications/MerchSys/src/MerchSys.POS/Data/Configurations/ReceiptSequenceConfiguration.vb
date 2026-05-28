@@ -13,8 +13,9 @@ Namespace Data.Configurations
             builder.HasIndex(Function(s) s.Year).IsUnique()
 
             builder.Property(Function(s) s.RowVersion).
-                IsRequired().
-                IsConcurrencyToken()
+                IsRowVersion().
+                HasColumnType("TIMESTAMP(6)").
+                ValueGeneratedOnAddOrUpdate()
         End Sub
 
     End Class

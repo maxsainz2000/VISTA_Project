@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:shell="clr-namespace:MerchSys.App.Views.Shell"
+        xmlns:models="clr-namespace:MerchSys.App.Models"
         mc:Ignorable="d"
         Title="VISTA — Villon Integrated Supply and Trade Application"
         Height="720" Width="1280"
@@ -11,146 +11,54 @@
         WindowState="Maximized"
         MinHeight="600" MinWidth="900">
 
-    <Window.Resources>
+    <!--
+        Shell layout — three columns:
+          Col 0 (60px)  : Activity Rail — module icon buttons
+          Col 1 (220px) : Module Detail Panel — active module nav items, session info, Log Out, connection status
+          Col 2 (*)     : Content — the active view UserControl
+    -->
 
-        <!-- Nav item button — strips default chrome, supports active/hover states -->
-        <Style x:Key="NavItemButton" TargetType="Button">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#BDC3C7"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="HorizontalContentAlignment" Value="Left"/>
-            <Setter Property="Padding" Value="28,0,12,0"/>
-            <Setter Property="Height" Value="36"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                Padding="{TemplateBinding Padding}">
-                            <ContentPresenter VerticalAlignment="Center"
-                                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding IsActive}" Value="True">
-                    <Setter Property="Background" Value="#3D566E"/>
-                    <Setter Property="Foreground" Value="White"/>
-                    <Setter Property="FontWeight" Value="SemiBold"/>
-                </DataTrigger>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#34495E"/>
-                    <Setter Property="Foreground" Value="White"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-    </Window.Resources>
+    <!-- Keyboard shortcuts: Ctrl+1..4 switch modules; Ctrl+0 switches to Developer Tools (Debug) -->
+    <Window.InputBindings>
+        <KeyBinding Gesture="Ctrl+1"
+                    Command="{Binding SelectModuleCommand}"
+                    CommandParameter="{x:Static models:AppModule.Purchasing}"/>
+        <KeyBinding Gesture="Ctrl+2"
+                    Command="{Binding SelectModuleCommand}"
+                    CommandParameter="{x:Static models:AppModule.Inventory}"/>
+        <KeyBinding Gesture="Ctrl+3"
+                    Command="{Binding SelectModuleCommand}"
+                    CommandParameter="{x:Static models:AppModule.POS}"/>
+        <KeyBinding Gesture="Ctrl+4"
+                    Command="{Binding SelectModuleCommand}"
+                    CommandParameter="{x:Static models:AppModule.Accounting}"/>
+        <KeyBinding Gesture="Ctrl+D0"
+                    Command="{Binding SelectModuleCommand}"
+                    CommandParameter="{x:Static models:AppModule.DeveloperTools}"/>
+    </Window.InputBindings>
 
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <!-- INFRA-10: status bar row added; no status area existed prior to this plan -->
-            <RowDefinition Height="24"/>
-        </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
+            <!-- Col 0: Activity Rail -->
+            <ColumnDefinition Width="60"/>
+            <!-- Col 1: Module Detail Panel -->
             <ColumnDefinition Width="220"/>
+            <!-- Col 2: Active Content View -->
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <!-- ═══════════════════════════════════════════════════════════
-             SIDEBAR
-             ═══════════════════════════════════════════════════════════ -->
-        <Border Grid.Row="0" Grid.Column="0" Background="#2C3E50">
-            <DockPanel>
+        <!-- ═══ Col 0 — Activity Rail ═══════════════════════════════════════ -->
+        <!-- Slot filled by code-behind from DI (ActivityRail UserControl) -->
+        <ContentControl Grid.Column="0" x:Name="ActivityRailSlot"/>
 
-                <!-- App title -->
-                <StackPanel DockPanel.Dock="Top" Margin="0,20,0,16">
-                    <TextBlock Text="VISTA"
-                               Foreground="White" FontSize="20" FontWeight="Bold"
-                               HorizontalAlignment="Center"/>
-                    <TextBlock Text="Villon Farm Supply"
-                               Foreground="#7F8C8D" FontSize="10"
-                               HorizontalAlignment="Center" Margin="0,3,0,0"/>
-                </StackPanel>
+        <!-- ═══ Col 1 — Module Detail Panel ════════════════════════════════ -->
+        <!-- Slot filled by code-behind from DI (ModuleDetailPanel UserControl) -->
+        <ContentControl Grid.Column="1" x:Name="ModuleDetailSlot"/>
 
-                <!-- Divider -->
-                <Border DockPanel.Dock="Top" Height="1" Background="#34495E" Margin="12,0,12,8"/>
-
-                <!-- Session identity — username and role -->
-                <StackPanel DockPanel.Dock="Top" Margin="12,0,12,10">
-                    <TextBlock Text="{Binding CurrentUsername}"
-                               Foreground="White" FontSize="12" FontWeight="SemiBold"
-                               HorizontalAlignment="Center"/>
-                    <TextBlock Text="{Binding CurrentRoleDisplay}"
-                               Foreground="#7F8C8D" FontSize="10"
-                               HorizontalAlignment="Center" Margin="0,2,0,0"/>
-                </StackPanel>
-
-                <!-- Log Out button pinned to the bottom of the sidebar -->
-                <StackPanel DockPanel.Dock="Bottom" Margin="0,0,0,8">
-                    <Border Height="1" Background="#34495E" Margin="12,8,12,0"/>
-                    <Button Content="Log Out"
-                            Command="{Binding LogoutCommand}"
-                            Style="{StaticResource NavItemButton}"
-                            Foreground="#E74C3C"
-                            Margin="0,4,0,0"/>
-                </StackPanel>
-
-                <!-- Navigation groups -->
-                <ScrollViewer VerticalScrollBarVisibility="Auto"
-                              HorizontalScrollBarVisibility="Disabled">
-                    <ItemsControl ItemsSource="{Binding NavigationGroups}" Focusable="False">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel Margin="0,8,0,0">
-
-                                    <!-- Group label -->
-                                    <TextBlock Text="{Binding GroupName}"
-                                               Foreground="#7F8C8D"
-                                               FontSize="10"
-                                               FontWeight="Bold"
-                                               Margin="16,0,16,2"/>
-
-                                    <!-- Nav items -->
-                                    <ItemsControl ItemsSource="{Binding Items}" Focusable="False">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Button Content="{Binding DisplayName}"
-                                                        Command="{Binding DataContext.NavigateCommand,
-                                                                          RelativeSource={RelativeSource AncestorType=Window}}"
-                                                        CommandParameter="{Binding}"
-                                                        Style="{StaticResource NavItemButton}"/>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-
-                                </StackPanel>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </ScrollViewer>
-
-            </DockPanel>
-        </Border>
-
-        <!-- ═══════════════════════════════════════════════════════════
-             MAIN CONTENT AREA
-             ═══════════════════════════════════════════════════════════ -->
-        <ContentControl Grid.Row="0" Grid.Column="1"
+        <!-- ═══ Col 2 — Active Content View ════════════════════════════════ -->
+        <ContentControl Grid.Column="2"
                         Content="{Binding CurrentView}"
                         Background="#F5F6FA"/>
-
-        <!-- ═══════════════════════════════════════════════════════════
-             STATUS BAR (INFRA-10)
-             ═══════════════════════════════════════════════════════════ -->
-        <Border Grid.Row="1" Grid.ColumnSpan="2" Background="#1A252F">
-            <shell:SyncStatusIndicator DataContext="{Binding SyncStatusIndicator}"/>
-        </Border>
 
     </Grid>
 </Window>

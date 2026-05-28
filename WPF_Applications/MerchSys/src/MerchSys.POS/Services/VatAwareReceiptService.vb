@@ -6,7 +6,6 @@ Imports MerchSys.POS.Data
 Imports MerchSys.POS.Entities
 Imports MerchSys.SharedKernel.Events
 Imports MerchSys.SharedKernel.Persistence
-Imports MerchSys.SharedKernel.Sync
 
 Namespace Services
 
@@ -26,23 +25,17 @@ Namespace Services
         Private ReadOnly _context As POSDbContext
         Private ReadOnly _mediator As IMediator
         Private ReadOnly _integrityService As IReceiptIntegrityService
-        Private ReadOnly _repository As ISyncableRepository(Of POSDbContext)
-        Private ReadOnly _journalDb As SyncJournalDbContext
 
         Public Sub New(inner As ReceiptService,
                        vatCalculator As IVatCalculator,
                        context As POSDbContext,
                        mediator As IMediator,
-                       integrityService As IReceiptIntegrityService,
-                       repository As ISyncableRepository(Of POSDbContext),
-                       journalDb As SyncJournalDbContext)
+                       integrityService As IReceiptIntegrityService)
             _inner = inner
             _vatCalculator = vatCalculator
             _context = context
             _mediator = mediator
             _integrityService = integrityService
-            _repository = repository
-            _journalDb = journalDb
         End Sub
 
         ''' <summary>
@@ -95,30 +88,13 @@ Namespace Services
             transaction.IsVatRegisteredSnapshot = config.IsVatRegistered
 
             ' Step 4 — persist VAT fields before the receipt is issued.
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _context.SaveChangesAsync() for sync journal population
+            Await _context.SaveChangesAsync()
 
             ' Step 5 — delegate to the inner ReceiptService to produce the OfficialReceipt.
             Dim receipt = Await _inner.GenerateReceiptAsync(transactionId)
 
             ' Step 6 — secure the hash chain (now includes VAT totals in the canonical payload).
             Dim integrity = Await _integrityService.ComputeAndPersistAsync(receipt)
-
-            ' Patch the Sync_Journal payload for this receipt to include IntegrityHash.
-            ' The payload was captured in Step 5 before the hash existed, so it must be
-            ' back-filled here or IntegrityHash will always be NULL in MariaDB.
-            If integrity IsNot Nothing AndAlso Not String.IsNullOrEmpty(integrity.IntegrityHash) Then
-                Dim journalEntry = Await _journalDb.SyncJournalEntries.
-                    FirstOrDefaultAsync(Function(j) j.TableName = "Pos_OfficialReceipts" AndAlso
-                                                    j.RowId = CLng(receipt.Id) AndAlso
-                                                    j.SyncedAt Is Nothing)
-                If journalEntry IsNot Nothing Then
-                    Dim node = JsonNode.Parse(journalEntry.Payload)
-                    node("IntegrityHash") = JsonValue.Create(integrity.IntegrityHash)
-                    journalEntry.Payload = node.ToJsonString()
-                    Await _journalDb.SaveChangesAsync()
-                    _journalDb.ChangeTracker.Clear()
-                End If
-            End If
 
             ' Step 7 — publish both events so legacy and VAT-aware consumers each receive their contract.
             ' Handlers must be idempotent on TransactionId during the migration window.

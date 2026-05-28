@@ -1,6 +1,6 @@
 Imports System.Threading
 Imports MediatR
-Imports Microsoft.Data.Sqlite
+Imports MySqlConnector
 Imports Microsoft.EntityFrameworkCore
 Imports Microsoft.Extensions.Logging
 Imports MerchSys.Inventory.Data
@@ -33,7 +33,7 @@ Namespace Handlers
             Dim now As DateTime = DateTime.UtcNow
             _catalogProductList = New List(Of Product)()
             Dim catConnStr = _db.Database.GetConnectionString()
-            Using catConn As New SqliteConnection(catConnStr)
+            Using catConn As New MySqlConnection(catConnStr)
                 Await catConn.OpenAsync()
 
                 Dim catSql = "SELECT Id, Name, Sku, CategoryId, Description, RetailPrice, Unit, HasExpiry, " &
@@ -46,9 +46,9 @@ Namespace Handlers
 
                 Using catCmd = catConn.CreateCommand()
                     catCmd.CommandText = catSql
-                    If request.ProductId.HasValue Then catCmd.Parameters.Add(New SqliteParameter("@productId", request.ProductId.Value))
+                    If request.ProductId.HasValue Then catCmd.Parameters.Add(New MySqlParameter("@productId", request.ProductId.Value))
                     If Not String.IsNullOrWhiteSpace(request.SearchTerm) Then
-                        catCmd.Parameters.Add(New SqliteParameter("@term", "%" & request.SearchTerm.Trim().ToLower() & "%"))
+                        catCmd.Parameters.Add(New MySqlParameter("@term", "%" & request.SearchTerm.Trim().ToLower() & "%"))
                     End If
                     Using catReader = catCmd.ExecuteReader()
                         While catReader.Read()

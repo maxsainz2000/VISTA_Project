@@ -1,5 +1,5 @@
 Imports System.Threading
-Imports Microsoft.Data.Sqlite
+Imports MySqlConnector
 Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.Purchasing.Data
 Imports MerchSys.Purchasing.Entities
@@ -13,15 +13,12 @@ Namespace Services
         Implements IPurchaseOrderService
 
         Private ReadOnly _db As PurchasingDbContext
-        Private ReadOnly _repository As ISyncableRepository(Of PurchasingDbContext)
         Private _poList As List(Of PurchaseOrder)
         Private _poLineList As List(Of PurchaseOrderLine)
         Private _poVendorList As List(Of Vendor)
 
-        Public Sub New(db As PurchasingDbContext,
-                       repository As ISyncableRepository(Of PurchasingDbContext))
+        Public Sub New(db As PurchasingDbContext)
             _db = db
-            _repository = repository
         End Sub
 
         Public Async Function CreateDraftAsync(vendorId As Integer,
@@ -56,7 +53,7 @@ Namespace Services
 
             RecalculateTotal(po)
             _db.PurchaseOrders.Add(po)
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
+            Await _db.SaveChangesAsync()
 
             Return Await GetByIdAsync(po.Id)
         End Function
@@ -72,13 +69,13 @@ Namespace Services
             ' Step 1: load PurchaseOrders
             _poList = New List(Of PurchaseOrder)()
             Dim connStr = _db.Database.GetConnectionString()
-            Using conn As New SqliteConnection(connStr)
+            Using conn As New MySqlConnection(connStr)
                 Await conn.OpenAsync()
                 Using cmd = conn.CreateCommand()
                     If status.HasValue Then
                         cmd.CommandText = "SELECT Id, OrderNumber, VendorId, Status, OrderDate, ExpectedDeliveryDate, TotalAmount, Notes " &
                                           "FROM Pur_PurchaseOrders WHERE Status = @status ORDER BY OrderDate DESC"
-                        cmd.Parameters.Add(New SqliteParameter("@status", CInt(status.Value)))
+                        cmd.Parameters.Add(New MySqlParameter("@status", CInt(status.Value)))
                     Else
                         cmd.CommandText = "SELECT Id, OrderNumber, VendorId, Status, OrderDate, ExpectedDeliveryDate, TotalAmount, Notes " &
                                           "FROM Pur_PurchaseOrders ORDER BY OrderDate DESC"
@@ -197,7 +194,7 @@ Namespace Services
             Next
 
             RecalculateTotal(po)
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
+            Await _db.SaveChangesAsync()
 
             Return Await GetByIdAsync(id)
         End Function
@@ -224,7 +221,7 @@ Namespace Services
             End If
 
             po.Status = PurchaseOrderStatus.Submitted
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
+            Await _db.SaveChangesAsync()
 
             Return Await GetByIdAsync(id)
         End Function
@@ -241,7 +238,7 @@ Namespace Services
             End If
 
             po.Status = PurchaseOrderStatus.Received
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
+            Await _db.SaveChangesAsync()
 
             Return Await GetByIdAsync(id)
         End Function
@@ -258,7 +255,7 @@ Namespace Services
             End If
 
             po.Status = PurchaseOrderStatus.Verified
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
+            Await _db.SaveChangesAsync()
 
             Return Await GetByIdAsync(id)
         End Function
@@ -289,7 +286,7 @@ Namespace Services
                 .IsPaid = False
             })
 
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
+            Await _db.SaveChangesAsync()
 
             Return Await GetByIdAsync(id)
         End Function
@@ -307,7 +304,7 @@ Namespace Services
             End If
 
             _db.PurchaseOrders.Remove(po)
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
+            Await _db.SaveChangesAsync()
 
             Return True
         End Function

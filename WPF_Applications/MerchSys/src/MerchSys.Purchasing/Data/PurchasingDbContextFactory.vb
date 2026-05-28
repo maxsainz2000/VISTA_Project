@@ -10,7 +10,7 @@ Namespace Data
             Implements IDesignTimeDbContextFactory(Of PurchasingDbContext).CreateDbContext
 
             Dim optionsBuilder = New DbContextOptionsBuilder(Of PurchasingDbContext)()
-            optionsBuilder.UseSqlite("Data Source=design_time.db")
+            optionsBuilder.UseMySQL("Server=localhost;Database=design_time;User Id=root;Password=;")
             Return New PurchasingDbContext(optionsBuilder.Options)
         End Function
 

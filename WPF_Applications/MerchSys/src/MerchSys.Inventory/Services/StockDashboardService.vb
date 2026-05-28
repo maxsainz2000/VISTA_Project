@@ -1,4 +1,4 @@
-Imports Microsoft.Data.Sqlite
+Imports MySqlConnector
 Imports Microsoft.EntityFrameworkCore
 Imports Microsoft.Extensions.Logging
 Imports MerchSys.Inventory.Data
@@ -30,7 +30,7 @@ Namespace Services
 
             _dashboardProductList = New List(Of Product)()
             Dim dashConnStr = _db.Database.GetConnectionString()
-            Using dashConn As New SqliteConnection(dashConnStr)
+            Using dashConn As New MySqlConnection(dashConnStr)
                 Await dashConn.OpenAsync()
                 Using dashCmd = dashConn.CreateCommand()
                     dashCmd.CommandText = "SELECT Id, Name, Sku, CategoryId, Description, RetailPrice, Unit, HasExpiry, " &

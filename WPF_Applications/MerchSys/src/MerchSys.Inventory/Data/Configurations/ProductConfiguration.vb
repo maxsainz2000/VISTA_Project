@@ -29,6 +29,11 @@ Namespace Data.Configurations
                     WithOne(Function(s) s.Product).
                     HasForeignKey(Function(s) s.ProductId).
                     OnDelete(DeleteBehavior.Restrict)
+
+            builder.Property(Function(e) e.RowVersion).
+                IsRowVersion().
+                HasColumnType("TIMESTAMP(6)").
+                ValueGeneratedOnAddOrUpdate()
         End Sub
 
     End Class

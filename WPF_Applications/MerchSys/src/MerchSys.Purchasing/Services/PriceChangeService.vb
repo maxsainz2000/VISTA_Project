@@ -1,5 +1,5 @@
 Imports System.Threading
-Imports Microsoft.Data.Sqlite
+Imports MySqlConnector
 Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.Purchasing.Data
 Imports MerchSys.Purchasing.Entities
@@ -11,13 +11,10 @@ Namespace Services
         Implements IPriceChangeService
 
         Private ReadOnly _db As PurchasingDbContext
-        Private ReadOnly _repository As ISyncableRepository(Of PurchasingDbContext)
         Private _priceAlertList As List(Of PriceChangeAlert)
 
-        Public Sub New(db As PurchasingDbContext,
-                       repository As ISyncableRepository(Of PurchasingDbContext))
+        Public Sub New(db As PurchasingDbContext)
             _db = db
-            _repository = repository
         End Sub
 
         Public Async Function DetectChangesAsync(goodsReceiptId As Integer) As Task(Of List(Of PriceChangeAlert)) Implements IPriceChangeService.DetectChangesAsync
@@ -72,7 +69,7 @@ Namespace Services
 
             If alerts.Count > 0 Then
                 _db.PriceChangeAlerts.AddRange(alerts)
-                Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
+                Await _db.SaveChangesAsync()
             End If
 
             Return alerts
@@ -81,7 +78,7 @@ Namespace Services
         Public Async Function GetUnacknowledgedAsync() As Task(Of List(Of PriceChangeAlert)) Implements IPriceChangeService.GetUnacknowledgedAsync
             _priceAlertList = New List(Of PriceChangeAlert)()
             Dim uaConnStr = _db.Database.GetConnectionString()
-            Using uaConn As New SqliteConnection(uaConnStr)
+            Using uaConn As New MySqlConnection(uaConnStr)
                 Await uaConn.OpenAsync()
                 Using uaCmd = uaConn.CreateCommand()
                     uaCmd.CommandText = "SELECT Id, ProductId, ProductName, VendorId, VendorName, PreviousUnitCost, " &
@@ -108,20 +105,20 @@ Namespace Services
 
             alert.IsAcknowledged = True
             alert.AcknowledgedAt = DateTime.UtcNow
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
+            Await _db.SaveChangesAsync()
         End Function
 
         Public Async Function GetHistoryForProductAsync(productId As Integer) As Task(Of List(Of PriceChangeAlert)) Implements IPriceChangeService.GetHistoryForProductAsync
             _priceAlertList = New List(Of PriceChangeAlert)()
             Dim hpConnStr = _db.Database.GetConnectionString()
-            Using hpConn As New SqliteConnection(hpConnStr)
+            Using hpConn As New MySqlConnection(hpConnStr)
                 Await hpConn.OpenAsync()
                 Using hpCmd = hpConn.CreateCommand()
                     hpCmd.CommandText = "SELECT Id, ProductId, ProductName, VendorId, VendorName, PreviousUnitCost, " &
                                         "NewUnitCost, ChangePercent, ChangeDirection, GoodsReceiptId, IsAcknowledged, AcknowledgedAt, " &
                                         "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
                                         "FROM Pur_PriceChangeAlerts WHERE ProductId = @productId ORDER BY CreatedAt DESC"
-                    hpCmd.Parameters.Add(New SqliteParameter("@productId", productId))
+                    hpCmd.Parameters.Add(New MySqlParameter("@productId", productId))
                     Using hpReader = hpCmd.ExecuteReader()
                         While hpReader.Read()
                             _priceAlertList.Add(ReadPriceChangeAlert(hpReader))
@@ -132,7 +129,7 @@ Namespace Services
             Return _priceAlertList
         End Function
 
-        Private Shared Function ReadPriceChangeAlert(r As SqliteDataReader) As PriceChangeAlert
+        Private Shared Function ReadPriceChangeAlert(r As MySqlDataReader) As PriceChangeAlert
             Return New PriceChangeAlert With {
                 .Id = r.GetInt32(0),
                 .ProductId = r.GetInt32(1),

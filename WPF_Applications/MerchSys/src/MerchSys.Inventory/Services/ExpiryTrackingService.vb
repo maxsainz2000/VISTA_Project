@@ -1,5 +1,5 @@
 Imports System.Threading
-Imports Microsoft.Data.Sqlite
+Imports MySqlConnector
 Imports Microsoft.EntityFrameworkCore
 Imports Microsoft.Extensions.Logging
 Imports MerchSys.Inventory.Data
@@ -13,16 +13,13 @@ Namespace Services
 
         Private ReadOnly _db As InventoryDbContext
         Private ReadOnly _logger As ILogger(Of ExpiryTrackingService)
-        Private ReadOnly _repository As ISyncableRepository(Of InventoryDbContext)
         Private _nearExpiryBatchList As List(Of StockBatch)
         Private _expiredBatchList As List(Of StockBatch)
 
         Public Sub New(db As InventoryDbContext,
-                       logger As ILogger(Of ExpiryTrackingService),
-                       repository As ISyncableRepository(Of InventoryDbContext))
+                       logger As ILogger(Of ExpiryTrackingService))
             _db = db
             _logger = logger
-            _repository = repository
         End Sub
 
         ''' <summary>
@@ -33,7 +30,7 @@ Namespace Services
             Dim thresholdDate As DateTime = today.AddDays(daysThreshold)
             _nearExpiryBatchList = New List(Of StockBatch)()
             Dim neConnStr = _db.Database.GetConnectionString()
-            Using neConn As New SqliteConnection(neConnStr)
+            Using neConn As New MySqlConnection(neConnStr)
                 Await neConn.OpenAsync()
                 Using neCmd = neConn.CreateCommand()
                     neCmd.CommandText = "SELECT b.Id, b.ProductId, b.QuantityReceived, b.QuantityRemaining, b.UnitCost, " &
@@ -45,8 +42,8 @@ Namespace Services
                                         "AND b.ExpiryDate IS NOT NULL " &
                                         "AND b.ExpiryDate >= @today AND b.ExpiryDate <= @threshold " &
                                         "ORDER BY b.ExpiryDate"
-                    neCmd.Parameters.Add(New SqliteParameter("@today", today.ToString("o")))
-                    neCmd.Parameters.Add(New SqliteParameter("@threshold", thresholdDate.ToString("o")))
+                    neCmd.Parameters.Add(New MySqlParameter("@today", today.ToString("o")))
+                    neCmd.Parameters.Add(New MySqlParameter("@threshold", thresholdDate.ToString("o")))
                     Using neReader = neCmd.ExecuteReader()
                         While neReader.Read()
                             _nearExpiryBatchList.Add(StockService.ReadStockBatch(neReader))
@@ -99,7 +96,7 @@ Namespace Services
             Dim today As DateTime = DateTime.UtcNow.Date
             _expiredBatchList = New List(Of StockBatch)()
             Dim expConnStr = _db.Database.GetConnectionString()
-            Using expConn As New SqliteConnection(expConnStr)
+            Using expConn As New MySqlConnection(expConnStr)
                 Await expConn.OpenAsync()
                 Using expCmd = expConn.CreateCommand()
                     expCmd.CommandText = "SELECT b.Id, b.ProductId, b.QuantityReceived, b.QuantityRemaining, b.UnitCost, " &
@@ -110,7 +107,7 @@ Namespace Services
                                          "WHERE p.HasExpiry = 1 AND b.QuantityRemaining > 0 " &
                                          "AND b.ExpiryDate IS NOT NULL AND b.ExpiryDate < @today " &
                                          "ORDER BY b.ExpiryDate"
-                    expCmd.Parameters.Add(New SqliteParameter("@today", today.ToString("o")))
+                    expCmd.Parameters.Add(New MySqlParameter("@today", today.ToString("o")))
                     Using expReader = expCmd.ExecuteReader()
                         While expReader.Read()
                             _expiredBatchList.Add(StockService.ReadStockBatch(expReader))
@@ -246,7 +243,7 @@ Namespace Services
 
             batch.QuantityRemaining = 0
             _db.ShrinkageRecords.Add(shrinkage)
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
+            Await _db.SaveChangesAsync()
 
             _logger.LogInformation(
                 "Expired batch written off: BatchId={BatchId}, ProductId={ProductId}, QtyLost={QtyLost}, TotalValue={TotalValue}",

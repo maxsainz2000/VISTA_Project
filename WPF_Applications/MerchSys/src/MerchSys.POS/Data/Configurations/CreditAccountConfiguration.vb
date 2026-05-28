@@ -26,6 +26,11 @@ Namespace Data.Configurations
             builder.Property(Function(c) c.Notes).HasMaxLength(1000)
 
             builder.HasData(POSSeedData.GetCreditAccountSeeds())
+
+            builder.Property(Function(e) e.RowVersion).
+                IsRowVersion().
+                HasColumnType("TIMESTAMP(6)").
+                ValueGeneratedOnAddOrUpdate()
         End Sub
 
     End Class

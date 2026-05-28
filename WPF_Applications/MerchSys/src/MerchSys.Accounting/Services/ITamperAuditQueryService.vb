@@ -1,5 +1,5 @@
 Imports System.Threading
-Imports Microsoft.Data.Sqlite
+Imports MySqlConnector
 Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.Accounting.Data
 Imports MerchSys.Accounting.Entities
@@ -37,7 +37,7 @@ Namespace Services
 
             _tamperAuditList = New List(Of TamperAuditEntry)()
             Dim giConnStr = _db.Database.GetConnectionString()
-            Using giConn As New SqliteConnection(giConnStr)
+            Using giConn As New MySqlConnection(giConnStr)
                 Await giConn.OpenAsync()
                 Using giCmd = giConn.CreateCommand()
                     giCmd.CommandText = "SELECT Id, DetectedAt, ReceiptId, ReceiptNumber, TamperKind, DetectedByService, " &
@@ -46,8 +46,8 @@ Namespace Services
                                         "FROM Acc_TamperAuditLog " &
                                         "WHERE DetectedAt >= @fromUtc AND DetectedAt <= @toUtc " &
                                         "ORDER BY DetectedAt DESC"
-                    giCmd.Parameters.Add(New SqliteParameter("@fromUtc", fromUtc.ToString("o")))
-                    giCmd.Parameters.Add(New SqliteParameter("@toUtc", toUtc.ToString("o")))
+                    giCmd.Parameters.Add(New MySqlParameter("@fromUtc", fromUtc.ToString("o")))
+                    giCmd.Parameters.Add(New MySqlParameter("@toUtc", toUtc.ToString("o")))
                     Using giReader = giCmd.ExecuteReader()
                         While giReader.Read()
                             _tamperAuditList.Add(New TamperAuditEntry With {

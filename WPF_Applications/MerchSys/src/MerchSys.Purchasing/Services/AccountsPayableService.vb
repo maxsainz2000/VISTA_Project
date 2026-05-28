@@ -1,5 +1,5 @@
 Imports System.Threading
-Imports Microsoft.Data.Sqlite
+Imports MySqlConnector
 Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.Purchasing.Data
 Imports MerchSys.Purchasing.Entities
@@ -12,14 +12,11 @@ Namespace Services
         Implements IAccountsPayableService
 
         Private ReadOnly _db As PurchasingDbContext
-        Private ReadOnly _repository As ISyncableRepository(Of PurchasingDbContext)
         Private _apList As List(Of AccountsPayableEntry)
         Private _grListForAp As List(Of GoodsReceipt)
 
-        Public Sub New(db As PurchasingDbContext,
-                       repository As ISyncableRepository(Of PurchasingDbContext))
+        Public Sub New(db As PurchasingDbContext)
             _db = db
-            _repository = repository
         End Sub
 
         Public Async Function CreateFromPurchaseOrderAsync(purchaseOrderId As Integer, invoiceNumber As String, invoiceDate As DateTime, dueDate As DateTime) As Task(Of AccountsPayableEntry) Implements IAccountsPayableService.CreateFromPurchaseOrderAsync
@@ -39,12 +36,12 @@ Namespace Services
 
             _grListForAp = New List(Of GoodsReceipt)()
             Dim grConnStr = _db.Database.GetConnectionString()
-            Using grConn As New SqliteConnection(grConnStr)
+            Using grConn As New MySqlConnection(grConnStr)
                 Await grConn.OpenAsync()
                 Using grCmd = grConn.CreateCommand()
                     grCmd.CommandText = "SELECT Id, PurchaseOrderId, ReceiptNumber, ReceivedDate, ReceivedBy, Notes " &
                                         "FROM Pur_GoodsReceipts WHERE PurchaseOrderId = @poId"
-                    grCmd.Parameters.Add(New SqliteParameter("@poId", purchaseOrderId))
+                    grCmd.Parameters.Add(New MySqlParameter("@poId", purchaseOrderId))
                     Using grReader = grCmd.ExecuteReader()
                         While grReader.Read()
                             _grListForAp.Add(New GoodsReceipt With {
@@ -101,7 +98,7 @@ Namespace Services
             }
 
             _db.AccountsPayableEntries.Add(entry)
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
+            Await _db.SaveChangesAsync()
 
             Return Await GetByIdWithNavigationAsync(entry.Id)
         End Function
@@ -131,7 +128,7 @@ Namespace Services
             entry.Balance = entry.TotalAmount - entry.AmountPaid
             entry.IsPaid = (entry.Balance = 0D)
 
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
+            Await _db.SaveChangesAsync()
 
             Return Await GetByIdWithNavigationAsync(apEntryId)
         End Function
@@ -139,7 +136,7 @@ Namespace Services
         Public Async Function GetAllOutstandingAsync() As Task(Of List(Of AccountsPayableEntry)) Implements IAccountsPayableService.GetAllOutstandingAsync
             _apList = New List(Of AccountsPayableEntry)()
             Dim connStr = _db.Database.GetConnectionString()
-            Using conn As New SqliteConnection(connStr)
+            Using conn As New MySqlConnection(connStr)
                 Await conn.OpenAsync()
                 Using cmd = conn.CreateCommand()
                     cmd.CommandText = "SELECT Id, PurchaseOrderId, VendorId, InvoiceNumber, InvoiceDate, DueDate, " &
@@ -159,13 +156,13 @@ Namespace Services
         Public Async Function GetByVendorAsync(vendorId As Integer) As Task(Of List(Of AccountsPayableEntry)) Implements IAccountsPayableService.GetByVendorAsync
             _apList = New List(Of AccountsPayableEntry)()
             Dim byVConnStr = _db.Database.GetConnectionString()
-            Using byVConn As New SqliteConnection(byVConnStr)
+            Using byVConn As New MySqlConnection(byVConnStr)
                 Await byVConn.OpenAsync()
                 Using byVCmd = byVConn.CreateCommand()
                     byVCmd.CommandText = "SELECT Id, PurchaseOrderId, VendorId, InvoiceNumber, InvoiceDate, DueDate, " &
                                          "TotalAmount, AmountPaid, Balance, IsPaid, Notes, CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
                                          "FROM Pur_AccountsPayable WHERE VendorId = @vendorId ORDER BY InvoiceDate DESC"
-                    byVCmd.Parameters.Add(New SqliteParameter("@vendorId", vendorId))
+                    byVCmd.Parameters.Add(New MySqlParameter("@vendorId", vendorId))
                     Using byVReader = byVCmd.ExecuteReader()
                         While byVReader.Read()
                             _apList.Add(ReadApEntry(byVReader))
@@ -180,13 +177,13 @@ Namespace Services
         Public Async Function GetOverdueAsync() As Task(Of List(Of AccountsPayableEntry)) Implements IAccountsPayableService.GetOverdueAsync
             _apList = New List(Of AccountsPayableEntry)()
             Dim odConnStr = _db.Database.GetConnectionString()
-            Using odConn As New SqliteConnection(odConnStr)
+            Using odConn As New MySqlConnection(odConnStr)
                 Await odConn.OpenAsync()
                 Using odCmd = odConn.CreateCommand()
                     odCmd.CommandText = "SELECT Id, PurchaseOrderId, VendorId, InvoiceNumber, InvoiceDate, DueDate, " &
                                         "TotalAmount, AmountPaid, Balance, IsPaid, Notes, CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
                                         "FROM Pur_AccountsPayable WHERE DueDate < @today AND IsPaid = 0 ORDER BY DueDate ASC"
-                    odCmd.Parameters.Add(New SqliteParameter("@today", DateTime.UtcNow.Date.ToString("o")))
+                    odCmd.Parameters.Add(New MySqlParameter("@today", DateTime.UtcNow.Date.ToString("o")))
                     Using odReader = odCmd.ExecuteReader()
                         While odReader.Read()
                             _apList.Add(ReadApEntry(odReader))
@@ -214,7 +211,7 @@ Namespace Services
         Public Async Function GetAllAsync() As Task(Of List(Of AccountsPayableEntry)) Implements IAccountsPayableService.GetAllAsync
             _apList = New List(Of AccountsPayableEntry)()
             Dim gaConnStr = _db.Database.GetConnectionString()
-            Using gaConn As New SqliteConnection(gaConnStr)
+            Using gaConn As New MySqlConnection(gaConnStr)
                 Await gaConn.OpenAsync()
                 Using gaCmd = gaConn.CreateCommand()
                     gaCmd.CommandText = "SELECT Id, PurchaseOrderId, VendorId, InvoiceNumber, InvoiceDate, DueDate, " &
@@ -238,7 +235,7 @@ Namespace Services
                 FirstOrDefaultAsync(Function(ap) ap.Id = id)
         End Function
 
-        Private Shared Function ReadApEntry(r As SqliteDataReader) As AccountsPayableEntry
+        Private Shared Function ReadApEntry(r As MySqlDataReader) As AccountsPayableEntry
             Return New AccountsPayableEntry With {
                 .Id = r.GetInt32(0),
                 .PurchaseOrderId = r.GetInt32(1),
@@ -268,7 +265,7 @@ Namespace Services
             Dim poDict As New Dictionary(Of Integer, PurchaseOrder)()
 
             Dim navConnStr = _db.Database.GetConnectionString()
-            Using navConn As New SqliteConnection(navConnStr)
+            Using navConn As New MySqlConnection(navConnStr)
                 Await navConn.OpenAsync()
 
                 Using vCmd = navConn.CreateCommand()

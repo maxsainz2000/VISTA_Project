@@ -19,6 +19,11 @@ Namespace Data.Configurations
 
             builder.Ignore(Function(b) b.IsExpired)
             builder.Ignore(Function(b) b.IsFullyConsumed)
+
+            builder.Property(Function(e) e.RowVersion).
+                IsRowVersion().
+                HasColumnType("TIMESTAMP(6)").
+                ValueGeneratedOnAddOrUpdate()
         End Sub
 
     End Class

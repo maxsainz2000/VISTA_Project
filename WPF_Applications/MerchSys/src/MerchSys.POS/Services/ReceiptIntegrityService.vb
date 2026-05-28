@@ -3,7 +3,7 @@ Imports System.Security.Cryptography
 Imports System.Text
 Imports System.Text.Json
 Imports MediatR
-Imports Microsoft.Data.Sqlite
+Imports MySqlConnector
 Imports Microsoft.EntityFrameworkCore
 Imports Microsoft.Extensions.Logging
 Imports MerchSys.POS.Data
@@ -105,7 +105,7 @@ Namespace Services
         Public Async Function ValidateChainAsync(year As Integer) As Task(Of ChainValidationResult) Implements IReceiptIntegrityService.ValidateChainAsync
             _integrityChainList = New List(Of ReceiptIntegrity)()
             Dim vcConnStr = _context.Database.GetConnectionString()
-            Using vcConn As New SqliteConnection(vcConnStr)
+            Using vcConn As New MySqlConnection(vcConnStr)
                 Await vcConn.OpenAsync()
 
                 Using vcCmd = vcConn.CreateCommand()
@@ -114,7 +114,7 @@ Namespace Services
                                          "INNER JOIN Pos_OfficialReceipts r ON r.Id = ri.ReceiptId " &
                                          "WHERE CAST(strftime('%Y', r.IssueDate) AS INTEGER) = @year " &
                                          "ORDER BY ri.ReceiptId"
-                    vcCmd.Parameters.Add(New SqliteParameter("@year", year))
+                    vcCmd.Parameters.Add(New MySqlParameter("@year", year))
                     Using vcReader = vcCmd.ExecuteReader()
                         While vcReader.Read()
                             _integrityChainList.Add(New ReceiptIntegrity With {
@@ -222,13 +222,11 @@ Namespace Services
                         If sequence Is Nothing Then
                             sequence = New ReceiptSequence() With {
                                 .Year = year,
-                                .NextValue = 1,
-                                .RowVersion = Guid.NewGuid().ToByteArray()
+                                .NextValue = 1
                             }
                             _context.ReceiptSequences.Add(sequence)
                         Else
                             sequence.NextValue += 1
-                            sequence.RowVersion = Guid.NewGuid().ToByteArray()
                         End If
 
                         Await _context.SaveChangesAsync()

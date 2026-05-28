@@ -31,7 +31,7 @@ Implemented INFRA-17 to resolve the Pomelo 9 / EF Core 10 incompatibility block.
 ## What's Next
 
 - [x] Operator must re-run INFRA Test 5b to confirm the sync indicator goes green against the live MariaDB instance. *(completed/verified in Operator checklist)*
-- [ ] Codebase Wiki audit must be run for the Infrastructure module to align the Data Access Layer manifests with the removal of `Pomelo`.
+- [x] Codebase Wiki audit must be run for the Infrastructure module ~~to align the Data Access Layer manifests with the removal of `Pomelo`~~ — **Scope superseded by INFRA-23–30 (2026-05-28).** `MariaDbSyncContext.vb` (the file this plan rewrote) was deleted by INFRA-27. The Infrastructure module wiki audit now covers the full INFRA-23–30 migration (MariaDB schema bootstrap, DbContext conversion, concurrency, sync decommission, connection health monitor, runbooks, Activity Rail) — not just Pomelo removal in isolation.
 
 ## Cross-References
 

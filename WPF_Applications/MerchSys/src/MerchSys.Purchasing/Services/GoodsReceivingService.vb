@@ -1,6 +1,6 @@
 Imports System.Threading
 Imports MediatR
-Imports Microsoft.Data.Sqlite
+Imports MySqlConnector
 Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.Purchasing.Data
 Imports MerchSys.Purchasing.Dtos
@@ -20,19 +20,16 @@ Namespace Services
         Private ReadOnly _mediator As IMediator
         Private ReadOnly _priceChangeService As IPriceChangeService
         Private ReadOnly _vatCalculator As GoodsReceiptVatCalculator
-        Private ReadOnly _repository As ISyncableRepository(Of PurchasingDbContext)
         Private _grListForPO As List(Of GoodsReceipt)
 
         Public Sub New(db As PurchasingDbContext,
                        mediator As IMediator,
                        priceChangeService As IPriceChangeService,
-                       vatCalculator As GoodsReceiptVatCalculator,
-                       repository As ISyncableRepository(Of PurchasingDbContext))
+                       vatCalculator As GoodsReceiptVatCalculator)
             _db = db
             _mediator = mediator
             _priceChangeService = priceChangeService
             _vatCalculator = vatCalculator
-            _repository = repository
         End Sub
 
         Public Async Function ReceiveGoodsAsync(purchaseOrderId As Integer, lines As List(Of ReceiveGoodsLineDto)) As Task(Of GoodsReceipt) Implements IGoodsReceivingService.ReceiveGoodsAsync
@@ -94,7 +91,7 @@ Namespace Services
 
             _db.GoodsReceipts.Add(receipt)
             po.Status = PurchaseOrderStatus.Received
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
+            Await _db.SaveChangesAsync()
 
             Dim ev As New GoodsReceivedEvent With {
                 .PurchaseOrderId = purchaseOrderId,
@@ -160,13 +157,13 @@ Namespace Services
         Public Async Function GetReceiptsForPOAsync(purchaseOrderId As Integer) As Task(Of List(Of GoodsReceipt)) Implements IGoodsReceivingService.GetReceiptsForPOAsync
             _grListForPO = New List(Of GoodsReceipt)()
             Dim rfpConnStr = _db.Database.GetConnectionString()
-            Using rfpConn As New SqliteConnection(rfpConnStr)
+            Using rfpConn As New MySqlConnection(rfpConnStr)
                 Await rfpConn.OpenAsync()
                 Using rfpCmd = rfpConn.CreateCommand()
                     rfpCmd.CommandText = "SELECT Id, PurchaseOrderId, ReceiptNumber, ReceivedDate, ReceivedBy, Notes, " &
                                          "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
                                          "FROM Pur_GoodsReceipts WHERE PurchaseOrderId = @poId"
-                    rfpCmd.Parameters.Add(New SqliteParameter("@poId", purchaseOrderId))
+                    rfpCmd.Parameters.Add(New MySqlParameter("@poId", purchaseOrderId))
                     Using rfpReader = rfpCmd.ExecuteReader()
                         While rfpReader.Read()
                             _grListForPO.Add(New GoodsReceipt With {

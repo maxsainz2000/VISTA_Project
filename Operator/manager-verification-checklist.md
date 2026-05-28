@@ -2,7 +2,8 @@
 module: Security & Roles
 source: Dashboard-Feature-Analysis-2026-05-27.md
 originally-generated: 2026-05-27
-last-synced: 2026-05-27
+last-synced: 2026-05-28
+infra-migration: INFRA-23 to INFRA-30 (2026-05-28) — SQLite/sync layer decommissioned; pure MariaDB client-server architecture; Activity Rail sidebar
 reset: 2026-05-27
 verified: (pending)
 verified-by: (pending)
@@ -26,10 +27,14 @@ verdict: (pending)
 | Stock Dashboard View (Code-Behind) | `WPF_Applications\MerchSys\src\MerchSys.App\Views\Inventory\StockDashboardView.xaml.vb` |
 | Stock Dashboard ViewModel | `WPF_Applications\MerchSys\src\MerchSys.Inventory\ViewModels\StockDashboardViewModel.vb` |
 | Stock Dashboard Service | `WPF_Applications\MerchSys\src\MerchSys.Inventory\Services\StockDashboardService.vb` |
-| Main Sidebar View Model (Nav) | `WPF_Applications\MerchSys\src\MerchSys.App\ViewModels\MainWindowViewModel.vb` |
-| SQLite Database File | `%LOCALAPPDATA%\MerchSys\merchsys.db` |
+| Activity Rail ViewModel (Nav) | `WPF_Applications\MerchSys\src\MerchSys.App\ViewModels\Shell\ActivityRailViewModel.vb` |
+| Main Window ViewModel (Nav) | `WPF_Applications\MerchSys\src\MerchSys.App\ViewModels\MainWindowViewModel.vb` |
 | Central MariaDB | `localhost:3306/merchsys_central` (XAMPP) — query via `C:\xampp\mysql\bin\mysql.exe -u root merchsys_central` |
-| Sync Probe Interval | 30 s (`SyncSettings.ProbeIntervalSeconds`) — wait ~45–60 s after any write before querying MariaDB |
+| Connection Status Badge | `WPF_Applications\MerchSys\src\MerchSys.App\Views\Shell\ConnectionStatusIndicator.xaml` (INFRA-28) |
+| App Settings | `WPF_Applications\MerchSys\src\MerchSys.App\appsettings.json` — `ConnectionStrings:MerchSysCentral` |
+| Schema Migrations (SQL) | `WPF_Applications\MerchSys\src\MerchSys.Infrastructure\Data\Migrations\Central\` |
+
+> **Architecture note (INFRA-23–27, 2026-05-28):** The SQLite offline-first database and Sync Layer (`Sync_Journal`, `SyncOrchestrator`, `ISyncableRepository`) have been fully decommissioned. VISTA now writes **directly** to a single central MariaDB 11.4.x instance. All writes are synchronous EF Core calls — there is no propagation delay. Sync_Journal queries and 45–60 s wait instructions from earlier test versions are **no longer applicable**.
 
 ---
 
@@ -75,46 +80,55 @@ verdict: (pending)
 
 ## Part 2: Authorization & Sidebar Navigation Verification
 
-### Test 2.1: Full Operational Sidebar Access
-*Verifies that the Manager role has full operational privileges across all system areas, as specified in the access control matrix.*
+### Test 2.1: Full Operational Activity Rail Access
+*Verifies that the Manager role has full operational privileges across all system areas via the Master-Detail Activity Rail sidebar (INFRA-30).*
 
 **What to do:**
-1. While logged in as `manager`, inspect the sidebar navigation panel.
-2. Go through each group and check that all operational, CRUD, and setup views are present.
+1. While logged in as `manager`, inspect the left-side navigation layout.
+2. Verify the **60px Activity Rail** (far left column) contains module icons.
+3. Click each rail icon and verify the **220px Module Detail Panel** (adjacent column) shows the correct sub-views.
 
 **What you should see:**
-- [ ] **Point of Sale** group contains:
+- [ ] The Activity Rail shows 4 visible module icons: **PUR** (Purchasing), **INV** (Inventory), **POS** (Point of Sale), **ACC** (Accounting). In Debug builds a 5th **DEV** icon is also visible.
+- [ ] The active rail icon is highlighted with a blue left accent bar (`#2980B9`). Inactive icons use the dark rail background (`#243342`).
+- [ ] **Keyboard shortcuts** switch the active module: `Ctrl+1` = Purchasing, `Ctrl+2` = Inventory, `Ctrl+3` = POS, `Ctrl+4` = Accounting, `Ctrl+0` = Developer Tools (Debug + Manager only).
+- [ ] **POS module panel** contains:
   - `Sales Cart` (operational POS terminal)
   - `Credit Management` (customer credit/utang lifecycle)
   - `Transaction History` (searchable historical list of sales and returns)
   - `Daily Summary` (daily sales overview)
   - `VAT Settings` (BIR tax configuration)
-- [ ] **Purchasing** group contains:
+- [ ] **Purchasing module panel** contains:
   - `Purchase Orders` (PO lifecycle management)
   - `Goods Receiving` (receiving shipments against POs)
   - `Vendor Directory` (CRUD management of vendors)
   - `Accounts Payable` (AP tracking and payouts)
   - `Reorder Suggestions` (inventory reorder planning engine)
   - `Vendor Product Catalog` (vendor-product relationships and catalog pricing — PUR-16)
-- [ ] **Inventory** group contains:
+- [ ] **Inventory module panel** contains:
   - `Stock Dashboard` (real-time stock status list)
   - `Product Management` (CRUD control for all product details)
   - `Expiry Monitor` (batch expiry tracking)
   - `Shrinkage` (shrinkage recording and reporting)
-- [ ] **Accounting** group contains:
+- [ ] **Accounting module panel** contains:
   - `Financial Overview` (P&L KPIs and Vat tile)
   - `Income Statement` (monthly financial reporting summaries)
   - `Sales Summary` (sales distribution reviews)
   - `Tamper Audit Report` (financial transaction tamper detection log)
   - `VAT Relief Report` (BIR VAT relief/exemption report — read-only, visible to both roles)
   - `VAT Return (BIR)` (VAT computation and BIR tax form submission)
-- [ ] **Developer Tools** (visible only in **Debug** builds) contains:
+- [ ] **Developer Tools panel** (Debug builds only) contains:
   - `Run VAT Schema Harness`
+- [ ] **Connection Status Badge** is visible at the bottom of the Module Detail Panel showing **Online** (green dot) when the MariaDB server is reachable (INFRA-28).
 
 *Status Check:*
-- **Total sidebar items visible:** _______________ (expected: 22 — POS×5 + Purchasing×6 + Inventory×4 + Accounting×6 + Dev Tools×1)
-- **Confirm presence of VAT Settings & VAT Return:** _______________
-- **Confirm presence of VAT Relief Report (Accounting):** _______________
+- **Activity Rail icon count:** _______________ (expected: 4 in Release builds, 5 in Debug builds)
+- **Total sub-view items accessible (all modules):** _______________ (expected: 22 — POS×5 + Purchasing×6 + Inventory×4 + Accounting×6 + Dev Tools×1)
+- **Keyboard shortcut Ctrl+1 switches to Purchasing:** _______________
+- **Keyboard shortcut Ctrl+2 switches to Inventory:** _______________
+- **Connection Status Badge state:** _______________
+- **Confirm presence of VAT Settings (POS panel) & VAT Return (Accounting panel):** _______________
+- **Confirm presence of VAT Relief Report (Accounting panel):** _______________
 
 ---
 
@@ -289,14 +303,13 @@ verdict: (pending)
 - [ ] The sale is processed without authorization errors.
 - [ ] A success notification is shown, and the transaction is committed to the database.
 - [ ] The product's stock count on the dashboard decrements by the sold quantity.
-- [ ] Querying `Sync_Journal` in DB Browser for SQLite shows new rows representing `Pos_SalesTransactions`, `Inv_StockMovements`, and `Pos_OfficialReceipts` (verifies INFRA-13 journal creation).
+- [ ] All writes go **directly** to the central MariaDB (INFRA-23–27 — no local SQLite, no Sync_Journal).
 
 *Status Check:*
 - **OR number generated:** _______________
 - **Product stock decremented successfully:** _______________
-- **Sync Journal entries verified in SQLite:** _______________
 
-**MariaDB sync sub-check (wait ~45 s after the sale, then run):**
+**MariaDB verification (run immediately after the sale — no wait needed):**
 ```sql
 -- Run inside: mysql -u root merchsys_central
 SELECT 'Pos_SalesTransactions' AS t, COUNT(*) AS c FROM Pos_SalesTransactions UNION ALL
@@ -308,28 +321,28 @@ SELECT 'Inv_SaleCogs', COUNT(*) FROM Inv_SaleCogs UNION ALL
 SELECT 'Acc_RevenueRecords', COUNT(*) FROM Acc_RevenueRecords UNION ALL
 SELECT 'Acc_ExpenseRecords', COUNT(*) FROM Acc_ExpenseRecords;
 ```
-- [ ] `Pos_SalesTransactions` count increased by **1** (matches local SQLite count).
+- [ ] `Pos_SalesTransactions` count increased by **1**.
 - [ ] `Pos_SalesTransactionLines` count increased by **1**.
 - [ ] `Pos_OfficialReceipts` count increased by **1**, with `IntegrityHash` populated.
 - [ ] `Pos_ReceiptIntegrity` count increased by **1** (hash chain row).
 - [ ] `Inv_StockMovements` count increased by **1** (`MovementType=Sale`, negative `Quantity`).
-- [ ] `Inv_SaleCogs` count increased by **1** (only one batch was consumed in a 1-unit sale).
+- [ ] `Inv_SaleCogs` count increased by **1** (one batch consumed in a 1-unit sale — ACC-21).
 - [ ] `Acc_RevenueRecords` count increased by exactly **1** (no duplicate — ACC-22 invariant).
 - [ ] `Acc_ExpenseRecords` count increased by exactly **1** (`Category='COGS'`).
-- [ ] `Inv_StockBatches` row for the consumed batch shows updated `QuantityRemaining` (the row is **updated**, not duplicated; `LastWriteWins` policy).
+- [ ] `Inv_StockBatches` row for the consumed batch shows updated `QuantityRemaining` (INFRA-26 FOR UPDATE pessimistic lock applied).
 
 *Status Check:*
-- **MariaDB row counts match local SQLite within 60 s:** _______________
-- **Inv_SaleCogs row visible on central DB (INFRA-22 working):** _______________
+- **MariaDB row counts reflect the sale immediately:** _______________
+- **Inv_SaleCogs row visible in central DB (ACC-21 working):** _______________
 
 ---
 
 ### Test 4.2: Developer Tools & VAT Schema Harness
-*Verifies that the Manager can execute debugging features.*
+*Verifies that the Manager can execute debugging features via the Activity Rail (INFRA-30).*
 
 **What to do:**
-1. In the sidebar menu, click **Developer Tools** (only visible in Debug builds).
-2. Click **Run VAT Schema Harness**.
+1. Click the **DEV** icon on the Activity Rail (only visible in Debug builds) or press **Ctrl+0**.
+2. In the Developer Tools panel, click **Run VAT Schema Harness**.
 3. Wait for the completion popup.
 
 **What you should see:**
@@ -350,7 +363,7 @@ SELECT 'Acc_ExpenseRecords', COUNT(*) FROM Acc_ExpenseRecords;
 *Verifies the Vendor Product Catalog view is accessible and loads the seeded vendors.*
 
 **What to do:**
-1. While logged in as `manager`, click **Vendor Product Catalog** in the Purchasing sidebar group.
+1. While logged in as `manager`, click **PUR** on the Activity Rail (or press `Ctrl+1`), then click **Vendor Product Catalog** in the Purchasing module panel.
 
 **What you should see:**
 - [ ] A master-detail view loads: vendor list on the left, catalog rows for the selected vendor on the right.
@@ -569,7 +582,7 @@ SELECT 'Acc_ExpenseRecords', COUNT(*) FROM Acc_ExpenseRecords;
 - **Avg Cost:** _______________ (expected: ₱1,100.00)
 - **FIFO Cost:** _______________ (expected: ₱1,200.00)
 
-**MariaDB sync sub-check (wait ~45 s after the 3rd Goods Receiving commit):**
+**MariaDB verification (run immediately after the 3rd Goods Receiving commit — no wait needed):**
 ```sql
 SELECT 'Pur_PurchaseOrders' AS t, COUNT(*) AS c FROM Pur_PurchaseOrders UNION ALL
 SELECT 'Pur_PurchaseOrderLines', COUNT(*) FROM Pur_PurchaseOrderLines UNION ALL
@@ -586,11 +599,12 @@ SELECT 'Inv_StockMovements', COUNT(*) FROM Inv_StockMovements;
 - [ ] `Pur_AccountsPayable` count = **3** (one AP row per received PO).
 - [ ] `Inv_StockBatches` count = **3** (one batch per received PO) with UnitCost values `1000.00`, `1100.00`, `1200.00`.
 - [ ] `Inv_StockMovements` count = **3** (`MovementType=Receipt`, positive `Quantity=10`).
-- [ ] **Note:** `Pur_VendorProducts` is **not** in any sync map at this writing — its central-DB row count will stay at `0` regardless of how many catalog entries you added in Tests 5.1–5.5. Flag this as a known gap (candidate INFRA-23) if it matters to you.
+- [ ] **Note:** `Pur_VendorProducts` is now a direct MariaDB write (INFRA-23–27) — its row count should match the entries you added in Tests 5.1–5.5.
 
 *Status Check:*
 - **MariaDB row counts after receiving:** _______________
 - **Inv_StockBatches UnitCost values match (1000/1100/1200):** _______________
+- **Pur_VendorProducts row count:** _______________
 
 ---
 
@@ -645,33 +659,32 @@ GROUP BY Category;
 - **Acc_RevenueRecords.GrossProfit:** _______________ (expected: 0.00)
 - **COGS ExpenseRecord row count for this Tx:** _______________ (expected: 1)
 
-**MariaDB sync sub-check (wait ~45 s after the multi-batch sale — this is the INFRA-22 critical test):**
+**MariaDB verification (run immediately after the multi-batch sale — direct write, no propagation delay):**
 ```sql
--- Inv_SaleCogs central rows must mirror local — INFRA-22's whole reason for existing
+-- ACC-21: per-batch COGS rows
 SELECT BatchId, QuantityDeducted, UnitCost, Cogs FROM Inv_SaleCogs
 WHERE TransactionId = (SELECT MAX(SourceTransactionId) FROM Acc_RevenueRecords)
 ORDER BY BatchId;
 
--- Single revenue row (ACC-22 invariant) on central DB
+-- ACC-22: single revenue row
 SELECT SourceTransactionId, ProductId, QuantitySold, NetAmount, COGS, GrossProfit
 FROM Acc_RevenueRecords
 WHERE SourceTransactionId = (SELECT MAX(SourceTransactionId) FROM Acc_RevenueRecords);
 
--- All three local batches show updated QuantityRemaining=0 on central DB
+-- INFRA-26: all three batches should show QuantityRemaining=0
 SELECT Id, QuantityReceived, QuantityRemaining, UnitCost FROM Inv_StockBatches
 ORDER BY ReceiptDate;
 ```
-- [ ] **Central `Inv_SaleCogs` returns 3 rows** with `Cogs` values `12000.0000`, `11000.0000`, `10000.0000` — **identical to local SQLite** (INFRA-22 sync works).
-- [ ] Central `Acc_RevenueRecords` row for this Tx shows `COGS = 33000.00`, `GrossProfit = 0.00`, `QuantitySold = 30`.
-- [ ] **Only one row** exists in central `Acc_RevenueRecords` for this `(SourceTransactionId, ProductId)` pair (no duplicate writer race on central side either).
-- [ ] All three `Inv_StockBatches` rows on central DB show `QuantityRemaining = 0` (UPDATE pushed via sync, not a new INSERT).
-- [ ] Sanity: `SELECT COUNT(*) FROM Inv_SaleCogs;` on central = `SELECT COUNT(*) FROM Inv_SaleCogs;` on local SQLite.
+- [ ] **`Inv_SaleCogs` returns 3 rows** with `Cogs` values `12000.0000`, `11000.0000`, `10000.0000` (ACC-21 per-batch COGS correct).
+- [ ] `Acc_RevenueRecords` row for this Tx shows `COGS = 33000.00`, `GrossProfit = 0.00`, `QuantitySold = 30`.
+- [ ] **Only one row** exists in `Acc_RevenueRecords` for this `(SourceTransactionId, ProductId)` pair (ACC-22 deduplication working).
+- [ ] All three `Inv_StockBatches` rows show `QuantityRemaining = 0` (INFRA-26 FIFO pessimistic `FOR UPDATE` lock serialized the decrement correctly).
 
 *Status Check:*
-- **Central Inv_SaleCogs row count matches local:** _______________
-- **Inv_SaleCogs Cogs values mirror local exactly:** _______________
-- **Central Acc_RevenueRecords.COGS:** _______________ (expected: 33000.00)
-- **Central Inv_StockBatches all show QuantityRemaining=0:** _______________
+- **Inv_SaleCogs row count:** _______________ (expected: 3)
+- **Inv_SaleCogs Cogs values:** _______________ (expected: 12000 / 11000 / 10000)
+- **Acc_RevenueRecords.COGS:** _______________ (expected: 33000.00)
+- **Inv_StockBatches all show QuantityRemaining=0:** _______________
 
 ---
 
@@ -715,108 +728,108 @@ ORDER BY ReceiptDate;
 
 ---
 
-## Part 8: MariaDB Sync — Comprehensive Audit (run last, after all Manager tests above)
+## Part 8: MariaDB Data Integrity Audit (run last, after all Manager tests above)
 
-> **Goal:** After completing Tests 4.1 through 7.5, the central `merchsys_central` database should mirror the local SQLite for every synced table. This part is a full reconciliation pass — if any row count diverges, sync has a bug.
->
-> **Wait:** at least 90 s after the last Manager-side write before running this section. Sync probe runs on a 30 s cadence; a 90 s wait covers one missed cycle plus a retry.
+> **Architecture note (INFRA-23–27):** VISTA writes **directly** to the central MariaDB. There is no local SQLite database and no Sync_Journal. Row counts are immediately consistent — no wait needed.
 
-### Test 8.1: Synced-Table Row Count Reconciliation
+### Test 8.1: Table Row Count Verification
 
 **What to do:**
-1. Note the local SQLite row count for each synced table using `sqlite3 $env:LOCALAPPDATA\MerchSys\merchsys.db ".tables"` then per-table `SELECT COUNT(*) FROM <table>;`.
-2. Run the equivalent counts against MariaDB:
+1. After completing Tests 4.1 through 7.5, run the following query against the central MariaDB:
 ```sql
 -- Run inside: mysql -u root merchsys_central
-SELECT 'Acc_ExpenseRecords'   AS t, COUNT(*) AS c FROM Acc_ExpenseRecords   UNION ALL
-SELECT 'Acc_FinancialPeriods',     COUNT(*) FROM Acc_FinancialPeriods       UNION ALL
-SELECT 'Acc_FinancialSnapshots',   COUNT(*) FROM Acc_FinancialSnapshots     UNION ALL
-SELECT 'Acc_RevenueRecords',       COUNT(*) FROM Acc_RevenueRecords         UNION ALL
-SELECT 'Inv_ProductCategories',    COUNT(*) FROM Inv_ProductCategories      UNION ALL
-SELECT 'Inv_Products',             COUNT(*) FROM Inv_Products               UNION ALL
-SELECT 'Inv_SaleCogs',             COUNT(*) FROM Inv_SaleCogs               UNION ALL
-SELECT 'Inv_ShrinkageRecords',     COUNT(*) FROM Inv_ShrinkageRecords       UNION ALL
-SELECT 'Inv_StockAlertConfigs',    COUNT(*) FROM Inv_StockAlertConfigs      UNION ALL
-SELECT 'Inv_StockAuditRecords',    COUNT(*) FROM Inv_StockAuditRecords      UNION ALL
-SELECT 'Inv_StockBatches',         COUNT(*) FROM Inv_StockBatches           UNION ALL
-SELECT 'Inv_StockMovements',       COUNT(*) FROM Inv_StockMovements         UNION ALL
-SELECT 'Pos_CreditAccounts',       COUNT(*) FROM Pos_CreditAccounts         UNION ALL
-SELECT 'Pos_CreditPayments',       COUNT(*) FROM Pos_CreditPayments         UNION ALL
-SELECT 'Pos_OfficialReceipts',     COUNT(*) FROM Pos_OfficialReceipts       UNION ALL
-SELECT 'Pos_ReceiptIntegrity',     COUNT(*) FROM Pos_ReceiptIntegrity       UNION ALL
-SELECT 'Pos_SalesReturns',         COUNT(*) FROM Pos_SalesReturns           UNION ALL
-SELECT 'Pos_SalesTransactionLines',COUNT(*) FROM Pos_SalesTransactionLines  UNION ALL
-SELECT 'Pos_SalesTransactions',    COUNT(*) FROM Pos_SalesTransactions      UNION ALL
-SELECT 'Pur_AccountsPayable',      COUNT(*) FROM Pur_AccountsPayable        UNION ALL
-SELECT 'Pur_GoodsReceiptLines',    COUNT(*) FROM Pur_GoodsReceiptLines      UNION ALL
-SELECT 'Pur_GoodsReceipts',        COUNT(*) FROM Pur_GoodsReceipts          UNION ALL
-SELECT 'Pur_PriceChangeAlerts',    COUNT(*) FROM Pur_PriceChangeAlerts      UNION ALL
-SELECT 'Pur_PurchaseOrderLines',   COUNT(*) FROM Pur_PurchaseOrderLines     UNION ALL
-SELECT 'Pur_PurchaseOrders',       COUNT(*) FROM Pur_PurchaseOrders         UNION ALL
-SELECT 'Pur_ReorderConfigs',       COUNT(*) FROM Pur_ReorderConfigs         UNION ALL
-SELECT 'Pur_ReorderSuggestions',   COUNT(*) FROM Pur_ReorderSuggestions     UNION ALL
-SELECT 'Pur_Vendors',              COUNT(*) FROM Pur_Vendors;
+SELECT 'Acc_ExpenseRecords'    AS t, COUNT(*) AS c FROM Acc_ExpenseRecords   UNION ALL
+SELECT 'Acc_FinancialPeriods',      COUNT(*) FROM Acc_FinancialPeriods       UNION ALL
+SELECT 'Acc_FinancialSnapshots',    COUNT(*) FROM Acc_FinancialSnapshots     UNION ALL
+SELECT 'Acc_RevenueRecords',        COUNT(*) FROM Acc_RevenueRecords         UNION ALL
+SELECT 'Inv_ProductCategories',     COUNT(*) FROM Inv_ProductCategories      UNION ALL
+SELECT 'Inv_Products',              COUNT(*) FROM Inv_Products               UNION ALL
+SELECT 'Inv_SaleCogs',              COUNT(*) FROM Inv_SaleCogs               UNION ALL
+SELECT 'Inv_ShrinkageRecords',      COUNT(*) FROM Inv_ShrinkageRecords       UNION ALL
+SELECT 'Inv_StockAlertConfigs',     COUNT(*) FROM Inv_StockAlertConfigs      UNION ALL
+SELECT 'Inv_StockAuditRecords',     COUNT(*) FROM Inv_StockAuditRecords      UNION ALL
+SELECT 'Inv_StockBatches',          COUNT(*) FROM Inv_StockBatches           UNION ALL
+SELECT 'Inv_StockMovements',        COUNT(*) FROM Inv_StockMovements         UNION ALL
+SELECT 'Pos_CreditAccounts',        COUNT(*) FROM Pos_CreditAccounts         UNION ALL
+SELECT 'Pos_CreditPayments',        COUNT(*) FROM Pos_CreditPayments         UNION ALL
+SELECT 'Pos_OfficialReceipts',      COUNT(*) FROM Pos_OfficialReceipts       UNION ALL
+SELECT 'Pos_ReceiptIntegrity',      COUNT(*) FROM Pos_ReceiptIntegrity       UNION ALL
+SELECT 'Pos_SalesReturns',          COUNT(*) FROM Pos_SalesReturns           UNION ALL
+SELECT 'Pos_SalesTransactionLines', COUNT(*) FROM Pos_SalesTransactionLines  UNION ALL
+SELECT 'Pos_SalesTransactions',     COUNT(*) FROM Pos_SalesTransactions      UNION ALL
+SELECT 'Pur_AccountsPayable',       COUNT(*) FROM Pur_AccountsPayable        UNION ALL
+SELECT 'Pur_GoodsReceiptLines',     COUNT(*) FROM Pur_GoodsReceiptLines      UNION ALL
+SELECT 'Pur_GoodsReceipts',         COUNT(*) FROM Pur_GoodsReceipts          UNION ALL
+SELECT 'Pur_PriceChangeAlerts',     COUNT(*) FROM Pur_PriceChangeAlerts      UNION ALL
+SELECT 'Pur_PurchaseOrderLines',    COUNT(*) FROM Pur_PurchaseOrderLines     UNION ALL
+SELECT 'Pur_PurchaseOrders',        COUNT(*) FROM Pur_PurchaseOrders         UNION ALL
+SELECT 'Pur_ReorderConfigs',        COUNT(*) FROM Pur_ReorderConfigs         UNION ALL
+SELECT 'Pur_ReorderSuggestions',    COUNT(*) FROM Pur_ReorderSuggestions     UNION ALL
+SELECT 'Pur_VendorProducts',        COUNT(*) FROM Pur_VendorProducts         UNION ALL
+SELECT 'Pur_Vendors',               COUNT(*) FROM Pur_Vendors;
 ```
-3. Fill out the table below with both counts.
+2. Fill out the table below with the observed counts.
 
 **Expected baseline after the full Manager protocol (Tests 4.1 → 7.5 executed once):**
 
-| Table | Local SQLite | Central MariaDB | Notes |
-|---|---|---|---|
-| `Pur_Vendors` | 3 (seeded) | **0** | Seeded data is `<NoSync>` — never replicates |
-| `Inv_ProductCategories` | 4 (seeded) | **0** | Seed-only, `<NoSync>` |
-| `Inv_Products` | 20 (seeded) | **0** | Seed-only, `<NoSync>` |
-| `Pos_CreditAccounts` | 3 (seeded) | **0** | Seed-only, `<NoSync>` |
-| `Pur_PurchaseOrders` | 4 (1 in T4.1 + 3 in T7.2) | **4** | Equal |
-| `Pur_PurchaseOrderLines` | 4 | **4** | Equal |
-| `Pur_GoodsReceipts` | 4 | **4** | Equal |
-| `Pur_GoodsReceiptLines` | 4 | **4** | Equal |
-| `Pur_AccountsPayable` | 4 | **4** | Equal |
-| `Pos_SalesTransactions` | 2 (T4.1 + T7.3) | **2** | Equal |
-| `Pos_SalesTransactionLines` | 2 | **2** | Equal |
-| `Pos_OfficialReceipts` | 2 | **2** | Equal |
-| `Pos_ReceiptIntegrity` | 2 | **2** | Equal |
-| `Inv_StockBatches` | 4 (1 in T4.1 + 3 in T7.2) | **4** | Equal; multiple UPDATEs pushed (QuantityRemaining decreases) |
-| `Inv_StockMovements` | 6 (4 Receipt + 2 Sale) | **6** | Equal |
-| `Inv_SaleCogs` | 4 (1 in T4.1 + 3 in T7.3) | **4** | **INFRA-22 critical — must equal local** |
-| `Acc_RevenueRecords` | 2 | **2** | ACC-22 — exactly one row per `(Tx, Product)` |
-| `Acc_ExpenseRecords` | 2 | **2** | One COGS row per sale |
-| `Pos_CreditPayments` | 0 | 0 | Untouched in this protocol |
-| `Pos_SalesReturns` | 0 | 0 | Untouched |
-| `Pur_PriceChangeAlerts` | 0 | 0 | Untouched |
-| `Pur_ReorderConfigs` / `Pur_ReorderSuggestions` | 0 | 0 | Untouched |
-| `Inv_ShrinkageRecords` / `Inv_StockAuditRecords` / `Inv_StockAlertConfigs` | 0 | 0 | Untouched |
-| `Acc_FinancialPeriods` / `Acc_FinancialSnapshots` | 0 | 0 | Period-close workflow not exercised |
+| Table | Expected Count | Notes |
+|---|---|---|
+| `Pur_Vendors` | 3 | Seeded by `0002_seed_reference_data.sql` (INFRA-24) |
+| `Inv_ProductCategories` | 4 | Seeded by INFRA-24 |
+| `Inv_Products` | 20 | Seeded by INFRA-24 |
+| `Pos_CreditAccounts` | 3 | Seeded by INFRA-24 |
+| `Pur_PurchaseOrders` | 4 (1 in T4.1 + 3 in T7.2) | Direct MariaDB write |
+| `Pur_PurchaseOrderLines` | 4 | Direct MariaDB write |
+| `Pur_GoodsReceipts` | 4 | Direct MariaDB write |
+| `Pur_GoodsReceiptLines` | 4 | Direct MariaDB write |
+| `Pur_AccountsPayable` | 4 | Direct MariaDB write |
+| `Pos_SalesTransactions` | 2 (T4.1 + T7.3) | Direct MariaDB write |
+| `Pos_SalesTransactionLines` | 2 | Direct MariaDB write |
+| `Pos_OfficialReceipts` | 2 | Direct MariaDB write |
+| `Pos_ReceiptIntegrity` | 2 | Direct MariaDB write |
+| `Inv_StockBatches` | 4 (1 in T4.1 + 3 in T7.2) | INFRA-26: QuantityRemaining decremented by FOR UPDATE FIFO lock |
+| `Inv_StockMovements` | 6 (4 Receipt + 2 Sale) | Direct MariaDB write |
+| `Inv_SaleCogs` | 4 (1 in T4.1 + 3 in T7.3) | ACC-21 per-batch COGS ledger |
+| `Acc_RevenueRecords` | 2 | ACC-22 — exactly one row per `(Tx, Product)` |
+| `Acc_ExpenseRecords` | 2 | One COGS expense row per sale |
+| `Pur_VendorProducts` | ≥ 1 (entries added in Tests 5.1–5.5) | Direct MariaDB write (PUR-16) |
+| `Pos_CreditPayments` | 0 | Untouched in this protocol |
+| `Pos_SalesReturns` | 0 | Untouched |
+| `Pur_PriceChangeAlerts` | 0 | Untouched |
+| `Pur_ReorderConfigs` / `Pur_ReorderSuggestions` | 0 | Untouched |
+| `Inv_ShrinkageRecords` / `Inv_StockAuditRecords` / `Inv_StockAlertConfigs` | 0 | Untouched |
+| `Acc_FinancialPeriods` / `Acc_FinancialSnapshots` | 0 | Period-close workflow not exercised |
 
 **What you should see:**
-- [ ] Every "Equal" row above shows the same value on both sides.
-- [ ] All seeded reference tables (`Pur_Vendors`, `Inv_Products`, `Inv_ProductCategories`, `Pos_CreditAccounts`) are **0** on central — confirms `<NoSync>` policy.
-- [ ] `Inv_SaleCogs` on central = `Inv_SaleCogs` on local = `4`. If central is `0` or lower than local, INFRA-22 is **broken**.
-- [ ] **Note on `Pur_VendorProducts` (PUR-16):** not currently in any `*SyncMap`, so central count stays at `0` regardless of what you added in Tests 5.1–5.5. Document this in Session Notes as a known gap.
+- [ ] Seeded reference tables (`Pur_Vendors`, `Inv_Products`, `Inv_ProductCategories`, `Pos_CreditAccounts`) match the seed counts — confirms `0002_seed_reference_data.sql` applied correctly (INFRA-24).
+- [ ] `Inv_SaleCogs` = `4`. Zero indicates ACC-21 is broken.
+- [ ] `Acc_RevenueRecords` = `2` — exactly one row per sale transaction (ACC-22 invariant).
+- [ ] `Pur_VendorProducts` ≥ 1 after Tests 5.1–5.5 (PUR-16 — direct write, no sync gap).
 
 *Status Check:*
-- **All sync-active tables match between local and central:** _______________
-- **Inv_SaleCogs reconciliation (4 / 4):** _______________ / _______________
-- **Acc_RevenueRecords reconciliation (2 / 2):** _______________ / _______________
-- **Pur_VendorProducts central count (expected 0 — known gap):** _______________
+- **All tables at expected counts:** _______________
+- **Inv_SaleCogs count:** _______________ (expected: 4)
+- **Acc_RevenueRecords count:** _______________ (expected: 2)
+- **Pur_VendorProducts count:** _______________ (expected: ≥ 1)
 
 ---
 
-### Test 8.2: Sync_Journal Drain Check (local)
+### Test 8.2: Connection Status Indicator Verification (INFRA-28)
 
 **What to do:**
-1. Query the local SQLite `Sync_Journal` table for any rows not yet marked synced:
-```sql
-sqlite3 $env:LOCALAPPDATA\MerchSys\merchsys.db "SELECT TableName, COUNT(*) AS pending FROM Sync_Journal WHERE SyncStatus != 'Synced' GROUP BY TableName ORDER BY TableName;"
-```
+1. Observe the **Connection Status Badge** at the bottom of the Module Detail Panel.
+2. After completing all tests, verify the badge still shows **Online**.
+3. Simulate an outage: stop the MySQL service in XAMPP, wait for the badge to change, then restart the service.
 
 **What you should see:**
-- [ ] **Zero rows returned** — every journal row has been transmitted and acknowledged.
-- [ ] If any rows are returned, capture the `TableName` and `pending` count. A pending row for `Inv_SaleCogs` would indicate INFRA-22 sync regression. A pending row for `Pur_VendorProducts` is the expected PUR-16 sync gap.
+- [ ] Badge shows **Online** (green filled dot + "Online" text) during normal operation.
+- [ ] After stopping MySQL: badge transitions to **Reconnecting…** (orange dashed ring animation) within ~15 s, then **Offline** (red dot + "Retry" button) after retries are exhausted.
+- [ ] After restarting MySQL and clicking **Retry**: badge returns to **Online** and any mutation buttons that were disabled re-enable automatically.
 
 *Status Check:*
-- **Pending journal rows (expected: 0):** _______________
-- **Any unexpected non-zero rows (record table name + count):** _______________
+- **Badge shows Online after all tests:** _______________
+- **Badge transitions to Offline on MySQL stop:** _______________
+- **Badge recovers to Online after MySQL restart + Retry:** _______________
 
 ---
 

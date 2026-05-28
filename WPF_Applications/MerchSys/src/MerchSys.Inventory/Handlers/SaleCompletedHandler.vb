@@ -24,15 +24,13 @@ Namespace Handlers
         Private ReadOnly _stockService As IStockService
         Private ReadOnly _alertService As ILowStockAlertService
         Private ReadOnly _db As InventoryDbContext
-        Private ReadOnly _repository As ISyncableRepository(Of InventoryDbContext)
         Private ReadOnly _writeContext As IWriteContextScope
         Private ReadOnly _logger As ILogger(Of SaleCompletedHandler)
 
-        Public Sub New(stockService As IStockService, alertService As ILowStockAlertService, db As InventoryDbContext, repository As ISyncableRepository(Of InventoryDbContext), writeContext As IWriteContextScope, logger As ILogger(Of SaleCompletedHandler))
+        Public Sub New(stockService As IStockService, alertService As ILowStockAlertService, db As InventoryDbContext, writeContext As IWriteContextScope, logger As ILogger(Of SaleCompletedHandler))
             _stockService = stockService
             _alertService = alertService
             _db = db
-            _repository = repository
             _writeContext = writeContext
             _logger = logger
         End Sub
@@ -89,7 +87,7 @@ Namespace Handlers
                 _db.SaleCogsRecords.Add(record)
             Next
 
-            Await _repository.SaveChangesWithJournalAsync(cancellationToken)
+            Await _db.SaveChangesAsync(cancellationToken)
         End Function
 
     End Class

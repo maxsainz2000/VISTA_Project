@@ -1,5 +1,5 @@
 Imports System.Threading
-Imports Microsoft.Data.Sqlite
+Imports MySqlConnector
 Imports Microsoft.EntityFrameworkCore
 Imports Microsoft.Extensions.Logging
 Imports MerchSys.Inventory.Data
@@ -32,17 +32,14 @@ Namespace Services
 
         Private ReadOnly _db As InventoryDbContext
         Private ReadOnly _logger As ILogger(Of StockService)
-        Private ReadOnly _repository As ISyncableRepository(Of InventoryDbContext)
         Private _batchesForFIFO As List(Of StockBatch)
         Private _batchesForProduct As List(Of StockBatch)
         Private _productStockList As List(Of Product)
 
         Public Sub New(db As InventoryDbContext,
-                       logger As ILogger(Of StockService),
-                       repository As ISyncableRepository(Of InventoryDbContext))
+                       logger As ILogger(Of StockService))
             _db = db
             _logger = logger
-            _repository = repository
         End Sub
 
         Public Async Function AddStockBatchAsync(productId As Integer, qty As Integer, unitCost As Decimal, receiptDate As DateTime, expiryDate As DateTime?, sourcePOId As Integer?, Optional movementType As MovementType = MovementType.Receipt) As Task(Of StockBatch) Implements IStockService.AddStockBatchAsync
@@ -62,7 +59,7 @@ Namespace Services
                 .Quantity = qty,
                 .OccurredAt = DateTime.UtcNow
             })
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
+            Await _db.SaveChangesAsync()
             _logger.LogInformation("Stock batch added: ProductId={ProductId}, Qty={Qty}, UnitCost={UnitCost}", productId, qty, unitCost)
             Return batch
         End Function
@@ -75,70 +72,79 @@ Namespace Services
             Dim now As DateTime = DateTime.UtcNow
             _batchesForFIFO = New List(Of StockBatch)()
             Dim fifoConnStr = _db.Database.GetConnectionString()
-            Using fifoConn As New SqliteConnection(fifoConnStr)
+            Dim results As New List(Of FIFODeductionResult)()
+
+            Using fifoConn As New MySqlConnection(fifoConnStr)
                 Await fifoConn.OpenAsync()
-                Using fifoCmd = fifoConn.CreateCommand()
-                    fifoCmd.CommandText = "SELECT Id, ProductId, QuantityReceived, QuantityRemaining, UnitCost, " &
-                                          "ReceiptDate, ExpiryDate, SourcePurchaseOrderId, " &
-                                          "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
-                                          "FROM Inv_StockBatches " &
-                                          "WHERE ProductId = @productId AND QuantityRemaining > 0 " &
-                                          "AND (ExpiryDate IS NULL OR ExpiryDate >= @now) " &
-                                          "ORDER BY ReceiptDate"
-                    fifoCmd.Parameters.Add(New SqliteParameter("@productId", productId))
-                    fifoCmd.Parameters.Add(New SqliteParameter("@now", now.ToString("o")))
-                    Using fifoReader = fifoCmd.ExecuteReader()
-                        While fifoReader.Read()
-                            _batchesForFIFO.Add(ReadStockBatch(fifoReader))
-                        End While
+                ' Begin explicit database transaction (Read Committed isolation is default and fits perfectly)
+                Using tx = Await fifoConn.BeginTransactionAsync(System.Data.IsolationLevel.ReadCommitted)
+                    ' 1. Retrieve the oldest non-depleted, non-expired batches for this product and lock them (FOR UPDATE)
+                    Using fifoCmd = fifoConn.CreateCommand()
+                        fifoCmd.Transaction = tx
+                        fifoCmd.CommandText = "SELECT Id, ProductId, QuantityReceived, QuantityRemaining, UnitCost, " &
+                                              "ReceiptDate, ExpiryDate, SourcePurchaseOrderId, " &
+                                              "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                              "FROM Inv_StockBatches " &
+                                              "WHERE ProductId = @productId AND QuantityRemaining > 0 " &
+                                              "AND (ExpiryDate IS NULL OR ExpiryDate >= @now) " &
+                                              "ORDER BY ReceiptDate ASC, Id ASC " &
+                                              "FOR UPDATE"
+                        fifoCmd.Parameters.Add(New MySqlParameter("@productId", productId))
+                        fifoCmd.Parameters.Add(New MySqlParameter("@now", now))
+                        Using fifoReader = Await fifoCmd.ExecuteReaderAsync()
+                            While Await fifoReader.ReadAsync()
+                                _batchesForFIFO.Add(ReadStockBatch(fifoReader))
+                            End While
+                        End Using
                     End Using
+
+                    Dim batches As List(Of StockBatch) = _batchesForFIFO
+                    Dim remaining As Integer = quantity
+
+                    For Each batch In batches
+                        If remaining = 0 Then Exit For
+                        Dim deduct As Integer = Math.Min(batch.QuantityRemaining, remaining)
+                        batch.QuantityRemaining -= deduct
+                        remaining -= deduct
+                        results.Add(New FIFODeductionResult With {
+                            .BatchId = batch.Id,
+                            .QuantityDeducted = deduct,
+                            .UnitCost = batch.UnitCost,
+                            .COGS = CDec(deduct) * batch.UnitCost
+                        })
+                    Next
+
+                    If remaining > 0 Then
+                        Throw New InsufficientStockException(productId, quantity, quantity - remaining)
+                    End If
+
+                    ' 2. Persist the updated batch stock levels back to the DB on the same transaction
+                    Dim touchedBatchIds = results.Select(Function(r) r.BatchId).ToHashSet()
+                    For Each b In batches.Where(Function(x) touchedBatchIds.Contains(x.Id))
+                        Using updateCmd = fifoConn.CreateCommand()
+                            updateCmd.Transaction = tx
+                            updateCmd.CommandText = "UPDATE Inv_StockBatches SET QuantityRemaining = @qty, ModifiedAt = @now WHERE Id = @id"
+                            updateCmd.Parameters.Add(New MySqlParameter("@qty", b.QuantityRemaining))
+                            updateCmd.Parameters.Add(New MySqlParameter("@now", DateTime.UtcNow))
+                            updateCmd.Parameters.Add(New MySqlParameter("@id", b.Id))
+                            Await updateCmd.ExecuteNonQueryAsync()
+                        End Using
+                    Next
+
+                    ' 3. Commit the transaction to apply changes and release row locks
+                    Await tx.CommitAsync()
                 End Using
             End Using
-            Dim batches As List(Of StockBatch) = _batchesForFIFO
 
-            Dim results As New List(Of FIFODeductionResult)()
-            Dim remaining As Integer = quantity
-
-            For Each batch In batches
-                If remaining = 0 Then Exit For
-                Dim deduct As Integer = Math.Min(batch.QuantityRemaining, remaining)
-                batch.QuantityRemaining -= deduct
-                remaining -= deduct
-                results.Add(New FIFODeductionResult With {
-                    .BatchId = batch.Id,
-                    .QuantityDeducted = deduct,
-                    .UnitCost = batch.UnitCost,
-                    .COGS = CDec(deduct) * batch.UnitCost
-                })
-            Next
-
-            If remaining > 0 Then
-                Throw New InsufficientStockException(productId, quantity, quantity - remaining)
-            End If
-
-            ' Batches were loaded via raw SqliteConnection, so EF change tracker does not track
-            ' their QuantityRemaining changes. Write the updated values back explicitly.
-            Dim touchedBatchIds = results.Select(Function(r) r.BatchId).ToHashSet()
-            Using batchUpdateConn As New SqliteConnection(fifoConnStr)
-                Await batchUpdateConn.OpenAsync()
-                For Each b In batches.Where(Function(x) touchedBatchIds.Contains(x.Id))
-                    Using updateCmd = batchUpdateConn.CreateCommand()
-                        updateCmd.CommandText = "UPDATE Inv_StockBatches SET QuantityRemaining = @qty, ModifiedAt = @now WHERE Id = @id"
-                        updateCmd.Parameters.Add(New SqliteParameter("@qty", b.QuantityRemaining))
-                        updateCmd.Parameters.Add(New SqliteParameter("@now", DateTime.UtcNow.ToString("o")))
-                        updateCmd.Parameters.Add(New SqliteParameter("@id", b.Id))
-                        Await updateCmd.ExecuteNonQueryAsync()
-                    End Using
-                Next
-            End Using
-
+            ' 4. Record stock movement
             _db.StockMovements.Add(New StockMovement With {
                 .ProductId = productId,
                 .MovementType = MovementType.Sale,
                 .Quantity = -quantity,
                 .OccurredAt = DateTime.UtcNow
             })
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
+            Await _db.SaveChangesAsync()
+
             Return results
         End Function
 
@@ -146,7 +152,7 @@ Namespace Services
             Dim now As DateTime = DateTime.UtcNow
             _productStockList = New List(Of Product)()
             Dim csConnStr = _db.Database.GetConnectionString()
-            Using csConn As New SqliteConnection(csConnStr)
+            Using csConn As New MySqlConnection(csConnStr)
                 Await csConn.OpenAsync()
                 Dim productSql = "SELECT Id, Name, Sku, CategoryId, Description, RetailPrice, Unit, HasExpiry, " &
                                  "MinimumThreshold, IsActive, IsDeleted, DeletedBy, DeletedAt, " &
@@ -158,7 +164,7 @@ Namespace Services
                 Using csCmd = csConn.CreateCommand()
                     csCmd.CommandText = productSql
                     If productId.HasValue Then
-                        csCmd.Parameters.Add(New SqliteParameter("@productId", productId.Value))
+                        csCmd.Parameters.Add(New MySqlParameter("@productId", productId.Value))
                     End If
                     Using csReader = csCmd.ExecuteReader()
                         While csReader.Read()
@@ -211,14 +217,14 @@ Namespace Services
         Public Async Function GetStockBatchesAsync(productId As Integer) As Task(Of List(Of StockBatch)) Implements IStockService.GetStockBatchesAsync
             _batchesForProduct = New List(Of StockBatch)()
             Dim bpConnStr = _db.Database.GetConnectionString()
-            Using bpConn As New SqliteConnection(bpConnStr)
+            Using bpConn As New MySqlConnection(bpConnStr)
                 Await bpConn.OpenAsync()
                 Using bpCmd = bpConn.CreateCommand()
                     bpCmd.CommandText = "SELECT Id, ProductId, QuantityReceived, QuantityRemaining, UnitCost, " &
                                         "ReceiptDate, ExpiryDate, SourcePurchaseOrderId, " &
                                         "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
                                         "FROM Inv_StockBatches WHERE ProductId = @productId ORDER BY ReceiptDate"
-                    bpCmd.Parameters.Add(New SqliteParameter("@productId", productId))
+                    bpCmd.Parameters.Add(New MySqlParameter("@productId", productId))
                     Using bpReader = bpCmd.ExecuteReader()
                         While bpReader.Read()
                             _batchesForProduct.Add(ReadStockBatch(bpReader))
@@ -237,7 +243,7 @@ Namespace Services
                 .SumAsync(Function(b) CDec(b.QuantityRemaining) * b.UnitCost)
         End Function
 
-        Friend Shared Function ReadStockBatch(r As Microsoft.Data.Sqlite.SqliteDataReader) As StockBatch
+        Friend Shared Function ReadStockBatch(r As MySqlConnector.MySqlDataReader) As StockBatch
             Return New StockBatch With {
                 .Id = r.GetInt32(0),
                 .ProductId = r.GetInt32(1),
@@ -254,7 +260,7 @@ Namespace Services
             }
         End Function
 
-        Friend Shared Function ReadProduct(r As Microsoft.Data.Sqlite.SqliteDataReader) As Product
+        Friend Shared Function ReadProduct(r As MySqlConnector.MySqlDataReader) As Product
             Return New Product With {
                 .Id = r.GetInt32(0),
                 .Name = r.GetString(1),

@@ -19,14 +19,12 @@ Namespace Services
         Private ReadOnly _businessAddress As String
         Private ReadOnly _businessTIN As String
         Private ReadOnly _isVatRegistered As Boolean
-        Private ReadOnly _repository As ISyncableRepository(Of POSDbContext)
         Private ReadOnly _renderer As IReceiptRenderer
 
         Public Sub New(context As POSDbContext,
                        configuration As IConfiguration,
                        receiptIntegrity As IReceiptIntegrityService,
                        bodyComposer As IReceiptBodyComposer,
-                       repository As ISyncableRepository(Of POSDbContext),
                        renderer As IReceiptRenderer)
             _context = context
             _receiptIntegrity = receiptIntegrity
@@ -35,7 +33,6 @@ Namespace Services
             _businessAddress = If(configuration("POS:BusinessAddress"), "")
             _businessTIN = If(configuration("POS:BusinessTIN"), "")
             _isVatRegistered = String.Equals(configuration("POS:IsVatRegistered"), "true", StringComparison.OrdinalIgnoreCase)
-            _repository = repository
             _renderer = renderer
         End Sub
 
@@ -85,7 +82,7 @@ Namespace Services
             }
 
             _context.OfficialReceipts.Add(receipt)
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _context.SaveChangesAsync() for sync journal population
+            Await _context.SaveChangesAsync()
 
             Return receipt
         End Function

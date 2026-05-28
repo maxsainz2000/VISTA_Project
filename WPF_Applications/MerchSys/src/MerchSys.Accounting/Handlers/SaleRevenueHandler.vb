@@ -23,14 +23,12 @@ Namespace Handlers
         Implements INotificationHandler(Of SaleCompletedWithVatEvent)
 
         Private ReadOnly _db As AccountingDbContext
-        Private ReadOnly _repository As ISyncableRepository(Of AccountingDbContext)
         Private ReadOnly _mediator As IMediator
         Private ReadOnly _writeContext As IWriteContextScope
         Private ReadOnly _logger As ILogger(Of SaleRevenueHandler)
 
-        Public Sub New(db As AccountingDbContext, repository As ISyncableRepository(Of AccountingDbContext), mediator As IMediator, writeContext As IWriteContextScope, logger As ILogger(Of SaleRevenueHandler))
+        Public Sub New(db As AccountingDbContext, mediator As IMediator, writeContext As IWriteContextScope, logger As ILogger(Of SaleRevenueHandler))
             _db = db
-            _repository = repository
             _mediator = mediator
             _writeContext = writeContext
             _logger = logger
@@ -132,7 +130,7 @@ Namespace Handlers
                     End If
                 Next
 
-                Await _repository.SaveChangesWithJournalAsync(cancellationToken)
+                Await _db.SaveChangesAsync(cancellationToken)
                 _logger.LogInformation("SaleRevenueHandler: Revenue and COGS records saved for TransactionId={TransactionId}.", notification.TransactionId)
             End Using
         End Function

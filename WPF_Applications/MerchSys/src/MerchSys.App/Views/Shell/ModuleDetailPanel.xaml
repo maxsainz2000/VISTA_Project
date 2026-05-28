@@ -1,0 +1,236 @@
+<UserControl x:Class="Views.Shell.ModuleDetailPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:models="clr-namespace:MerchSys.App.Models"
+             xmlns:panels="clr-namespace:MerchSys.App.Views.Shell.Modules"
+             mc:Ignorable="d"
+             d:DesignHeight="720" d:DesignWidth="220"
+             Background="#2C3E50">
+
+    <UserControl.Resources>
+
+        <!-- Nav sub-item button — chevron + label, active highlight -->
+        <Style x:Key="NavItemStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#BDC3C7"/>
+            <Setter Property="BorderThickness" Value="0,0,0,0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Padding" Value="16,0,8,0"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Padding="{TemplateBinding Padding}">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="▸" Margin="0,0,6,0"
+                                           Foreground="{TemplateBinding Foreground}"
+                                           FontSize="10" VerticalAlignment="Center"/>
+                                <ContentPresenter VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#34495E"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsActive}" Value="True">
+                    <Setter Property="Background" Value="#D6EAF8"/>
+                    <Setter Property="Foreground" Value="#2980B9"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                    <Setter Property="BorderBrush" Value="#2980B9"/>
+                    <Setter Property="BorderThickness" Value="3,0,0,0"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
+    </UserControl.Resources>
+
+    <DockPanel>
+
+        <!-- ── Bottom bar: Log Out + Connection Status ─────────────────── -->
+        <StackPanel DockPanel.Dock="Bottom" Margin="0,0,0,8">
+            <Border Height="1" Background="#34495E" Margin="12,0,12,0"/>
+            <!-- Connection status indicator slot — filled by ModuleDetailPanel.xaml.vb -->
+            <ContentControl x:Name="ConnectionStatusSlot" Margin="12,6,12,0" HorizontalAlignment="Stretch"/>
+            <Button Content="Log Out"
+                    Command="{Binding LogoutCommand}"
+                    HorizontalContentAlignment="Left"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Foreground="#E74C3C"
+                    Padding="16,0,8,0"
+                    Height="36"
+                    Cursor="Hand"
+                    FontSize="13"
+                    Margin="0,2,0,0"/>
+        </StackPanel>
+
+        <!-- ── Top: Module name header ─────────────────────────────────── -->
+        <Border DockPanel.Dock="Top" Padding="0,10,0,4">
+            <StackPanel>
+                <!-- Session identity -->
+                <TextBlock Text="{Binding CurrentUsername}"
+                           Foreground="White" FontSize="12" FontWeight="SemiBold"
+                           HorizontalAlignment="Center"/>
+                <TextBlock Text="{Binding CurrentRoleDisplay}"
+                           Foreground="#7F8C8D" FontSize="10"
+                           HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                <!-- Divider -->
+                <Border Height="1" Background="#34495E" Margin="12,8,12,4"/>
+                <!-- Active module name -->
+                <TextBlock Text="{Binding ActiveModuleName}"
+                           Foreground="#7F8C8D"
+                           FontSize="10" FontWeight="Bold"
+                           Margin="16,0,16,4"/>
+            </StackPanel>
+        </Border>
+
+        <!-- ── Nav item list for active module ─────────────────────────── -->
+        <!--
+             Each module's panel is shown/hidden via DataTrigger on ActiveModule.
+             Panels inherit DataContext (MainWindowViewModel) from this UserControl.
+        -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+            <Grid>
+
+                <!-- Purchasing panel -->
+                <ItemsControl ItemsSource="{Binding PurchasingItems}" Focusable="False">
+                    <ItemsControl.Style>
+                        <Style TargetType="ItemsControl">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ActiveModule}"
+                                             Value="{x:Static models:AppModule.Purchasing}">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ItemsControl.Style>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Content="{Binding DisplayName}"
+                                    Style="{StaticResource NavItemStyle}"
+                                    Command="{Binding DataContext.NavigateCommand,
+                                                      RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Inventory panel -->
+                <ItemsControl ItemsSource="{Binding InventoryItems}" Focusable="False">
+                    <ItemsControl.Style>
+                        <Style TargetType="ItemsControl">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ActiveModule}"
+                                             Value="{x:Static models:AppModule.Inventory}">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ItemsControl.Style>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Content="{Binding DisplayName}"
+                                    Style="{StaticResource NavItemStyle}"
+                                    Command="{Binding DataContext.NavigateCommand,
+                                                      RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- POS panel -->
+                <ItemsControl ItemsSource="{Binding PosItems}" Focusable="False">
+                    <ItemsControl.Style>
+                        <Style TargetType="ItemsControl">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ActiveModule}"
+                                             Value="{x:Static models:AppModule.POS}">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ItemsControl.Style>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Content="{Binding DisplayName}"
+                                    Style="{StaticResource NavItemStyle}"
+                                    Command="{Binding DataContext.NavigateCommand,
+                                                      RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Accounting panel -->
+                <ItemsControl ItemsSource="{Binding AccountingItems}" Focusable="False">
+                    <ItemsControl.Style>
+                        <Style TargetType="ItemsControl">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ActiveModule}"
+                                             Value="{x:Static models:AppModule.Accounting}">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ItemsControl.Style>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Content="{Binding DisplayName}"
+                                    Style="{StaticResource NavItemStyle}"
+                                    Command="{Binding DataContext.NavigateCommand,
+                                                      RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Developer Tools panel (Debug builds only, Manager role only) -->
+                <ItemsControl ItemsSource="{Binding DeveloperToolsItems}" Focusable="False">
+                    <ItemsControl.Style>
+                        <Style TargetType="ItemsControl">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ActiveModule}"
+                                             Value="{x:Static models:AppModule.DeveloperTools}">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ItemsControl.Style>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Content="{Binding DisplayName}"
+                                    Style="{StaticResource NavItemStyle}"
+                                    Command="{Binding DataContext.NavigateCommand,
+                                                      RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+            </Grid>
+        </ScrollViewer>
+
+    </DockPanel>
+
+</UserControl>

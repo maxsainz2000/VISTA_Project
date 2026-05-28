@@ -2,7 +2,8 @@
 module: Security & Roles
 source: Dashboard-Feature-Analysis-2026-05-27.md
 originally-generated: 2026-05-27
-last-synced: 2026-05-27
+last-synced: 2026-05-28
+infra-migration: INFRA-23 to INFRA-30 (2026-05-28) — SQLite/sync layer decommissioned; pure MariaDB client-server architecture; Activity Rail sidebar
 reset: 2026-05-27
 verified: (pending)
 verified-by: (pending)
@@ -25,10 +26,13 @@ verdict: (pending)
 | Owner Dashboard View (XAML) | `WPF_Applications\MerchSys\src\MerchSys.App\Views\OwnerDashboardView.xaml` |
 | Owner Dashboard View (Code-Behind) | `WPF_Applications\MerchSys\src\MerchSys.App\Views\OwnerDashboardView.xaml.vb` |
 | Owner Dashboard ViewModel | `WPF_Applications\MerchSys\src\MerchSys.App\ViewModels\OwnerDashboardViewModel.vb` |
-| Main Sidebar View Model (Nav) | `WPF_Applications\MerchSys\src\MerchSys.App\ViewModels\MainWindowViewModel.vb` |
-| SQLite Database File | `%LOCALAPPDATA%\MerchSys\merchsys.db` |
+| Activity Rail ViewModel (Nav) | `WPF_Applications\MerchSys\src\MerchSys.App\ViewModels\Shell\ActivityRailViewModel.vb` |
+| Main Window ViewModel (Nav) | `WPF_Applications\MerchSys\src\MerchSys.App\ViewModels\MainWindowViewModel.vb` |
 | Central MariaDB | `localhost:3306/merchsys_central` (XAMPP) — query via `C:\xampp\mysql\bin\mysql.exe -u root merchsys_central` |
+| Connection Status Badge | `WPF_Applications\MerchSys\src\MerchSys.App\Views\Shell\ConnectionStatusIndicator.xaml` (INFRA-28) |
 | Security Exception | `WPF_Applications\MerchSys\src\MerchSys.SharedKernel\Exceptions\UnauthorizedWriteException.vb` (or equivalent data layer rule) |
+
+> **Architecture note (INFRA-23–27, 2026-05-28):** The SQLite offline-first database and Sync Layer (`Sync_Journal`, `SyncOrchestrator`, `ISyncableRepository`) have been fully decommissioned. VISTA now writes **directly** to a single central MariaDB 11.4.x instance. All writes are synchronous. There is no propagation delay, and Sync_Journal is gone.
 
 ---
 
@@ -74,39 +78,42 @@ verdict: (pending)
 
 ## Part 2: Authorization & Sidebar Navigation Verification
 
-### Test 2.1: Restricted Sidebar Access
-*Verifies that the Owner role's navigation sidebar is restricted exclusively to read-only views, completely hiding operational write views as specified in Section 7 of the system plan.*
+### Test 2.1: Restricted Activity Rail Access
+*Verifies that the Owner role's navigation is restricted exclusively to read-only views via the Master-Detail Activity Rail sidebar (INFRA-30).*
 
 **What to do:**
-1. While logged in as `owner`, inspect the sidebar navigation panel.
-2. Go through each group and check that all CRUD, transaction-processing, configuration, and developer menus are hidden.
+1. While logged in as `owner`, inspect the left-side navigation layout.
+2. Verify the **60px Activity Rail** contains only the module icons permitted for Owner.
+3. Click each rail icon and verify the **220px Module Detail Panel** shows only the Owner-allowed sub-views.
 
 **What you should see:**
-- [ ] **Owner Dashboard** group contains:
-  - `KPI Overview` (the main landing page)
-- [ ] **Point of Sale** group contains:
+- [ ] The Activity Rail shows the same 4 module icons (PUR, INV, POS, ACC). The **DEV** icon is **completely absent** for Owner regardless of build configuration.
+- [ ] **POS module panel** contains:
   - `Transaction History` (read-only historical search)
   - *HIDDEN:* Sales Cart, Credit Management, Daily Summary, and VAT Settings are completely absent.
-- [ ] **Purchasing** group contains:
+- [ ] **Purchasing module panel** contains:
   - `Purchase Orders` (read-only list of POs)
   - `Accounts Payable` (read-only AP ledger)
   - *HIDDEN:* Goods Receiving, Vendor Directory, Reorder Suggestions, and Vendor Product Catalog are completely absent.
-- [ ] **Inventory** group contains:
+- [ ] **Inventory module panel** contains:
   - `Stock Dashboard` (read-only inventory status list)
   - *HIDDEN:* Product Management, Expiry Monitor, and Shrinkage are completely absent.
-- [ ] **Accounting** group contains:
+- [ ] **Accounting module panel** contains:
   - `Financial Overview` (P&L metrics and Vat tile)
   - `Income Statement` (monthly profit/loss reports)
   - `Sales Summary` (sales trends review)
   - `VAT Relief Report` (BIR VAT relief/exemption report — read-only, visible to both roles)
   - *HIDDEN:* Tamper Audit Report and VAT Return (BIR) are completely absent.
-- [ ] *HIDDEN:* **Developer Tools** menu group is completely absent.
+- [ ] **Connection Status Badge** is visible at the bottom of the Module Detail Panel showing **Online** (INFRA-28).
+- [ ] The **Owner Dashboard** (KPI Overview) is accessible as the default landing page (not via the rail but set as the startup view for Owner).
 
 *Status Check:*
-- **Total sidebar items visible:** _______________ (expected: 9 — Owner Dashboard×1 + POS×1 + Purchasing×2 + Inventory×1 + Accounting×4)
+- **Activity Rail icon count visible:** _______________ (expected: 4 — DEV icon absent for Owner)
+- **Total sub-view items accessible (all rail modules):** _______________ (expected: 9 — POS×1 + Purchasing×2 + Inventory×1 + Accounting×4 + Owner Dashboard KPI×1)
 - **Confirm absolute absence of "Sales Cart":** _______________
 - **Confirm absolute absence of "VAT Return (BIR)":** _______________
-- **Confirm presence of "VAT Relief Report" in Accounting:** _______________
+- **Confirm presence of "VAT Relief Report" in Accounting panel:** _______________
+- **Connection Status Badge state:** _______________
 
 ---
 
@@ -416,72 +423,65 @@ SELECT COUNT(*) AS sale_cogs_rows FROM Inv_SaleCogs;
 
 ---
 
-### Test 6.5: Central MariaDB Mirror — Cross-DB Reconciliation (INFRA-22 + sync verification)
-*Owner is read-only on every DB. This test verifies the central MariaDB replica mirrors the local SQLite for every synced table — proves the offline-first sync pipeline works end-to-end.*
+### Test 6.5: Central MariaDB Row Count Verification (INFRA-23–27 + ACC-21 + ACC-22)
+*Owner is read-only on every DB. This test verifies that the central MariaDB contains the correct rows — in the pure client-server architecture, local and central are the same database, so this is a direct count check, not a sync reconciliation.*
 
-**Prerequisite:** Manager protocol (Tests 4.1 → 7.5) has been executed at least once. Wait at least 90 s after the last Manager-side write to allow the 30 s sync probe to drain the journal.
+**Prerequisite:** Manager protocol (Tests 4.1 → 7.5) has been executed at least once.
 
 **What to do:**
-1. Pull local SQLite counts:
-```powershell
-$db = "$env:LOCALAPPDATA\MerchSys\merchsys.db"
-sqlite3 $db "SELECT 'local_Inv_SaleCogs' AS k, COUNT(*) FROM Inv_SaleCogs UNION ALL SELECT 'local_Acc_RevenueRecords', COUNT(*) FROM Acc_RevenueRecords UNION ALL SELECT 'local_Pos_SalesTransactions', COUNT(*) FROM Pos_SalesTransactions UNION ALL SELECT 'local_Inv_StockBatches', COUNT(*) FROM Inv_StockBatches UNION ALL SELECT 'local_Inv_StockMovements', COUNT(*) FROM Inv_StockMovements;"
-```
-2. Pull central MariaDB counts for the same tables:
+1. Run row counts against the central MariaDB:
 ```sql
 -- mysql -u root merchsys_central
-SELECT 'central_Inv_SaleCogs' AS k, COUNT(*) AS c FROM Inv_SaleCogs UNION ALL
-SELECT 'central_Acc_RevenueRecords', COUNT(*) FROM Acc_RevenueRecords UNION ALL
-SELECT 'central_Pos_SalesTransactions', COUNT(*) FROM Pos_SalesTransactions UNION ALL
-SELECT 'central_Inv_StockBatches', COUNT(*) FROM Inv_StockBatches UNION ALL
-SELECT 'central_Inv_StockMovements', COUNT(*) FROM Inv_StockMovements;
+SELECT 'Inv_SaleCogs' AS k, COUNT(*) AS c FROM Inv_SaleCogs UNION ALL
+SELECT 'Acc_RevenueRecords', COUNT(*) FROM Acc_RevenueRecords UNION ALL
+SELECT 'Pos_SalesTransactions', COUNT(*) FROM Pos_SalesTransactions UNION ALL
+SELECT 'Inv_StockBatches', COUNT(*) FROM Inv_StockBatches UNION ALL
+SELECT 'Inv_StockMovements', COUNT(*) FROM Inv_StockMovements;
 ```
-3. Compare row-for-row content on the two highest-stakes tables:
+2. Compare row-for-row content on the two highest-stakes tables:
 ```sql
--- Central per-batch COGS for the latest sale (must mirror local exactly)
+-- Per-batch COGS for the latest sale (ACC-21)
 SELECT TransactionId, ProductId, BatchId, QuantityDeducted, UnitCost, Cogs
 FROM Inv_SaleCogs ORDER BY Id;
 
--- Central revenue ledger (no duplicates allowed)
+-- Revenue ledger (ACC-22 — no duplicates allowed)
 SELECT Id, SourceTransactionId, ProductId, QuantitySold, NetAmount, COGS, GrossProfit
 FROM Acc_RevenueRecords ORDER BY Id;
 ```
 
 **What you should see:**
-- [ ] All five `local_*` and `central_*` count pairs are **equal**. A central count that is **lower than local** means sync is failing — that table either has no sync map entry (regression) or rows are stuck in `Sync_Journal`.
-- [ ] After the ACC-21 reproduction sale (Manager Test 7.3), central `Inv_SaleCogs` shows **3 rows** for the spanning transaction with COGS values `12000.0000`, `11000.0000`, `10000.0000`. **Identical to local.**
-- [ ] Central `Acc_RevenueRecords` has no `(SourceTransactionId, ProductId)` duplicate (ACC-22 holds on central side too).
-- [ ] Seeded reference tables (`Inv_Products`, `Pur_Vendors`, `Inv_ProductCategories`, `Pos_CreditAccounts`) on central show **0 rows** — seeded data is `<NoSync>` by design.
+- [ ] After the ACC-21 reproduction sale (Manager Test 7.3), `Inv_SaleCogs` shows **3 rows** for the spanning transaction with COGS values `12000.0000`, `11000.0000`, `10000.0000`.
+- [ ] `Acc_RevenueRecords` has no `(SourceTransactionId, ProductId)` duplicate (ACC-22 invariant holds).
+- [ ] All three `Inv_StockBatches` rows show `QuantityRemaining = 0` (INFRA-26 FIFO `FOR UPDATE` lock applied correctly).
+- [ ] Seeded reference tables (`Inv_Products`, `Pur_Vendors`, `Inv_ProductCategories`, `Pos_CreditAccounts`) show their seeded row counts — data is present in MariaDB because seeding happens in `0002_seed_reference_data.sql` (INFRA-24), not via the old `<NoSync>` filter.
 
 *Status Check:*
-- **Local Inv_SaleCogs / Central Inv_SaleCogs:** _______________ / _______________ (must match)
-- **Local Acc_RevenueRecords / Central Acc_RevenueRecords:** _______________ / _______________
-- **Local Pos_SalesTransactions / Central Pos_SalesTransactions:** _______________ / _______________
-- **Local Inv_StockBatches / Central Inv_StockBatches:** _______________ / _______________
-- **Local Inv_StockMovements / Central Inv_StockMovements:** _______________ / _______________
-- **Inv_Products on central (expected 0, seeded data is NoSync):** _______________
+- **Inv_SaleCogs count:** _______________
+- **Acc_RevenueRecords count:** _______________
+- **Pos_SalesTransactions count:** _______________
+- **Inv_StockBatches count:** _______________
+- **Inv_StockMovements count:** _______________
+- **Inv_Products on central (expected: 20 seeded):** _______________
 
 ---
 
 ### Test 6.6: Local Sync_Journal Drain Check
-*Confirms every locally-written row has been transmitted to the central DB (or is being retried).*
+*The Sync_Journal and offline-first sync layer were fully decommissioned by INFRA-27 (2026-05-28). This test is now replaced by the pure MariaDB row-count verification in Test 6.5 above.*
+
+> **Note:** There is no `Sync_Journal` table in the VISTA database as of INFRA-27. If you attempt to query it, the query will fail with a "table not found" error, which is the expected behavior confirming the decommission was successful.
 
 **What to do:**
-1. Query the local `Sync_Journal`:
-```powershell
-$db = "$env:LOCALAPPDATA\MerchSys\merchsys.db"
-sqlite3 $db "SELECT TableName, SyncStatus, COUNT(*) FROM Sync_Journal GROUP BY TableName, SyncStatus ORDER BY TableName, SyncStatus;"
+1. Attempt to query the `Sync_Journal` table:
+```sql
+-- mysql -u root merchsys_central
+SELECT COUNT(*) FROM Sync_Journal;
 ```
 
 **What you should see:**
-- [ ] Every row has `SyncStatus = 'Synced'` (or the equivalent terminal state).
-- [ ] No rows in `Failed` / `Pending` status after the 90 s settling period.
-- [ ] If a row is stuck `Pending` for a `TableName` listed in any `*SyncMap.Tables`, sync has stalled — surface in Session Notes.
-- [ ] If a row is stuck for `Pur_VendorProducts`, that is the **known PUR-16 sync-map gap** (candidate INFRA-23), not a regression.
+- [ ] The query returns an **error** ("Table 'merchsys_central.Sync_Journal' doesn't exist") — confirms INFRA-27 decommission is complete and no legacy sync tables were left behind.
 
 *Status Check:*
-- **All Sync_Journal rows in Synced state:** _______________
-- **Any stuck Pending rows (record TableName + count):** _______________
+- **Sync_Journal table absent (expected: query error):** _______________
 
 ---
 

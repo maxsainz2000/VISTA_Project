@@ -81,7 +81,7 @@ All tables have `CreatedBy`, `CreatedAt`, `ModifiedBy`, `ModifiedAt` audit colum
 ## What's Next
 
 - [x] Log EF Core 10 VB.NET migration discovery bug in `LLM_Wiki/agent_wiki/errors/` for future agent awareness *(completed — logged at `agent_wiki/errors/efcore10-vbnet-migration-discovery-bug.md`)*
-- [ ] When EF Core fixes VB.NET migration discovery: run `dotnet ef database update` for all 4 modules to validate the manual migration files apply cleanly *(genuine — tracked by INT-06)*
+- [x] ~~When EF Core fixes VB.NET migration discovery: run `dotnet ef database update` for all 4 modules to validate the manual migration files apply cleanly~~ *(genuine — tracked by INT-06)* — **Voided by INFRA-24/27 (2026-05-28).** All four module `Migrations/` directories were deleted by INFRA-27 (sync layer decommission). The `DatabaseInitializer` ADO.NET workaround (INT-04) was replaced by `MariaDbSchemaInitializer` + raw SQL migration files (`0001_schema.sql`, `0002_seed_reference_data.sql`) in INFRA-24. The EF CLI validation path referenced by this item no longer exists.
 - [x] INT-05: Final integration and smoke testing *(completed — INT-05 delivered)*
 
 ## Codebase Wiki Discrepancies

@@ -5,7 +5,6 @@ Imports MerchSys.Accounting.Data
 Imports MerchSys.Accounting.Entities
 Imports MerchSys.SharedKernel.Events
 Imports MerchSys.SharedKernel.Interfaces
-Imports MerchSys.SharedKernel.Persistence
 
 Namespace Handlers
 
@@ -18,13 +17,11 @@ Namespace Handlers
         Implements INotificationHandler(Of GoodsReceivedEvent)
 
         Private ReadOnly _db As AccountingDbContext
-        Private ReadOnly _repository As ISyncableRepository(Of AccountingDbContext)
         Private ReadOnly _writeContext As IWriteContextScope
         Private ReadOnly _logger As ILogger(Of GoodsReceivedAccountingHandler)
 
-        Public Sub New(db As AccountingDbContext, repository As ISyncableRepository(Of AccountingDbContext), writeContext As IWriteContextScope, logger As ILogger(Of GoodsReceivedAccountingHandler))
+        Public Sub New(db As AccountingDbContext, writeContext As IWriteContextScope, logger As ILogger(Of GoodsReceivedAccountingHandler))
             _db = db
-            _repository = repository
             _writeContext = writeContext
             _logger = logger
         End Sub
@@ -51,7 +48,7 @@ Namespace Handlers
                     _logger.LogInformation("AP expense recorded for {ProductName}: Amount={Amount}.", item.ProductName, totalCost)
                 Next
 
-                Await _repository.SaveChangesWithJournalAsync(cancellationToken)
+                Await _db.SaveChangesAsync(cancellationToken)
 
                 _logger.LogInformation("AP expense records saved for PO={PurchaseOrderId}.", notification.PurchaseOrderId)
             End Using

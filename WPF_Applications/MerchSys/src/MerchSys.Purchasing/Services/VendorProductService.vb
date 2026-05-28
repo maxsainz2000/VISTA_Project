@@ -1,5 +1,5 @@
 Imports System.Threading
-Imports Microsoft.Data.Sqlite
+Imports MySqlConnector
 Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.Purchasing.Data
 Imports MerchSys.Purchasing.Entities
@@ -14,21 +14,18 @@ Namespace Services
         Implements IVendorProductService
 
         Private ReadOnly _db As PurchasingDbContext
-        Private ReadOnly _repository As ISyncableRepository(Of PurchasingDbContext)
         Private ReadOnly _session As ISessionService
 
         Public Sub New(db As PurchasingDbContext,
-                       repository As ISyncableRepository(Of PurchasingDbContext),
                        session As ISessionService)
             _db = db
-            _repository = repository
             _session = session
         End Sub
 
         Public Async Function GetCatalogForVendorAsync(vendorId As Integer) As Task(Of IReadOnlyList(Of VendorProductDto)) Implements IVendorProductService.GetCatalogForVendorAsync
             Dim list As New List(Of VendorProductDto)()
             Dim connStr = _db.Database.GetConnectionString()
-            Using conn As New SqliteConnection(connStr)
+            Using conn As New MySqlConnection(connStr)
                 Await conn.OpenAsync()
                 Using cmd = conn.CreateCommand()
                     cmd.CommandText = "SELECT Id, VendorId, ProductId, ProductName, LastUnitCost, Notes " &
@@ -78,7 +75,7 @@ Namespace Services
             }
 
             _db.VendorProducts.Add(entry)
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None)
+            Await _db.SaveChangesAsync()
 
             Return entry
         End Function
@@ -100,7 +97,7 @@ Namespace Services
             entry.ModifiedBy = _session.CurrentUsername
             entry.ModifiedAt = DateTime.UtcNow
 
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None)
+            Await _db.SaveChangesAsync()
         End Function
 
         Public Async Function RemoveCatalogEntryAsync(id As Integer) As Task Implements IVendorProductService.RemoveCatalogEntryAsync
@@ -119,7 +116,7 @@ Namespace Services
             entry.DeletedBy = _session.CurrentUsername
             entry.DeletedAt = DateTime.UtcNow
 
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None)
+            Await _db.SaveChangesAsync()
         End Function
 
         Public Async Function UpdateLastUnitCostAsync(vendorId As Integer, productId As Integer, newCost As Decimal) As Task Implements IVendorProductService.UpdateLastUnitCostAsync
@@ -134,7 +131,7 @@ Namespace Services
                 entry.LastUnitCost = newCost
                 entry.ModifiedBy = _session.CurrentUsername
                 entry.ModifiedAt = DateTime.UtcNow
-                Await _repository.SaveChangesWithJournalAsync(CancellationToken.None)
+                Await _db.SaveChangesAsync()
             End If
         End Function
 

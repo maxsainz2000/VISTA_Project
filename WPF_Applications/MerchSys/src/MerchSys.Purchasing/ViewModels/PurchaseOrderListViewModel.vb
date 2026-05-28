@@ -1,7 +1,7 @@
 Imports System.Collections.ObjectModel
 Imports CommunityToolkit.Mvvm.ComponentModel
 Imports CommunityToolkit.Mvvm.Input
-Imports Microsoft.Data.Sqlite
+Imports MySqlConnector
 Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.Purchasing.Data
 Imports MerchSys.Purchasing.Entities
@@ -197,10 +197,10 @@ Namespace ViewModels
             IsBusy = True
             Try
                 ' EF Core 10 VB.NET ToListAsync() silently returns empty for full entity queries.
-                ' Load vendors via a fresh SqliteConnection to bypass EF's materializer entirely.
+                ' Load vendors via a fresh MySqlConnection to bypass EF's materializer entirely.
                 _vendorList = New List(Of Vendor)()
                 Dim connStr = _db.Database.GetConnectionString()
-                Using conn As New SqliteConnection(connStr)
+                Using conn As New MySqlConnection(connStr)
                     Await conn.OpenAsync()
                     Using selectCmd = conn.CreateCommand()
                         selectCmd.CommandText = "SELECT Id, Name, ContactPerson, Phone, Email, " &

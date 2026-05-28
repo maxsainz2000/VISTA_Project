@@ -17,13 +17,11 @@ Namespace Handlers
         Implements INotificationHandler(Of CreditPaymentEvent)
 
         Private ReadOnly _db As AccountingDbContext
-        Private ReadOnly _repository As ISyncableRepository(Of AccountingDbContext)
         Private ReadOnly _writeContext As IWriteContextScope
         Private ReadOnly _logger As ILogger(Of CreditPaymentAccountingHandler)
 
-        Public Sub New(db As AccountingDbContext, repository As ISyncableRepository(Of AccountingDbContext), writeContext As IWriteContextScope, logger As ILogger(Of CreditPaymentAccountingHandler))
+        Public Sub New(db As AccountingDbContext, writeContext As IWriteContextScope, logger As ILogger(Of CreditPaymentAccountingHandler))
             _db = db
-            _repository = repository
             _writeContext = writeContext
             _logger = logger
         End Sub
@@ -43,7 +41,7 @@ Namespace Handlers
                 }
 
                 _db.ExpenseRecords.Add(expense)
-                Await _repository.SaveChangesWithJournalAsync(cancellationToken)
+                Await _db.SaveChangesAsync(cancellationToken)
 
                 _logger.LogInformation("AR reduction recorded for CustomerId={CustomerId}: Amount={Amount}.",
                     notification.CustomerId, notification.PaymentAmount)

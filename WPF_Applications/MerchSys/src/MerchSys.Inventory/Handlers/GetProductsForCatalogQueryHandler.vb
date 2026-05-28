@@ -1,6 +1,6 @@
 Imports System.Threading
 Imports MediatR
-Imports Microsoft.Data.Sqlite
+Imports MySqlConnector
 Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.Inventory.Data
 Imports MerchSys.SharedKernel.Queries
@@ -24,7 +24,7 @@ Namespace Handlers
             Dim products As New List(Of ProductLookupDto)()
             Dim connStr = _db.Database.GetConnectionString()
 
-            Using conn As New SqliteConnection(connStr)
+            Using conn As New MySqlConnection(connStr)
                 Await conn.OpenAsync(cancellationToken)
 
                 Dim sql = "SELECT Id, Name, Sku FROM Inv_Products WHERE IsDeleted = 0 AND IsActive = 1"
@@ -36,7 +36,7 @@ Namespace Handlers
                 Using cmd = conn.CreateCommand()
                     cmd.CommandText = sql
                     If Not String.IsNullOrWhiteSpace(request.SearchTerm) Then
-                        cmd.Parameters.Add(New SqliteParameter("@term", "%" & request.SearchTerm.Trim().ToLower() & "%"))
+                        cmd.Parameters.Add(New MySqlParameter("@term", "%" & request.SearchTerm.Trim().ToLower() & "%"))
                     End If
 
                     Using reader = Await cmd.ExecuteReaderAsync(cancellationToken)

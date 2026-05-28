@@ -6,7 +6,7 @@
 
 Imports System.Threading
 Imports MediatR
-Imports Microsoft.Data.Sqlite
+Imports MySqlConnector
 Imports Microsoft.EntityFrameworkCore
 Imports Microsoft.Extensions.Logging
 Imports MerchSys.Accounting.Data
@@ -25,19 +25,16 @@ Namespace Services
         Private ReadOnly _db As AccountingDbContext
         Private ReadOnly _mediator As IMediator
         Private ReadOnly _logger As ILogger(Of VatReportingService)
-        Private ReadOnly _repository As ISyncableRepository(Of AccountingDbContext)
         Private _vatReturnList As List(Of VatReturn)
         Private _revenueRecordList As List(Of RevenueRecord)
         Private _expenseRecordList As List(Of ExpenseRecord)
 
         Public Sub New(db As AccountingDbContext,
                        mediator As IMediator,
-                       logger As ILogger(Of VatReportingService),
-                       repository As ISyncableRepository(Of AccountingDbContext))
+                       logger As ILogger(Of VatReportingService))
             _db = db
             _mediator = mediator
             _logger = logger
-            _repository = repository
         End Sub
 
         ' ─── Public Interface ────────────────────────────────────────────────────────
@@ -70,7 +67,7 @@ Namespace Services
                 data, vatPayable, vatConfig.IsVatRegistered)
 
             _db.VatReturns.Add(vatReturn)
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
+            Await _db.SaveChangesAsync()
 
             _logger.LogInformation("Generated Form 2550M: Year={Year} Month={Month} VatPayable={VatPayable}.", year, month, vatPayable)
             Return vatReturn
@@ -101,7 +98,7 @@ Namespace Services
                 data, vatPayable, vatConfig.IsVatRegistered)
 
             _db.VatReturns.Add(vatReturn)
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
+            Await _db.SaveChangesAsync()
 
             _logger.LogInformation("Generated Form 2550Q: Year={Year} Q={Quarter} VatPayable={VatPayable}.", year, quarter, vatPayable)
             Return vatReturn
@@ -146,7 +143,7 @@ Namespace Services
                 nonVatData, taxDue, vatConfig.IsVatRegistered)
 
             _db.VatReturns.Add(vatReturn)
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
+            Await _db.SaveChangesAsync()
 
             _logger.LogInformation("Generated Form 2551Q: Year={Year} Q={Quarter} TaxDue={TaxDue}.", year, quarter, taxDue)
             Return vatReturn
@@ -167,7 +164,7 @@ Namespace Services
 
             _vatReturnList = New List(Of VatReturn)()
             Dim lrConnStr = _db.Database.GetConnectionString()
-            Using lrConn As New SqliteConnection(lrConnStr)
+            Using lrConn As New MySqlConnection(lrConnStr)
                 Await lrConn.OpenAsync()
                 Using lrCmd = lrConn.CreateCommand()
                     If year.HasValue Then
@@ -176,7 +173,7 @@ Namespace Services
                                             "TotalInputVat, VatPayable, FilingStatus, FiledAt, FiledBy, GeneratedAt, " &
                                             "IsVatRegisteredSnapshot, CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
                                             "FROM Acc_VatReturns WHERE Year = @year ORDER BY Year DESC, Period DESC"
-                        lrCmd.Parameters.Add(New SqliteParameter("@year", year.Value))
+                        lrCmd.Parameters.Add(New MySqlParameter("@year", year.Value))
                     Else
                         lrCmd.CommandText = "SELECT Id, Year, Period, PeriodType, FormType, TotalVatableSales, " &
                                             "TotalVatExemptSales, TotalZeroRatedSales, TotalOutputVat, TotalVatablePurchases, " &
@@ -237,7 +234,7 @@ Namespace Services
             vatReturn.FiledAt = DateTime.UtcNow
             vatReturn.FiledBy = filedBy
 
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
+            Await _db.SaveChangesAsync()
             _logger.LogInformation("Filed VAT return #{ReturnId} by {FiledBy}.", returnId, filedBy)
         End Function
 
@@ -301,7 +298,7 @@ Namespace Services
             amended.FilingStatus = VatFilingStatus.Amended
 
             _db.VatReturns.Add(amended)
-            Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
+            Await _db.SaveChangesAsync()
 
             _logger.LogInformation("Amended VAT return #{OriginalId} → new Amended return #{NewId}.", returnId, amended.Id)
             Return amended
@@ -315,15 +312,15 @@ Namespace Services
             Dim wsStr = windowStart.ToString("o")
             Dim weStr = windowEnd.ToString("o")
             Dim ldConnStr = _db.Database.GetConnectionString()
-            Using ldConn As New SqliteConnection(ldConnStr)
+            Using ldConn As New MySqlConnection(ldConnStr)
                 Await ldConn.OpenAsync()
 
                 Using revCmd = ldConn.CreateCommand()
                     revCmd.CommandText = "SELECT Id, RecordDate, VatableAmount, VatExemptAmount, ZeroRatedAmount, " &
                                          "OutputVat, InputVat, VatTreatment " &
                                          "FROM Acc_RevenueRecords WHERE RecordDate >= @ws AND RecordDate < @we"
-                    revCmd.Parameters.Add(New SqliteParameter("@ws", wsStr))
-                    revCmd.Parameters.Add(New SqliteParameter("@we", weStr))
+                    revCmd.Parameters.Add(New MySqlParameter("@ws", wsStr))
+                    revCmd.Parameters.Add(New MySqlParameter("@we", weStr))
                     Using revReader = revCmd.ExecuteReader()
                         While revReader.Read()
                             _revenueRecordList.Add(New RevenueRecord With {
@@ -344,8 +341,8 @@ Namespace Services
                     expCmd.CommandText = "SELECT Id, RecordDate, VatableAmount, VatExemptAmount, ZeroRatedAmount, " &
                                          "OutputVat, InputVat, VatTreatment " &
                                          "FROM Acc_ExpenseRecords WHERE RecordDate >= @ws AND RecordDate < @we AND SourceModule = 'Purchasing'"
-                    expCmd.Parameters.Add(New SqliteParameter("@ws", wsStr))
-                    expCmd.Parameters.Add(New SqliteParameter("@we", weStr))
+                    expCmd.Parameters.Add(New MySqlParameter("@ws", wsStr))
+                    expCmd.Parameters.Add(New MySqlParameter("@we", weStr))
                     Using expReader = expCmd.ExecuteReader()
                         While expReader.Read()
                             _expenseRecordList.Add(New ExpenseRecord With {
@@ -391,7 +388,7 @@ Namespace Services
                 End If
                 ' Status is Generated (or Draft) — delete and recreate
                 _db.VatReturns.Remove(existing)
-                Await _repository.SaveChangesWithJournalAsync(CancellationToken.None) ' INFRA-13: Migrated from _db.SaveChangesAsync() for sync journal population
+                Await _db.SaveChangesAsync()
             End If
         End Function
 
