@@ -3,10 +3,14 @@ type: error-fix
 module: Infrastructure
 agent: claude-code
 date: 2026-05-09
-tags: [ef-core, vb-net, migrations, sqlite, runtime-error]
+tags: [ef-core, vb-net, migrations, sqlite, mariadb, runtime-error]
 error-code: N/A
 severity: runtime-error
+status: partially-historical
+post-pivot-note: 2026-05-28
 ---
+
+> **⚠️ Post-pivot note (2026-05-28).** The underlying bug (EF Core 10's design-time scanner cannot discover migration classes in VB.NET assemblies) is **provider-agnostic** and still applies to MariaDB. The fix pattern — write migrations manually + bootstrap schema via a raw-connection initializer at app startup — also still applies, but the connection type changes from `SqliteConnection` to `MySqlConnector.MySqlConnection`. The SQLite-specific code samples below are historical; substitute `MySqlConnection` / `CREATE TABLE IF NOT EXISTS` MariaDB DDL when authoring the post-pivot MariaDB schema bootstrap (INFRA-26).
 
 # EF Core 10 CLI Cannot Discover VB.NET Migration Classes
 

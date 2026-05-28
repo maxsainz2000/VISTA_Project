@@ -5,7 +5,12 @@ module: MerchSys.App
 agent: claude-code
 date: 2026-05-15
 tags: [sqlite, triggers, temp-table, BC30456, runtime-error, archival]
+status: historical
+historical-as-of: 2026-05-28
+historical-reason: SQLite removed from architecture per system_plan_amendment_2026-05-28.md
 ---
+
+> **⚠️ Historical as of 2026-05-28.** SQLite is being removed from the architecture (see `LLM_Wiki/Sources/system_plan_amendment_2026-05-28.md`). This error and its fix only apply to legacy SQLite code that has not yet been deleted. Do not write new SQLite triggers.
 
 ## Error
 

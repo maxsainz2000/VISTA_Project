@@ -7,7 +7,12 @@ metadata:
   tags: ef-core, sync, journal, temp-key, insert, duplicate-key, idempotency, vb-net
   agent: claude-code
   date: 2026-05-23
+  status: historical
+  historical-as-of: 2026-05-28
+  historical-reason: Sync_Journal and sync layer removed per system_plan_amendment_2026-05-28.md
 ---
+
+> **⚠️ Historical as of 2026-05-28.** The entire sync layer (`Sync_Journal`, `SyncOrchestrator`, `MariaDbSyncTransmitter`, etc.) is being removed in the pure-MariaDB pivot (see `LLM_Wiki/Sources/system_plan_amendment_2026-05-28.md`). This error class disappears with it — there is no journal write path to carry temp keys forward.
 
 ## Symptom
 

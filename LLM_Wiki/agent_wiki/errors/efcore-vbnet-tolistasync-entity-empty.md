@@ -3,10 +3,14 @@ type: error-fix
 module: MerchSys.Purchasing
 agent: claude-code
 date: 2026-05-20
-tags: [ef-core, vb-net, sqlite, runtime-error, materialization, tolistasync]
+tags: [ef-core, vb-net, sqlite, mariadb, runtime-error, materialization, tolistasync]
 error-code: (none — silent empty result, no exception)
 severity: runtime-error
+status: partially-historical
+post-pivot-note: 2026-05-28
 ---
+
+> **⚠️ Post-pivot note (2026-05-28).** This is a VB.NET ↔ EF Core 10 materialization bug, not a SQLite bug — the same failure mode is expected against the MariaDB-only architecture. The raw-`SqliteConnection` workaround pattern carries over; substitute `MySqlConnector.MySqlConnection` and use a synchronous `reader.Read()` loop writing to a class field. Re-validate this bug against MariaDB during INFRA-24 and update this entry with confirmed reproduction status.
 
 # EF Core 10 VB.NET — ToListAsync silently returns empty list for full entity queries
 

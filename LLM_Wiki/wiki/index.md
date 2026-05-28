@@ -2,7 +2,7 @@
 type: index
 title: "VISTA Domain Wiki — Master Index"
 aliases: [wiki index, domain wiki, wiki home]
-last-updated: 2026-05-02
+last-updated: 2026-05-28
 ---
 
 # VISTA Domain Wiki — Master Index
@@ -18,7 +18,8 @@ Condensed versions of raw documents in `Sources/`. Never fabricated — every cl
 
 | Page | Raw Source | Lines |
 |---|---|---|
-| [[wiki/sources/system-plan\|System Plan]] | `Sources/system_plan.md` | 375 |
+| [[wiki/sources/system-plan\|System Plan]] *(partially superseded)* | `Sources/system_plan.md` | 375 |
+| [[wiki/sources/system-plan-amendment-2026-05-28\|System Plan Amendment 2026-05-28]] | `Sources/system_plan_amendment_2026-05-28.md` | — |
 | [[wiki/sources/purchasing-module-paper\|Purchasing Paper]] | `Sources/Purchasing-Module_AcademicPaper.md` | 266 |
 | [[wiki/sources/inventory-module-paper\|Inventory Paper]] | `Sources/Inventory-Module_AcademicPaper.md` | 218 |
 | [[wiki/sources/pos-module-paper\|POS Paper]] | `Sources/POS-Module_AcademicPaper.md` | 214 |
@@ -51,7 +52,8 @@ Definitions, patterns, and standards used across the project.
 |---|---|
 | [[wiki/concepts/modular-monolith\|Modular Monolith]] | Single .exe, 4 class libraries, enforced boundaries |
 | [[wiki/concepts/mediatr-mediator\|MediatR Mediator]] | Event-driven cross-module communication |
-| [[wiki/concepts/offline-first-sync\|Offline-First Sync]] | SQLite → MariaDB with dual-condition check |
+| [[wiki/concepts/centralized-database-architecture\|Centralized Database Architecture]] | **Authoritative** — pure client-server against MariaDB, no SQLite |
+| [[wiki/concepts/offline-first-sync\|Offline-First Sync]] *(superseded)* | Historical — SQLite → MariaDB sync (replaced 2026-05-28) |
 | [[wiki/concepts/client-server-wpf\|Client-Server WPF]] | Desktop architecture, tech stack summary |
 
 ### Business Logic & Domain
@@ -93,11 +95,11 @@ Cross-cutting analysis and reference material synthesized from multiple sources.
 
 | Metric | Count |
 |---|---|
-| Source Summaries | 5 |
+| Source Summaries | 6 |
 | Entity Pages | 6 |
-| Concept Pages | 14 |
+| Concept Pages | 15 (1 superseded) |
 | Analysis Pages | 3 |
-| **Total Wiki Pages** | **28** |
+| **Total Wiki Pages** | **30** |
 | Problems Documented | 25 |
 | Modules | 4 |
 

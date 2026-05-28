@@ -1,28 +1,38 @@
 ---
 type: concept
-title: "Offline-First Sync"
+title: "Offline-First Sync (SUPERSEDED)"
 aliases: [offline-first, SQLite-MariaDB sync, dual-condition sync]
-sources: [Sources/system_plan.md]
-related: [modular-monolith, client-server-wpf]
-last-updated: 2026-05-02
+sources: [Sources/system_plan.md, Sources/system_plan_amendment_2026-05-28.md]
+related: [centralized-database-architecture, modular-monolith, client-server-wpf]
+last-updated: 2026-05-28
+status: superseded
+superseded-by: centralized-database-architecture
+superseded-on: 2026-05-28
 ---
 
-# Offline-First Sync
+# Offline-First Sync — SUPERSEDED
 
-## Definition
+> **⚠️ This concept is superseded as of 2026-05-28.**
+> See [[centralized-database-architecture|Centralized Database Architecture]] and [[system-plan-amendment-2026-05-28|System Plan Amendment 2026-05-28]].
+>
+> SQLite and the sync layer have been removed from the architecture in favor of pure client-server operation against a single centralized MariaDB instance. This page is retained only as a historical record of the original design.
 
-The application operates fully on a local SQLite database without requiring network connectivity. When a stable connection is confirmed, data syncs to a centralized MariaDB instance.
+---
 
-## Dual-Condition Sync
+## Historical Definition (Original §5.3 of System Plan)
 
-Both conditions must be true before sync initiates:
+The application operated fully on a local SQLite database without requiring network connectivity. When a stable connection was confirmed, data synced to a centralized MariaDB instance.
+
+## Historical Dual-Condition Sync
+
+Both conditions had to be true before sync initiated:
 
 1. **Network reachable** — server responds to health check
 2. **Stable connection** — no packet loss over N-second window
 
-If either condition fails, the app continues in offline mode with no degradation.
+If either condition failed, the app continued in offline mode with no degradation.
 
-## Architecture
+## Historical Architecture
 
 ```
 [WPF Client] → SQLite (local, always available)
@@ -30,12 +40,18 @@ If either condition fails, the app continues in offline mode with no degradation
               MariaDB 11.4.x LTS (central, XAMPP)
 ```
 
-## Conflict Resolution
+## Why It Was Superseded
 
-- To be defined during implementation
-- System plan identifies "Data Sync Conflict" as Medium-likelihood, Medium-impact risk
+The original design assumed a single-workstation deployment. The project expanded to four concurrent client laptops sharing one MariaDB host. In that topology, offline-first SQLite introduced:
+
+- Stale dashboards (push-only sync gave no cross-client read consistency)
+- Silent stock divergence under concurrent `LastWriteWins` UPDATEs
+- An untestable multi-client concurrency property (the very thing the four-laptop test was meant to validate)
+
+See the [[system-plan-amendment-2026-05-28|amendment]] for the full rationale.
 
 ## Source References
 
-- [[wiki/sources/system-plan|System Plan]] — sync strategy, risk register
-- [[wiki/sources/inventory-module-paper|Inventory Paper]] — "offline-first SQLite database that syncs to a centralized MariaDB instance"
+- [[system-plan|System Plan]] — original sync strategy (historical)
+- [[system-plan-amendment-2026-05-28|System Plan Amendment 2026-05-28]] — supersession authority
+- [[centralized-database-architecture|Centralized Database Architecture]] — replacement concept

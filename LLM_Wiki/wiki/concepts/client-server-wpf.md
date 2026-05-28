@@ -2,16 +2,18 @@
 type: concept
 title: "Client-Server WPF Architecture"
 aliases: [WPF desktop, client-server, desktop application]
-sources: [Sources/system_plan.md]
-related: [modular-monolith, offline-first-sync]
-last-updated: 2026-05-02
+sources: [Sources/system_plan.md, Sources/system_plan_amendment_2026-05-28.md]
+related: [modular-monolith, centralized-database-architecture]
+last-updated: 2026-05-28
 ---
 
 # Client-Server WPF Architecture
 
 ## Definition
 
-VISTA is a Windows Presentation Foundation (WPF) desktop application built as a client-server system per professor requirement. The client runs on a standard Windows desktop; the server is a MariaDB instance.
+VISTA is a Windows Presentation Foundation (WPF) desktop application built as a pure client-server system per professor requirement. Each client laptop runs the same WPF `.exe` and connects directly to a single centralized **MariaDB 11.4.x LTS** instance hosted via XAMPP on a designated host laptop on the local network.
+
+Production runs two human users (Manager, Owner). The deployment target for testing is **four concurrent client laptops** on the LAN, exercising true multi-client concurrency.
 
 ## Stack
 
@@ -20,18 +22,26 @@ VISTA is a Windows Presentation Foundation (WPF) desktop application built as a 
 | UI | WPF (XAML) |
 | MVVM | CommunityToolkit.Mvvm |
 | Language | VB.NET 10 |
-| ORM | Entity Framework Core 10 |
-| Local DB | SQLite |
-| Central DB | MariaDB 11.4.x LTS (XAMPP) |
-| Deployment | Single `.exe` — no installer complexity |
+| ORM | Entity Framework Core 10 (Pomelo MySQL provider) |
+| Database | MariaDB 11.4.x LTS (XAMPP, single centralized instance) |
+| Deployment | Single `.exe` per client — no installer complexity |
+
+There is **no local database**. There is **no sync layer**. See [[centralized-database-architecture|Centralized Database Architecture]] for the full data-access model and concurrency strategy.
 
 ## Constraints
 
 - No mobile or web deployment
-- No cloud services or internet dependency for core operations
-- Standard Windows desktop hardware — no enterprise-grade requirements
-- [[offline-first-sync|Offline-first]] with sync when connection is stable
+- No cloud services or internet dependency
+- Standard Windows desktop hardware on a LAN
+- Host laptop must be UPS-backed
+- Loss of host connectivity stops the affected client (explicit trade for cross-client write correctness — see [[centralized-database-architecture]])
+
+## History
+
+The original [[system-plan|System Plan]] §5.3 specified [[offline-first-sync|offline-first SQLite + sync to MariaDB]]. That model was superseded on 2026-05-28 by [[system-plan-amendment-2026-05-28|System Plan Amendment 2026-05-28]] when the deployment target expanded to four concurrent clients and offline-first became incompatible with multi-client stock correctness.
 
 ## Source References
 
-- [[wiki/sources/system-plan|System Plan]] — technology stack, deployment
+- [[system-plan|System Plan]] — original technology stack (historical for §5.3)
+- [[system-plan-amendment-2026-05-28|System Plan Amendment 2026-05-28]] — current authoritative architecture
+- [[centralized-database-architecture|Centralized Database Architecture]] — data access and concurrency

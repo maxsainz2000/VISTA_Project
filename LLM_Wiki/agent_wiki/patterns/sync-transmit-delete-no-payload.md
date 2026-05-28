@@ -4,7 +4,12 @@ module: Infrastructure
 agent: claude-code
 date: 2026-05-23
 tags: [sync, mariadb, sqlite, json, transmitter, delete, payload]
+status: historical
+historical-as-of: 2026-05-28
+historical-reason: Sync transmitter removed per system_plan_amendment_2026-05-28.md
 ---
+
+> **⚠️ Historical as of 2026-05-28.** `MariaDbSyncTransmitter` and the entire sync layer are being deleted in the pure-MariaDB pivot. Delete operations now go directly through EF Core against the centralized MariaDB; there is no journal payload to (mis)deserialize.
 
 ## Context
 

@@ -3,11 +3,15 @@ type: source-summary
 title: "System Plan"
 aliases: [VISTA System Plan, system_plan.md]
 sources: [Sources/system_plan.md]
-related: [villon-farm-supply, module-purchasing, module-inventory, module-pos, module-accounting, modular-monolith, offline-first-sync, owasp-da-top10, client-server-wpf]
-last-updated: 2026-05-02
+related: [villon-farm-supply, module-purchasing, module-inventory, module-pos, module-accounting, modular-monolith, centralized-database-architecture, offline-first-sync, owasp-da-top10, client-server-wpf, system-plan-amendment-2026-05-28]
+last-updated: 2026-05-28
 ---
 
 # System Plan — Source Summary
+
+> **⚠️ Partially superseded by [[system-plan-amendment-2026-05-28|System Plan Amendment 2026-05-28]].**
+> §5.3 (Offline-First & Sync), §5.4 (Local DB row), §10 "Data Sync Conflict" row, §11 "Data Sync Conflict" mitigation, and the §12 offline-first bullet are **no longer authoritative**. SQLite and the sync layer have been removed; the system now uses pure client-server against centralized MariaDB. See [[centralized-database-architecture|Centralized Database Architecture]].
+> All other sections remain in force.
 
 **Raw source:** `Sources/system_plan.md` (375 lines)
 
@@ -39,9 +43,9 @@ The master specification for VISTA — a WPF client-server desktop application b
 
 - **Pattern:** [[modular-monolith|Modular Monolith]] — 4 class libraries in a single .exe
 - **Communication:** [[mediatr-mediator|MediatR]] event-driven mediator — no cross-module data access
-- **Sync:** [[offline-first-sync|Offline-first]] SQLite → MariaDB with dual-condition check
+- **Data access:** [[centralized-database-architecture|Pure client-server]] against centralized MariaDB (amended 2026-05-28; supersedes original §5.3 [[offline-first-sync|offline-first SQLite + sync]])
 - **Security:** [[owasp-da-top10|OWASP DA Top 10 (2021)]] — all 10 requirements addressed
-- **Database:** 3NF, [[fifo-costing|FIFO]] batch-level records, audit columns, soft deletes
+- **Database:** 3NF, [[fifo-costing|FIFO]] batch-level records, audit columns, soft deletes, optimistic concurrency tokens on mutable rows
 
 ## Technology Stack
 
@@ -53,15 +57,15 @@ The master specification for VISTA — a WPF client-server desktop application b
 | MVVM | CommunityToolkit.Mvvm |
 | ORM | Entity Framework Core 10 |
 | Mediator | MediatR |
-| Local DB | SQLite |
-| Central DB | MariaDB 11.4.x LTS (XAMPP) |
+| ~~Local DB~~ | ~~SQLite~~ — **removed 2026-05-28** |
+| Database | MariaDB 11.4.x LTS (XAMPP) — single centralized instance |
 | Notifications | ToastNotifications NuGet |
 | Deployment | Single .exe |
 
 ## Key Constraints
 
 - Client-server WPF per professor requirement
-- Offline-first with dual-condition sync
+- ~~Offline-first with dual-condition sync~~ — **superseded 2026-05-28**: pure client-server against centralized MariaDB; host laptop UPS-backed; loss of host stops affected client
 - FIFO costing confirmed by client
 - All reports must include plain-language interpretation
 - Owner = strictly read-only at data-access layer (not just UI)
@@ -72,9 +76,11 @@ The master specification for VISTA — a WPF client-server desktop application b
 | Risk | Likelihood | Impact |
 |---|---|---|
 | Price Volatility & Costing Error | High | High |
-| Data Loss (SQLite corruption) | Medium | High |
+| Host Laptop Failure (replaces "Data Loss / SQLite corruption") | Medium | High |
 | BIR Compliance Gap | Low | High |
-| Data Sync Conflict | Medium | Medium |
+| Concurrent Update Conflict (replaces "Data Sync Conflict") | Medium | Low (handled by retry UX) |
+
+See [[system-plan-amendment-2026-05-28|System Plan Amendment 2026-05-28]] for the full amended risk set.
 
 ## Source Citations
 
