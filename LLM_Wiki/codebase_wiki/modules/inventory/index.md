@@ -3,8 +3,8 @@ type: module-index
 module: MerchSys.Inventory
 last-updated: 2026-05-27
 last-audited: 2026-05-27
-plans-completed: [INV-01, INV-02, INV-03, INV-04, INV-05, INV-06, INV-07, INV-08, INV-09, INV-10, INV-11, INV-12, INV-13, INV-14, INV-15, ACC-21, INFRA-09, INFRA-13, INT-03, INT-04, INT-05, INT-07, INT-08, INT-09]
-file-count: 59
+plans-completed: [INV-01, INV-02, INV-03, INV-04, INV-05, INV-06, INV-07, INV-08, INV-09, INV-10, INV-11, INV-12, INV-13, INV-14, INV-15, ACC-21, INFRA-09, INFRA-13, INT-03, INT-04, INT-05, INT-07, INT-08, INT-09, INT-15, INT-17, INFRA-25, INFRA-26, INFRA-27]
+file-count: 54
 ---
 
 # MerchSys.Inventory — Module Index

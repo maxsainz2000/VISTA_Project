@@ -122,7 +122,9 @@ This page documents the composition root in `MerchSys.App`.
 | `LoginView` | (Shell) | Transient |
 | `OwnerDashboardView` | (Shell) | Transient |
 | `SessionTimeoutWarningView` | (Shell) | Transient |
-| `SyncStatusIndicator` | (Shell) | Singleton |
+| `ConnectionStatusIndicator` | (Shell) | Transient |
+| `ActivityRail` | (Shell) | Singleton |
+| `ModuleDetailPanel` | (Shell) | Singleton |
 
 
 ## Shell Components
@@ -133,39 +135,22 @@ This page documents the composition root in `MerchSys.App`.
 | `LoginViewModel` | Transient | VM for the standalone login window. |
 | `OwnerDashboardViewModel` | Transient | VM for the owner dashboard. |
 | `SessionTimeoutWarningViewModel` | Transient | VM for the inactivity warning countdown dialog. |
-| `SyncStatusIndicatorViewModel` | Singleton | VM for the sync status shell indicator. |
+| `ActivityRailViewModel` | Singleton | VM for the master activity rail module navigation. |
+| `ConnectionStatusViewModel` | Transient | VM for the connection health status indicator pill. |
 
-
-## Syncable Repositories
-| Interface | Implementation | Lifetime |
-|---|---|---|
-| `ISyncableRepository(Of PurchasingDbContext)` | `PurchasingSyncableRepository` | Scoped |
-| `ISyncableRepository` | `PurchasingSyncableRepository` | Scoped |
-| `ISyncableRepository(Of InventoryDbContext)` | `InventorySyncableRepository` | Scoped |
-| `ISyncableRepository` | `InventorySyncableRepository` | Scoped |
-| `ISyncableRepository(Of PosDbContext)` | `PosSyncableRepository` | Scoped |
-| `ISyncableRepository` | `PosSyncableRepository` | Scoped |
-| `ISyncableRepository(Of AccountingDbContext)` | `AccountingSyncableRepository` | Scoped |
-| `ISyncableRepository` | `AccountingSyncableRepository` | Scoped |
-| (Extension) | `AddSyncableRepositories()` | Scoped | Registers all four repositories (`SyncableRepositoryRegistration.vb`). |
 
 ## Shared Services
 | Interface | Implementation | Lifetime |
 |---|---|---|
 | `IEventBus` | `MediatREventBus` | Scoped |
 | `INotificationService` | `DefaultNotificationService` | Singleton |
-| `ISyncProbe` | `DualConditionSyncProbe` | Singleton |
 | `ISessionService` | `LoginSessionService` | Singleton |
 | `IWriteContextScope` | `WriteContextScope` | Singleton |
 | `RoleGuardInterceptor` | `RoleGuardInterceptor` | Scoped |
 | `IAuthenticationService` | `AuthenticationService` | Transient |
 | `IIdleMonitor` | `WpfIdleMonitor` | Singleton |
 | `IdleMonitorOptions` | (Configuration) | Singleton |
-| `SyncOrchestrator` | `SyncOrchestrator` | Scoped |
-| `ISyncTransmitter` | `MariaDbSyncTransmitter` | Scoped |
-| `SyncWorker` | `SyncWorker` | Singleton (HostedService) |
-| `IConflictResolver` | `ConflictResolver` | Scoped |
-| `MariaDbSyncContext` | `MariaDbSyncContext` | Scoped |
-| `SyncJournalDbContext` | `SyncJournalDbContext` | Scoped |
+| `IConnectionHealthMonitor` | `ConnectionHealthMonitor` | Singleton |
 | (Extension) | `AddModuleDbContexts()` | Registers all module DbContexts (Scoped) |
 | (Extension) | `AddMediatRServices()` | Registers MediatR and all module handlers |
+| (Extension) | `AddConnectionHealthMonitor()` | Registers Connection health monitor services |

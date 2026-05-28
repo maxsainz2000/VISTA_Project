@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.Accounting
 layer: Handlers
-last-updated: 2026-05-27
+last-updated: 2026-05-28
 ---
 
 # MerchSys.Accounting — Handlers
@@ -21,4 +21,4 @@ This page details the MediatR event handlers for the **MerchSys.Accounting** mod
 | `src/MerchSys.Accounting/Handlers/ReceiptTamperDetectedHandler.vb` | `ReceiptTamperDetectedHandler` | `ReceiptTamperDetectedEvent` | Consumes tamper events from POS; persists to `Acc_TamperAuditLog` with machine/user context. Rethrows on save failure to ensure bus-level retry or DLQ logic. |
 
 > [!NOTE]
-> As of **INFRA-21**, all six transaction/event-consuming handlers (excluding `ReceiptTamperDetectedHandler`) write records using `ISyncableRepository(Of AccountingDbContext)`. This ensures all derived financial records (revenue, expenses, VAT) are captured in `Sync_Journal` for offline-first replication. `ReceiptTamperDetectedHandler` continues to use direct DbContext saves for local-only audit entries.
+> As of **INFRA-27**, the offline-first SQLite sync layer was decommissioned. Handlers now perform direct transactional writes to the central MariaDB using `AccountingDbContext.SaveChangesAsync()`, ensuring ACID compliance and eliminating the `Sync_Journal` overhead.

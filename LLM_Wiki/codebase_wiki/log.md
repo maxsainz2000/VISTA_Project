@@ -99,6 +99,19 @@ This log tracks updates made to the `codebase_wiki/` by Antigravity during the H
 | 2026-05-27 | 21:45 | ACC-21 | antigravity |
 | 2026-05-27 | 21:50 | INV-15 | antigravity |
 | 2026-05-27 | 21:55 | INFRA-22 | antigravity |
-
+| 2026-05-28 | 12:15 | INT-11 | antigravity |
+| 2026-05-28 | 12:20 | INT-14 | antigravity |
+| 2026-05-28 | 12:25 | INT-15 | antigravity |
+| 2026-05-28 | 12:30 | INT-16 | antigravity |
+| 2026-05-28 | 12:35 | INT-17 | antigravity |
+| 2026-05-28 | 12:40 | INFRA-23 | antigravity |
+| 2026-05-28 | 12:45 | INFRA-24 | antigravity |
+| 2026-05-28 | 12:50 | INFRA-25 | antigravity |
+| 2026-05-28 | 12:55 | INFRA-26 | antigravity |
+| 2026-05-28 | 13:00 | INFRA-27 | antigravity |
+| 2026-05-28 | 13:05 | INFRA-28 | antigravity |
+| 2026-05-28 | 13:10 | INFRA-29 | antigravity |
+| 2026-05-28 | 13:15 | INFRA-30 | antigravity |
+| 2026-05-28 | 13:20 | Lint Pass — Fixed 3 stale SQLite refs (database.md, inventory/handlers.md, accounting/services.md) | antigravity |
 
 

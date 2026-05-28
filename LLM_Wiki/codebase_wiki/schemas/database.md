@@ -1,11 +1,11 @@
 ---
 type: schema-map
-last-updated: 2026-05-27
+last-updated: 2026-05-28
 ---
 
 # Database Schema Mapping
 
-This page maps the EF Core entities across all modules to their SQLite/MariaDB tables.
+This page maps the EF Core entities across all modules to their central MariaDB tables.
 
 ## MerchSys.POS (`Pos_` prefix)
 | Entity | DB Table | Key Constraints |
@@ -69,13 +69,13 @@ This page maps the EF Core entities across all modules to their SQLite/MariaDB t
 > - `Pos_ReceiptIntegrity`
 > - `Pos_OfficialReceipts`
 > - `Pos_OfficialReceiptArchive`
-> These triggers enforce immutability for issued/synced rows, mirroring the SQLite local enforcement (POS-13).
+> - These triggers enforce immutability for issued/synced rows, mirroring the SQLite local enforcement (POS-13).
+
+> [!NOTE]
+> **Optimistic Concurrency Row Versions (INFRA-26):** Eight mutable central tables (`Inv_StockBatches`, `Inv_Products`, `Pur_AccountsPayable`, `Pur_PurchaseOrders`, `Pos_CreditAccounts`, `Pos_SalesTransactions`, `Pur_Vendors`, `Inv_ProductCategories`) carry a `RowVersion` column configured as a native MariaDB `TIMESTAMP(6)` database-managed optimistic concurrency token.
 
 
-## Infrastructure / Shared (`Sync_`, `Sys_` prefix)
+## System Accounts (`Sys_` prefix)
 | Entity | DB Table | Key Constraints |
 |---|---|---|
-| `SyncJournal` | `Sync_Journal` | PK `Id`, Composite Index (`ModuleName`, `SyncedAt`) |
 | `UserAccount` | `Sys_UserAccounts` | PK `Id`, Unique Index on `Username` |
-
-

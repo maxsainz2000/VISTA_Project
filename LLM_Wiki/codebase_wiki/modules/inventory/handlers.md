@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.Inventory
 layer: Handlers
-last-updated: 2026-05-27
+last-updated: 2026-05-28
 ---
 
 # MerchSys.Inventory — Handlers
@@ -27,5 +27,5 @@ This page details the MediatR Handlers for the **MerchSys.Inventory** module.
 | `src/MerchSys.Inventory/Handlers/GetProductCostQueryHandler.vb` | `GetProductCostQueryHandler` | `GetProductCostQuery` | Returns current FIFO unit cost (oldest available non-expired batch) for a product. |
 | `src/MerchSys.Inventory/Handlers/GetSaleCogsBreakdownQueryHandler.vb` | `GetSaleCogsBreakdownQueryHandler` | `GetSaleCogsBreakdownQuery` | Retrieves per-batch FIFO COGS breakdown from `Inv_SaleCogs` for a specific POS transaction and product; projects to DTO. |
 | `src/MerchSys.Inventory/Handlers/GetLowStockAlertCountQueryHandler.vb` | `GetLowStockAlertCountQueryHandler` | `GetLowStockAlertCountQuery` | Returns count of active low-stock alerts via `LowStockAlertService`. |
-| `src/MerchSys.Inventory/Handlers/GetProductsForCatalogQueryHandler.vb` | `GetProductsForCatalogQueryHandler` | `GetProductsForCatalogQuery` | Handles query for populating vendor catalog selection list by querying active products using a raw SQLite connection. |
+| `src/MerchSys.Inventory/Handlers/GetProductsForCatalogQueryHandler.vb` | `GetProductsForCatalogQueryHandler` | `GetProductsForCatalogQuery` | Handles query for populating vendor catalog selection list by querying active products using a raw `MySqlConnection` (bypasses EF Core to work around EF Core 10 + VB.NET query discovery bugs). |
 
