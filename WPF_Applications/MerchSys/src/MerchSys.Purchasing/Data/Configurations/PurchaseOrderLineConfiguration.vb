@@ -12,11 +12,6 @@ Namespace Data.Configurations
 
             builder.HasKey(Function(l) l.Id)
 
-            ' Append-only child table: no RowVersion column. Ignore the property
-            ' inherited from AuditableEntity -> ConcurrencyAwareEntity so EF does
-            ' not reference a non-existent column on insert.
-            builder.Ignore(Function(l) l.RowVersion)
-
             builder.Property(Function(l) l.PurchaseOrderId).IsRequired()
             builder.Property(Function(l) l.ProductName).IsRequired().HasMaxLength(200)
             builder.Property(Function(l) l.UnitCost).HasPrecision(18, 4)

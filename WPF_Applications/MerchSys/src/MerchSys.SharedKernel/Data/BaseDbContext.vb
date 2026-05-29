@@ -2,6 +2,8 @@ Imports System.Linq.Expressions
 Imports System.Reflection
 Imports System.Threading
 Imports Microsoft.EntityFrameworkCore
+Imports Microsoft.EntityFrameworkCore.Metadata.Builders
+Imports Microsoft.EntityFrameworkCore.Metadata.Conventions
 Imports MerchSys.SharedKernel.Interfaces
 
 Namespace Data
@@ -31,9 +33,10 @@ Namespace Data
             MyBase.New(options)
         End Sub
 
-        ''' <summary>Sets a default max-length of 256 for all string columns.</summary>
+        ''' <summary>Sets a default max-length of 256 for all string columns and ignores non-token RowVersion properties.</summary>
         Protected Overrides Sub ConfigureConventions(configurationBuilder As ModelConfigurationBuilder)
             configurationBuilder.Properties(Of String)().HaveMaxLength(256)
+            configurationBuilder.Conventions.Add(Function(sp) New IgnoreNonTokenRowVersionConvention())
         End Sub
 
         Protected Overrides Sub OnModelCreating(modelBuilder As ModelBuilder)
@@ -111,6 +114,25 @@ Namespace Data
 
             Return Await MyBase.SaveChangesAsync(cancellationToken)
         End Function
+
+        ''' <summary>
+        ''' Convention that runs during model finalization to ignore the RowVersion property
+        ''' on any entity type where it is not explicitly configured as a concurrency token.
+        ''' </summary>
+        Private NotInheritable Class IgnoreNonTokenRowVersionConvention
+            Implements IModelFinalizingConvention
+
+            Public Sub ProcessModelFinalizing(modelBuilder As IConventionModelBuilder,
+                                              context As IConventionContext(Of IConventionModelBuilder)) _
+                                              Implements IModelFinalizingConvention.ProcessModelFinalizing
+                For Each et In modelBuilder.Metadata.GetEntityTypes()
+                    Dim rv = et.FindProperty("RowVersion")
+                    If rv IsNot Nothing AndAlso Not rv.IsConcurrencyToken() Then
+                        et.Builder.Ignore("RowVersion", fromDataAnnotation:=False)
+                    End If
+                Next
+            End Sub
+        End Class
 
     End Class
 

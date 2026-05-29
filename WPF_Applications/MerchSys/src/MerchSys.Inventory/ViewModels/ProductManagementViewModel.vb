@@ -535,13 +535,25 @@ Namespace ViewModels
             End If
 
             Dim skuUpper = EditorSku.Trim().ToUpperInvariant()
-            Dim skuInUse = Await _db.Products.
+            Dim skuInUseActive = Await _db.Products.
+                IgnoreQueryFilters().
                 AnyAsync(Function(p) Not p.IsDeleted AndAlso
                                      p.Sku.ToUpper() = skuUpper AndAlso
                                      p.Id <> EditorId)
 
-            If skuInUse Then
+            Dim skuInUseDeleted = Await _db.Products.
+                IgnoreQueryFilters().
+                AnyAsync(Function(p) p.IsDeleted AndAlso
+                                     p.Sku.ToUpper() = skuUpper AndAlso
+                                     p.Id <> EditorId)
+
+            If skuInUseActive Then
                 EditorError = $"SKU '{EditorSku.Trim()}' is already used by another product."
+                Return
+            End If
+
+            If skuInUseDeleted Then
+                EditorError = $"SKU '{EditorSku.Trim()}' is already used by a deleted product. Please contact your administrator or choose a different SKU."
                 Return
             End If
 
@@ -645,13 +657,25 @@ Namespace ViewModels
 
             Dim nameTrimmed = CategoryEditorName.Trim()
 
-            Dim nameInUse = Await _db.ProductCategories.
+            Dim nameInUseActive = Await _db.ProductCategories.
+                IgnoreQueryFilters().
                 AnyAsync(Function(c) Not c.IsDeleted AndAlso
                                      c.Name.ToLower() = nameTrimmed.ToLower() AndAlso
                                      c.Id <> CategoryEditorId)
 
-            If nameInUse Then
+            Dim nameInUseDeleted = Await _db.ProductCategories.
+                IgnoreQueryFilters().
+                AnyAsync(Function(c) c.IsDeleted AndAlso
+                                     c.Name.ToLower() = nameTrimmed.ToLower() AndAlso
+                                     c.Id <> CategoryEditorId)
+
+            If nameInUseActive Then
                 CategoryEditorError = $"Category '{nameTrimmed}' already exists."
+                Return
+            End If
+
+            If nameInUseDeleted Then
+                CategoryEditorError = $"Category '{nameTrimmed}' already exists in a deleted state. Please choose a different name."
                 Return
             End If
 

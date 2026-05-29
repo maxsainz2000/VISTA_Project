@@ -29,6 +29,11 @@ Namespace Data.Configurations
                     WithOne(Function(l) l.VatReturn).
                     HasForeignKey(Function(l) l.VatReturnId).
                     OnDelete(DeleteBehavior.Cascade)
+
+            builder.Property(Function(e) e.RowVersion).
+                IsRowVersion().
+                HasColumnType("TIMESTAMP(6)").
+                ValueGeneratedOnAddOrUpdate()
         End Sub
 
     End Class

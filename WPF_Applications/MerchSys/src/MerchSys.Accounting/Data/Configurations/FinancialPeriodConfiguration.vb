@@ -19,6 +19,11 @@ Namespace Data.Configurations
             builder.Property(Function(p) p.GrossMarginPercent).HasPrecision(10, 4)
             builder.Property(Function(p) p.TotalExpenses).HasPrecision(18, 2)
             builder.Property(Function(p) p.NetIncome).HasPrecision(18, 2)
+
+            builder.Property(Function(e) e.RowVersion).
+                IsRowVersion().
+                HasColumnType("TIMESTAMP(6)").
+                ValueGeneratedOnAddOrUpdate()
         End Sub
 
     End Class
