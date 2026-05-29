@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.SharedKernel
 layer: Entities
-last-updated: 2026-05-26
+last-updated: 2026-05-29
 ---
 
 # MerchSys.SharedKernel — Entities & Data Types
@@ -23,6 +23,11 @@ last-updated: 2026-05-26
 | `Data/AuditInterceptor.vb` | `AuditInterceptor` | `SaveChangesInterceptor` | Intercepts saves to update IAuditable fields |
 | `Data/RoleGuardInterceptor.vb` | `RoleGuardInterceptor` | `SaveChangesInterceptor` | SaveChangesInterceptor that enforces OWASP DA5 role-based write rejection. |
 | `Data/WriteContextScope.vb` | `WriteContextScope` | `IWriteContextScope` | Default scoped implementation utilizing AsyncLocal to carry write context metadata safely across asynchronous boundaries. |
+
+## Persistence Helpers
+| File Path | Class / Module | Key Members | Description |
+|---|---|---|---|
+| `Persistence/ConcurrencyHelper.vb` | `ConcurrencyHelper` (Module) | `ExecuteWithConcurrencyRetryAsync(Of T)` | Reusable optimistic concurrency retry runner that handles conflicts, shows errors via notification service, and runs custom refresh callbacks. |
 
 ## Common Exceptions
 | File Path | Class | Inherits | Description |

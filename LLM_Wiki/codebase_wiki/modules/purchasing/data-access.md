@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.Purchasing
 layer: Data Access
-last-updated: 2026-05-28
+last-updated: 2026-05-29
 ---
 
 # MerchSys.Purchasing — Data Access
@@ -30,4 +30,5 @@ Configures the `PurchasingDbContext` with EF Core entity configurations for all 
 | `src/MerchSys.Purchasing/Data/Configurations/PriceChangeAlertConfiguration.vb` | `PriceChangeAlertConfiguration` | Table: `Pur_PriceChangeAlerts`. precision(18,4) on PreviousUnitCost, NewUnitCost, ChangePercent. Indexes on IsAcknowledged and ProductId. |
 | `src/MerchSys.Purchasing/Data/Configurations/VendorProductConfiguration.vb` | `VendorProductConfiguration` | Table: `Pur_VendorProducts`. Unique composite index on `(VendorId, ProductId)` filtered to `IsDeleted = 0`. Cascade `Restrict` to Vendor. |
 | `src/MerchSys.Purchasing/Data/SeedData/PurchasingSeedData.vb` | `PurchasingSeedData` | Seeds 3 sample vendors: AgriChem Supplies, FarmFresh Seeds Corp., Golden Feeds Trading. |
+| `src/MerchSys.Purchasing/Data/Migrations/AddGoodsReceiptLineVatColumns.vb` | `AddGoodsReceiptLineVatColumns` | EF Core Migration adding input VAT breakdown columns to Goods Receipt lines for BIR VAT compliance. |
 

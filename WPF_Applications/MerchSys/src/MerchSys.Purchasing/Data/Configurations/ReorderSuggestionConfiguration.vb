@@ -13,7 +13,7 @@ Namespace Data.Configurations
             builder.HasKey(Function(s) s.Id)
 
             builder.Property(Function(s) s.ProductId).IsRequired()
-            builder.Property(Function(s) s.ProductName).IsRequired().HasMaxLength(200)
+            builder.Property(Function(s) s.ProductName).IsRequired().HasMaxLength(255)
             builder.Property(Function(s) s.Status).IsRequired().HasMaxLength(20)
             builder.Property(Function(s) s.PreferredVendorName).HasMaxLength(200)
 

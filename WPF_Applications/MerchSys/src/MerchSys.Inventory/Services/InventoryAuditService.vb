@@ -202,11 +202,67 @@ Namespace Services
         End Function
 
         Public Async Function GetLatestAuditPerProductAsync() As Task(Of List(Of StockAuditRecord)) Implements IInventoryAuditService.GetLatestAuditPerProductAsync
-            Return Await _db.StockAuditRecords _
-                .Include(Function(a) a.Product) _
-                .GroupBy(Function(a) a.ProductId) _
-                .Select(Function(g) g.OrderByDescending(Function(a) a.AuditedAt).First()) _
-                .ToListAsync()
+            Dim latestAudits As New List(Of StockAuditRecord)()
+            Dim connStr = _db.Database.GetConnectionString()
+            Using conn As New MySqlConnection(connStr)
+                Await conn.OpenAsync()
+                
+                Dim sql = "SELECT a.Id, a.ProductId, a.ExpectedQuantity, a.PhysicalCount, a.Variance, a.Reason, a.Notes, " &
+                          "a.PerformedBy, a.AuditedAt, a.CreatedBy, a.CreatedAt, a.ModifiedBy, a.ModifiedAt " &
+                          "FROM Inv_StockAuditRecords a " &
+                          "WHERE a.Id = (" &
+                          "    SELECT sub.Id " &
+                          "    FROM Inv_StockAuditRecords sub " &
+                          "    WHERE sub.ProductId = a.ProductId " &
+                          "    ORDER BY sub.AuditedAt DESC, sub.Id DESC " &
+                          "    LIMIT 1" &
+                          ")"
+
+                Using cmd = conn.CreateCommand()
+                    cmd.CommandText = sql
+                    Using reader = Await cmd.ExecuteReaderAsync()
+                        While reader.Read()
+                            latestAudits.Add(New StockAuditRecord With {
+                                .Id = reader.GetInt32(0),
+                                .ProductId = reader.GetInt32(1),
+                                .ExpectedQuantity = reader.GetInt32(2),
+                                .PhysicalCount = reader.GetInt32(3),
+                                .Variance = reader.GetInt32(4),
+                                .Reason = reader.GetString(5),
+                                .Notes = If(reader.IsDBNull(6), Nothing, reader.GetString(6)),
+                                .PerformedBy = reader.GetString(7),
+                                .AuditedAt = reader.GetDateTime(8),
+                                .CreatedBy = reader.GetString(9),
+                                .CreatedAt = reader.GetDateTime(10),
+                                .ModifiedBy = If(reader.IsDBNull(11), Nothing, reader.GetString(11)),
+                                .ModifiedAt = If(reader.IsDBNull(12), Nothing, CType(reader.GetDateTime(12), DateTime?))
+                            })
+                        End While
+                    End Using
+                End Using
+
+                If latestAudits.Count > 0 Then
+                    Dim pIds = String.Join(",", latestAudits.Select(Function(a) a.ProductId).Distinct())
+                    Dim productMap As New Dictionary(Of Integer, Product)()
+                    Using pCmd = conn.CreateCommand()
+                        pCmd.CommandText = "SELECT Id, Name, Sku, CategoryId, Description, RetailPrice, Unit, HasExpiry, " &
+                                           "MinimumThreshold, IsActive, IsDeleted, DeletedBy, DeletedAt, " &
+                                           "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                           $"FROM Inv_Products WHERE Id IN ({pIds})"
+                        Using pReader = pCmd.ExecuteReader()
+                            While pReader.Read()
+                                Dim p = StockService.ReadProduct(pReader)
+                                productMap(p.Id) = p
+                            End While
+                        End Using
+                    End Using
+                    For Each rec In latestAudits
+                        Dim prod As Product = Nothing
+                        If productMap.TryGetValue(rec.ProductId, prod) Then rec.Product = prod
+                    Next
+                End If
+            End Using
+            Return latestAudits
         End Function
 
     End Class

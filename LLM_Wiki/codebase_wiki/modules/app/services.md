@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.App
 layer: Services
-last-updated: 2026-05-28
+last-updated: 2026-05-29
 ---
 
 # MerchSys.App — Services
@@ -29,7 +29,6 @@ This page details the Service implementations specifically located within the **
 | `src/MerchSys.App/Services/IConnectionHealthMonitor.vb`<br>`src/MerchSys.App/Services/ConnectionHealthMonitor.vb` | `IConnectionHealthMonitor`<br>`ConnectionHealthMonitor` | Periodic MariaDB SELECT 1 health probe with a three-state machine (Online, Reconnecting, Offline), exponential backoff, and UI thread event dispatching. |
 | `src/MerchSys.App/Services/ConnectionHealthMonitorLocator.vb` | `ConnectionHealthMonitorLocator` (Module) | Static accessor used by UI attached behaviors to check current connection health. |
 | `src/MerchSys.App/Startup/ConnectionConfig.vb` | `ConnectionConfig` (Module) | Extension module (`AddConnectionHealthMonitor`) that registers connection health monitor services. |
-| `src/MerchSys.App/Services/ConcurrencyHelper.vb` | `ConcurrencyHelper` (Module) | ViewModel helper method `ExecuteWithConcurrencyRetryAsync` that safely runs operations, catches optimistic concurrency conflicts, triggers reloads, and displays error toasts. |
 
 ## Debug & Utilities
 | File Path | Class | Description |

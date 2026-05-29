@@ -233,29 +233,30 @@ Namespace Services.Archival
                 ' whether to RAISE(ABORT).  The 5-minute TTL provides crash-safety: if the
                 ' service terminates mid-batch the flag expires and the trigger re-engages.
                 Await db.Database.ExecuteSqlRawAsync(
-                    "INSERT OR REPLACE INTO ""Pos_ArchivalSession"" (key, value, expires_at) " &
-                    "VALUES ('archival_in_progress', 1, datetime('now', '+5 minutes'))",
+                    "INSERT INTO `Pos_ArchivalSession` (`key`, `value`, `expires_at`) " &
+                    "VALUES ('archival_in_progress', 1, DATE_ADD(NOW(6), INTERVAL 5 MINUTE)) " &
+                    "ON DUPLICATE KEY UPDATE `value` = 1, `expires_at` = DATE_ADD(NOW(6), INTERVAL 5 MINUTE)",
                     cancellationToken)
 
                 ' ── 4. Delete source rows (bypasses ImmutableReceiptInterceptor via raw SQL) ─
                 ' Delete ReceiptIntegrity first to respect the FK that references OfficialReceipts.
                 For Each item In batch
                     Await db.Database.ExecuteSqlRawAsync(
-                        "DELETE FROM ""Pos_ReceiptIntegrity"" WHERE ""ReceiptId"" = {0}",
+                        "DELETE FROM `Pos_ReceiptIntegrity` WHERE `ReceiptId` = {0}",
                         {item.Receipt.Id},
                         cancellationToken)
                 Next
 
                 For Each item In batch
                     Await db.Database.ExecuteSqlRawAsync(
-                        "DELETE FROM ""Pos_OfficialReceipts"" WHERE ""Id"" = {0}",
+                        "DELETE FROM `Pos_OfficialReceipts` WHERE `Id` = {0}",
                         {item.Receipt.Id},
                         cancellationToken)
                 Next
 
                 ' ── 5. Clear session flag ─────────────────────────────────────
                 Await db.Database.ExecuteSqlRawAsync(
-                    "DELETE FROM ""Pos_ArchivalSession"" WHERE key = 'archival_in_progress'",
+                    "DELETE FROM `Pos_ArchivalSession` WHERE `key` = 'archival_in_progress'",
                     cancellationToken)
 
                 Await transaction.CommitAsync(cancellationToken)

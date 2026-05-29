@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.POS
 layer: Services
-last-updated: 2026-05-26
+last-updated: 2026-05-29
 ---
 
 # MerchSys.POS — Services
@@ -25,9 +25,3 @@ last-updated: 2026-05-26
 | `src/MerchSys.POS/Services/ReceiptRendering/IReceiptRenderer.vb`<br>`src/MerchSys.POS/Services/ReceiptRendering/ReceiptRenderTarget.vb`<br>`src/MerchSys.POS/Services/ReceiptRendering/ConsoleReceiptRenderer.vb`<br>`src/MerchSys.POS/Services/ReceiptRendering/PdfReceiptRenderer.vb`<br>`src/MerchSys.POS/Services/ReceiptRendering/ReceiptPdfOptions.vb` | `IReceiptRenderer`<br>`ReceiptRenderTarget`<br>`ConsoleReceiptRenderer`<br>`PdfReceiptRenderer`<br>`ReceiptPdfOptions` | Pluggable rendering layer for BIR-compliant Official Receipts. Outputs to Console (default) or monospace A5 portrait PDF written to disk. Implements defensive overwrite guards to prevent modifying generated receipts. | `IOptions(Of ReceiptPdfOptions)`, `ILogger(Of PdfReceiptRenderer)` |
 | `src/MerchSys.POS/Services/Archival/IReceiptArchivalService.vb`<br>`src/MerchSys.POS/Services/Archival/ReceiptArchivalOptions.vb`<br>`src/MerchSys.POS/Services/Archival/ReceiptArchivalService.vb` | `IReceiptArchivalService`<br>`ReceiptArchivalOptions`<br>`ReceiptArchivalService` | Background service for transactional archival of expired receipts and integrity logs to cold storage. Uses `Pos_ArchivalSession` table for session-variable-aware database triggers (INT-12). | `IServiceScopeFactory`, `POSDbContext`, `IOptions(Of ReceiptArchivalOptions)` |
 
-## Debug & Utilities
-
-| File Path | Class | Description |
-|---|---|---|
-| `src/MerchSys.POS/Debug/ReceiptSequenceHarnessReport.vb` | `ReceiptSequenceHarnessReport` | Debug-only runner for `Pos_SequenceConcurrencyHarness`; validates concurrency-safe receipt numbering against a scratch SQLite DB. |
-| `src/MerchSys.POS/Debug/ReceiptArchivalHarness.vb` | `ReceiptArchivalHarness` | Debug-only harness that seeds expired and in-window receipts in a temporary SQLite database, runs the archival service, and verifies counts, concurrency, and transactional rollbacks. |

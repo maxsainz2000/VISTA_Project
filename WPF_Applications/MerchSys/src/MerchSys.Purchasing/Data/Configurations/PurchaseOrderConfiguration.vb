@@ -12,7 +12,7 @@ Namespace Data.Configurations
 
             builder.HasKey(Function(po) po.Id)
 
-            builder.Property(Function(po) po.OrderNumber).IsRequired().HasMaxLength(20)
+            builder.Property(Function(po) po.OrderNumber).IsRequired().HasMaxLength(128)
             builder.HasIndex(Function(po) po.OrderNumber).IsUnique()
 
             builder.Property(Function(po) po.VendorId).IsRequired()

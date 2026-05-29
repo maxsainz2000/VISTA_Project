@@ -12,7 +12,7 @@ Namespace Data.Configurations
 
             builder.HasKey(Function(gr) gr.Id)
 
-            builder.Property(Function(gr) gr.ReceiptNumber).IsRequired().HasMaxLength(20)
+            builder.Property(Function(gr) gr.ReceiptNumber).IsRequired().HasMaxLength(128)
             builder.HasIndex(Function(gr) gr.ReceiptNumber).IsUnique()
 
             builder.Property(Function(gr) gr.PurchaseOrderId).IsRequired()
