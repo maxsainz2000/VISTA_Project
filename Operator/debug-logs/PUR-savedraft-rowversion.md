@@ -103,6 +103,33 @@ Build: 0 errors, 0 warnings. Runtime confirmation deferred to operator.
 
 ---
 
+## Follow-up issue #2 (same session): Save Draft duplicate OrderNumber after a delete
+
+### Problem
+After deleting PO-2026-0001 (soft delete) and creating a new draft, Save Draft threw:
+```
+MySqlException: Duplicate entry 'PO-2026-0001' for key 'IX_Pur_PurchaseOrders_OrderNumber'
+```
+
+### Root cause (confirmed)
+`CreateDraftAsync` builds the order number from `_db.PurchaseOrders.Select(OrderNumber).ToListAsync()`,
+which goes through EF and therefore applies the global soft-delete query filter. The soft-deleted
+PO-2026-0001 is excluded, so `SequentialNumberGenerator` computes max=0 and regenerates
+`PO-2026-0001`. But `IX_Pur_PurchaseOrders_OrderNumber` is a UNIQUE index spanning ALL rows
+(soft-deleted included), so the insert collides. This is the classic soft-delete vs. unique-constraint
+conflict, and it is a direct consequence of fixing the list query to hide soft-deleted rows.
+
+### Fix
+Add `.IgnoreQueryFilters()` to the existing-numbers lookup so the generator accounts for
+soft-deleted order numbers too (next number becomes PO-2026-0002). One line in
+`PurchaseOrderService.CreateDraftAsync`. Build: 0 errors, 0 warnings.
+
+> **Note:** MariaDB has no filtered/partial unique index, so the constraint cannot be scoped to
+> `IsDeleted=0` without a schema change (off-limits, append-only). Ignoring the query filter at the
+> generation site is the correct, minimal fix.
+
+---
+
 ## Resolution
 - **Status:** resolved (pending operator runtime confirmation)
 - **Root cause:** `AuditableEntity` inherits `ConcurrencyAwareEntity`, giving every auditable entity a `RowVersion` property. EF maps it by convention. `Pur_PurchaseOrderLines` (append-only child) has no RowVersion column and the config did not ignore the property, so the insert referenced a non-existent column. (Plus follow-up soft-delete/raw-SQL filter issue documented above.)

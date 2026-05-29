@@ -26,7 +26,10 @@ Namespace Services
                                                Optional notes As String = Nothing,
                                                Optional expectedDeliveryDate As DateTime? = Nothing) As Task(Of PurchaseOrder) Implements IPurchaseOrderService.CreateDraftAsync
             Dim year As Integer = DateTime.UtcNow.Year
+            ' Include soft-deleted rows: the OrderNumber unique index spans every row
+            ' (deleted included), so the sequence must not reuse a deleted PO's number.
             Dim existingNumbers As List(Of String) = Await _db.PurchaseOrders.
+                IgnoreQueryFilters().
                 Select(Function(p) p.OrderNumber).
                 ToListAsync()
             Dim orderNumber As String = SequentialNumberGenerator.Generate("PO", year, existingNumbers)
