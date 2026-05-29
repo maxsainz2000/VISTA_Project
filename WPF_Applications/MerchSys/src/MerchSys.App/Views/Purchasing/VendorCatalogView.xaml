@@ -141,19 +141,16 @@
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="Product Name" Binding="{Binding ProductName}" Width="*" IsReadOnly="True"/>
                                         
-                                        <!-- Editable LastUnitCost -->
-                                        <DataGridTemplateColumn Header="Last Unit Cost (₱)" Width="130">
-                                            <DataGridTemplateColumn.CellTemplate>
-                                                <DataTemplate>
-                                                    <TextBlock Text="{Binding LastUnitCost, StringFormat='N2'}" Padding="6,4" HorizontalAlignment="Right"/>
-                                                </DataTemplate>
-                                            </DataGridTemplateColumn.CellTemplate>
-                                            <DataGridTemplateColumn.CellEditingTemplate>
-                                                <DataTemplate>
-                                                    <TextBox Text="{Binding LastUnitCost, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" Padding="4,2" HorizontalAlignment="Stretch" IsReadOnly="{Binding DataContext.IsManager, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVis}, ConverterParameter=Invert}"/>
-                                                </DataTemplate>
-                                            </DataGridTemplateColumn.CellEditingTemplate>
-                                        </DataGridTemplateColumn>
+                                        <!-- Read-Only LastUnitCost -->
+                                        <DataGridTextColumn Header="Last Unit Cost (₱)" Width="130" IsReadOnly="True"
+                                                           Binding="{Binding LastUnitCost, StringFormat='N2'}">
+                                            <DataGridTextColumn.ElementStyle>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                                                    <Setter Property="Padding" Value="6,4"/>
+                                                </Style>
+                                            </DataGridTextColumn.ElementStyle>
+                                        </DataGridTextColumn>
 
                                         <!-- Editable Notes -->
                                         <DataGridTemplateColumn Header="Notes" Width="220">
@@ -228,15 +225,10 @@
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="6"/>
-                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Agreed Unit Cost (₱):" FontSize="11" Foreground="#7F8C8D" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding NewEntryCost, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Padding="6,4" BorderBrush="#BDC3C7"/>
-
-                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Catalog Notes:" FontSize="11" Foreground="#7F8C8D" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding NewEntryNotes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Padding="6,4" BorderBrush="#BDC3C7"/>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Catalog Notes:" FontSize="11" Foreground="#7F8C8D" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding NewEntryNotes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Padding="6,4" BorderBrush="#BDC3C7"/>
                     </Grid>
 
                     <!-- Product search box -->

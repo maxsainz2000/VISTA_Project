@@ -1,840 +1,623 @@
 ---
-module: Security & Roles
-source: Dashboard-Feature-Analysis-2026-05-27.md
+module: Security, Roles & E2E Capabilities
+source: WPF_Applications
 originally-generated: 2026-05-27
-last-synced: 2026-05-28
-infra-migration: INFRA-23 to INFRA-30 (2026-05-28) — SQLite/sync layer decommissioned; pure MariaDB client-server architecture; Activity Rail sidebar
-reset: 2026-05-27
+last-synced: 2026-05-29
+infra-migration: INFRA-23 to INFRA-30 (Pure MariaDB client-server; Activity Rail sidebar; Multi-batch FIFO; Bir VAT)
+reset: 2026-05-29 (Database factory-reset baseline applied)
 verified: (pending)
 verified-by: (pending)
 verdict: (pending)
 ---
 
-# Operator Verification Checklist — Manager Role & Stock Dashboard
+# Operator Verification Checklist — Manager Role & E2E System Capabilities
 
 > **Target Role:** Manager (`manager`)
-> **Credentials:** Username: `manager` | Password: `Vista2026!` *(DA6 first-login — must set a new password before the app opens)*
-> **Focus:** Full operational authorization and E2E verification of the Stock Dashboard (Manager landing page).
+> **Credentials (Factory Reset):** Username: `manager` | Password: `Vista2026!` *(Triggers DA6 first-login mandatory password change on next boot)*
+> **Focus:** Full Operational Capability, Multi-Batch FIFO COGS, Dynamic Retail Pricing, Purchase Order Valuations, and MariaDB Ledgers.
 >
-> **Factory-reset baseline:** The database has been wiped. On first launch the app applies all migrations and seeds 20 products, 3 vendors, and 3 credit accounts. No stock batches, no transactions, and no purchase orders exist yet.
->
-> **How to use:** Follow each test block in sequence. Perform the actions in the "What to do" section, verify they match the "What you should see" section, and tick the checkbox when verified. Use the notes line next to each item to write down observed details.
-
-### Key File Locations
-| Component | Path |
-|:---|:---|
-| Stock Dashboard View (XAML) | `WPF_Applications\MerchSys\src\MerchSys.App\Views\Inventory\StockDashboardView.xaml` |
-| Stock Dashboard View (Code-Behind) | `WPF_Applications\MerchSys\src\MerchSys.App\Views\Inventory\StockDashboardView.xaml.vb` |
-| Stock Dashboard ViewModel | `WPF_Applications\MerchSys\src\MerchSys.Inventory\ViewModels\StockDashboardViewModel.vb` |
-| Stock Dashboard Service | `WPF_Applications\MerchSys\src\MerchSys.Inventory\Services\StockDashboardService.vb` |
-| Activity Rail ViewModel (Nav) | `WPF_Applications\MerchSys\src\MerchSys.App\ViewModels\Shell\ActivityRailViewModel.vb` |
-| Main Window ViewModel (Nav) | `WPF_Applications\MerchSys\src\MerchSys.App\ViewModels\MainWindowViewModel.vb` |
-| Central MariaDB | `localhost:3306/merchsys_central` (XAMPP) — query via `C:\xampp\mysql\bin\mysql.exe -u root merchsys_central` |
-| Connection Status Badge | `WPF_Applications\MerchSys\src\MerchSys.App\Views\Shell\ConnectionStatusIndicator.xaml` (INFRA-28) |
-| App Settings | `WPF_Applications\MerchSys\src\MerchSys.App\appsettings.json` — `ConnectionStrings:MerchSysCentral` |
-| Schema Migrations (SQL) | `WPF_Applications\MerchSys\src\MerchSys.Infrastructure\Data\Migrations\Central\` |
-
-> **Architecture note (INFRA-23–27, 2026-05-28):** The SQLite offline-first database and Sync Layer (`Sync_Journal`, `SyncOrchestrator`, `ISyncableRepository`) have been fully decommissioned. VISTA now writes **directly** to a single central MariaDB 11.4.x instance. All writes are synchronous EF Core calls — there is no propagation delay. Sync_Journal queries and 45–60 s wait instructions from earlier test versions are **no longer applicable**.
+> **Prerequisite State:** The central MariaDB `merchsys_central` has been wiped to a pristine "factory-reset baseline" (0 purchase orders, 0 receipts, 0 stock batches, 0 transactions). The reference data (20 products, 3 vendors, 3 credit accounts, VAT singleton configuration) is fully seeded, and default credential hashes are restored, waiting for the first login setup.
 
 ---
 
-## Part 0: First-Login Password Setup (DA6)
+## Part 0: First-Login Password Setup & Security (DA6)
 
 ### Test 0.1: Mandatory Password Change on First Login
-*Verifies the DA6 first-login flow fires when `LastPasswordChangeAt IS NULL`.*
+*Verifies that the system detects a NULL password change date and enforces a secure password change before launching the workspace.*
 
-**What to do:**
-1. Launch the application (press **F5** in Visual Studio or run `dotnet run --project WPF_Applications/MerchSys/src/MerchSys.App`).
-2. Enter Username: `manager` and Password: `Vista2026!` and click **Login**.
-3. Observe — the app should NOT open the main window yet.
+**Step-by-Step Actions:**
+1. Launch the VISTA application (press **F5** in Visual Studio or execute `dotnet run --project WPF_Applications/MerchSys/src/MerchSys.App`).
+2. At the login window, enter:
+   - **Username:** `manager`
+   - **Password:** `Vista2026!`
+3. Click the **Login** button.
+4. **Observe:** The application blocks opening the main dashboard and instead displays the **Mandatory Password Change** form.
+5. In the password fields, attempt to enter the same password:
+   - **New Password:** `Vista2026!`
+   - **Confirm Password:** `Vista2026!`
+6. Click **Change Password**.
+   - **Observe:** The UI rejects this with validation error message: *"New password must differ from the current password."*
+7. Now, enter a valid new password:
+   - **New Password:** `VistaTest1!`
+   - **Confirm Password:** `VistaTest1!`
+8. Click **Change Password**.
 
-**What you should see:**
-- [ ] The login screen shows a "Please set a new password before continuing." message (or a dedicated password-change form).
-- [ ] Attempting to set the same password (`Vista2026!`) returns a validation error: *"New password must differ from the current password."*
-- [ ] Setting a new password (e.g., `VistaTest1!`) succeeds and the main window opens.
+**Expected Output:**
+- [ ] The password change is accepted.
+- [ ] The window transitions immediately, opening the VISTA Shell Dashboard with the current user header showing **manager** in bold, with active role **Manager**.
+- [ ] Direct MariaDB Audit: Run the following query in the MariaDB CLI:
+  ```sql
+  SELECT Username, LastPasswordChangeAt FROM Sys_UserAccounts WHERE Username = 'manager';
+  ```
+  Verify that `LastPasswordChangeAt` is populated with a non-null UTC timestamp.
 
 *Status Check:*
-- **Prompt text shown:** _______________
-- **New password set to:** _______________
+- **Validation error string seen on same-password attempt:** __________________________________
+- **LastPasswordChangeAt timestamp in DB:** __________________________________
 
 ---
 
-## Part 1: Header Display & Role Verification
+## Part 1: Sidebar Navigation & Shell Header Verification (INFRA-30)
 
-### Test 1.1: Shell Header Display
-*Verifies that the shell header accurately identifies the authenticated user and their active role.*
+### Test 1.1: Activity Rail & Module Detail Panel Navigation
+*Verifies that the Manager has unrestricted access to all 4 business modules + Developer Tools.*
 
-**What to do:**
-1. After completing the DA6 password setup above, look at the upper-right or sidebar header area of the main window.
-2. Verify the username and role display.
+**Step-by-Step Actions:**
+1. Focus on the left-most sidebar of the application window.
+2. Verify the **60px Activity Rail** contains five vertical module icons: **PUR** (Purchasing), **INV** (Inventory), **POS** (Point of Sale), **ACC** (Accounting), and **DEV** (Developer Tools).
+3. Switch between modules using the keyboard shortcuts and verify the **220px Module Detail Panel** adjacent to the rail updates instantly:
+   - Press `Ctrl+1` -> Panel switches to **Purchasing**.
+   - Press `Ctrl+2` -> Panel switches to **Inventory**.
+   - Press `Ctrl+3` -> Panel switches to **POS**.
+   - Press `Ctrl+4` -> Panel switches to **Accounting**.
+   - Press `Ctrl+0` -> Panel switches to **Developer Tools**.
 
-**What you should see:**
-- [ ] The header shows `manager` (bold or prominent text) representing the authenticated username.
-- [ ] Below or next to the username, the active role is displayed as `Manager` (often styled as muted text).
+**Expected Output:**
+- [ ] **Purchasing Panel** lists exactly: `Purchase Orders`, `Goods Receiving`, `Vendor Directory`, `Accounts Payable`, `Reorder Suggestions`, and `Vendor Product Catalog`.
+- [ ] **Inventory Panel** lists exactly: `Stock Dashboard`, `Product Management`, `Expiry Monitor`, and `Shrinkage`.
+- [ ] **POS Panel** lists exactly: `Sales Cart`, `Credit Management`, `Transaction History`, `Daily Summary`, and `VAT Settings`.
+- [ ] **Accounting Panel** lists exactly: `Financial Overview`, `Income Statement`, `Sales Summary`, `Tamper Audit Report`, `VAT Relief Report`, and `VAT Return (BIR)`.
+- [ ] **Developer Tools Panel** (Debug builds only) lists: `Run VAT Schema Harness`.
+- [ ] Look at the bottom of the Module Detail Panel: the **Connection Status Badge** shows a solid green dot and reads **Online**, indicating a persistent link to `merchsys_central` (INFRA-28).
 
 *Status Check:*
-- **Username display text:** _______________
-- **Role display text:** _______________
+- **Total sidebar navigation links count:** _________ (Expected: 22)
+- **Connection Status Badge color/text:** __________________
 
 ---
 
-## Part 2: Authorization & Sidebar Navigation Verification
+## Part 2: Factory-Reset Stock Dashboard Audit
 
-### Test 2.1: Full Operational Activity Rail Access
-*Verifies that the Manager role has full operational privileges across all system areas via the Master-Detail Activity Rail sidebar (INFRA-30).*
+### Test 2.1: Default Landing Page Baseline Verification
+*Verifies the real-time aggregations show zero values, and the grid handles zero-stock gracefully without division-by-zero errors.*
 
-**What to do:**
-1. While logged in as `manager`, inspect the left-side navigation layout.
-2. Verify the **60px Activity Rail** (far left column) contains module icons.
-3. Click each rail icon and verify the **220px Module Detail Panel** (adjacent column) shows the correct sub-views.
+**Step-by-Step Actions:**
+1. Press `Ctrl+2` to switch to **Inventory**, then click **Stock Dashboard** in the menu panel.
+2. View the **5 Summary KPI Cards** at the top of the dashboard.
+3. Inspect the product grid column headers and rows.
 
-**What you should see:**
-- [ ] The Activity Rail shows 4 visible module icons: **PUR** (Purchasing), **INV** (Inventory), **POS** (Point of Sale), **ACC** (Accounting). In Debug builds a 5th **DEV** icon is also visible.
-- [ ] The active rail icon is highlighted with a blue left accent bar (`#2980B9`). Inactive icons use the dark rail background (`#243342`).
-- [ ] **Keyboard shortcuts** switch the active module: `Ctrl+1` = Purchasing, `Ctrl+2` = Inventory, `Ctrl+3` = POS, `Ctrl+4` = Accounting, `Ctrl+0` = Developer Tools (Debug + Manager only).
-- [ ] **POS module panel** contains:
-  - `Sales Cart` (operational POS terminal)
-  - `Credit Management` (customer credit/utang lifecycle)
-  - `Transaction History` (searchable historical list of sales and returns)
-  - `Daily Summary` (daily sales overview)
-  - `VAT Settings` (BIR tax configuration)
-- [ ] **Purchasing module panel** contains:
-  - `Purchase Orders` (PO lifecycle management)
-  - `Goods Receiving` (receiving shipments against POs)
-  - `Vendor Directory` (CRUD management of vendors)
-  - `Accounts Payable` (AP tracking and payouts)
-  - `Reorder Suggestions` (inventory reorder planning engine)
-  - `Vendor Product Catalog` (vendor-product relationships and catalog pricing — PUR-16)
-- [ ] **Inventory module panel** contains:
-  - `Stock Dashboard` (real-time stock status list)
-  - `Product Management` (CRUD control for all product details)
-  - `Expiry Monitor` (batch expiry tracking)
-  - `Shrinkage` (shrinkage recording and reporting)
-- [ ] **Accounting module panel** contains:
-  - `Financial Overview` (P&L KPIs and Vat tile)
-  - `Income Statement` (monthly financial reporting summaries)
-  - `Sales Summary` (sales distribution reviews)
-  - `Tamper Audit Report` (financial transaction tamper detection log)
-  - `VAT Relief Report` (BIR VAT relief/exemption report — read-only, visible to both roles)
-  - `VAT Return (BIR)` (VAT computation and BIR tax form submission)
-- [ ] **Developer Tools panel** (Debug builds only) contains:
-  - `Run VAT Schema Harness`
-- [ ] **Connection Status Badge** is visible at the bottom of the Module Detail Panel showing **Online** (green dot) when the MariaDB server is reachable (INFRA-28).
+**Expected Output:**
+- [ ] **Total Products Card:** Displays **20** (curated reference catalog is active, colored in Blue `#2980B9`).
+- [ ] **Total Stock Value Card:** Displays **₱0.00** (clean factory state, colored in Green `#27AE60`).
+- [ ] **Low / Out of Stock Card:** Displays **20** (all items are currently at 0, which is below min threshold, colored in Orange `#E67E22`).
+- [ ] **Near-Expiry Batches Card:** Displays **0** (no batches received yet, colored in Yellow-Orange `#F39C12`).
+- [ ] **Critical Stockout Risk Card:** Displays **0** (no velocity data recorded yet, colored in Red `#E74C3C`).
+- [ ] **Product Grid Columns:** Retail Price displays seeded catalog prices (e.g. `₱1,450.00` for Urea 46-0-0), but **Avg Cost** and **FIFO Cost** both display **₱0.00** for all rows (no Division by Zero crashes).
+- [ ] **Row Highlighting:** Every single row has a soft red background highlight (`#FDEDEC`) indicating an "Out of Stock" status alert.
 
 *Status Check:*
-- **Activity Rail icon count:** _______________ (expected: 4 in Release builds, 5 in Debug builds)
-- **Total sub-view items accessible (all modules):** _______________ (expected: 22 — POS×5 + Purchasing×6 + Inventory×4 + Accounting×6 + Dev Tools×1)
-- **Keyboard shortcut Ctrl+1 switches to Purchasing:** _______________
-- **Keyboard shortcut Ctrl+2 switches to Inventory:** _______________
-- **Connection Status Badge state:** _______________
-- **Confirm presence of VAT Settings (POS panel) & VAT Return (Accounting panel):** _______________
-- **Confirm presence of VAT Relief Report (Accounting panel):** _______________
+- **Stock Dashboard landing page title:** ___________________________
+- **Complete Fertilizer 14-14-14 initial Avg Cost / FIFO Cost:** ___________________________
 
 ---
 
-## Part 3: Stock Dashboard (Manager Dashboard) E2E Verification
+## Part 3: Vendor Product Catalog Setup (PUR-16)
 
-### Test 3.1: Default Landing Page
-*Verifies the landing page configuration for the Manager role.*
+### Test 3.1: Manual Catalog Associations
+*Seeds the agreed vendor catalog pricing relationships. Unit cost starts at ₱0.00 (read-only) and will only write-back upon receiving.*
 
-**What to do:**
-1. Log out of the application (click **Log Out** at the bottom of the sidebar) and log back in as `manager` using the password you set in Test 0.1.
-2. Observe which screen is automatically shown in the central content area on startup.
+**Step-by-Step Actions:**
+1. Press `Ctrl+1` to open **Purchasing**, then click **Vendor Product Catalog**.
+2. From the left panel vendor list, select **AgriChem Supplies** (Vendor ID 1).
+3. Click the **Add Product to Catalog** button.
+4. In the product search popup, type `Urea` and select **Urea 46-0-0** (Sku: `FERT-002`).
+5. Observe the agreed unit cost field is removed/disabled in the catalog view (cost updates automatically via GR). Click **Add Product**.
+6. Repeat the process to add a second product to **AgriChem Supplies**:
+   - Click **Add Product to Catalog**, search `Complete`, select **Complete Fertilizer 14-14-14** (Sku: `FERT-001`), and click **Add Product**.
+7. Now select **FarmFresh Seeds Corp.** (Vendor ID 2) on the left vendor panel.
+8. Click **Add Product to Catalog**, search `Rice`, select **Hybrid Rice RC222** (Sku: `SEED-001`), and click **Add Product**.
 
-**What you should see:**
-- [ ] The app automatically loads the **Stock Dashboard** view (`StockDashboardView`) as the landing page.
-- [ ] The dashboard content area is visible and begins loading products immediately.
+**Expected Output:**
+- [ ] Selecting **AgriChem Supplies** displays exactly **2** catalog items: `Urea 46-0-0` and `Complete Fertilizer 14-14-14`.
+- [ ] Both products show **Agreed Cost: ₱0.00** (or `LastUnitCost: ₱0.00`).
+- [ ] Selecting **FarmFresh Seeds Corp.** displays exactly **1** catalog item: `Hybrid Rice RC222` with cost **₱0.00**.
+- [ ] Navigate away (e.g. click Stock Dashboard) and return. Verify the catalog associations persist.
 
 *Status Check:*
-- **Landing screen name displayed on header:** _______________
+- **AgriChem Supplies catalog product list count:** _________ (Expected: 2)
+- **FarmFresh Seeds catalog product list count:** _________ (Expected: 1)
 
 ---
 
-### Test 3.2: 5 Summary KPI Cards Verification
-*Verifies the real-time aggregation metrics at the top of the Stock Dashboard.*
+## Part 4: Purchase Order Validation & Creation
 
-> **Factory-reset baseline:** No stock batches exist. All 20 seeded products have 0 units. Total Stock Value is ₱0.
+### Test 4.1: Validation Guards on Expected Delivery Date & Empty Product Lines
+*Verifies that invalid Expected Delivery dates and incomplete line items are blocked before database commit.*
 
-**What to do:**
-1. Observe the five card panels aligned horizontally at the top of the dashboard.
-2. Check the color coding, label, and values displayed on each.
-
-**What you should see:**
-- [ ] **Total Products Card:** Shows `20` (20 active SKUs from seed data — styled in **Blue** `#2980B9`).
-- [ ] **Total Stock Value Card:** Shows `₱0.00` (no batches received yet — styled in **Green** `#27AE60`, prefixed with `₱`).
-- [ ] **Low / Out of Stock Card:** Shows `20` (all products are at 0 stock, which is below every product's minimum threshold — styled in **Orange** `#E67E22`).
-- [ ] **Near-Expiry Batches Card:** Shows `0` (no batches exist — styled in **Yellow-Orange** `#F39C12`).
-- [ ] **Critical Stockout Risk Card:** Shows `0` (no velocity data → no stockout prediction possible — styled in **Red** `#E74C3C`).
+**Step-by-Step Actions:**
+1. Press `Ctrl+1` (Purchasing), click **Purchase Orders**, then click the **New PO** button.
+2. In the PO Editor:
+   - Select **Vendor:** `AgriChem Supplies`.
+   - Leave **Expected Delivery Date** blank.
+   - Leave **Notes** empty.
+3. Click the **+ Add Line** button.
+4. Click **Submit PO** (top right of editor).
+   - **Observe:** The UI blocks submit. Look at the status bar at the top of the editor.
+   - **Expected Status Message:** *"Expected delivery date is required."*
+5. Now, select a past expected delivery date (Yesterday) using the calendar selector.
+6. Click **Submit PO**.
+   - **Observe:** The UI blocks submit.
+   - **Expected Status Message:** *"Expected delivery date cannot be in the past."*
+7. Set the **Expected Delivery Date** to **Tomorrow's Date** (e.g., if today is May 29, 2026, set to `05/30/2026`).
+8. The line item we added is currently blank. Do **not** select any product.
+9. Click **Submit PO**.
+   - **Observe:** A Wpf Toast Notification popup flashes.
+   - **Expected Toast Error Message:** *"Cannot save: Lines 1 have no product selected (Product ID is 0)."*
 
 *Status Check:*
-- **Total Products count:** _______________
-- **Total Stock Value:** _______________
-- **Low / Out of Stock count:** _______________
-- **Near-Expiry Batches count:** _______________
-- **Critical Stockout count:** _______________
+- **Expected Delivery Date requirement block verified:** [ ] Yes / [ ] No
+- **Past Date restriction block verified:** [ ] Yes / [ ] No
+- **Empty line item block toast message verified:** [ ] Yes / [ ] No
 
 ---
 
-### Test 3.3: Live Filtering & Text Search
-*Verifies the filtering responsiveness and text matching behavior on the product grid.*
+### Test 4.2: Successful Purchase Order Submission
+*Verifies the catalog-filtered product ComboBox works and manually overridden unit costs calculate totals.*
 
-> **Factory-reset baseline:** All 20 seeded products exist. All have 0 stock. No "Urea 50kg" variant yet (that was a manually added product).
+**Step-by-Step Actions:**
+1. In the open PO Editor with **AgriChem Supplies** selected:
+2. Focus on Line 1. Click the **Product** cell dropdown.
+   - **Observe:** Open the dropdown and inspect the items list. Only the **2** products previously associated with AgriChem supplies (`Urea 46-0-0` and `Complete Fertilizer 14-14-14`) should be visible. Seeded products belonging to other vendors (like Hybrid Rice RC222) must **not** appear.
+3. Select **Urea 46-0-0** from the dropdown.
+   - **Observe:** The column auto-populates **ProductName** as `Urea 46-0-0`, and **Unit Cost** auto-fills as `₱0.00` (Agreed catalog cost).
+4. Edit the line fields:
+   - Double-click the **Qty** cell, type **10**, and press Enter.
+   - Double-click the **Unit Cost** cell, type **1500.00**, and press Enter.
+   - **Observe:** The **Line Total** column auto-calculates to **₱15,000.00**, and the top-right **Running Total** updates to **Running Total: ₱15,000.00**.
+5. Click **+ Add Line** to create Line 2.
+6. Click the Product dropdown on Line 2, select **Complete Fertilizer 14-14-14**.
+   - **Observe:** Unit Cost defaults to `₱0.00`.
+7. Edit Line 2 fields:
+   - Set **Qty:** **10**
+   - Set **Unit Cost:** **1200.00**
+   - **Observe:** Line 2 Total shows **₱12,000.00**. Running Total shows **₱27,000.00**.
+8. In the **Notes** textbox, type: `"Initial bulk replenishment for rainy season cropping."`
+9. Click the **Submit PO** button.
 
-**What to do:**
-1. Click the **Category** ComboBox and select a specific category (e.g., `Fertilizers`).
-2. Click the **Status** ComboBox and select a status (e.g., `Out`).
-3. Type a text pattern in the **Search** TextBox (e.g., `Urea`).
-4. Clear the text search and return filters to `All` to check recovery.
-
-**What you should see:**
-- [ ] **Category filter:** Only products belonging to the selected category remain in the grid. The dropdown lists only distinct active categories present in the DB (4 categories: Fertilizers, Pesticides/Chemicals, Seeds, Animal Feeds).
-- [ ] **Status filter:** Grid updates instantly to display only matching stock states (`Out`, `Low`, or `Normal`). With no stock, all 20 products show as `Out`.
-- [ ] **Text search:** Results filter as you type (case-insensitive) based on Product Name or Category.
-- [ ] **Combined filtering:** Selecting `Fertilizers` + `Out` + `Urea` narrows down the list to matching rows (only `Urea 46-0-0`, 1 row).
-- [ ] Clearing the search text and resetting dropdowns to `All` immediately restores the full 20-product inventory.
+**Expected Output:**
+- [ ] The editor panel closes.
+- [ ] The main grid refreshes. A new PO row appears with a unique Order Number (e.g. `PO-2026-0001`), Status showing **Submitted** (highlighted in soft blue `#EBF5FB`), Vendor **AgriChem Supplies**, and Total Amount **₱27,000.00**.
+- [ ] **Catalog Cost Check:** Press `Ctrl+1` (Purchasing), click **Vendor Product Catalog**. Select **AgriChem Supplies**.
+  - Verify that the catalog agreed unit costs for both `Urea 46-0-0` and `Complete Fertilizer 14-14-14` are **still ₱0.00** (prices do not write back upon PO submit, only on confirmed goods receipt).
 
 *Status Check:*
-- **Selected Category test:** Fertilizers → Rows remaining: _______________ (expected: 5)
-- **Selected Status test:** Out → Rows remaining: _______________ (expected: 20)
-- **Search string `Urea` typed:** Rows remaining: _______________ (expected: 1 — only `Urea 46-0-0`)
+- **Generated Purchase Order Number:** __________________
+- **Grid status display:** __________________ (Expected: `Submitted`)
+- **AgriChem catalog prices post-submit (Urea / Complete):** ₱_________ / ₱_________
 
 ---
 
-### Test 3.4: DataGrid Row Status Color Coding
-*Verifies that the grid rows apply appropriate visual alerts based on critical metrics.*
+## Part 5: Goods Receiving & Agreement Cost Write-Backs
 
-> **Factory-reset baseline:** All products have 0 stock. Every row should be styled **Out of Stock** (soft red). No orange (low stock above 0), no green (no stock at all), no yellow (no batches = no expiry).
+### Test 5.1: Validation Guard on Received Quantity Discrepancy Notes
+*Verifies that accepting a delivery with a quantity variance forces the user to enter a discrepancy reason.*
 
-**What to do:**
-1. Review the background highlights of the rows in the product grid.
-2. Identify products in various stock and expiration states and confirm color styling.
+**Step-by-Step Actions:**
+1. Press `Ctrl+1` (Purchasing), and click **Goods Receiving** in the menu panel.
+2. In the **PO Selector** dropdown at the top, select your submitted PO (e.g., `PO-2026-0001 — AgriChem Supplies`).
+   - **Observe:** The receiving grid loads both line items with ordered quantity:
+     - `Urea 46-0-0`: Qty Ordered = 10 | Qty Received = 10 | Unit Cost = ₱1,500.00
+     - `Complete Fertilizer 14-14-14`: Qty Ordered = 10 | Qty Received = 10 | Unit Cost = ₱1,200.00
+3. We are going to record a short shipment on Complete Fertilizer:
+   - Double-click the **Qty Received** cell on the Complete Fertilizer row, type **9**, and press Enter.
+   - **Observe:** The row flag automatically toggles `HasDiscrepancy` to True.
+   - Leave the **Discrepancy Notes** cell completely blank.
+4. Keep `Urea 46-0-0` received quantity at **10**, but we are going to record an updated unit cost of **1520.00** (supplier invoice price adjustment):
+   - Double-click the **Unit Cost** cell on the Urea row, type **1520.00**, and press Enter.
+5. Click the **Confirm Receipt** button.
 
-**What you should see:**
-- [ ] **Out of Stock:** All 20 products have 0 stock → every row shows a soft **Red** background (`#FDEDEC`).
-- [ ] **Low Stock:** Not applicable until stock is received.
-- [ ] **Near-Expiry / Expired:** Not applicable until expiry-flagged batches are received.
-- [ ] **Normal:** Not applicable until stock is received above the minimum threshold.
-- [ ] **Selection Highlight:** Clicking any row highlights it in soft **Blue** (`#D6EAF8`) with a matching blue border (`#2980B9`).
+**Expected Output:**
+- [ ] The system blocks the confirmation.
+- [ ] The status bar displays the validation message:
+  *"Discrepancy notes required for: Complete Fertilizer 14-14-14"*
 
 *Status Check:*
-- **Red Row verified (Out of Stock):** _______________
-- **Selection Highlight verified:** _______________
+- **Discrepancy block validation message verified:** [ ] Yes / [ ] No
 
 ---
 
-### Test 3.5: Product Detail Panel Drill-Down (Batches & Movements)
-*Verifies the master-detail interaction and data retrieval for specific product selection.*
+### Test 5.2: Successful Goods Confirmation and Agreed-Cost Write-back (Option B)
+*Completes the Goods Receipt, validating stock batch generation, AP ledgers, and catalog agreed price write-backs.*
 
-> **Factory-reset baseline:** No stock batches or movements exist. The batch and movements grids will be empty.
+**Step-by-Step Actions:**
+1. Double-click the **Discrepancy Notes** cell on the Complete Fertilizer row.
+2. Type: `"1 bag ruptured during transport; rejected at warehouse dock."` and press Enter.
+3. Ensure the received details are exactly:
+   - Row 1: `Urea 46-0-0` | Qty Received = **10** | Unit Cost = **1520.00** | Expiry Date = None
+   - Row 2: `Complete Fertilizer 14-14-14` | Qty Received = **9** | Unit Cost = **1200.00** | Expiry Date = None | Discrepancy Notes = `"1 bag ruptured during transport; rejected..."`
+4. Click **Confirm Receipt**.
 
-**What to do:**
-1. Click on any product row in the main grid (e.g., `Complete Fertilizer 14-14-14`).
-2. Observe the bottom of the screen to verify that the **Product Detail Panel** appears.
-3. Review the two sub-grids inside the detail panel.
-
-**What you should see:**
-- [ ] The detail panel slides up or becomes visible (`IsDetailVisible = True`).
-- [ ] The title shows: *"Product Detail — [Product Name] ([Category])"* in blue.
-- [ ] **Stock Batches Grid:** Loads with **0 rows** (no batches received yet). The grid is visible but empty.
-- [ ] **Recent Movements Grid:** Loads with **0 rows** (no movements recorded yet). The grid is visible but empty.
+**Expected Output:**
+- [ ] The receiving grid clears, and the PO Selector returns to empty.
+- [ ] The status bar displays: *"Receipt GR-2026-0001 confirmed — PO marked Received."* (or similar GR receipt sequence number).
+- [ ] **Catalog Cost Check (Option B):** Navigate to **Vendor Product Catalog**, select **AgriChem Supplies**.
+  - **Observe:** `Urea 46-0-0` agreed unit cost has updated to **₱1,520.00** (receipt override wrote back to catalog!).
+  - **Observe:** `Complete Fertilizer 14-14-14` agreed unit cost has updated to **₱1,200.00** (receipt confirmed price!).
+- [ ] **MariaDB Ledger Verification:** Run the following validation queries:
+  ```sql
+  SELECT 'Pur_GoodsReceipts' AS TableName, COUNT(*) AS Rows FROM Pur_GoodsReceipts UNION ALL
+  SELECT 'Pur_GoodsReceiptLines', COUNT(*) FROM Pur_GoodsReceiptLines UNION ALL
+  SELECT 'Pur_AccountsPayable', COUNT(*) FROM Pur_AccountsPayable UNION ALL
+  SELECT 'Inv_StockBatches', COUNT(*) FROM Inv_StockBatches UNION ALL
+  SELECT 'Inv_StockMovements', COUNT(*) FROM Inv_StockMovements;
+  ```
+  Verify that:
+  - `Pur_GoodsReceipts` count = **1**.
+  - `Pur_GoodsReceiptLines` count = **2**.
+  - `Pur_AccountsPayable` count = **1** (AP record for the exact received invoice value: 10 × 1520 + 9 × 1200 = ₱26,000.00).
+  - `Inv_StockBatches` count = **2** (Batch 1: 10 units of Urea at ₱1,520.00; Batch 2: 9 units of Complete Fertilizer at ₱1,200.00).
+  - `Inv_StockMovements` count = **2** (Both show positive quantities, `MovementType = 'Receipt'`).
 
 *Status Check:*
-- **Selected product name:** _______________
-- **Number of batches loaded in detail:** _______________ (expected: 0)
-- **Number of movements shown:** _______________ (expected: 0)
+- **AgriChem Urea 46-0-0 Agreed Cost post-receipt:** ₱_________ (Expected: 1,520.00)
+- **AgriChem Complete Fertilizer Agreed Cost post-receipt:** ₱_________ (Expected: 1,200.00)
+- **Accounts Payable Invoice Balance:** ₱_________ (Expected: 26,000.00)
+- **Inv_StockBatches count in DB:** _________ (Expected: 2)
 
 ---
 
-### Test 3.6: Grid Column Sorting
-*Verifies the DataGrid sorting engine.*
+## Part 6: Retail Price & Margin Safety Guards (INV-14)
 
-**What to do:**
-1. Click the column headers of the Product Grid: **Product Name**, **Stock**, **Retail Price**, **Avg Cost**, **FIFO Cost**, **Stock Value**, **Days to Stockout**.
-2. Click once to sort ascending, and click a second time to sort descending.
+### Test 6.1: Costing Helper Panel & Below-Cost Price Block
+*Verifies the system reads the live FIFO cost batch and blocks retail price changes that result in negative profitability.*
 
-**What you should see:**
-- [ ] The grid re-orders rows correctly based on the selected column.
-- [ ] **Product Name Sort:** Alphabetical order ascending/descending.
-- [ ] **Stock Sort:** All rows are 0 — order is stable (no reordering needed but no crash).
-- [ ] **Retail Price / Avg Cost / FIFO Cost columns are present** (replacing the legacy single "Price" column — INV-15). Sorting each does not crash even when most values are `₱0.00` (no stock yet).
-- [ ] **Days to Stockout Sort:** All values show `—` (no velocity data). No crash or exception when sorting a column of all-null display values.
+**Step-by-Step Actions:**
+1. Press `Ctrl+2` (Inventory), and click **Product Management** in the menu panel.
+2. Select **Urea 46-0-0** from the product grid, and click **Edit** (or double-click the row).
+3. Focus on the **Retail Price** section of the edit popup.
+   - **Observe:** The **FIFO Costing Helper Panel** is displayed. Verify the values shown:
+     - `Current FIFO Cost:` **₱1,520.00** (read directly from our newly received stock batch).
+     - `Suggested Price (20%):` **₱1,824.00** (auto-calculates 1.20 × 1,520.00).
+4. Attempt to edit the Retail Price to an unprofitable value (below FIFO cost):
+   - In the **Retail Price** textbox, type **1450.00**.
+   - **Observe:** The margin preview label immediately updates to show a negative margin and margin percentage (e.g. `Margin: -₱70.00 (-4.6%)`).
+5. Click **Save** inside the editor.
+
+**Expected Output:**
+- [ ] The save action is **blocked**; the editor does not close, and no database commit occurs.
+- [ ] An error message is displayed inside the popup (`EditorError` label):
+  *"Retail price (₱1450.00) cannot be less than the current vendor cost (₱1520.00), resulting in negative profitability."* (matching the actual parsed decimal formatting).
 
 *Status Check:*
-- **Ascending Product Name sort verified:** _______________
-- **Days to Stockout sort (all `—`) verified without crash:** _______________
+- **Current FIFO Cost shown in Helper:** ₱_________ (Expected: 1,520.00)
+- **Suggested Retail Price shown in Helper:** ₱_________ (Expected: 1,824.00)
+- **EditorError string shown on unprofitable save:** __________________________________
 
 ---
 
-### Test 3.7: Refresh Operations (Manual and 60-Second Auto)
-*Verifies real-time background sync and UI updates.*
+### Test 6.2: Profitable Price Adjustments & Reason Auditing
+*Performs a successful retail price increase, verifying the change reason is recorded in price history logs.*
 
-**What to do:**
-1. Look at the toolbar row and note the **Last Refreshed** text (e.g., `Refreshed 11:07:05`).
-2. Click the **Refresh** button.
-3. Keep the dashboard open for 90 seconds without touching the application. Watch the timestamp.
+**Step-by-Step Actions:**
+1. While still inside the **Urea 46-0-0** Product Editor:
+2. Double-click the **Retail Price** textbox, type **1820.00**, and press Enter.
+   - **Observe:** Margin helper updates to: `Margin: ₱300.00 (19.7%)`.
+3. In the **Price Change Reason** textbox, type: `"Adjusted markup to match increased supplier raw material costs."`
+4. Click the **Save** button.
+   - **Observe:** The editor closes successfully, and the main product grid refreshes showing Urea 46-0-0 with updated Retail Price **₱1,820.00**.
+5. Select **Urea 46-0-0** on the grid again, and click the **View Price History** button.
+   - **Observe:** The price history window opens with a read-only grid.
 
-**What you should see:**
-- [ ] Clicking the manual **Refresh** button triggers `LoadDataAsync`. The UI displays `Loading...` briefly, then updates the timestamp immediately.
-- [ ] After 60 seconds of idle time, the background timer tick executes.
-- [ ] The grid fetches the latest database status and silently refreshes the data without shifting scroll focus.
-- [ ] The "Last Refreshed" timestamp updates to show the new successful execution time.
+**Expected Output:**
+- [ ] The history grid contains exactly **1 row** showing:
+  - `Old Price:` **₱1,450.00** (seeded retail price).
+  - `New Price:` **₱1,820.00** (saved retail price).
+  - `Delta (Δ):` **+370.00** (colored in Green indicating a price increase).
+  - `Changed By:` **manager** (your current logged-in user).
+  - `Reason:` *"Adjusted markup to match increased supplier raw material costs."*
+  - `ChangedAt:` Recent UTC timestamp.
+- [ ] Close the Price History window.
 
 *Status Check:*
-- **Original timestamp:** _______________
-- **Timestamp after manual refresh:** _______________
-- **Timestamp after 60s idle (Auto-refresh):** _______________
+- **Urea grid Retail Price:** ₱_________ (Expected: 1,820.00)
+- **Price History Delta (Δ) value:** ₱_________ (Expected: +370.00)
+- **Price History Changed By username:** __________________ (Expected: manager)
 
 ---
 
-## Part 4: Manager Write Authorization & Integration Checks
+### Test 6.3: No-Op Price Edits
+*Verifies that updating a product's non-price metadata does not record a false price history record.*
 
-### Test 4.1: Database Write Capability (CRUD)
-*Verifies that the Manager has real write permissions to perform actions (unlike the restricted Owner role).*
+**Step-by-Step Actions:**
+1. Select **Urea 46-0-0** again, and click **Edit**.
+2. Do **not** touch the Retail Price textbox (leave it at `1820.00`).
+3. Focus on the **Description** textbox, and type: `"Premium agricultural grade granular Urea (46-0-0) high-nitrogen fertilizer."`
+4. Click **Save**.
+5. Select **Urea 46-0-0** once more, and click **View Price History**.
 
-> **Prerequisite:** Stock must exist before a sale can be completed. Before running this test, go to **Purchasing → Vendor Product Catalog** and connect a product to a vendor. Then go to **Purchasing → Purchase Orders**, create a PO for at least 10 units of that product, then go to **Purchasing → Goods Receiving** and receive those units. Confirm the stock count updates on the Stock Dashboard. Then proceed with the steps below.
-
-**What to do:**
-1. Go to the **Sales Cart** in the POS section.
-2. Add at least 1 unit of the product you just received to the cart.
-3. Finish the checkout with a cash sale and confirm it creates an Official Receipt (OR).
-4. Go back to the **Stock Dashboard** and check the stock count of the product sold.
-
-**What you should see:**
-- [ ] The sale is processed without authorization errors.
-- [ ] A success notification is shown, and the transaction is committed to the database.
-- [ ] The product's stock count on the dashboard decrements by the sold quantity.
-- [ ] All writes go **directly** to the central MariaDB (INFRA-23–27 — no local SQLite, no Sync_Journal).
+**Expected Output:**
+- [ ] The history window opens showing exactly **1 row** (the record from Test 6.2).
+- [ ] No new price change history entries were added for a non-price edit.
+- [ ] Close the history window.
 
 *Status Check:*
-- **OR number generated:** _______________
-- **Product stock decremented successfully:** _______________
+- **Price History rows count:** _________ (Expected: 1)
 
-**MariaDB verification (run immediately after the sale — no wait needed):**
+---
+
+## Part 7: Multi-Batch POS Checkout & FIFO COGS Verification
+
+### Test 7.1: Multi-Batch Inventory Setup
+*Creates a second stock batch at a different unit cost to prepare for multi-batch FIFO sales testing.*
+
+**Step-by-Step Actions:**
+1. Press `Ctrl+1` (Purchasing), and click **Purchase Orders**.
+2. Click **New PO** and enter details:
+   - **Vendor:** `AgriChem Supplies`.
+   - **Expected Delivery Date:** Set to **Tomorrow's Date**.
+3. Click **+ Add Line**, select **Urea 46-0-0** from the dropdown.
+4. Edit the line fields to establish a second batch at a lower cost:
+   - **Qty:** **5**
+   - **Unit Cost:** **1400.00** (lower cost than Batch 1's ₱1,520.00!).
+5. Click **Submit PO**.
+6. Navigate to **Goods Receiving**, select this new PO (e.g. `PO-2026-0002`).
+7. Leave Received Qty as **5** and Unit Cost as **1400.00**. Click **Confirm Receipt**.
+
+**Expected Output:**
+- [ ] Goods receipt is processed successfully.
+- [ ] Go to **Inventory → Stock Dashboard**. Locate **Urea 46-0-0** in the grid. Verify cost metrics:
+  - **Stock:** **15** (10 from Batch 1 + 5 from Batch 2).
+  - **Stock Value:** **₱22,200.00** (= 10 × 1520 + 5 × 1400).
+  - **Avg Cost:** **₱1,480.00** (= ₱22,200 / 15).
+  - **FIFO Cost:** **₱1,520.00** (correctly points to Batch 1, which is the oldest unconsumed batch!).
+- [ ] The row color highlights for Urea 46-0-0 has changed to standard white/light grey (Normal Stock Alert).
+
+*Status Check:*
+- **Urea 46-0-0 Total Stock on Dashboard:** _________ (Expected: 15)
+- **Urea 46-0-0 Avg Cost:** ₱_________ (Expected: 1,480.00)
+- **Urea 46-0-0 FIFO Cost:** ₱_________ (Expected: 1,520.00)
+
+---
+
+### Test 7.2: POS Shopping Cart and Multi-Batch Sales Execution
+*Performs a cash checkout for 12 units of Urea, which must exhaust Batch 1 (10 units) and draw the remaining 2 units from Batch 2.*
+
+**Step-by-Step Actions:**
+1. Press `Ctrl+3` to open **Point of Sale**, then click **Sales Cart** in the menu panel.
+2. In the **Product Search** textbox, type `Urea` and press Enter (or click Search).
+   - Verify **Urea 46-0-0** appears in the results with `Available Stock: 15` and `Unit Price: ₱1,820.00`.
+3. Click the result row to add **1 unit** of Urea to the cart.
+4. Focus on the Cart grid in the middle. Double-click the **Quantity** cell of Urea 46-0-0.
+5. Type **12** and press Enter.
+   - **Observe:** The POS panel auto-calculates figures:
+     - `Subtotal:` **₱21,840.00** (12 × ₱1,820.00)
+     - `Vat Amount:` **₱0.00** (Business is Non-VAT registered by default, 0% Output VAT).
+     - `Grand Total:` **₱21,840.00**
+6. Select **Payment Method:** **Cash** (Click the Cash selector).
+7. In the **Amount Tendered** textbox, type **22000.00**.
+   - **Observe:** The **Change** label updates to: **₱160.00**.
+8. Click the **Pay** button.
+
+**Expected Output:**
+- [ ] A success popup triggers confirming transaction completion.
+- [ ] The POS print preview modal opens displaying **Official Receipt OR-2026-0001** (or matching OR sequence).
+- [ ] The OR details show: Sold **12** Urea 46-0-0 @ ₱1,820.00 | Total Sales = **₱21,840.00** | Tendered = **₱22,000.00** | Change = **₱160.00** | BIR compliant Non-VAT legend.
+- [ ] Click the **New Transaction** button to clear the receipt and reset the cart.
+
+*Status Check:*
+- **Generated POS Official Receipt (OR) Number:** __________________
+- **Subtotal / Grand Total:** ₱_________ (Expected: 21,840.00)
+- **Change Amount:** ₱_________ (Expected: 160.00)
+
+---
+
+### Test 7.3: MariaDB Multi-Batch FIFO COGS Verification
+*Audits the central MariaDB tables to verify the FIFO allocation and accounting ledgers match perfectly (ACC-21 & ACC-22).*
+
+**Step-by-Step Actions:**
+1. Open your database command tool and run these exact SQL queries to audit the checkout transaction.
+
+#### Query A: FIFO COGS Batch Allocations (ACC-21)
 ```sql
--- Run inside: mysql -u root merchsys_central
-SELECT 'Pos_SalesTransactions' AS t, COUNT(*) AS c FROM Pos_SalesTransactions UNION ALL
-SELECT 'Pos_SalesTransactionLines', COUNT(*) FROM Pos_SalesTransactionLines UNION ALL
-SELECT 'Pos_OfficialReceipts', COUNT(*) FROM Pos_OfficialReceipts UNION ALL
-SELECT 'Pos_ReceiptIntegrity', COUNT(*) FROM Pos_ReceiptIntegrity UNION ALL
-SELECT 'Inv_StockMovements', COUNT(*) FROM Inv_StockMovements UNION ALL
-SELECT 'Inv_SaleCogs', COUNT(*) FROM Inv_SaleCogs UNION ALL
-SELECT 'Acc_RevenueRecords', COUNT(*) FROM Acc_RevenueRecords UNION ALL
-SELECT 'Acc_ExpenseRecords', COUNT(*) FROM Acc_ExpenseRecords;
+SELECT BatchId, QuantityDeducted, UnitCost, Cogs 
+FROM Inv_SaleCogs 
+WHERE TransactionId = (SELECT MAX(Id) FROM Pos_SalesTransactions)
+ORDER BY BatchId;
 ```
-- [ ] `Pos_SalesTransactions` count increased by **1**.
-- [ ] `Pos_SalesTransactionLines` count increased by **1**.
-- [ ] `Pos_OfficialReceipts` count increased by **1**, with `IntegrityHash` populated.
-- [ ] `Pos_ReceiptIntegrity` count increased by **1** (hash chain row).
-- [ ] `Inv_StockMovements` count increased by **1** (`MovementType=Sale`, negative `Quantity`).
-- [ ] `Inv_SaleCogs` count increased by **1** (one batch consumed in a 1-unit sale — ACC-21).
-- [ ] `Acc_RevenueRecords` count increased by exactly **1** (no duplicate — ACC-22 invariant).
-- [ ] `Acc_ExpenseRecords` count increased by exactly **1** (`Category='COGS'`).
-- [ ] `Inv_StockBatches` row for the consumed batch shows updated `QuantityRemaining` (INFRA-26 FOR UPDATE pessimistic lock applied).
+*Expected SQL Output:*
+Exactly **2 rows** representing the split-batch drawing:
+- Row 1: `BatchId = [Batch 1 ID]` | `QuantityDeducted = 10` | `UnitCost = 1520.0000` | `Cogs = 15200.0000`
+- Row 2: `BatchId = [Batch 2 ID]` | `QuantityDeducted = 2` | `UnitCost = 1400.0000` | `Cogs = 2800.0000`
+- [ ] Verified split-batch matches exactly.
+
+#### Query B: Single-Revenue Row Deduplication (ACC-22)
+```sql
+SELECT ProductId, QuantitySold, NetAmount, COGS, GrossProfit 
+FROM Acc_RevenueRecords 
+WHERE SourceTransactionId = (SELECT MAX(Id) FROM Pos_SalesTransactions);
+```
+*Expected SQL Output:*
+Exactly **1 row** (deduplicated! No duplicate VAT handler rows):
+- `QuantitySold = 12`
+- `NetAmount = 21840.0000`
+- `COGS = 18000.0000` (10 × 1520 + 2 × 1400 = ₱15,200 + ₱2,800)
+- `GrossProfit = 3840.0000` (₱21,840.00 - ₱18,000.00)
+- [ ] Verified single row matches.
+
+#### Query C: Single COGS Expense Ledger
+```sql
+SELECT Category, Amount, SourceModule, SourceReferenceId 
+FROM Acc_ExpenseRecords 
+WHERE SourceReferenceId = (SELECT MAX(Id) FROM Pos_SalesTransactions);
+```
+*Expected SQL Output:*
+Exactly **1 row** with:
+- `Category = 'COGS'`
+- `Amount = 18000.0000`
+- `SourceModule = 'POS'`
+- [ ] Verified single expense row.
+
+#### Query D: Remaining Stock Batch Balances
+```sql
+SELECT Id, ProductId, QuantityReceived, QuantityRemaining, UnitCost 
+FROM Inv_StockBatches 
+WHERE ProductId = 2;
+```
+*Expected SQL Output:*
+Verify that:
+- Batch 1 (oldest Urea batch at ₱1,520): `QuantityRemaining = 0`.
+- Batch 2 (newest Urea batch at ₱1,400): `QuantityRemaining = 3` (5 received - 2 consumed).
+- [ ] Verified inventory remaining balances.
 
 *Status Check:*
-- **MariaDB row counts reflect the sale immediately:** _______________
-- **Inv_SaleCogs row visible in central DB (ACC-21 working):** _______________
+- **Inv_SaleCogs Row 1 Qty / COGS:** _________ / ₱_________
+- **Inv_SaleCogs Row 2 Qty / COGS:** _________ / ₱_________
+- **Acc_RevenueRecords COGS Value:** ₱_________ (Expected: 18,000.00)
+- **Acc_RevenueRecords GrossProfit:** ₱_________ (Expected: 3,840.00)
+- **Batch 1 (₱1,520) QuantityRemaining:** _________ (Expected: 0)
+- **Batch 2 (₱1,400) QuantityRemaining:** _________ (Expected: 3)
 
 ---
 
-### Test 4.2: Developer Tools & VAT Schema Harness
-*Verifies that the Manager can execute debugging features via the Activity Rail (INFRA-30).*
+### Test 7.4: Stock Dashboard Cost Roll-Forward
+*Verifies the Stock Dashboard updates immediately and shifts FIFO Cost to the next active batch.*
 
-**What to do:**
-1. Click the **DEV** icon on the Activity Rail (only visible in Debug builds) or press **Ctrl+0**.
-2. In the Developer Tools panel, click **Run VAT Schema Harness**.
-3. Wait for the completion popup.
-
-**What you should see:**
-- [ ] A message box pops up confirming the harness executed successfully.
-- [ ] Go to `%TEMP%` in File Explorer and look for the newest file starting with `vat-ledger-schema-report-`.
-- [ ] Open the report file and verify all 4 schema audit checks show a **PASS** status.
-
-*Status Check:*
-- **Message box text shown:** _______________
-- **Report generated in `%TEMP%`:** _______________
-- **Confirm 4/4 checks passed:** _______________
-
----
-
-## Part 5: PUR-16 — Vendor Product Catalog & PO Auto-configuration
-
-### Test 5.1: Vendor Product Catalog Navigation
-*Verifies the Vendor Product Catalog view is accessible and loads the seeded vendors.*
-
-**What to do:**
-1. While logged in as `manager`, click **PUR** on the Activity Rail (or press `Ctrl+1`), then click **Vendor Product Catalog** in the Purchasing module panel.
-
-**What you should see:**
-- [ ] A master-detail view loads: vendor list on the left, catalog rows for the selected vendor on the right.
-- [ ] The 3 seeded vendors appear in the left panel.
-- [ ] Selecting any vendor shows an empty catalog grid (factory-reset baseline — no products added yet).
-
-*Status Check:*
-- **Vendor list loaded (count):** _______________ (expected: 3)
-- **Initial catalog row count for any vendor:** _______________ (expected: 0)
-
----
-
-### Test 5.2: Add Product to Vendor Catalog
-*Verifies a Manager can add a product-vendor link with a remembered unit cost.*
-
-**What to do:**
-1. Select any vendor on the left panel.
-2. Click **Add Product**.
-3. In the product search dialog, search for a product (e.g., `Urea`) and select `Urea 46-0-0`.
-4. Enter a **Unit Cost** (e.g., `1200`) and click **Save**.
-
-**What you should see:**
-- [ ] The product search dialog opens and returns matching inventory products.
-- [ ] After saving, the vendor's catalog shows one row with the product name and unit cost entered.
-- [ ] The entry persists after navigating away and returning to the Vendor Product Catalog.
-
-*Status Check:*
-- **Vendor selected:** _______________
-- **Product added:** _______________
-- **Unit cost entered:** _______________
-- **Row persists after navigation:** _______________
-
----
-
-### Test 5.3: PO Editor — Vendor-Filtered Product ComboBox & UnitCost Auto-fill
-*Verifies the PO line product dropdown is filtered to the selected vendor's catalog and auto-populates UnitCost.*
-
-**Prerequisite:** Test 5.2 complete — at least one product in a vendor's catalog.
-
-**What to do:**
-1. Navigate to **Purchasing → Purchase Orders** and create a new PO.
-2. Select the same vendor used in Test 5.2.
-3. Click **Add Line**.
-4. Click the **Product** dropdown cell on the new line and open the dropdown.
-
-**What you should see:**
-- [ ] The product dropdown lists only the products in that vendor's catalog (not all 20 products).
-- [ ] Selecting the catalog product auto-fills **ProductName** in that column.
-- [ ] **UnitCost** auto-fills with the `LastUnitCost` recorded in the catalog (e.g., `1200.00` from Test 5.2).
-- [ ] Manually overriding the UnitCost to a different value is allowed.
-
-*Status Check:*
-- **Dropdown item count matches vendor catalog size:** _______________
-- **UnitCost auto-filled value:** _______________
-- **Manual UnitCost override accepted:** _______________
-
----
-
-### Test 5.4: Pre-Save Validator Blocks Empty Product Line (ProductId = 0 Fix)
-*Verifies the save is blocked when any PO line has no product selected.*
-
-**What to do:**
-1. Create or edit a PO with any vendor.
-2. Click **Add Line** — **do not select a product** from the dropdown.
-3. Attempt to **Save** / **Submit** the PO.
-
-**What you should see:**
-- [ ] The save is **blocked** — the PO does not commit to the database.
-- [ ] A `Notification.Wpf` error toast appears identifying the offending line (e.g., *"Line 1: Product must be selected before saving."* or equivalent wording).
-- [ ] After selecting a valid product on the empty line, the PO saves successfully.
-
-*Status Check:*
-- **Save blocked with empty product line:** _______________
-- **Error notification text shown:** _______________
-- **PO saves successfully after product is selected:** _______________
-
----
-
-### Test 5.5: UnitCost Write-Back to Catalog on Save
-*Verifies an overridden UnitCost on a PO line updates the vendor catalog's LastUnitCost.*
-
-**What to do:**
-1. Create a PO for the vendor from Test 5.2. Add a line for the same catalog product.
-2. Override the **UnitCost** to a different value (e.g., `1350`).
-3. Save / Submit the PO.
-4. Navigate back to **Vendor Product Catalog**, select the same vendor and product.
-
-**What you should see:**
-- [ ] The vendor catalog's **LastUnitCost** for that product now shows the overridden value (`1350`), not the original value.
-
-*Status Check:*
-- **Original LastUnitCost:** _______________
-- **Overridden UnitCost saved on PO:** _______________
-- **Catalog LastUnitCost updated to new value:** _______________
-
----
-
-## Part 6: INV-14 — Product Retail Price Change History
-
-### Test 6.1: Price Change Logged on Product Edit
-*Verifies that changing RetailPrice in Product Management writes an append-only history row.*
-
-**What to do:**
-1. Navigate to **Inventory → Product Management**.
-2. Select any product (e.g., `Urea 46-0-0`).
-3. Note the current **Retail Price**.
-4. Change the Retail Price to a new value (e.g., if it is `₱1,500.00`, change it to `₱1,600.00`).
-5. Optionally fill in the **Price Change Reason** field (e.g., `Supplier cost increase`).
-6. Click **Save**.
-
-**What you should see:**
-- [ ] The product saves successfully with the new Retail Price.
-- [ ] A success notification is shown.
-
-*Status Check:*
-- **Product selected:** _______________
-- **Old price noted:** _______________
-- **New price entered:** _______________
-- **Reason entered (optional):** _______________
-
----
-
-### Test 6.2: Price History Popup Reflects the Change
-*Verifies the read-only price history popup shows the entry recorded in Test 6.1.*
-
-**What to do:**
-1. With the same product selected in Product Management, click the **View Price History** button (in the toolbar or product detail area).
-2. Review the history popup that opens.
-
-**What you should see:**
-- [ ] A popup window opens with a read-only data grid.
-- [ ] At least one row is displayed showing: `ChangedAt` (recent timestamp), `OldPrice` → `NewPrice` (matching Test 6.1 values), `Δ` (delta, colored **green** for increase, **red** for decrease), `ChangedBy` (the logged-in username), and `Reason` (if entered in Test 6.1).
-- [ ] No edit, add, or delete controls exist anywhere in the popup.
-
-*Status Check:*
-- **History row count:** _______________ (expected: ≥ 1)
-- **OldPrice displayed:** _______________
-- **NewPrice displayed:** _______________
-- **Delta color (green for price increase):** _______________
-- **ChangedBy shows current username:** _______________
-
----
-
-### Test 6.3: No-Op Edit Does Not Create a History Row
-*Verifies that saving a product without changing RetailPrice does not add a spurious history entry.*
-
-**What to do:**
-1. Select any product in Product Management. Note the current row count in its price history (click **View Price History** to check, then close the popup).
-2. Edit any field **other than** Retail Price (e.g., the product's Notes or Description).
-3. Click **Save**.
-4. Click **View Price History** again and count the rows.
-
-**What you should see:**
-- [ ] The product saves successfully.
-- [ ] The history popup row count is **unchanged** — no new row was created for a price-unchanged save.
-
-*Status Check:*
-- **Row count before no-op edit:** _______________
-- **Row count after no-op edit:** _______________ (expected: same as before)
-
----
-
-## Part 7: INV-15, ACC-22, ACC-21 — Per-Batch FIFO COGS Accuracy & Dashboard Cost Visibility
-
-> **Goal:** Verify the three 2026-05-27 bug-fix plans end-to-end:
-> - **INV-15** — Stock Dashboard shows Retail Price / Avg Cost / FIFO Cost columns
-> - **ACC-22** — Exactly one `Acc_RevenueRecords` row per `(SourceTransactionId, ProductId)` (no duplicate from legacy + VAT handler race)
-> - **ACC-21** — `Acc_RevenueRecords.COGS` reflects the **actual per-batch** FIFO cost summed across consumed batches, recorded in the new `Inv_SaleCogs` ledger.
->
-> **Prerequisite for all tests in Part 7:** Tests 5.1–5.3 (Vendor Catalog seeding) completed. Tests assume a fresh test product (recommended: `Urea 46-0-0`, ProductId visible in Product Management).
-
-### Test 7.1: Stock Dashboard Renders Three Cost Columns (INV-15)
-*Verifies that the legacy single "Price" column has been replaced by Retail Price + Avg Cost + FIFO Cost columns and that tooltips render.*
-
-**What to do:**
+**Step-by-Step Actions:**
 1. Navigate to **Inventory → Stock Dashboard**.
-2. Inspect the product grid headers.
-3. Hover the cursor over each new column header to read the tooltip.
+2. Find the row for **Urea 46-0-0** and inspect cost columns.
 
-**What you should see:**
-- [ ] Three contiguous currency columns are visible: **Retail Price**, **Avg Cost**, **FIFO Cost** (in that order).
-- [ ] Hovering **Retail Price** shows tooltip: *"Selling price set in Product Management."*
-- [ ] Hovering **Avg Cost** shows tooltip: *"Weighted-average purchase cost across remaining non-expired batches."*
-- [ ] Hovering **FIFO Cost** shows tooltip: *"Unit cost of the oldest batch — the cost the next sale will draw from."*
-- [ ] All three columns are right-aligned and formatted with `₱` and two decimals.
-- [ ] On the factory-reset baseline (no stock), Avg Cost and FIFO Cost display `₱0.00` for every product (no division-by-zero error).
+**Expected Output:**
+- [ ] **Stock:** **3** (Batch 2 remaining).
+- [ ] **Stock Value:** **₱4,200.00** (3 × 1,400.00).
+- [ ] **Avg Cost:** **₱1,400.00** (since only Batch 2 remains).
+- [ ] **FIFO Cost:** **₱1,400.00** (correctly rolled forward to Batch 2 now that Batch 1 is exhausted!).
+- [ ] The row has a soft orange background alert because Stock (3) is below the minimum threshold (10) (Low Stock Alert).
 
 *Status Check:*
-- **Three cost columns visible:** _______________
-- **Tooltips display correctly:** _______________
-- **Zero-stock rows render ₱0.00 (no crash):** _______________
+- **Urea 46-0-0 stock post-sale:** _________ (Expected: 3)
+- **FIFO Cost post-sale:** ₱_________ (Expected: 1,400.00)
 
 ---
 
-### Test 7.2: Multi-Vendor Receipt Populates Avg Cost & FIFO Cost (INV-15)
-*Verifies the weighted-average and FIFO-oldest computations after receiving 3 batches at different unit costs.*
+## Part 8: Alternative Payment Methods & Financial Reporting
 
-**What to do:**
-1. Navigate to **Purchasing → Purchase Orders** and create **three** POs for the same product (e.g., `Urea 46-0-0`), one per vendor, 10 units each:
-   - Vendor 1 — UnitCost `₱1,200.00`
-   - Vendor 2 — UnitCost `₱1,100.00`
-   - Vendor 3 — UnitCost `₱1,000.00`
-2. Go to **Purchasing → Goods Receiving** and receive all three POs in the order above (so the ₱1,200 batch is the FIFO-oldest).
-3. Navigate back to **Inventory → Stock Dashboard** and find that product's row.
+### Test 8.1: Credit Checkout and Credit Account Blocks
+*Verifies POS integration with Credit limits and credit-blocked customers.*
 
-**What you should see:**
-- [ ] **Stock** = `30` (10 + 10 + 10).
-- [ ] **Stock Value** = `₱33,000.00` (= 10×1200 + 10×1100 + 10×1000).
-- [ ] **Retail Price** = the value set in Product Management (unchanged by receiving).
-- [ ] **Avg Cost** = `₱1,100.00` exactly (₱33,000 / 30).
-- [ ] **FIFO Cost** = `₱1,200.00` exactly (oldest batch — Vendor 1's PO received first).
+**Step-by-Step Actions:**
+1. Press `Ctrl+3` (POS), and click **Sales Cart**.
+2. Search `Complete` and add **1 bag** of **Complete Fertilizer 14-14-14** to the cart (`Retail Price: ₱1,250.00`).
+3. Click the **Credit** payment method button.
+   - **Observe:** A customer search panel opens.
+4. Select customer **Maria Santos** (Account ID 2) from the list.
+   - **Observe:** The UI blocks payment. A red alert message is displayed:
+     *"⛔ Customer has outstanding balance of ₱500.00"* (since Maria Santos is blocked by default in seeds).
+   - **Observe:** The **Pay** button is disabled.
+5. Now, select customer **Juan Dela Cruz** (Account ID 1) from the customer list.
+   - **Observe:** The alert clears because Juan Dela Cruz is active with a `₱0.00` outstanding balance.
+   - **Observe:** The **Pay** button enables.
+6. Click **Pay**.
 
-*Status Check:*
-- **Stock count:** _______________ (expected: 30)
-- **Stock Value:** _______________ (expected: ₱33,000.00)
-- **Avg Cost:** _______________ (expected: ₱1,100.00)
-- **FIFO Cost:** _______________ (expected: ₱1,200.00)
-
-**MariaDB verification (run immediately after the 3rd Goods Receiving commit — no wait needed):**
-```sql
-SELECT 'Pur_PurchaseOrders' AS t, COUNT(*) AS c FROM Pur_PurchaseOrders UNION ALL
-SELECT 'Pur_PurchaseOrderLines', COUNT(*) FROM Pur_PurchaseOrderLines UNION ALL
-SELECT 'Pur_GoodsReceipts', COUNT(*) FROM Pur_GoodsReceipts UNION ALL
-SELECT 'Pur_GoodsReceiptLines', COUNT(*) FROM Pur_GoodsReceiptLines UNION ALL
-SELECT 'Pur_AccountsPayable', COUNT(*) FROM Pur_AccountsPayable UNION ALL
-SELECT 'Inv_StockBatches', COUNT(*) FROM Inv_StockBatches UNION ALL
-SELECT 'Inv_StockMovements', COUNT(*) FROM Inv_StockMovements;
-```
-- [ ] `Pur_PurchaseOrders` count = **3** (one per vendor PO).
-- [ ] `Pur_PurchaseOrderLines` count = **3** (one line per PO).
-- [ ] `Pur_GoodsReceipts` count = **3**.
-- [ ] `Pur_GoodsReceiptLines` count = **3**.
-- [ ] `Pur_AccountsPayable` count = **3** (one AP row per received PO).
-- [ ] `Inv_StockBatches` count = **3** (one batch per received PO) with UnitCost values `1000.00`, `1100.00`, `1200.00`.
-- [ ] `Inv_StockMovements` count = **3** (`MovementType=Receipt`, positive `Quantity=10`).
-- [ ] **Note:** `Pur_VendorProducts` is now a direct MariaDB write (INFRA-23–27) — its row count should match the entries you added in Tests 5.1–5.5.
+**Expected Output:**
+- [ ] Checkout succeeds. An Official Receipt is generated for the credit sale of ₱1,250.00.
+- [ ] **MariaDB Ledger Verification:** Run the query:
+  ```sql
+  SELECT CustomerName, CurrentBalance, TotalCreditExtended FROM Pos_CreditAccounts WHERE Id = 1;
+  ```
+  Verify that for Juan Dela Cruz:
+  - `CurrentBalance` = **1250.0000**.
+  - `TotalCreditExtended` = **1250.0000**.
+- [ ] Click **New Transaction** to reset the cart.
 
 *Status Check:*
-- **MariaDB row counts after receiving:** _______________
-- **Inv_StockBatches UnitCost values match (1000/1100/1200):** _______________
-- **Pur_VendorProducts row count:** _______________
+- **Maria Santos Blocked message verified:** [ ] Yes / [ ] No
+- **Juan Dela Cruz outstanding balance post-checkout:** ₱_________ (Expected: 1,250.00)
 
 ---
 
-### Test 7.3: Multi-Batch Sale Records Accurate COGS & Single Revenue Row (ACC-21 + ACC-22)
-*Reproduces the 2026-05-27 bug-report scenario end-to-end.*
+### Test 8.2: GCash & Bank Transfer Automatic Pay Gates
+*Verifies GCash and Bank Transfer checkout modes bypass cash tender input and finalize immediately.*
 
-**Prerequisite:** Test 7.2 complete — 30 units across three batches at ₱1,200 / ₱1,100 / ₱1,000.
-
-**What to do:**
-1. Navigate to **Inventory → Product Management** and set the **Retail Price** of the test product to `₱1,100.00` (so revenue = average cost = break-even).
-2. Navigate to **Point of Sale → Sales Cart** and sell **all 30 units** of the test product in a **single transaction** (cash sale). Note the OR number printed.
-3. Open SQLite (via DB Browser or the `sqlite3` CLI noted in `CLAUDE.md`) on `%LOCALAPPDATA%\MerchSys\merchsys.db` and run the queries listed below.
-
-**SQL queries to run:**
-```sql
--- ACC-21: per-batch COGS breakdown should have exactly 3 rows
-SELECT BatchId, QuantityDeducted, UnitCost, Cogs
-FROM Inv_SaleCogs
-WHERE TransactionId = (SELECT Id FROM Pos_SalesTransactions ORDER BY Id DESC LIMIT 1)
-  AND ProductId = (SELECT ProductId FROM Inv_SaleCogs ORDER BY Id DESC LIMIT 1)
-ORDER BY BatchId;
-
--- ACC-22: exactly one revenue row per (Tx, Product)
-SELECT SourceTransactionId, ProductId, COUNT(*) AS rows
-FROM Acc_RevenueRecords
-GROUP BY SourceTransactionId, ProductId
-HAVING COUNT(*) > 1;
-
--- ACC-21: COGS on the revenue row should equal SUM of Inv_SaleCogs.Cogs
-SELECT QuantitySold, NetAmount, COGS, GrossProfit
-FROM Acc_RevenueRecords
-WHERE SourceTransactionId = (SELECT Id FROM Pos_SalesTransactions ORDER BY Id DESC LIMIT 1);
-
--- ACC-22: exactly one COGS expense row per transaction/product
-SELECT Category, COUNT(*) AS rows
-FROM Acc_ExpenseRecords
-WHERE Category = 'COGS' AND SourceReferenceId = (SELECT Id FROM Pos_SalesTransactions ORDER BY Id DESC LIMIT 1)
-GROUP BY Category;
-```
-
-**What you should see:**
-- [ ] `Inv_SaleCogs` query returns **exactly 3 rows** with `QuantityDeducted=10` and `Cogs` values `12000.00`, `11000.00`, `10000.00` (one per batch).
-- [ ] **Duplicate-row query returns 0 rows** (i.e. no `(SourceTransactionId, ProductId)` group has `COUNT(*) > 1`) — confirms ACC-22's deduplication.
-- [ ] `Acc_RevenueRecords` row for this sale shows: `QuantitySold = 30`, `NetAmount = 33000.00`, `COGS = 33000.00`, `GrossProfit = 0.00` (break-even, **NOT** the pre-fix `COGS = 36000` / `GrossProfit = -3000`).
-- [ ] `Acc_ExpenseRecords` COGS row count = `1` for this transaction (no duplicate COGS expense).
+**Step-by-Step Actions:**
+1. In POS **Sales Cart**:
+2. Add **1 bag** of **Complete Fertilizer 14-14-14** to the cart (`Grand Total: ₱1,250.00`).
+3. Click the **GCash** payment method button.
+   - **Observe:** The **Amount Tendered** field is disabled and set to the exact grand total **₱1,250.00**.
+   - The **Pay** button is enabled immediately.
+4. Click **Pay**.
+   - **Observe:** GCash sale is committed instantly, generating an OR.
+5. Click **New Transaction**.
+6. Add another product to the cart, select **Bank** payment method.
+   - **Observe:** Bypasses cash tender requirements. The **Pay** button is enabled instantly.
+7. Click **Pay**.
+   - **Observe:** Bank transfer sale commits successfully.
 
 *Status Check:*
-- **Inv_SaleCogs row count:** _______________ (expected: 3)
-- **Inv_SaleCogs Cogs values:** _______________ (expected: 12000 / 11000 / 10000)
-- **Duplicate RevenueRecord rows:** _______________ (expected: 0)
-- **Acc_RevenueRecords.COGS:** _______________ (expected: 33000.00)
-- **Acc_RevenueRecords.GrossProfit:** _______________ (expected: 0.00)
-- **COGS ExpenseRecord row count for this Tx:** _______________ (expected: 1)
-
-**MariaDB verification (run immediately after the multi-batch sale — direct write, no propagation delay):**
-```sql
--- ACC-21: per-batch COGS rows
-SELECT BatchId, QuantityDeducted, UnitCost, Cogs FROM Inv_SaleCogs
-WHERE TransactionId = (SELECT MAX(SourceTransactionId) FROM Acc_RevenueRecords)
-ORDER BY BatchId;
-
--- ACC-22: single revenue row
-SELECT SourceTransactionId, ProductId, QuantitySold, NetAmount, COGS, GrossProfit
-FROM Acc_RevenueRecords
-WHERE SourceTransactionId = (SELECT MAX(SourceTransactionId) FROM Acc_RevenueRecords);
-
--- INFRA-26: all three batches should show QuantityRemaining=0
-SELECT Id, QuantityReceived, QuantityRemaining, UnitCost FROM Inv_StockBatches
-ORDER BY ReceiptDate;
-```
-- [ ] **`Inv_SaleCogs` returns 3 rows** with `Cogs` values `12000.0000`, `11000.0000`, `10000.0000` (ACC-21 per-batch COGS correct).
-- [ ] `Acc_RevenueRecords` row for this Tx shows `COGS = 33000.00`, `GrossProfit = 0.00`, `QuantitySold = 30`.
-- [ ] **Only one row** exists in `Acc_RevenueRecords` for this `(SourceTransactionId, ProductId)` pair (ACC-22 deduplication working).
-- [ ] All three `Inv_StockBatches` rows show `QuantityRemaining = 0` (INFRA-26 FIFO pessimistic `FOR UPDATE` lock serialized the decrement correctly).
-
-*Status Check:*
-- **Inv_SaleCogs row count:** _______________ (expected: 3)
-- **Inv_SaleCogs Cogs values:** _______________ (expected: 12000 / 11000 / 10000)
-- **Acc_RevenueRecords.COGS:** _______________ (expected: 33000.00)
-- **Inv_StockBatches all show QuantityRemaining=0:** _______________
+- **GCash automatic pay gate verified:** [ ] Yes / [ ] No
+- **Bank Transfer automatic pay gate verified:** [ ] Yes / [ ] No
 
 ---
 
-### Test 7.4: Stock Dashboard Cost Columns After Stock Depletion (INV-15 edge case)
-*Verifies that the FIFO Cost column rolls forward as the oldest batch is depleted, and Avg Cost re-weights when only partial batches remain.*
+### Test 8.3: Monthly Income Statement Audit
+*Verifies that the financial reports aggregate transaction ledgers based on correct per-batch COGS.*
 
-**What to do:**
-1. After Test 7.3 (all 30 units sold), navigate back to **Inventory → Stock Dashboard**.
-2. Locate the same test product's row.
-3. Receive a **new** PO of 5 units at `₱950` for that product.
-4. Return to the Stock Dashboard and re-check the cost columns for that product.
+**Step-by-Step Actions:**
+1. Press `Ctrl+4` (Accounting), and click **Income Statement**.
+2. Select the current month and year period.
+3. Observe the generated summary report.
 
-**What you should see:**
-- [ ] Immediately after Test 7.3 (stock=0): both **Avg Cost** and **FIFO Cost** display `₱0.00` (no non-expired stock; division-by-zero guard intact).
-- [ ] After receiving 5 units at ₱950: **Stock** = `5`, **Stock Value** = `₱4,750.00`, **Avg Cost** = `₱950.00`, **FIFO Cost** = `₱950.00` (only one batch).
+**Expected Output:**
+- [ ] **Total Revenue:** Aggregates all checkout transactions completed in Part 7 and Part 8.
+- [ ] **Total COGS:** Accurately reflects the sum of the actual FIFO batch costs loaded from `Inv_SaleCogs` (Urea cost of ₱18,000.00 + Complete Fertilizer costs of ₱1,200.00 per unit). No phantom overstatements are present.
+- [ ] **Gross Profit Margin:** Correctly computed based on `Revenue - COGS`.
 
 *Status Check:*
-- **Cost columns post-depletion:** _______________ (expected: ₱0.00 / ₱0.00)
-- **Cost columns post-new-receipt:** _______________ (expected: ₱950.00 / ₱950.00)
+- **Income Statement Gross Profit Margin:** _________%
 
 ---
 
-### Test 7.5: Income Statement Reflects Accurate COGS (ACC-21 downstream)
-*Verifies the accounting reports consume the corrected COGS.*
+### Test 8.4: Developer Tools Schema Harness (DEV)
+*Verifies the Developer module can run BIR Schema and Tamper audits.*
 
-**Prerequisite:** Test 7.3 complete — the break-even sale is committed.
+**Step-by-Step Actions:**
+1. Press `Ctrl+0` to open **Developer Tools** (Debug builds only).
+2. Click the **Run VAT Schema Harness** button.
+3. Wait for the completion success message popup.
+4. Open File Explorer, type `%TEMP%` in the address bar, and sort files by date.
 
-**What to do:**
-1. Navigate to **Accounting → Income Statement**.
-2. Select the current month period.
-3. Inspect the Gross Profit / COGS lines.
-
-**What you should see:**
-- [ ] Reported **COGS** for the period includes ₱33,000 (matches the `Acc_RevenueRecords.COGS` from Test 7.3 — **not** the phantom ₱36,000).
-- [ ] Reported **Gross Profit** for that single transaction = `₱0.00` (no phantom ₱3,000 loss).
-- [ ] No "operating at a loss" plain-language warning is shown solely on account of the test transaction.
+**Expected Output:**
+- [ ] A success message box pops up confirming: *"VAT schema harness completed successfully."*
+- [ ] Locate the newest report file in `%TEMP%` starting with `vat-ledger-schema-report-`.
+- [ ] Open the report file and verify that the schema audit ledger checks return **PASS**.
 
 *Status Check:*
-- **COGS shown:** _______________ (expected: includes ₱33,000)
-- **Gross Profit for the sale:** _______________ (expected: ₱0.00, no phantom loss)
+- **Harness execution status popup verified:** [ ] Yes / [ ] No
+- **Vat Ledger Report successfully generated in `%TEMP%`:** [ ] Yes / [ ] No
 
 ---
 
-## Part 8: MariaDB Data Integrity Audit (run last, after all Manager tests above)
+## Session Summary Notes
 
-> **Architecture note (INFRA-23–27):** VISTA writes **directly** to the central MariaDB. There is no local SQLite database and no Sync_Journal. Row counts are immediately consistent — no wait needed.
+**Overall Testing Verdict:** [ ] PASS / [ ] FAIL
 
-### Test 8.1: Table Row Count Verification
-
-**What to do:**
-1. After completing Tests 4.1 through 7.5, run the following query against the central MariaDB:
-```sql
--- Run inside: mysql -u root merchsys_central
-SELECT 'Acc_ExpenseRecords'    AS t, COUNT(*) AS c FROM Acc_ExpenseRecords   UNION ALL
-SELECT 'Acc_FinancialPeriods',      COUNT(*) FROM Acc_FinancialPeriods       UNION ALL
-SELECT 'Acc_FinancialSnapshots',    COUNT(*) FROM Acc_FinancialSnapshots     UNION ALL
-SELECT 'Acc_RevenueRecords',        COUNT(*) FROM Acc_RevenueRecords         UNION ALL
-SELECT 'Inv_ProductCategories',     COUNT(*) FROM Inv_ProductCategories      UNION ALL
-SELECT 'Inv_Products',              COUNT(*) FROM Inv_Products               UNION ALL
-SELECT 'Inv_SaleCogs',              COUNT(*) FROM Inv_SaleCogs               UNION ALL
-SELECT 'Inv_ShrinkageRecords',      COUNT(*) FROM Inv_ShrinkageRecords       UNION ALL
-SELECT 'Inv_StockAlertConfigs',     COUNT(*) FROM Inv_StockAlertConfigs      UNION ALL
-SELECT 'Inv_StockAuditRecords',     COUNT(*) FROM Inv_StockAuditRecords      UNION ALL
-SELECT 'Inv_StockBatches',          COUNT(*) FROM Inv_StockBatches           UNION ALL
-SELECT 'Inv_StockMovements',        COUNT(*) FROM Inv_StockMovements         UNION ALL
-SELECT 'Pos_CreditAccounts',        COUNT(*) FROM Pos_CreditAccounts         UNION ALL
-SELECT 'Pos_CreditPayments',        COUNT(*) FROM Pos_CreditPayments         UNION ALL
-SELECT 'Pos_OfficialReceipts',      COUNT(*) FROM Pos_OfficialReceipts       UNION ALL
-SELECT 'Pos_ReceiptIntegrity',      COUNT(*) FROM Pos_ReceiptIntegrity       UNION ALL
-SELECT 'Pos_SalesReturns',          COUNT(*) FROM Pos_SalesReturns           UNION ALL
-SELECT 'Pos_SalesTransactionLines', COUNT(*) FROM Pos_SalesTransactionLines  UNION ALL
-SELECT 'Pos_SalesTransactions',     COUNT(*) FROM Pos_SalesTransactions      UNION ALL
-SELECT 'Pur_AccountsPayable',       COUNT(*) FROM Pur_AccountsPayable        UNION ALL
-SELECT 'Pur_GoodsReceiptLines',     COUNT(*) FROM Pur_GoodsReceiptLines      UNION ALL
-SELECT 'Pur_GoodsReceipts',         COUNT(*) FROM Pur_GoodsReceipts          UNION ALL
-SELECT 'Pur_PriceChangeAlerts',     COUNT(*) FROM Pur_PriceChangeAlerts      UNION ALL
-SELECT 'Pur_PurchaseOrderLines',    COUNT(*) FROM Pur_PurchaseOrderLines     UNION ALL
-SELECT 'Pur_PurchaseOrders',        COUNT(*) FROM Pur_PurchaseOrders         UNION ALL
-SELECT 'Pur_ReorderConfigs',        COUNT(*) FROM Pur_ReorderConfigs         UNION ALL
-SELECT 'Pur_ReorderSuggestions',    COUNT(*) FROM Pur_ReorderSuggestions     UNION ALL
-SELECT 'Pur_VendorProducts',        COUNT(*) FROM Pur_VendorProducts         UNION ALL
-SELECT 'Pur_Vendors',               COUNT(*) FROM Pur_Vendors;
-```
-2. Fill out the table below with the observed counts.
-
-**Expected baseline after the full Manager protocol (Tests 4.1 → 7.5 executed once):**
-
-| Table | Expected Count | Notes |
-|---|---|---|
-| `Pur_Vendors` | 3 | Seeded by `0002_seed_reference_data.sql` (INFRA-24) |
-| `Inv_ProductCategories` | 4 | Seeded by INFRA-24 |
-| `Inv_Products` | 20 | Seeded by INFRA-24 |
-| `Pos_CreditAccounts` | 3 | Seeded by INFRA-24 |
-| `Pur_PurchaseOrders` | 4 (1 in T4.1 + 3 in T7.2) | Direct MariaDB write |
-| `Pur_PurchaseOrderLines` | 4 | Direct MariaDB write |
-| `Pur_GoodsReceipts` | 4 | Direct MariaDB write |
-| `Pur_GoodsReceiptLines` | 4 | Direct MariaDB write |
-| `Pur_AccountsPayable` | 4 | Direct MariaDB write |
-| `Pos_SalesTransactions` | 2 (T4.1 + T7.3) | Direct MariaDB write |
-| `Pos_SalesTransactionLines` | 2 | Direct MariaDB write |
-| `Pos_OfficialReceipts` | 2 | Direct MariaDB write |
-| `Pos_ReceiptIntegrity` | 2 | Direct MariaDB write |
-| `Inv_StockBatches` | 4 (1 in T4.1 + 3 in T7.2) | INFRA-26: QuantityRemaining decremented by FOR UPDATE FIFO lock |
-| `Inv_StockMovements` | 6 (4 Receipt + 2 Sale) | Direct MariaDB write |
-| `Inv_SaleCogs` | 4 (1 in T4.1 + 3 in T7.3) | ACC-21 per-batch COGS ledger |
-| `Acc_RevenueRecords` | 2 | ACC-22 — exactly one row per `(Tx, Product)` |
-| `Acc_ExpenseRecords` | 2 | One COGS expense row per sale |
-| `Pur_VendorProducts` | ≥ 1 (entries added in Tests 5.1–5.5) | Direct MariaDB write (PUR-16) |
-| `Pos_CreditPayments` | 0 | Untouched in this protocol |
-| `Pos_SalesReturns` | 0 | Untouched |
-| `Pur_PriceChangeAlerts` | 0 | Untouched |
-| `Pur_ReorderConfigs` / `Pur_ReorderSuggestions` | 0 | Untouched |
-| `Inv_ShrinkageRecords` / `Inv_StockAuditRecords` / `Inv_StockAlertConfigs` | 0 | Untouched |
-| `Acc_FinancialPeriods` / `Acc_FinancialSnapshots` | 0 | Period-close workflow not exercised |
-
-**What you should see:**
-- [ ] Seeded reference tables (`Pur_Vendors`, `Inv_Products`, `Inv_ProductCategories`, `Pos_CreditAccounts`) match the seed counts — confirms `0002_seed_reference_data.sql` applied correctly (INFRA-24).
-- [ ] `Inv_SaleCogs` = `4`. Zero indicates ACC-21 is broken.
-- [ ] `Acc_RevenueRecords` = `2` — exactly one row per sale transaction (ACC-22 invariant).
-- [ ] `Pur_VendorProducts` ≥ 1 after Tests 5.1–5.5 (PUR-16 — direct write, no sync gap).
-
-*Status Check:*
-- **All tables at expected counts:** _______________
-- **Inv_SaleCogs count:** _______________ (expected: 4)
-- **Acc_RevenueRecords count:** _______________ (expected: 2)
-- **Pur_VendorProducts count:** _______________ (expected: ≥ 1)
-
----
-
-### Test 8.2: Connection Status Indicator Verification (INFRA-28)
-
-**What to do:**
-1. Observe the **Connection Status Badge** at the bottom of the Module Detail Panel.
-2. After completing all tests, verify the badge still shows **Online**.
-3. Simulate an outage: stop the MySQL service in XAMPP, wait for the badge to change, then restart the service.
-
-**What you should see:**
-- [ ] Badge shows **Online** (green filled dot + "Online" text) during normal operation.
-- [ ] After stopping MySQL: badge transitions to **Reconnecting…** (orange dashed ring animation) within ~15 s, then **Offline** (red dot + "Retry" button) after retries are exhausted.
-- [ ] After restarting MySQL and clicking **Retry**: badge returns to **Online** and any mutation buttons that were disabled re-enable automatically.
-
-*Status Check:*
-- **Badge shows Online after all tests:** _______________
-- **Badge transitions to Offline on MySQL stop:** _______________
-- **Badge recovers to Online after MySQL restart + Retry:** _______________
-
----
-
-## Session Notes
-
-**Overall Verdict:** (pending)
-
-*(Record any bugs found, unexpected behavior, or deviations from expected values here.)*
+*(Write down any observed deviations, unexpected popup messages, or database inconsistencies discovered during testing below.)*
+__________________________________________________________________________________________
+__________________________________________________________________________________________
+__________________________________________________________________________________________
+__________________________________________________________________________________________
+__________________________________________________________________________________________
+__________________________________________________________________________________________
+__________________________________________________________________________________________
+__________________________________________________________________________________________
+__________________________________________________________________________________________
+__________________________________________________________________________________________

@@ -238,10 +238,6 @@ Namespace ViewModels
                 _notifications.ShowError("Please select a product from search results.")
                 Return
             End If
-            If NewEntryCost <= 0D Then
-                _notifications.ShowError("Cost must be greater than zero.")
-                Return
-            End If
 
             IsBusy = True
             Try
@@ -249,7 +245,7 @@ Namespace ViewModels
                     SelectedVendor.Id,
                     SelectedProductResult.Id,
                     SelectedProductResult.Name,
-                    NewEntryCost,
+                    0D,
                     NewEntryNotes
                 )
                 _notifications.ShowSuccess($"Added {SelectedProductResult.Name} to catalog.")
@@ -268,15 +264,11 @@ Namespace ViewModels
 
         Public Async Function SaveEntryAsync(entry As VendorProductDto) As Task
             If entry Is Nothing Then Return
-            If entry.LastUnitCost <= 0D Then
-                _notifications.ShowError("Cost must be greater than zero.")
-                Return
-            End If
 
             IsBusy = True
             Try
                 Await _vendorProductService.UpdateCatalogEntryAsync(entry.Id, entry.LastUnitCost, entry.Notes)
-                _notifications.ShowSuccess($"Updated cost/notes for {entry.ProductName}.")
+                _notifications.ShowSuccess($"Updated notes for {entry.ProductName}.")
                 Await LoadCatalogAsync()
             Catch ex As Exception
                 _notifications.ShowError($"Update failed: {ex.Message}")

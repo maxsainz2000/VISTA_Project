@@ -10,6 +10,7 @@ Imports MerchSys.Purchasing.Services.Vat
 Imports MerchSys.SharedKernel.Enums
 Imports MerchSys.SharedKernel.Events
 Imports MerchSys.SharedKernel.Persistence
+Imports MerchSys.SharedKernel.Interfaces
 
 Namespace Services
 
@@ -20,16 +21,19 @@ Namespace Services
         Private ReadOnly _mediator As IMediator
         Private ReadOnly _priceChangeService As IPriceChangeService
         Private ReadOnly _vatCalculator As GoodsReceiptVatCalculator
+        Private ReadOnly _session As ISessionService
         Private _grListForPO As List(Of GoodsReceipt)
 
         Public Sub New(db As PurchasingDbContext,
                        mediator As IMediator,
                        priceChangeService As IPriceChangeService,
-                       vatCalculator As GoodsReceiptVatCalculator)
+                       vatCalculator As GoodsReceiptVatCalculator,
+                       session As ISessionService)
             _db = db
             _mediator = mediator
             _priceChangeService = priceChangeService
             _vatCalculator = vatCalculator
+            _session = session
         End Sub
 
         Public Async Function ReceiveGoodsAsync(purchaseOrderId As Integer, lines As List(Of ReceiveGoodsLineDto)) As Task(Of GoodsReceipt) Implements IGoodsReceivingService.ReceiveGoodsAsync
@@ -91,6 +95,36 @@ Namespace Services
 
             _db.GoodsReceipts.Add(receipt)
             po.Status = PurchaseOrderStatus.Received
+
+            ' Update/auto-create vendor catalog entries for the received products (Option B timing)
+            For Each grLine In receipt.Lines
+                If grLine.QuantityReceived > 0 Then
+                    Dim entry = Await _db.VendorProducts.
+                        IgnoreQueryFilters().
+                        FirstOrDefaultAsync(Function(vp) vp.VendorId = po.VendorId AndAlso
+                                                           vp.ProductId = grLine.ProductId)
+                    If entry IsNot Nothing Then
+                        entry.LastUnitCost = grLine.UnitCost
+                        entry.IsDeleted = False
+                        entry.ModifiedBy = If(_session IsNot Nothing AndAlso Not String.IsNullOrEmpty(_session.CurrentUsername), _session.CurrentUsername, "System")
+                        entry.ModifiedAt = DateTime.UtcNow
+                    Else
+                        ' Auto-create catalog entry if it doesn't exist
+                        Dim newEntry As New VendorProduct With {
+                            .VendorId = po.VendorId,
+                            .ProductId = grLine.ProductId,
+                            .ProductName = grLine.ProductName,
+                            .LastUnitCost = grLine.UnitCost,
+                            .Notes = "Auto-created from Goods Receiving",
+                            .CreatedBy = If(_session IsNot Nothing AndAlso Not String.IsNullOrEmpty(_session.CurrentUsername), _session.CurrentUsername, "System"),
+                            .CreatedAt = DateTime.UtcNow,
+                            .IsDeleted = False
+                        }
+                        _db.VendorProducts.Add(newEntry)
+                    End If
+                End If
+            Next
+
             Await _db.SaveChangesAsync()
 
             Dim ev As New GoodsReceivedEvent With {

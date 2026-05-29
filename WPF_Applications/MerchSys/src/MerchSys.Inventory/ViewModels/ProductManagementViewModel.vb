@@ -155,7 +155,9 @@ Namespace ViewModels
                 Return _editorId
             End Get
             Set(value As Integer)
-                SetProperty(_editorId, value)
+                If SetProperty(_editorId, value) Then
+                    OnPropertyChanged(NameOf(ShowCostingHelper))
+                End If
             End Set
         End Property
 
@@ -195,7 +197,10 @@ Namespace ViewModels
                 Return _editorRetailPriceText
             End Get
             Set(value As String)
-                SetProperty(_editorRetailPriceText, value)
+                If SetProperty(_editorRetailPriceText, value) Then
+                    OnPropertyChanged(NameOf(EditorMargin))
+                    OnPropertyChanged(NameOf(EditorMarginPercent))
+                End If
             End Set
         End Property
 
@@ -247,6 +252,53 @@ Namespace ViewModels
             Set(value As String)
                 SetProperty(_editorPriceChangeReason, value)
             End Set
+        End Property
+
+        Private _editorFifoCost As Decimal = 0D
+        Public Property EditorFifoCost As Decimal
+            Get
+                Return _editorFifoCost
+            End Get
+            Set(value As Decimal)
+                If SetProperty(_editorFifoCost, value) Then
+                    OnPropertyChanged(NameOf(EditorSuggestedPrice))
+                    OnPropertyChanged(NameOf(EditorMargin))
+                    OnPropertyChanged(NameOf(EditorMarginPercent))
+                    OnPropertyChanged(NameOf(ShowCostingHelper))
+                End If
+            End Set
+        End Property
+
+        Public ReadOnly Property EditorSuggestedPrice As Decimal
+            Get
+                Return Math.Round(EditorFifoCost * 1.20D, 2)
+            End Get
+        End Property
+
+        Public ReadOnly Property EditorMargin As Decimal
+            Get
+                Dim price As Decimal
+                If Decimal.TryParse(EditorRetailPriceText, price) Then
+                    Return price - EditorFifoCost
+                End If
+                Return 0D
+            End Get
+        End Property
+
+        Public ReadOnly Property EditorMarginPercent As Double
+            Get
+                Dim price As Decimal
+                If Decimal.TryParse(EditorRetailPriceText, price) AndAlso EditorFifoCost > 0 Then
+                    Return CDbl(Math.Round(((price - EditorFifoCost) / EditorFifoCost) * 100D, 1))
+                End If
+                Return 0.0
+            End Get
+        End Property
+
+        Public ReadOnly Property ShowCostingHelper As Boolean
+            Get
+                Return EditorId <> 0 AndAlso EditorFifoCost > 0
+            End Get
         End Property
 
         Private _editorError As String = String.Empty
@@ -478,10 +530,11 @@ Namespace ViewModels
             EditorDescription = String.Empty
             EditorPriceChangeReason = String.Empty
             EditorError = String.Empty
+            EditorFifoCost = 0D
             IsEditorOpen = True
         End Sub
 
-        Private Sub OpenEditProductEditor(row As ProductManagementRowItem)
+        Private Async Sub OpenEditProductEditor(row As ProductManagementRowItem)
             If row Is Nothing Then Return
 
             EditorId = row.ProductId
@@ -498,6 +551,24 @@ Namespace ViewModels
             EditorMinThresholdText = row.MinThreshold.ToString()
             EditorDescription = row.Description
             EditorError = String.Empty
+
+            ' Load current FIFO cost (Option A)
+            IsBusy = True
+            Try
+                Dim now = DateTime.UtcNow
+                Dim oldestBatch = Await _db.StockBatches _
+                    .Where(Function(b) b.ProductId = row.ProductId AndAlso
+                                       b.QuantityRemaining > 0 AndAlso
+                                       (Not b.ExpiryDate.HasValue OrElse b.ExpiryDate.Value >= now)) _
+                    .OrderBy(Function(b) b.ReceiptDate) _
+                    .FirstOrDefaultAsync()
+                EditorFifoCost = If(oldestBatch IsNot Nothing, oldestBatch.UnitCost, 0D)
+            Catch ex As Exception
+                EditorFifoCost = 0D
+            Finally
+                IsBusy = False
+            End Try
+
             IsEditorOpen = True
         End Sub
 
@@ -520,6 +591,26 @@ Namespace ViewModels
             Dim price As Decimal
             If Not Decimal.TryParse(EditorRetailPriceText, price) OrElse price <= 0 Then
                 EditorError = "Retail price must be greater than 0."
+                Return
+            End If
+
+            ' Enforce negative profitability guard (reject if price < FIFO cost)
+            Dim fifoCost As Decimal = 0D
+            If EditorId <> 0 Then
+                Dim now = DateTime.UtcNow
+                Dim oldestBatch = Await _db.StockBatches _
+                    .Where(Function(b) b.ProductId = EditorId AndAlso
+                                       b.QuantityRemaining > 0 AndAlso
+                                       (Not b.ExpiryDate.HasValue OrElse b.ExpiryDate.Value >= now)) _
+                    .OrderBy(Function(b) b.ReceiptDate) _
+                    .FirstOrDefaultAsync()
+                If oldestBatch IsNot Nothing Then
+                    fifoCost = oldestBatch.UnitCost
+                End If
+            End If
+
+            If fifoCost > 0D AndAlso price < fifoCost Then
+                EditorError = $"Retail price (₱{price:F2}) cannot be less than the current vendor cost (₱{fifoCost:F2}), resulting in negative profitability."
                 Return
             End If
 

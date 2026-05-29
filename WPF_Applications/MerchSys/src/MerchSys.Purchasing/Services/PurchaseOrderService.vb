@@ -223,6 +223,13 @@ Namespace Services
                 Throw New InvalidOperationException("All line unit costs must be greater than zero.")
             End If
 
+            If Not po.ExpectedDeliveryDate.HasValue Then
+                Throw New InvalidOperationException("Expected delivery date is required before submitting.")
+            End If
+            If po.ExpectedDeliveryDate.Value.Date < DateTime.Today Then
+                Throw New InvalidOperationException("Expected delivery date cannot be in the past.")
+            End If
+
             po.Status = PurchaseOrderStatus.Submitted
             Await _db.SaveChangesAsync()
 

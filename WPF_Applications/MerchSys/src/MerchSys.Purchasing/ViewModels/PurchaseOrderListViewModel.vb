@@ -368,18 +368,6 @@ Namespace ViewModels
                                                       Editor.Notes, Editor.ExpectedDeliveryDate)
                 End If
 
-                ' Write back modified unit costs to vendor product catalog
-                If Editor.SelectedVendor IsNot Nothing Then
-                    For Each line In Editor.LineItems
-                        Dim cat = Editor.VendorCatalog.FirstOrDefault(Function(c) c.ProductId = line.ProductId)
-                        If cat IsNot Nothing AndAlso line.UnitCost <> cat.LastUnitCost Then
-                            Await _vendorProductService.UpdateLastUnitCostAsync(Editor.SelectedVendor.Id, line.ProductId, line.UnitCost)
-                        End If
-                    Next
-                    ' Reload catalog to refresh the in-memory last unit costs
-                    Await Editor.LoadVendorCatalogAsync(_vendorProductService, Editor.SelectedVendor.Id)
-                End If
-
                 CloseEditor()
                 Await LoadDataAsync()
                 StatusMessage = "Draft saved."
@@ -398,6 +386,15 @@ Namespace ViewModels
             End If
             If Not Editor.LineItems.Any() Then
                 StatusMessage = "Please add at least one line item."
+                Return
+            End If
+
+            If Not Editor.ExpectedDeliveryDate.HasValue Then
+                StatusMessage = "Expected delivery date is required."
+                Return
+            End If
+            If Editor.ExpectedDeliveryDate.Value.Date < DateTime.Today Then
+                StatusMessage = "Expected delivery date cannot be in the past."
                 Return
             End If
 
@@ -426,18 +423,6 @@ Namespace ViewModels
                 Else
                     savedPO = Await _poService.UpdateDraftAsync(Editor.EditingPOId.Value, lineDtos,
                                                                 Editor.Notes, Editor.ExpectedDeliveryDate)
-                End If
-
-                ' Write back modified unit costs to vendor product catalog
-                If Editor.SelectedVendor IsNot Nothing Then
-                    For Each line In Editor.LineItems
-                        Dim cat = Editor.VendorCatalog.FirstOrDefault(Function(c) c.ProductId = line.ProductId)
-                        If cat IsNot Nothing AndAlso line.UnitCost <> cat.LastUnitCost Then
-                            Await _vendorProductService.UpdateLastUnitCostAsync(Editor.SelectedVendor.Id, line.ProductId, line.UnitCost)
-                        End If
-                    Next
-                    ' Reload catalog to refresh the in-memory last unit costs
-                    Await Editor.LoadVendorCatalogAsync(_vendorProductService, Editor.SelectedVendor.Id)
                 End If
 
                 Await _poService.SubmitAsync(savedPO.Id)

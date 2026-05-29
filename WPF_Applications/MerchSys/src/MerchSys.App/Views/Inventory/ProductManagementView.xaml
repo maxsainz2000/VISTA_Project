@@ -531,6 +531,38 @@
                                       SelectedValue="{Binding EditorCategoryId}"
                                       Style="{StaticResource FormCombo}"/>
 
+                            <!-- Costing Helper Panel -->
+                            <StackPanel Orientation="Vertical" Margin="0,0,0,10"
+                                        Visibility="{Binding ShowCostingHelper, Converter={StaticResource BoolToVis}}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="Current FIFO Cost: " Style="{StaticResource FilterLabel}"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding EditorFifoCost, StringFormat='₱{0:N2}'}" FontWeight="Bold" VerticalAlignment="Center" FontSize="11" Foreground="#2C3E50"/>
+                                </Grid>
+                                <Grid Margin="0,4,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="Suggested Price (20%): " Style="{StaticResource FilterLabel}"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding EditorSuggestedPrice, StringFormat='₱{0:N2}'}" FontWeight="Bold" Foreground="#27AE60" VerticalAlignment="Center" FontSize="11"/>
+                                </Grid>
+                                <Grid Margin="0,4,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="Current Margin: " Style="{StaticResource FilterLabel}"/>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding EditorMargin, StringFormat='₱{0:N2}'}" FontWeight="Bold" FontSize="11" Foreground="#27AE60"/>
+                                        <TextBlock Text="{Binding EditorMarginPercent, StringFormat=' ({0}%)'}" FontSize="11" Foreground="#7F8C8D"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+
                             <TextBlock Text="Retail Price (₱) *" Style="{StaticResource FormLabel}"/>
                             <TextBox Text="{Binding EditorRetailPriceText, UpdateSourceTrigger=PropertyChanged}"
                                      Style="{StaticResource FormInput}"/>
