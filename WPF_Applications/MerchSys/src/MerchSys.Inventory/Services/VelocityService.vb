@@ -14,7 +14,7 @@ Namespace Services
 
         Private ReadOnly _db As InventoryDbContext
         Private ReadOnly _logger As ILogger(Of VelocityService)
-        Private _velocityProductList As List(Of Product)
+        ' _velocityProductList removed — was a field causing race conditions on timer re-entry; now local
 
         Public Sub New(db As InventoryDbContext, logger As ILogger(Of VelocityService))
             _db = db
@@ -22,7 +22,7 @@ Namespace Services
         End Sub
 
         Public Async Function ClassifyAllProductsAsync(daysToAnalyze As Integer) As Task(Of List(Of ProductVelocityDto)) Implements IVelocityService.ClassifyAllProductsAsync
-            _velocityProductList = New List(Of Product)()
+            Dim _velocityProductList As New List(Of Product)()
             Dim velConnStr = _db.Database.GetConnectionString()
             Using velConn As New MySqlConnection(velConnStr)
                 Await velConn.OpenAsync()
@@ -122,12 +122,24 @@ Namespace Services
             Dim products As List(Of Product) = _velocityProductList
 
             Dim windowStart As DateTime = DateTime.UtcNow.Date.AddDays(-daysToAnalyze)
-            Dim movementCounts = Await _db.StockMovements.
-                Where(Function(m) m.MovementType = MovementType.Sale AndAlso m.OccurredAt >= windowStart).
-                GroupBy(Function(m) m.ProductId).
-                Select(Function(g) New With {.ProductId = g.Key, .Total = g.Sum(Function(m) m.Quantity)}).
-                ToListAsync()
-            Dim movementLookup = movementCounts.ToDictionary(Function(x) x.ProductId, Function(x) x.Total)
+            Dim movementLookup As New Dictionary(Of Integer, Integer)()
+            Dim movConnStr = _db.Database.GetConnectionString()
+            Using movConn As New MySqlConnection(movConnStr)
+                Await movConn.OpenAsync()
+                Using movCmd = movConn.CreateCommand()
+                    movCmd.CommandText =
+                        "SELECT ProductId, COALESCE(SUM(Quantity), 0) AS Total " &
+                        "FROM Inv_StockMovements " &
+                        "WHERE MovementType = 'Sale' AND OccurredAt >= @windowStart " &
+                        "GROUP BY ProductId"
+                    movCmd.Parameters.AddWithValue("@windowStart", windowStart.ToString("yyyy-MM-dd HH:mm:ss"))
+                    Using movReader = movCmd.ExecuteReader()
+                        While movReader.Read()
+                            movementLookup(movReader.GetInt32(0)) = Convert.ToInt32(movReader.GetInt64(1))
+                        End While
+                    End Using
+                End Using
+            End Using
 
             Dim results As New List(Of ProductVelocityDto)()
             For Each product In products

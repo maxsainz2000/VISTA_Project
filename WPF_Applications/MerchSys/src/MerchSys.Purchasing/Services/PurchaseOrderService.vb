@@ -26,7 +26,10 @@ Namespace Services
                                                Optional notes As String = Nothing,
                                                Optional expectedDeliveryDate As DateTime? = Nothing) As Task(Of PurchaseOrder) Implements IPurchaseOrderService.CreateDraftAsync
             Dim year As Integer = DateTime.UtcNow.Year
+            ' Include soft-deleted rows: the OrderNumber unique index spans every row
+            ' (deleted included), so the sequence must not reuse a deleted PO's number.
             Dim existingNumbers As List(Of String) = Await _db.PurchaseOrders.
+                IgnoreQueryFilters().
                 Select(Function(p) p.OrderNumber).
                 ToListAsync()
             Dim orderNumber As String = SequentialNumberGenerator.Generate("PO", year, existingNumbers)
@@ -74,11 +77,11 @@ Namespace Services
                 Using cmd = conn.CreateCommand()
                     If status.HasValue Then
                         cmd.CommandText = "SELECT Id, OrderNumber, VendorId, Status, OrderDate, ExpectedDeliveryDate, TotalAmount, Notes " &
-                                          "FROM Pur_PurchaseOrders WHERE Status = @status ORDER BY OrderDate DESC"
+                                          "FROM Pur_PurchaseOrders WHERE IsDeleted = 0 AND Status = @status ORDER BY OrderDate DESC"
                         cmd.Parameters.Add(New MySqlParameter("@status", CInt(status.Value)))
                     Else
                         cmd.CommandText = "SELECT Id, OrderNumber, VendorId, Status, OrderDate, ExpectedDeliveryDate, TotalAmount, Notes " &
-                                          "FROM Pur_PurchaseOrders ORDER BY OrderDate DESC"
+                                          "FROM Pur_PurchaseOrders WHERE IsDeleted = 0 ORDER BY OrderDate DESC"
                     End If
                     Using reader = cmd.ExecuteReader()
                         While reader.Read()

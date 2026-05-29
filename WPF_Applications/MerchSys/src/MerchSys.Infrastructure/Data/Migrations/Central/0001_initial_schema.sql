@@ -216,6 +216,7 @@ CREATE TABLE IF NOT EXISTS `Pur_VendorProducts` (
     `CreatedAt` DATETIME(6) NOT NULL,
     `ModifiedBy` VARCHAR(64) NULL,
     `ModifiedAt` DATETIME(6) NULL,
+    `RowVersion` TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
     PRIMARY KEY (`Id`),
     UNIQUE KEY `UX_Pur_VendorProducts_Vendor_Product` (`VendorId`, `ProductId`) USING BTREE,
     CONSTRAINT `FK_Pur_VendorProducts_VendorId` FOREIGN KEY (`VendorId`) REFERENCES `Pur_Vendors` (`Id`) ON DELETE RESTRICT

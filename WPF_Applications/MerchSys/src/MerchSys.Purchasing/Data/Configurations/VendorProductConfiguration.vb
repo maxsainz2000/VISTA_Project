@@ -24,6 +24,11 @@ Namespace Data.Configurations
                     HasForeignKey(Function(vp) vp.VendorId).
                     OnDelete(DeleteBehavior.Restrict)
 
+            builder.Property(Function(e) e.RowVersion).
+                IsRowVersion().
+                HasColumnType("TIMESTAMP(6)").
+                ValueGeneratedOnAddOrUpdate()
+
             ' Unique composite index on VendorId and ProductId where IsDeleted = 0
             builder.HasIndex(Function(vp) New With {vp.VendorId, vp.ProductId}).
                     IsUnique().

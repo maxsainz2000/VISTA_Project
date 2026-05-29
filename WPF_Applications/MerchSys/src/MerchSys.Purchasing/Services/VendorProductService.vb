@@ -33,9 +33,7 @@ Namespace Services
                     cmd.Parameters.AddWithValue("@vendorId", vendorId)
                     Using reader = cmd.ExecuteReader()
                         While reader.Read()
-                            Dim costStr = reader.GetString(4)
-                            Dim costVal As Decimal = 0D
-                            Decimal.TryParse(costStr, costVal)
+                            Dim costVal = reader.GetDecimal(4)
 
                             list.Add(New VendorProductDto With {
                                 .Id = reader.GetInt32(0),
@@ -57,11 +55,26 @@ Namespace Services
                 Throw New UnauthorizedAccessException("Only Managers are authorized to perform this operation.")
             End If
 
-            Dim exists As Boolean = Await _db.VendorProducts.
-                AnyAsync(Function(vp) Not vp.IsDeleted AndAlso vp.VendorId = vendorId AndAlso vp.ProductId = productId)
+            Dim existingEntry = Await _db.VendorProducts.
+                IgnoreQueryFilters().
+                FirstOrDefaultAsync(Function(vp) vp.VendorId = vendorId AndAlso vp.ProductId = productId)
 
-            If exists Then
-                Throw New InvalidOperationException("This product is already in the vendor's catalog.")
+            If existingEntry IsNot Nothing Then
+                If Not existingEntry.IsDeleted Then
+                    Throw New InvalidOperationException("This product is already in the vendor's catalog.")
+                Else
+                    ' Restore the deleted entry
+                    existingEntry.IsDeleted = False
+                    existingEntry.ProductName = productName
+                    existingEntry.LastUnitCost = unitCost
+                    existingEntry.Notes = notes
+                    existingEntry.DeletedBy = Nothing
+                    existingEntry.DeletedAt = Nothing
+                    existingEntry.ModifiedBy = _session.CurrentUsername
+                    existingEntry.ModifiedAt = DateTime.UtcNow
+                    Await _db.SaveChangesAsync()
+                    Return existingEntry
+                End If
             End If
 
             Dim entry As New VendorProduct With {

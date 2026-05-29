@@ -26,6 +26,11 @@ Namespace Data.Configurations
             builder.Property(Function(v) v.BusinessTIN).HasMaxLength(50)
             builder.Property(Function(v) v.BusinessName).HasMaxLength(200)
             builder.Property(Function(v) v.BusinessAddress).HasMaxLength(500)
+
+            builder.Property(Function(e) e.RowVersion).
+                IsRowVersion().
+                HasColumnType("TIMESTAMP(6)").
+                ValueGeneratedOnAddOrUpdate()
         End Sub
 
     End Class

@@ -21,12 +21,22 @@ Namespace Services
         Public Async Function CreateAsync(dto As CreateVendorDto) As Task(Of Vendor) Implements IVendorService.CreateAsync
             ValidateDto(dto.Name, dto.Phone, dto.DefaultLeadTimeDays)
 
-            Dim nameExists As Boolean = Await _db.Vendors.
+            Dim nameExistsActive As Boolean = Await _db.Vendors.
+                IgnoreQueryFilters().
                 AnyAsync(Function(v) Not v.IsDeleted AndAlso
                          v.Name.ToLower() = dto.Name.ToLower())
 
-            If nameExists Then
+            Dim nameExistsDeleted As Boolean = Await _db.Vendors.
+                IgnoreQueryFilters().
+                AnyAsync(Function(v) v.IsDeleted AndAlso
+                         v.Name.ToLower() = dto.Name.ToLower())
+
+            If nameExistsActive Then
                 Throw New InvalidOperationException($"A vendor named '{dto.Name}' already exists.")
+            End If
+
+            If nameExistsDeleted Then
+                Throw New InvalidOperationException($"A vendor named '{dto.Name}' already exists in a deleted state. Please contact your administrator to restore it or choose a different name.")
             End If
 
             Dim vendor As New Vendor With {
@@ -88,13 +98,24 @@ Namespace Services
                 Throw New InvalidOperationException($"Vendor {id} not found.")
             End If
 
-            Dim nameConflict As Boolean = Await _db.Vendors.
+            Dim nameConflictActive As Boolean = Await _db.Vendors.
+                IgnoreQueryFilters().
                 AnyAsync(Function(v) Not v.IsDeleted AndAlso
                          v.Id <> id AndAlso
                          v.Name.ToLower() = dto.Name.ToLower())
 
-            If nameConflict Then
+            Dim nameConflictDeleted As Boolean = Await _db.Vendors.
+                IgnoreQueryFilters().
+                AnyAsync(Function(v) v.IsDeleted AndAlso
+                         v.Id <> id AndAlso
+                         v.Name.ToLower() = dto.Name.ToLower())
+
+            If nameConflictActive Then
                 Throw New InvalidOperationException($"A vendor named '{dto.Name}' already exists.")
+            End If
+
+            If nameConflictDeleted Then
+                Throw New InvalidOperationException($"A vendor named '{dto.Name}' already exists in a deleted state. Please choose a different name.")
             End If
 
             vendor.Name = dto.Name

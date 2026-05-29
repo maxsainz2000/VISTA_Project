@@ -233,14 +233,17 @@ Namespace ViewModels
         Private Async Function LoadDataAsync() As Task
             IsBusy = True
             Try
-                Dim dashboardTask = _dashboardService.GetDashboardDataAsync()
-                Dim stockoutTask = _stockoutService.EstimateAllAsync()
+                Dim dashboard As StockDashboardDto = Await _dashboardService.GetDashboardDataAsync()
 
-                Await Task.WhenAll(dashboardTask, stockoutTask)
-
-                Dim dashboard As StockDashboardDto = dashboardTask.Result
-                Dim stockouts As List(Of StockoutEstimateDto) = stockoutTask.Result
-                Dim stockoutMap = stockouts.ToDictionary(Function(s) s.ProductId)
+                Dim stockoutMap As New Dictionary(Of Integer, StockoutEstimateDto)()
+                Try
+                    Dim stockouts As List(Of StockoutEstimateDto) = Await _stockoutService.EstimateAllAsync()
+                    For Each s In stockouts
+                        stockoutMap(s.ProductId) = s
+                    Next
+                Catch soEx As Exception
+                    ' Stockout estimation is non-critical; products still display without it
+                End Try
 
                 TotalProducts = dashboard.TotalProducts
                 TotalStockValue = dashboard.TotalStockValue
@@ -288,6 +291,8 @@ Namespace ViewModels
                 ApplyFilters()
                 LastRefreshed = $"Refreshed {DateTime.Now:HH:mm:ss}"
 
+            Catch ex As Exception
+                ' Dashboard load failed — leave KPIs at 0; timer will retry in 60s
             Finally
                 IsBusy = False
             End Try

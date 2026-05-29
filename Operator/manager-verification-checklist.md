@@ -291,7 +291,7 @@ verdict: (pending)
 ### Test 4.1: Database Write Capability (CRUD)
 *Verifies that the Manager has real write permissions to perform actions (unlike the restricted Owner role).*
 
-> **Prerequisite:** Stock must exist before a sale can be completed. Before running this test, go to **Purchasing → Purchase Orders**, create a PO for at least 10 units of any product, then go to **Purchasing → Goods Receiving** and receive those units. Confirm the stock count updates on the Stock Dashboard. Then proceed with the steps below.
+> **Prerequisite:** Stock must exist before a sale can be completed. Before running this test, go to **Purchasing → Vendor Product Catalog** and connect a product to a vendor. Then go to **Purchasing → Purchase Orders**, create a PO for at least 10 units of that product, then go to **Purchasing → Goods Receiving** and receive those units. Confirm the stock count updates on the Stock Dashboard. Then proceed with the steps below.
 
 **What to do:**
 1. Go to the **Sales Cart** in the POS section.
