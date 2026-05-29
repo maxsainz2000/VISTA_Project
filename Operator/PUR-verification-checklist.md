@@ -65,6 +65,13 @@ last-synced: 2026-05-26
 
 - [x] Single-classification receipt: input-VAT row appears in Acc_ExpenseRecords with correct VatableAmount and InputVat — PO-2026-0001 (id=1): VatableAmount=1000.0, InputVat=120.0, VatExemptAmount=0, VatTreatment=0 ✅ 2026-05-20
 
+> **⚠️ Post-pivot regression fixed 2026-05-29 (`debug/PUR-vat-ledger-columns`):** Confirm Receipt threw
+> `MySqlException: Unknown column 'InputVat' in 'field list'`. The VAT columns existed only in the SQLite-era
+> migration `20260510100000_AddVatLedgerColumns`, which was never ported to the central MariaDB schema during
+> the 2026-05-28 pivot. Fixed by new migration `Migrations/Central/AddAccVatLedgerColumns.sql`
+> (`ADD COLUMN IF NOT EXISTS` on `Acc_ExpenseRecords` + `Acc_RevenueRecords`). See
+> `agent_wiki/errors/efcore-vat-ledger-columns-missing-central-schema.md`.
+
 ---
 
 ### Test 2: Mixed-classification receipt sums correctly
