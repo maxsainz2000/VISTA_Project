@@ -202,12 +202,12 @@ Namespace Services
                 Using rdr = cmd.ExecuteReader()
                     If Not rdr.Read() Then Return Nothing
                     Dim u As New UserAccount()
-                    u.Id = CInt(rdr("Id"))
+                    u.Id = Convert.ToInt32(rdr("Id"))
                     u.Username = CStr(rdr("Username"))
                     u.PasswordHash = CStr(rdr("PasswordHash"))
-                    u.Role = CType(CInt(rdr("Role")), UserRole)
-                    u.IsActive = CInt(rdr("IsActive")) = 1
-                    u.FailedLoginAttempts = CInt(rdr("FailedLoginAttempts"))
+                    u.Role = CType(Convert.ToInt32(rdr("Role")), UserRole)
+                    u.IsActive = Convert.ToBoolean(rdr("IsActive"))
+                    u.FailedLoginAttempts = Convert.ToInt32(rdr("FailedLoginAttempts"))
                     u.LockedUntil = If(IsDBNull(rdr("LockedUntil")), Nothing,
                                        CType(DateTime.Parse(CStr(rdr("LockedUntil"))), DateTime?))
                     u.LastPasswordChangeAt = If(IsDBNull(rdr("LastPasswordChangeAt")), Nothing,

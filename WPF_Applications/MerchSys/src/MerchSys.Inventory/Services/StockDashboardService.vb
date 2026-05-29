@@ -13,7 +13,7 @@ Namespace Services
 
         Private ReadOnly _db As InventoryDbContext
         Private ReadOnly _logger As ILogger(Of StockDashboardService)
-        Private _dashboardProductList As List(Of Product)
+        ' _dashboardProductList removed — was a field causing race conditions on timer re-entry; now local
 
         Public Sub New(db As InventoryDbContext, logger As ILogger(Of StockDashboardService))
             _db = db
@@ -28,7 +28,7 @@ Namespace Services
             Dim today As DateTime = DateTime.UtcNow.Date
             Dim nearExpiryThreshold As DateTime = today.AddDays(NearExpiryDays)
 
-            _dashboardProductList = New List(Of Product)()
+            Dim _dashboardProductList As New List(Of Product)()
             Dim dashConnStr = _db.Database.GetConnectionString()
             Using dashConn As New MySqlConnection(dashConnStr)
                 Await dashConn.OpenAsync()
@@ -95,7 +95,7 @@ Namespace Services
                     Next
                 End If
             End Using
-            Dim products As List(Of Product) = _dashboardProductList
+            Dim products As List(Of Product) = _dashboardProductList  ' local snapshot
 
             Dim summaries As New List(Of ProductSummaryDto)()
             Dim totalStockValue As Decimal = 0D
@@ -196,18 +196,78 @@ Namespace Services
             Dim today As DateTime = DateTime.UtcNow.Date
             Dim movementCutoff As DateTime = today.AddDays(-30)
 
-            Dim product As Product = Await _db.Products.
-                Include(Function(p) p.Category).
-                Include(Function(p) p.StockBatches).
-                Include(Function(p) p.ShrinkageRecords).
-                FirstOrDefaultAsync(Function(p) p.Id = productId AndAlso Not p.IsDeleted)
+            Dim detConnStr = _db.Database.GetConnectionString()
+            Dim productName As String = String.Empty
+            Dim categoryName As String = String.Empty
+            Dim retailPrice As Decimal = 0D
+            Dim unit As String = String.Empty
+            Dim hasExpiry As Boolean = False
+            Dim batches As New List(Of StockBatch)()
+            Dim shrinkageList As New List(Of ShrinkageRecord)()
 
-            If product Is Nothing Then
-                Throw New InvalidOperationException($"Product {productId} not found.")
-            End If
+            Using detConn As New MySqlConnection(detConnStr)
+                Await detConn.OpenAsync()
 
-            Dim batchDtos = product.StockBatches.
-                OrderBy(Function(b) b.ReceiptDate).
+                ' Load product + category
+                Using pCmd = detConn.CreateCommand()
+                    pCmd.CommandText =
+                        "SELECT p.Id, p.Name, p.RetailPrice, p.Unit, p.HasExpiry, " &
+                        "COALESCE(c.Name, '') AS CategoryName " &
+                        "FROM Inv_Products p LEFT JOIN Inv_ProductCategories c ON c.Id = p.CategoryId " &
+                        "WHERE p.Id = @id AND p.IsDeleted = 0"
+                    pCmd.Parameters.AddWithValue("@id", productId)
+                    Using r = pCmd.ExecuteReader()
+                        If Not r.Read() Then Throw New InvalidOperationException($"Product {productId} not found.")
+                        productName = r.GetString(1)
+                        retailPrice = r.GetDecimal(2)
+                        unit = If(r.IsDBNull(3), String.Empty, r.GetString(3))
+                        hasExpiry = r.GetBoolean(4)
+                        categoryName = r.GetString(5)
+                    End Using
+                End Using
+
+                ' Load stock batches
+                Using bCmd = detConn.CreateCommand()
+                    bCmd.CommandText =
+                        "SELECT Id, ProductId, QuantityReceived, QuantityRemaining, UnitCost, " &
+                        "ReceiptDate, ExpiryDate, SourcePurchaseOrderId, " &
+                        "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                        "FROM Inv_StockBatches WHERE ProductId = @id ORDER BY ReceiptDate"
+                    bCmd.Parameters.AddWithValue("@id", productId)
+                    Using r = bCmd.ExecuteReader()
+                        While r.Read()
+                            batches.Add(StockService.ReadStockBatch(r))
+                        End While
+                    End Using
+                End Using
+
+                ' Load shrinkage records
+                Using sCmd = detConn.CreateCommand()
+                    sCmd.CommandText =
+                        "SELECT Id, ProductId, StockBatchId, QuantityLost, UnitCost, TotalValue, Reason, Notes, " &
+                        "RecordedDate, CreatedBy, CreatedAt, ModifiedAt " &
+                        "FROM Inv_ShrinkageRecords WHERE ProductId = @id ORDER BY RecordedDate DESC"
+                    sCmd.Parameters.AddWithValue("@id", productId)
+                    Using r = sCmd.ExecuteReader()
+                        While r.Read()
+                            Dim s As New ShrinkageRecord With {
+                                .Id = r.GetInt32(0),
+                                .ProductId = r.GetInt32(1),
+                                .StockBatchId = If(r.IsDBNull(2), CType(Nothing, Integer?), r.GetInt32(2)),
+                                .QuantityLost = r.GetInt32(3),
+                                .UnitCost = r.GetDecimal(4),
+                                .TotalValue = r.GetDecimal(5),
+                                .Reason = r.GetString(6),
+                                .Notes = If(r.IsDBNull(7), String.Empty, r.GetString(7)),
+                                .RecordedDate = r.GetDateTime(8)
+                            }
+                            shrinkageList.Add(s)
+                        End While
+                    End Using
+                End Using
+            End Using
+
+            Dim batchDtos = batches.
                 Select(Function(b) New StockBatchSummaryDto With {
                     .BatchId = b.Id,
                     .ReceiptDate = b.ReceiptDate,
@@ -219,8 +279,7 @@ Namespace Services
                     .SourcePurchaseOrderId = b.SourcePurchaseOrderId
                 }).ToList()
 
-            Dim shrinkageDtos = product.ShrinkageRecords.
-                OrderByDescending(Function(s) s.RecordedDate).
+            Dim shrinkageDtos = shrinkageList.
                 Select(Function(s) New ShrinkageSummaryDto With {
                     .RecordId = s.Id,
                     .RecordedDate = s.RecordedDate,
@@ -231,19 +290,17 @@ Namespace Services
                     .Notes = s.Notes
                 }).ToList()
 
-            Dim recentInflows = product.StockBatches.
+            Dim recentInflows = batches.
                 Where(Function(b) b.ReceiptDate >= movementCutoff).
                 Select(Function(b) New StockMovementDto With {
                     .MovementType = "Inflow",
                     .MovementDate = b.ReceiptDate,
                     .Quantity = b.QuantityReceived,
                     .UnitCost = b.UnitCost,
-                    .Notes = If(b.SourcePurchaseOrderId.HasValue,
-                                $"PO#{b.SourcePurchaseOrderId}",
-                                "Manual receipt")
+                    .Notes = If(b.SourcePurchaseOrderId.HasValue, $"PO#{b.SourcePurchaseOrderId}", "Manual receipt")
                 })
 
-            Dim recentShrinkage = product.ShrinkageRecords.
+            Dim recentShrinkage = shrinkageList.
                 Where(Function(s) s.RecordedDate >= movementCutoff).
                 Select(Function(s) New StockMovementDto With {
                     .MovementType = "Shrinkage",
@@ -253,26 +310,22 @@ Namespace Services
                     .Notes = $"{s.Reason}: {s.Notes}"
                 })
 
-            Dim recentMovements = recentInflows.
-                Concat(recentShrinkage).
-                OrderByDescending(Function(m) m.MovementDate).
-                ToList()
+            Dim recentMovements = recentInflows.Concat(recentShrinkage).OrderByDescending(Function(m) m.MovementDate).ToList()
 
-            Dim nonExpiredBatches = product.StockBatches.
-                Where(Function(b) b.QuantityRemaining > 0 AndAlso
-                                   (Not b.ExpiryDate.HasValue OrElse b.ExpiryDate.Value >= today))
+            Dim nonExpiredBatches = batches.Where(Function(b) b.QuantityRemaining > 0 AndAlso
+                                                               (Not b.ExpiryDate.HasValue OrElse b.ExpiryDate.Value >= today))
             Dim currentStock As Integer = nonExpiredBatches.Sum(Function(b) b.QuantityRemaining)
             Dim stockValue As Decimal = nonExpiredBatches.Sum(Function(b) CDec(b.QuantityRemaining) * b.UnitCost)
 
             Return New ProductDetailDto With {
-                .ProductId = product.Id,
-                .ProductName = product.Name,
-                .Category = If(product.Category IsNot Nothing, product.Category.Name, String.Empty),
+                .ProductId = productId,
+                .ProductName = productName,
+                .Category = categoryName,
                 .CurrentStock = currentStock,
-                .RetailPrice = product.RetailPrice,
+                .RetailPrice = retailPrice,
                 .StockValue = stockValue,
-                .Unit = product.Unit,
-                .HasExpiry = product.HasExpiry,
+                .Unit = unit,
+                .HasExpiry = hasExpiry,
                 .StockBatches = batchDtos,
                 .ShrinkageHistory = shrinkageDtos,
                 .RecentMovements = recentMovements

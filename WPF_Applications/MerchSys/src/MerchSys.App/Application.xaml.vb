@@ -100,6 +100,9 @@ Class Application
                                       services.AddTransient(Of SessionTimeoutWarningViewModel)()
                                       services.AddTransient(Of SessionTimeoutWarningView)()
 
+                                      ' Infrastructure: Notification toasts (Notification.Wpf)
+                                      services.AddSingleton(Of MerchSys.SharedKernel.Interfaces.INotificationService, Services.DefaultNotificationService)()
+
                                       ' ── Purchasing ────────────────────────────────────────
                                       services.AddPurchasingServices()
 

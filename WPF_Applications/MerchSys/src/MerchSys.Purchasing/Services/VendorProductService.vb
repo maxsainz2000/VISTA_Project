@@ -33,9 +33,7 @@ Namespace Services
                     cmd.Parameters.AddWithValue("@vendorId", vendorId)
                     Using reader = cmd.ExecuteReader()
                         While reader.Read()
-                            Dim costStr = reader.GetString(4)
-                            Dim costVal As Decimal = 0D
-                            Decimal.TryParse(costStr, costVal)
+                            Dim costVal = reader.GetDecimal(4)
 
                             list.Add(New VendorProductDto With {
                                 .Id = reader.GetInt32(0),
