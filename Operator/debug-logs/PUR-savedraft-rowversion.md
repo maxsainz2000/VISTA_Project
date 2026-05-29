@@ -70,9 +70,42 @@ Live DB verification:
 
 ---
 
+---
+
+## Follow-up issue (same session): Delete Draft does not remove PO from list
+
+### Problem
+Operator confirmed Save Draft works. Then deleting a draft showed "Draft deleted."
+but PO-2026-0001 (Draft, ₱15,000) remained in the list after refresh.
+
+### Root cause (confirmed)
+`DeleteDraftAsync` calls `_db.PurchaseOrders.Remove(po)`. `BaseDbContext.SaveChangesAsync`
+intercepts `EntityState.Deleted` on `ISoftDeletable` entities and converts the hard delete
+into a soft delete (`IsDeleted = True`, `DeletedAt`, `DeletedBy`). Verified in live DB:
+`Pur_PurchaseOrders` Id=2 now has `IsDeleted=1, DeletedAt=2026-05-29 02:33:39`.
+
+The delete itself works. The list query is the problem: `GetAllAsync` bypasses EF with a
+raw `MySqlConnection` query, so the global EF soft-delete query filter (registered in
+`BaseDbContext.ApplySoftDeleteFilters`) does NOT apply. The raw SQL had no `IsDeleted`
+predicate, so soft-deleted rows kept appearing.
+
+### Fix
+Added `IsDeleted = 0` to both branches of the `GetAllAsync` raw query in
+`PurchaseOrderService.vb`:
+- with status: `WHERE IsDeleted = 0 AND Status = @status`
+- without status: `WHERE IsDeleted = 0`
+
+Build: 0 errors, 0 warnings. Runtime confirmation deferred to operator.
+
+> **Latent:** any other raw-SQL read in the Purchasing module (or other modules) that
+> targets a soft-deletable table must include the same `IsDeleted = 0` predicate — the EF
+> query filter only protects EF-materialized queries, not raw ADO.NET reads.
+
+---
+
 ## Resolution
 - **Status:** resolved (pending operator runtime confirmation)
-- **Root cause:** `AuditableEntity` inherits `ConcurrencyAwareEntity`, giving every auditable entity a `RowVersion` property. EF maps it by convention. `Pur_PurchaseOrderLines` (append-only child) has no RowVersion column and the config did not ignore the property, so the insert referenced a non-existent column.
+- **Root cause:** `AuditableEntity` inherits `ConcurrencyAwareEntity`, giving every auditable entity a `RowVersion` property. EF maps it by convention. `Pur_PurchaseOrderLines` (append-only child) has no RowVersion column and the config did not ignore the property, so the insert referenced a non-existent column. (Plus follow-up soft-delete/raw-SQL filter issue documented above.)
 - **Fix description:** `PurchaseOrderLineConfiguration` now calls `builder.Ignore(Function(l) l.RowVersion)`.
 - **Final commit:** (see git log on this branch)
 - **Agent wiki entry needed?** yes — append-only child entities inheriting ConcurrencyAwareEntity must Ignore RowVersion when their table omits the column. NOTE: same latent bug class affects every other AuditableEntity-derived entity whose table has no RowVersion column (e.g. Pur_GoodsReceiptLines, Pos_SalesTransactionLines, Pos_CreditPayments, etc.) — flagged for separate review.

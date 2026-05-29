@@ -74,11 +74,11 @@ Namespace Services
                 Using cmd = conn.CreateCommand()
                     If status.HasValue Then
                         cmd.CommandText = "SELECT Id, OrderNumber, VendorId, Status, OrderDate, ExpectedDeliveryDate, TotalAmount, Notes " &
-                                          "FROM Pur_PurchaseOrders WHERE Status = @status ORDER BY OrderDate DESC"
+                                          "FROM Pur_PurchaseOrders WHERE IsDeleted = 0 AND Status = @status ORDER BY OrderDate DESC"
                         cmd.Parameters.Add(New MySqlParameter("@status", CInt(status.Value)))
                     Else
                         cmd.CommandText = "SELECT Id, OrderNumber, VendorId, Status, OrderDate, ExpectedDeliveryDate, TotalAmount, Notes " &
-                                          "FROM Pur_PurchaseOrders ORDER BY OrderDate DESC"
+                                          "FROM Pur_PurchaseOrders WHERE IsDeleted = 0 ORDER BY OrderDate DESC"
                     End If
                     Using reader = cmd.ExecuteReader()
                         While reader.Read()
