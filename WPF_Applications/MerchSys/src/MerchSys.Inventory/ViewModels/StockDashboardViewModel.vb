@@ -21,6 +21,10 @@ Namespace ViewModels
         Public Property Unit As String
         Public Property RetailPrice As Decimal
         Public Property StockValue As Decimal
+        ''' <summary>Weighted-average purchase cost across remaining non-expired batches.</summary>
+        Public Property AverageUnitCost As Decimal
+        ''' <summary>Unit cost of the oldest remaining batch — the cost the next sale draws from.</summary>
+        Public Property FifoOldestUnitCost As Decimal
         ''' <summary>"Out" | "Low" | "Normal"</summary>
         Public Property StockStatus As String
         ''' <summary>"HasExpired" | "NearExpiry" | "OK"</summary>
@@ -262,6 +266,8 @@ Namespace ViewModels
                                    .Unit = p.Unit,
                                    .RetailPrice = p.RetailPrice,
                                    .StockValue = p.StockValue,
+                                   .AverageUnitCost = p.AverageUnitCost,
+                                   .FifoOldestUnitCost = p.FifoOldestUnitCost,
                                    .StockStatus = p.StockStatus,
                                    .ExpiryStatus = p.ExpiryStatus,
                                    .HasExpiry = p.HasExpiry,
