@@ -520,13 +520,17 @@ Namespace ViewModels
 
                 If Not payResult.Success Then
                     StatusMessage = $"Payment failed: {payResult.ErrorMessage}"
+                    ' Void the persisted transaction since payment failed
+                    Await _cartService.VoidTransactionAsync(transaction.Id, payResult.ErrorMessage)
+                    
                     ' Cart is already persisted — create a new one so we don't re-use the finalized cart ID.
                     Dim newCart = Await _cartService.CreateCartAsync()
                     _currentCartId = newCart.CartId
                     Return
                 End If
 
-                Dim receipt = Await _receiptService.GetReceiptByTransactionAsync(transaction.Id)
+                ' Generate the receipt now that payment has succeeded
+                Dim receipt = Await _receiptService.GenerateReceiptAsync(transaction.Id)
                 CurrentReceipt = receipt
                 IsReceiptVisible = True
                 StatusMessage = $"Payment successful — {receipt.ReceiptNumber}"

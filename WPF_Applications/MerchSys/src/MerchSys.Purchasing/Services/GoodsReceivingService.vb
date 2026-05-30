@@ -127,6 +127,25 @@ Namespace Services
 
             Await _db.SaveChangesAsync()
 
+            ' Create AP record based on actual received quantities and costs.
+            ' This captures the real invoice obligation (e.g. short shipments reduce the AP amount).
+            Dim totalReceivedValue As Decimal = receipt.Lines.
+                Sum(Function(l) CDec(l.QuantityReceived) * l.UnitCost)
+
+            _db.AccountsPayableEntries.Add(New AccountsPayableEntry With {
+                .PurchaseOrderId = purchaseOrderId,
+                .VendorId = po.VendorId,
+                .InvoiceNumber = receipt.ReceiptNumber,
+                .InvoiceDate = receipt.ReceivedDate,
+                .DueDate = receipt.ReceivedDate.AddDays(30),
+                .TotalAmount = totalReceivedValue,
+                .AmountPaid = 0D,
+                .Balance = totalReceivedValue,
+                .IsPaid = False
+            })
+
+            Await _db.SaveChangesAsync()
+
             Dim ev As New GoodsReceivedEvent With {
                 .PurchaseOrderId = purchaseOrderId,
                 .ReceivedDate = receipt.ReceivedDate

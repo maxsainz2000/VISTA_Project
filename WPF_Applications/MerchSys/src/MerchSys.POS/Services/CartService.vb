@@ -126,8 +126,6 @@ Namespace Services
             _context.SalesTransactions.Add(transaction)
             Await _context.SaveChangesAsync()
 
-            Await _receiptService.GenerateReceiptAsync(transaction.Id)
-
             Dim removed As CartDto = Nothing
             _carts.TryRemove(cartId, removed)
 

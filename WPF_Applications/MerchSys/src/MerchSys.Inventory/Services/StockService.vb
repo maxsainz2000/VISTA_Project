@@ -59,6 +59,23 @@ Namespace Services
                 .Quantity = qty,
                 .OccurredAt = DateTime.UtcNow
             })
+            
+            Dim product = Await _db.Products.FindAsync(productId)
+            If product IsNot Nothing AndAlso product.RetailPrice < unitCost Then
+                Dim oldPrice = product.RetailPrice
+                Dim suggestedPrice = Math.Round(unitCost * 1.2D, 2)
+                product.RetailPrice = suggestedPrice
+                
+                _db.ProductPriceHistory.Add(New ProductPriceHistory With {
+                    .ProductId = product.Id,
+                    .OldPrice = oldPrice,
+                    .NewPrice = suggestedPrice,
+                    .ChangedAt = DateTime.UtcNow,
+                    .ChangedBy = "System",
+                    .Reason = $"Auto-adjusted margin to 20% due to new FIFO cost (₱{unitCost:F2})"
+                })
+            End If
+
             Await _db.SaveChangesAsync()
             _logger.LogInformation("Stock batch added: ProductId={ProductId}, Qty={Qty}, UnitCost={UnitCost}", productId, qty, unitCost)
             Return batch

@@ -284,18 +284,6 @@ Namespace Services
 
             po.Status = PurchaseOrderStatus.Closed
 
-            _db.AccountsPayableEntries.Add(New AccountsPayableEntry With {
-                .PurchaseOrderId = po.Id,
-                .VendorId = po.VendorId,
-                .InvoiceNumber = po.OrderNumber,
-                .InvoiceDate = DateTime.UtcNow,
-                .DueDate = DateTime.UtcNow.AddDays(30),
-                .TotalAmount = po.TotalAmount,
-                .AmountPaid = 0D,
-                .Balance = po.TotalAmount,
-                .IsPaid = False
-            })
-
             Await _db.SaveChangesAsync()
 
             Return Await GetByIdAsync(id)

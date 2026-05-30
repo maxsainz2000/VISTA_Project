@@ -283,15 +283,18 @@ verdict: (pending)
 
 **Step-by-Step Actions:**
 1. Press `Ctrl+2` (Inventory), and click **Product Management** in the menu panel.
-2. Select **Urea 46-0-0** from the product grid, and click **Edit** (or double-click the row).
-3. Focus on the **Retail Price** section of the edit popup.
+2. Observe the **Retail Price** column for **Urea 46-0-0** in the grid.
+   - **Observe:** It is already **₱1,824.00**. The system automatically adjusted it during Goods Receiving to maintain profitability against the new ₱1,520.00 FIFO cost.
+3. Select **Urea 46-0-0** from the product grid, and click **Edit** (or double-click the row).
+4. Focus on the **Retail Price** section of the edit popup.
    - **Observe:** The **FIFO Costing Helper Panel** is displayed. Verify the values shown:
      - `Current FIFO Cost:` **₱1,520.00** (read directly from our newly received stock batch).
      - `Suggested Price (20%):` **₱1,824.00** (auto-calculates 1.20 × 1,520.00).
-4. Attempt to edit the Retail Price to an unprofitable value (below FIFO cost):
-   - In the **Retail Price** textbox, type **1450.00**.
+   - **Observe:** The **Retail Price** textbox natively shows **1824.00**.
+5. Attempt to edit the Retail Price to an unprofitable value (below FIFO cost) to verify safety guards:
+   - In the **Retail Price** textbox, manually type **1450.00**.
    - **Observe:** The margin preview label immediately updates to show a negative margin and margin percentage (e.g. `Margin: -₱70.00 (-4.6%)`).
-5. Click **Save** inside the editor.
+6. Click **Save** inside the editor.
 
 **Expected Output:**
 - [ ] The save action is **blocked**; the editor does not close, and no database commit occurs.
@@ -316,22 +319,30 @@ verdict: (pending)
 4. Click the **Save** button.
    - **Observe:** The editor closes successfully, and the main product grid refreshes showing Urea 46-0-0 with updated Retail Price **₱1,820.00**.
 5. Select **Urea 46-0-0** on the grid again, and click the **View Price History** button.
-   - **Observe:** The price history window opens with a read-only grid.
+   - **Observe:** The price history window opens with a read-only grid. Verify you see **two** recent entries:
+     - The **System** entry auto-created during Goods Receiving changing it from ₱1,450 to ₱1,824.
+     - Your manual entry changing it from ₱1,824 to ₱1,820 with your reason.
 
 **Expected Output:**
-- [ ] The history grid contains exactly **1 row** showing:
-  - `Old Price:` **₱1,450.00** (seeded retail price).
-  - `New Price:` **₱1,820.00** (saved retail price).
-  - `Delta (Δ):` **+370.00** (colored in Green indicating a price increase).
-  - `Changed By:` **manager** (your current logged-in user).
-  - `Reason:` *"Adjusted markup to match increased supplier raw material costs."*
-  - `ChangedAt:` Recent UTC timestamp.
+- [ ] The history grid contains **2 rows** for today showing:
+  - **Row 1 (Manual):**
+    - `Old Price:` **₱1,824.00** (auto-adjusted price).
+    - `New Price:` **₱1,820.00** (saved retail price).
+    - `Delta (Δ):` **-4.00** (colored in Red indicating a price decrease from the auto-suggested price).
+    - `Changed By:` **manager** (your current logged-in user).
+    - `Reason:` *"Adjusted markup to match increased supplier raw material costs."*
+  - **Row 2 (System):**
+    - `Old Price:` **₱1,450.00** (seeded retail price).
+    - `New Price:` **₱1,824.00** (system auto-adjusted price).
+    - `Delta (Δ):` **+374.00** (colored in Green indicating a price increase).
+    - `Changed By:` **System**.
+    - `Reason:` *"Auto-adjusted margin to 20% due to new FIFO cost (₱1520.00)"*
 - [ ] Close the Price History window.
 
 *Status Check:*
 - **Urea grid Retail Price:** ₱_________ (Expected: 1,820.00)
-- **Price History Delta (Δ) value:** ₱_________ (Expected: +370.00)
-- **Price History Changed By username:** __________________ (Expected: manager)
+- **Manual Price History Delta (Δ) value:** ₱_________ (Expected: -4.00)
+- **Manual Price History Changed By username:** __________________ (Expected: manager)
 
 ---
 
