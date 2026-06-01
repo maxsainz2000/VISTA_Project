@@ -2,7 +2,7 @@
 type: index
 title: "VISTA Domain Wiki — Master Index"
 aliases: [wiki index, domain wiki, wiki home]
-last-updated: 2026-05-28
+last-updated: 2026-06-01
 ---
 
 # VISTA Domain Wiki — Master Index
@@ -24,6 +24,7 @@ Condensed versions of raw documents in `Sources/`. Never fabricated — every cl
 | [[wiki/sources/inventory-module-paper\|Inventory Paper]] | `Sources/Inventory-Module_AcademicPaper.md` | 218 |
 | [[wiki/sources/pos-module-paper\|POS Paper]] | `Sources/POS-Module_AcademicPaper.md` | 214 |
 | [[wiki/sources/accounting-module-paper\|Accounting Paper]] | `Sources/Accounting-Module_AcademicPaper.md` | 240 |
+| [[wiki/sources/villon-interview-populated\|Villon Interview]] | `Sources/Villon_Interview_Populated.md` | 361 |
 
 ---
 
@@ -95,11 +96,11 @@ Cross-cutting analysis and reference material synthesized from multiple sources.
 
 | Metric | Count |
 |---|---|
-| Source Summaries | 6 |
+| Source Summaries | 7 |
 | Entity Pages | 6 |
 | Concept Pages | 15 (1 superseded) |
 | Analysis Pages | 3 |
-| **Total Wiki Pages** | **30** |
+| **Total Wiki Pages** | **31** |
 | Problems Documented | 25 |
 | Modules | 4 |
 

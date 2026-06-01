@@ -2,9 +2,9 @@
 type: concept
 title: "Expiry Date Tracking"
 aliases: [expiry tracking, batch-level expiry, perishable monitoring]
-sources: [Sources/Inventory-Module_AcademicPaper.md]
-related: [fifo-costing, module-inventory]
-last-updated: 2026-05-02
+sources: [Sources/Inventory-Module_AcademicPaper.md, Sources/Villon_Interview_Populated.md]
+related: [villon-interview-populated, fifo-costing, module-inventory]
+last-updated: 2026-06-01
 ---
 
 # Expiry Date Tracking
@@ -33,6 +33,14 @@ Systematic monitoring of expiration dates at the **batch level** for products wi
 
 [[fifo-costing|FIFO]] naturally prioritizes oldest batches for sale, which aligns with expiry management. The combination means the system both costs and tracks age correctly.
 
+## Operational Validation
+
+The populated manager interview (`Sources/Villon_Interview_Populated.md`) validates these expiry tracking details:
+- **Perishable Categories (Q12):** The manager explicitly confirmed that expiry dates must be tracked for **Pesticides/Chemicals**, **Seeds**, and **Feeds**.
+- **Fertilizer Exemption (Q12):** The manager did not select fertilizers as requiring expiry tracking, operationally validating the design decision that fertilizers are shelf-stable and do not require tracking.
+
 ## Source References
 
 - [[wiki/sources/inventory-module-paper|Inventory Paper]] — Problem I4, batch-level expiry definition
+- [[wiki/sources/villon-interview-populated|Villon Interview]] — operational validation of product expiry classifications
+

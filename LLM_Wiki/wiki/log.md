@@ -4,6 +4,28 @@ Chronological record of all wiki maintenance actions.
 
 <!-- Append new entries at the top. Format: ## [YYYY-MM-DD] action | description -->
 
+## [2026-06-01] ingest | Ingest Villon Manager Interview
+
+- New source: `Sources/Villon_Interview_Populated.md` — confirmed operational practices, credit rules, costing, seasonal demand, and dashboard requirements for all 4 modules.
+- Pages created:
+  - `wiki/sources/villon-interview-populated.md` (source summary)
+- Pages updated:
+  - `wiki/entities/villon-farm-supply.md` — updated profile and pre-VISTA state with interview details.
+  - `wiki/entities/module-purchasing.md` — integrated pre-system ordering and pricing volatility validations.
+  - `wiki/entities/module-inventory.md` — incorporated weekly counts, seasonal demand inputs, and stockout history.
+  - `wiki/entities/module-pos.md` — validated payment methods, daily summary alerts, and utang collection.
+  - `wiki/entities/module-accounting.md` — reinforced bookkeeping roles, cash flow gaps, and plain-language needs.
+  - `wiki/concepts/utang-credit-system.md` — added collection details and validated the credit blocking logic.
+  - `wiki/concepts/fifo-costing.md` — confirmed client selection of FIFO costing.
+  - `wiki/concepts/expiry-date-tracking.md` — validated list of perishable items vs shelf-stable fertilizers.
+  - `wiki/concepts/plain-language-reporting.md` — reinforced need for plain-language interpretation.
+  - `wiki/concepts/reorder-suggestion-engine.md` — incorporated demand alerts and palay season demand.
+  - `wiki/concepts/bir-compliance.md` — validated registration and receipt issuance.
+  - `wiki/analysis/problem-feature-matrix.md` — noted interview validation for all 25 problem-feature pairs.
+  - `wiki/index.md` — registered the new summary page, updated statistics, and refreshed timestamps.
+- Mini-lint: verified all inbound and outbound wikilinks are intact, ensuring zero broken links or orphans.
+- Agent: Antigravity
+
 ## [2026-05-28] amend | Architecture pivot — SQLite removed, pure client-server adopted
 
 - New source: `Sources/system_plan_amendment_2026-05-28.md` (AMD-2026-05-28-01) — authoritative amendment supersedes `system_plan.md` §5.3, §5.4 (Local DB row), §10 "Data Sync Conflict" row, §11 "Data Sync Conflict" mitigation, §12 offline-first bullet.

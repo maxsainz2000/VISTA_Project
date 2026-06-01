@@ -2,9 +2,9 @@
 type: concept
 title: "BIR Compliance"
 aliases: [BIR, Official Receipt, OR-YYYY-XXXX, Bureau of Internal Revenue]
-sources: [Sources/POS-Module_AcademicPaper.md]
-related: [module-pos, vat-ready]
-last-updated: 2026-05-02
+sources: [Sources/POS-Module_AcademicPaper.md, Sources/Villon_Interview_Populated.md]
+related: [villon-interview-populated, module-pos, vat-ready]
+last-updated: 2026-06-01
 ---
 
 # BIR Compliance
@@ -39,6 +39,14 @@ The Bureau of Internal Revenue requires all registered Philippine businesses to:
 - PHP 1,000–50,000 per violation (NIRC §264)
 - Potential criminal prosecution for repeat offenders
 
+## Operational Validation
+
+The populated manager interview (`Sources/Villon_Interview_Populated.md`) validates these BIR compliance features:
+- **BIR Registration & Receipts (Q25, Q36):** Confirms Villon Farm Supply is fully BIR-registered, issues sequential Official Receipts (ORs), and maintains standard documentation long-term for regulatory compliance.
+- **Audit Preparedness (Q36):** The manager confirmed that Villon Farm Supply has previously undergone a BIR audit, highlighting the necessity of the digital, tamper-proof, sequential transaction log in VISTA to ensure seamless compliance during future audits.
+
 ## Source References
 
 - [[wiki/sources/pos-module-paper|POS Paper]] — RR 18-2012, RR 11-2018, receipt requirements
+- [[wiki/sources/villon-interview-populated|Villon Interview]] — operational validation of BIR registration and audit readiness
+

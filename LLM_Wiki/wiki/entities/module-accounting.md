@@ -2,9 +2,9 @@
 type: entity
 title: "Accounting Module"
 aliases: [MerchSys.Accounting, Accounting]
-sources: [Sources/system_plan.md, Sources/Accounting-Module_AcademicPaper.md]
-related: [villon-farm-supply, fifo-costing, plain-language-reporting, module-purchasing, module-inventory, module-pos]
-last-updated: 2026-05-02
+sources: [Sources/system_plan.md, Sources/Accounting-Module_AcademicPaper.md, Sources/Villon_Interview_Populated.md]
+related: [villon-interview-populated, fifo-costing, plain-language-reporting, module-purchasing, module-inventory, module-pos]
+last-updated: 2026-06-01
 ---
 
 # Accounting Module (MerchSys.Accounting)
@@ -53,7 +53,18 @@ POS        → Accounting (revenue, AR, payment methods)
 
 `MerchSys.Accounting`
 
+## Operational Validations
+
+The populated manager interview (`Sources/Villon_Interview_Populated.md`) validates these accounting features:
+- **Auto-Generated Reports & Manual Bookkeeping (A1, A2):** Confirms that the owner personally and manually manages the store's bookkeeping, requesting reports daily or weekly that are currently written out and delivered manually via text/chat messaging.
+- **Product Margin Tracking (A3):** Confirms that gross profit margins on individual products are not systematically tracked or calculated, despite suspicion that some products have lower margins due to supplier cost increases.
+- **Cash Flow Shortfall Analysis (A4):** Confirms that cash flow gaps occur because credit sales delay cash collections while supplier bills come due, validating the absolute necessity of the cash flow visibility feature in V2.
+- **Plain-Language Summaries (A5):** The manager has partial financial literacy and requests monthly reports written in plain language that highlight actual net profit/loss, cash flow status, and inventory movement, reinforcing the mandatory "What This Means" requirement.
+- **Integrated Platform Needs (A7):** The manager states the single most impactful change would be real-time automated visibility of cash flow and profitability in one integrated platform, rather than manual, after-the-fact ledger books.
+
 ## Source References
 
 - [[wiki/sources/system-plan|System Plan]] — architecture, problem list
 - [[wiki/sources/accounting-module-paper|Accounting Paper]] — detailed requirements, V1/V2 scope
+- [[wiki/sources/villon-interview-populated|Villon Interview]] — operational validation of A1–A7 problems and workflows
+

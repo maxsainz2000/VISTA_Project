@@ -2,9 +2,9 @@
 type: entity
 title: "POS Module"
 aliases: [MerchSys.POS, Point of Sale, POS]
-sources: [Sources/system_plan.md, Sources/POS-Module_AcademicPaper.md]
-related: [villon-farm-supply, module-inventory, module-accounting, utang-credit-system, bir-compliance]
-last-updated: 2026-05-02
+sources: [Sources/system_plan.md, Sources/POS-Module_AcademicPaper.md, Sources/Villon_Interview_Populated.md]
+related: [villon-interview-populated, villon-farm-supply, module-inventory, module-accounting, utang-credit-system, bir-compliance]
+last-updated: 2026-06-01
 ---
 
 # POS Module (MerchSys.POS)
@@ -47,7 +47,18 @@ Credit Payment → POS → Accounting (AR reduced)
 
 `MerchSys.POS`
 
+## Operational Validations
+
+The populated manager interview (`Sources/Villon_Interview_Populated.md`) validates these POS features:
+- **Payment Methods & Sales Tracking (S1):** Confirms typical customer checkout flows include Cash, GCash, Bank Transfer, and Credit (Utang). 
+- **Utang Credit Management (S2):** Confirms that extended credit is managed via a manual ledger.
+- **Credit Blocking Rule (S4):** The manager explicitly confirms they enforce a rule where no customer is allowed to incur additional credit if they have an existing unpaid balance. This is direct operational proof for the zero-tolerance credit blocking logic.
+- **BIR Compliance (S3):** Confirms Villon Farm Supply is BIR-registered and issues Official Receipts.
+- **Daily Summary & Alerts (S5):** The manager requests a daily sales summary of total sales, transactions, and remaining stock, with low-stock warnings for fast-moving items. Sunday is confirmed as the peak market day.
+
 ## Source References
 
 - [[wiki/sources/system-plan|System Plan]] — architecture, problem list
 - [[wiki/sources/pos-module-paper|POS Paper]] — detailed requirements, credit system, BIR compliance
+- [[wiki/sources/villon-interview-populated|Villon Interview]] — operational validation of S1–S5 problems and workflows
+

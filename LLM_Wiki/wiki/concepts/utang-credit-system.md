@@ -2,9 +2,9 @@
 type: concept
 title: "Utang Credit System"
 aliases: [utang, credit system, informal credit, customer credit]
-sources: [Sources/POS-Module_AcademicPaper.md]
-related: [module-pos, bir-compliance, module-accounting]
-last-updated: 2026-05-02
+sources: [Sources/POS-Module_AcademicPaper.md, Sources/Villon_Interview_Populated.md]
+related: [villon-interview-populated, module-pos, bir-compliance, module-accounting]
+last-updated: 2026-06-01
 ---
 
 # Utang Credit System
@@ -37,6 +37,14 @@ last-updated: 2026-05-02
 
 60–70% of rural agricultural retail transactions in the Philippines involve some form of credit extension (Llanto & Badiola, 2022).
 
+## Operational Validation
+
+The populated manager interview (`Sources/Villon_Interview_Populated.md`) validates these utang credit features:
+- **Credit Blocking Rule (Q22):** The manager confirmed that while there is no formal credit limit per customer, the store strictly enforces a policy where a customer with any existing unpaid balance is blocked from incurring additional credit. This provides empirical validation for the system's hard credit blocking logic.
+- **Collection Methods (Q22):** Overdue accounts are followed up in-store when customers visit, or through personal home visits by the manager if they do not come in.
+
 ## Source References
 
 - [[wiki/sources/pos-module-paper|POS Paper]] — S2, S4, credit blocking rule, AR management
+- [[wiki/sources/villon-interview-populated|Villon Interview]] — operational validation of S2/S4 credit blocking and collections
+

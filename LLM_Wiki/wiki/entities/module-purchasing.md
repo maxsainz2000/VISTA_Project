@@ -2,9 +2,9 @@
 type: entity
 title: "Purchasing Module"
 aliases: [MerchSys.Purchasing, Purchasing]
-sources: [Sources/system_plan.md, Sources/Purchasing-Module_AcademicPaper.md]
-related: [villon-farm-supply, module-inventory, fifo-costing, reorder-suggestion-engine]
-last-updated: 2026-05-02
+sources: [Sources/system_plan.md, Sources/Purchasing-Module_AcademicPaper.md, Sources/Villon_Interview_Populated.md]
+related: [villon-interview-populated, villon-farm-supply, module-inventory, fifo-costing, reorder-suggestion-engine]
+last-updated: 2026-06-01
 ---
 
 # Purchasing Module (MerchSys.Purchasing)
@@ -38,7 +38,17 @@ Supplier → [PO Created] → [Goods Received] → Inventory Module (stock updat
 
 `MerchSys.Purchasing`
 
+## Operational Validations
+
+The populated manager interview (`Sources/Villon_Interview_Populated.md`) validates these purchasing features:
+- **Reorder Suggestion Engine (P1):** Confirms that prior to VISTA, reordering was strictly based on gut feel and visual shelf checks, leading to stockouts.
+- **Supplier Management & Volatility (P3, P5):** High supplier price volatility was confirmed as the manager's primary frustration. When a supplier changes a price, retail prices must currently be adjusted manually.
+- **Accounts Payable (P4):** Confirms credit tracking is managed informally based on the schedules of supplier visits rather than a formal ledger.
+- **Seasonal Flags (P6):** Purchasing activity spikes significantly during the palay (rice) planting and growing seasons, particularly for agricultural chemicals, seeds, and fertilizers.
+
 ## Source References
 
 - [[wiki/sources/system-plan|System Plan]] — architecture, problem list
 - [[wiki/sources/purchasing-module-paper|Purchasing Paper]] — detailed requirements, RRL, methodology
+- [[wiki/sources/villon-interview-populated|Villon Interview]] — operational validation of P1–P6 problems and workflows
+

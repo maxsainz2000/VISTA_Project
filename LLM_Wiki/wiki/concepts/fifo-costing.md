@@ -2,9 +2,9 @@
 type: concept
 title: "FIFO Costing"
 aliases: [First-In First-Out, FIFO, batch-level costing]
-sources: [Sources/system_plan.md, Sources/Inventory-Module_AcademicPaper.md, Sources/Accounting-Module_AcademicPaper.md]
-related: [module-inventory, module-accounting, expiry-date-tracking]
-last-updated: 2026-05-02
+sources: [Sources/system_plan.md, Sources/Inventory-Module_AcademicPaper.md, Sources/Accounting-Module_AcademicPaper.md, Sources/Villon_Interview_Populated.md]
+related: [villon-interview-populated, module-inventory, module-accounting, expiry-date-tracking]
+last-updated: 2026-06-01
 ---
 
 # FIFO Costing (First-In, First-Out)
@@ -42,8 +42,15 @@ Each purchase batch records:
 - **Accounting** → calculates COGS for Income Statement
 - **Purchasing** → records batch cost at goods receipt
 
+## Operational Validation
+
+The populated manager interview (`Sources/Villon_Interview_Populated.md`) validates the choice of FIFO costing:
+- **Costing Selection (Q13):** When asked about inventory valuation and COGS when products are bought at different prices across deliveries, the manager explicitly selected **FIFO (First In, First Out)**, confirming that the oldest batch's price is used first.
+
 ## Source References
 
 - [[wiki/sources/system-plan|System Plan]] — "FIFO batch-level records"
 - [[wiki/sources/inventory-module-paper|Inventory Paper]] — FIFO definition, batch-level detail
 - [[wiki/sources/accounting-module-paper|Accounting Paper]] — FIFO-based COGS calculation
+- [[wiki/sources/villon-interview-populated|Villon Interview]] — operational validation of FIFO costing choice
+
