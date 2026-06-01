@@ -47,18 +47,10 @@ Namespace Services
                     periodDescription = New DateTime(year, month, 1).ToString("MMMM yyyy")
                     displayLabel = "VAT Payable"
 
-                    Dim monthlyLocked As Boolean = False
-                    Try
-                        vatReturn = Await _vatReportingService.GenerateMonthlyVatReturnAsync(year, month)
-                    Catch ex As VatReturnLockedException
-                        monthlyLocked = True
-                    End Try
-                    If monthlyLocked Then
-                        ' Period already filed — read the existing filed return
-                        Dim all = Await _vatReportingService.ListReturnsAsync(year)
-                        vatReturn = all.FirstOrDefault(
-                            Function(r) r.Period = month AndAlso r.PeriodType = VatReturnPeriodType.Monthly)
-                    End If
+                    ' Read-only preview: computes the figure from the ledger WITHOUT persisting a
+                    ' VatReturn, so the read-only Owner dashboard can display this KPI without
+                    ' tripping RoleGuardInterceptor (a generate-on-read write was the root cause).
+                    vatReturn = Await _vatReportingService.PreviewMonthlyVatReturnAsync(year, month)
                 Else
                     Dim year = asOfDate.Year
                     Dim quarter = GetCurrentQuarter(asOfDate.Month)
@@ -66,17 +58,8 @@ Namespace Services
                     periodDescription = $"Q{quarter} {year}"
                     displayLabel = "Percentage Tax"
 
-                    Dim quarterlyLocked As Boolean = False
-                    Try
-                        vatReturn = Await _vatReportingService.GenerateNonVatPercentageTaxAsync(year, quarter)
-                    Catch ex As VatReturnLockedException
-                        quarterlyLocked = True
-                    End Try
-                    If quarterlyLocked Then
-                        Dim all = Await _vatReportingService.ListReturnsAsync(year)
-                        vatReturn = all.FirstOrDefault(
-                            Function(r) r.Period = quarter AndAlso r.PeriodType = VatReturnPeriodType.Quarterly)
-                    End If
+                    ' Read-only preview — never persists (see note above).
+                    vatReturn = Await _vatReportingService.PreviewNonVatPercentageTaxAsync(year, quarter)
                 End If
 
                 If vatReturn Is Nothing Then

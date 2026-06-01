@@ -41,6 +41,24 @@ Namespace Services
         ''' </summary>
         Function GenerateNonVatPercentageTaxAsync(year As Integer, quarter As Integer) As Task(Of VatReturn)
 
+        ''' <summary>
+        ''' Read-only preview of Form 2550M for the given year/month. Computes the same figures as
+        ''' <see cref="GenerateMonthlyVatReturnAsync"/> but DOES NOT persist (no Add/SaveChanges),
+        ''' so it is safe for read-only callers (Owner role) and dashboard KPI reads. Returns an
+        ''' in-memory <see cref="VatReturn"/> (<c>Id = 0</c>), or <c>Nothing</c> when the business is
+        ''' not VAT-registered.
+        ''' </summary>
+        Function PreviewMonthlyVatReturnAsync(year As Integer, month As Integer) As Task(Of VatReturn)
+
+        ''' <summary>
+        ''' Read-only preview of Form 2551Q for the given year/quarter. Computes the same figures as
+        ''' <see cref="GenerateNonVatPercentageTaxAsync"/> but DOES NOT persist (no Add/SaveChanges),
+        ''' so it is safe for read-only callers (Owner role) and dashboard KPI reads. Returns an
+        ''' in-memory <see cref="VatReturn"/> (<c>Id = 0</c>), or <c>Nothing</c> when the business is
+        ''' VAT-registered.
+        ''' </summary>
+        Function PreviewNonVatPercentageTaxAsync(year As Integer, quarter As Integer) As Task(Of VatReturn)
+
         ''' <summary>Returns a single <see cref="VatReturn"/> by primary key, with its <c>Lines</c> collection.</summary>
         Function GetReturnAsync(returnId As Integer) As Task(Of VatReturn)
 

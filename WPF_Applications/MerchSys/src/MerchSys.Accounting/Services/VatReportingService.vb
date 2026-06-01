@@ -150,6 +150,70 @@ Namespace Services
             Return vatReturn
         End Function
 
+        ''' <summary>
+        ''' Read-only preview of Form 2550M: computes the same figures as
+        ''' <see cref="GenerateMonthlyVatReturnAsync"/> but performs no <c>Add</c>/<c>SaveChangesAsync</c>.
+        ''' Used by the dashboard VAT Payable KPI so a read-only Owner can view the figure without
+        ''' triggering a write (which <c>RoleGuardInterceptor</c> would reject). Returns an untracked,
+        ''' in-memory <see cref="VatReturn"/> (Id stays 0), or Nothing if not VAT-registered.
+        ''' </summary>
+        Public Async Function PreviewMonthlyVatReturnAsync(year As Integer, month As Integer) As Task(Of VatReturn) _
+            Implements IVatReportingService.PreviewMonthlyVatReturnAsync
+
+            Dim vatConfig = Await _mediator.Send(New GetVatConfigurationQuery())
+            If Not vatConfig.IsVatRegistered Then
+                Return Nothing
+            End If
+
+            Dim windowStart = New DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Utc)
+            Dim windowEnd = windowStart.AddMonths(1)
+
+            Dim data = Await CollectLedgerDataAsync(windowStart, windowEnd)
+            Dim vatPayable = Math.Round(data.TotalOutputVat - data.TotalInputVat, 2, MidpointRounding.ToEven)
+
+            ' No Add / SaveChangesAsync — in-memory only, never persisted.
+            Return BuildVatReturn(
+                year, month, VatReturnPeriodType.Monthly, VatReturnFormType.Form2550M,
+                data, vatPayable, vatConfig.IsVatRegistered)
+        End Function
+
+        ''' <summary>
+        ''' Read-only preview of Form 2551Q: computes the same figures as
+        ''' <see cref="GenerateNonVatPercentageTaxAsync"/> but performs no <c>Add</c>/<c>SaveChangesAsync</c>.
+        ''' Returns an untracked, in-memory <see cref="VatReturn"/> (Id stays 0), or Nothing if VAT-registered.
+        ''' </summary>
+        Public Async Function PreviewNonVatPercentageTaxAsync(year As Integer, quarter As Integer) As Task(Of VatReturn) _
+            Implements IVatReportingService.PreviewNonVatPercentageTaxAsync
+
+            Dim vatConfig = Await _mediator.Send(New GetVatConfigurationQuery())
+            If vatConfig.IsVatRegistered Then
+                Return Nothing
+            End If
+
+            Dim window = QuarterWindow(year, quarter)
+            Dim data = Await CollectLedgerDataAsync(window.Start, window.End_)
+
+            Dim nonVatRevenues = data.RevenueRecords.Where(Function(r) r.VatTreatment = VatTreatment.Exempt).ToList()
+            Dim grossReceipts = nonVatRevenues.Sum(Function(r) r.VatableAmount + r.VatExemptAmount + r.ZeroRatedAmount)
+            Dim taxDue = Math.Round(grossReceipts * vatConfig.NonVatPercentageTaxRate, 2, MidpointRounding.ToEven)
+
+            Dim nonVatData = New LedgerData With {
+                .TotalVatableSales = grossReceipts,
+                .TotalVatExemptSales = 0D,
+                .TotalZeroRatedSales = 0D,
+                .TotalOutputVat = 0D,
+                .TotalVatablePurchases = 0D,
+                .TotalInputVat = 0D,
+                .RevenueRecords = nonVatRevenues,
+                .ExpenseRecords = New List(Of ExpenseRecord)()
+            }
+
+            ' No Add / SaveChangesAsync — in-memory only, never persisted.
+            Return BuildVatReturn(
+                year, quarter, VatReturnPeriodType.Quarterly, VatReturnFormType.Form2551Q,
+                nonVatData, taxDue, vatConfig.IsVatRegistered)
+        End Function
+
         ''' <summary>Returns a <see cref="VatReturn"/> by PK including its line detail.</summary>
         Public Async Function GetReturnAsync(returnId As Integer) As Task(Of VatReturn) _
             Implements IVatReportingService.GetReturnAsync
