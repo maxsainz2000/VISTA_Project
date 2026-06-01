@@ -3,7 +3,7 @@ test-id: ACC-Owner-VAT-KPI-Write
 checklist: manager-verification-checklist.md (Part 3 — Financial Overview / Owner Dashboard "VAT Payable" KPI)
 branch: debug/ACC-owner-vat-kpi-write
 started: 2026-06-01T00:00
-status: in-progress
+status: resolved
 ---
 
 # Debug Session — Owner login: UnauthorizedWriteException on Acc_VatReturns
@@ -109,7 +109,7 @@ reuse the existing read-only `CollectLedgerDataAsync` + `BuildVatReturn` but nev
 
 ## Resolution
 
-- **Status:** resolved (build-verified; awaiting operator GUI confirmation before merge to master)
+- **Status:** resolved — operator confirmed Owner login works; merged to master.
 - **Root cause:** Write-on-read VAT KPI. `VatPayableKpiProvider.ProvideAsync` called
   `IVatReportingService.GenerateMonthlyVatReturnAsync` / `GenerateNonVatPercentageTaxAsync`,
   which `Add` a `VatReturn` and `SaveChangesAsync`. On the read-only **Owner** dashboard this
@@ -123,5 +123,5 @@ reuse the existing read-only `CollectLedgerDataAsync` + `BuildVatReturn` but nev
   them. Owner stays truly read-only; the KPI now shows a live figure for both roles without
   creating BIR artifacts as a view side effect. The `Generate*` methods are unchanged and
   still used by `VatReturnViewModel.GenerateAsync` (Manager-initiated, persists as intended).
-- **Final commit:** (see debug branch)
-- **Agent wiki entry needed?** yes — `errors/owner-readonly-kpi-write-on-read.md`
+- **Final commit:** `9a6acfd` (fix) → merged to master as `e3b33e5` (--no-ff).
+- **Agent wiki entry needed?** done — `errors/owner-readonly-kpi-write-on-read.md` (index + log updated).

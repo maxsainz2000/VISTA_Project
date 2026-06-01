@@ -202,19 +202,16 @@ Class Application
                                       services.AddSingleton(Of Views.Shell.ModuleDetailPanel)()
                                       services.AddSingleton(Of MainWindow)()
 
-#If DEBUG Then
-                                      ' ── Developer Tools (Debug builds only, ACC-17) ────────
+                                      ' ── Developer Tools (Developer role only; all build configurations) ────────
                                       services.AddDebugServices()
-#End If
 
                                   End Sub)
 
         _host = builder.Build()
         _host.Start()
 
-#If DEBUG Then
+        ' Developer Tools harnesses resolve production services through this holder.
         DebugHostHolder.CurrentHost = _host
-#End If
 
         Dim config = _host.Services.GetRequiredService(Of IConfiguration)()
         Dim connStr = config.GetConnectionString("MerchSysCentral")

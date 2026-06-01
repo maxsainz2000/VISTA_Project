@@ -57,8 +57,8 @@ Namespace Data
                 Return
             End If
 
-            ' 3. If the user is a Manager, they have full CRUD access. Allow.
-            If _session.CurrentRole = UserRole.Manager Then
+            ' 3. If the user is a Manager (or Developer, a Manager superset), they have full CRUD access. Allow.
+            If _session.CurrentRole = UserRole.Manager OrElse _session.CurrentRole = UserRole.Developer Then
                 Return
             End If
 

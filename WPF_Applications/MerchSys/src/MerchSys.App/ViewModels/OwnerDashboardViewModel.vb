@@ -335,7 +335,8 @@ Namespace ViewModels
             Dim overdueEntries = Await _accountsPayable.GetOverdueAsync()
             OverdueApTotal = overdueEntries.Sum(Function(e) e.Balance)
 
-            PurchasingInterpretation = BuildPurchasingInterpretation()
+            Dim outstandingAp = Await _accountsPayable.GetTotalOutstandingAsync()
+            PurchasingInterpretation = BuildPurchasingInterpretation(outstandingAp)
         End Function
 
         Private Async Function LoadInventoryKpisAsync() As Task
@@ -384,9 +385,13 @@ Namespace ViewModels
             AccountingInterpretation = BuildAccountingInterpretation()
         End Function
 
-        Private Function BuildPurchasingInterpretation() As String
+        Private Function BuildPurchasingInterpretation(outstandingAp As Decimal) As String
             If OpenPurchaseOrderCount = 0 AndAlso OverdueApTotal = 0 Then
-                Return "No open purchase orders. All accounts payable are settled."
+                If outstandingAp = 0 Then
+                    Return "No open purchase orders. All accounts payable are settled."
+                Else
+                    Return $"No open purchase orders. You have ₱{outstandingAp:N0} in accounts payable outstanding, but none are overdue."
+                End If
             ElseIf OverdueApTotal > 0 Then
                 Return $"You have {OpenPurchaseOrderCount} purchase order(s) awaiting delivery. ₱{OverdueApTotal:N0} in accounts payable is overdue and requires attention."
             Else
@@ -424,7 +429,7 @@ Namespace ViewModels
                     Return $"Business is profitable this period with ₱{CurrentPeriodNetIncome:N0} net income. All customer credit is settled."
                 End If
             ElseIf CurrentPeriodNetIncome = 0 Then
-                Return "Business broke even this period. Review expenses to improve profitability."
+                Return "Business is at break-even this period. Review expenses to improve profitability."
             Else
                 Return $"Business is operating at a loss of ₱{Math.Abs(CurrentPeriodNetIncome):N0} this period. Review cost controls immediately."
             End If

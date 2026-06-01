@@ -1,5 +1,4 @@
-#If DEBUG Then
-' Developer-only debug panel. Not reachable in Release builds.
+' Developer-only debug panel. Accessible only to the Developer role, in all build configurations.
 Imports System.Windows
 Imports System.Windows.Controls
 Imports System.Windows.Media
@@ -10,7 +9,7 @@ Imports MerchSys.POS.Services
 ''' <summary>
 ''' Holds the IHost reference so debug harnesses (running inside MerchSys.App) can resolve
 ''' production services without coupling harness code directly to the Application class.
-''' Only populated in Debug builds; always Nothing in Release.
+''' Populated at startup in all build configurations.
 ''' </summary>
 Public Module DebugHostHolder
     Public Property CurrentHost As IHost
@@ -19,7 +18,7 @@ End Module
 Namespace Views.Debug
 
     ''' Code-only UserControl that hosts the developer debug panel.
-    ''' Wired to the "Developer Tools" navigation group only in Debug configuration.
+    ''' Wired to the "Developer Tools" navigation group, which is visible only to the Developer role.
     Public Class DebugMenuView
         Inherits UserControl
 
@@ -35,7 +34,7 @@ Namespace Views.Debug
                 .Margin = New Thickness(0, 0, 0, 4)
             })
             root.Children.Add(New TextBlock() With {
-                .Text = "These options are only available in Debug builds and will not appear in production.",
+                .Text = "These tools are restricted to the Developer account and are not visible to Manager or Owner users.",
                 .Foreground = Brushes.Gray,
                 .FontSize = 12,
                 .Margin = New Thickness(0, 0, 0, 28)
@@ -131,4 +130,3 @@ Namespace Views.Debug
     End Class
 
 End Namespace
-#End If

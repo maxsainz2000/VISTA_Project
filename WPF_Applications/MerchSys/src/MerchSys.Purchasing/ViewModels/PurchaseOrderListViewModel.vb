@@ -140,7 +140,7 @@ Namespace ViewModels
         ''' </summary>
         Public ReadOnly Property IsManager As Boolean
             Get
-                Return _session.CurrentRole = UserRole.Manager
+                Return _session.CurrentRole = UserRole.Manager OrElse _session.CurrentRole = UserRole.Developer
             End Get
         End Property
 

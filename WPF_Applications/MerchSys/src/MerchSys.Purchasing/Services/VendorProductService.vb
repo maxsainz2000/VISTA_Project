@@ -51,7 +51,7 @@ Namespace Services
         End Function
 
         Public Async Function AddCatalogEntryAsync(vendorId As Integer, productId As Integer, productName As String, unitCost As Decimal, notes As String) As Task(Of VendorProduct) Implements IVendorProductService.AddCatalogEntryAsync
-            If _session.CurrentRole <> UserRole.Manager Then
+            If _session.CurrentRole <> UserRole.Manager AndAlso _session.CurrentRole <> UserRole.Developer Then
                 Throw New UnauthorizedAccessException("Only Managers are authorized to perform this operation.")
             End If
 
@@ -94,7 +94,7 @@ Namespace Services
         End Function
 
         Public Async Function UpdateCatalogEntryAsync(id As Integer, unitCost As Decimal, notes As String) As Task Implements IVendorProductService.UpdateCatalogEntryAsync
-            If _session.CurrentRole <> UserRole.Manager Then
+            If _session.CurrentRole <> UserRole.Manager AndAlso _session.CurrentRole <> UserRole.Developer Then
                 Throw New UnauthorizedAccessException("Only Managers are authorized to perform this operation.")
             End If
 
@@ -114,7 +114,7 @@ Namespace Services
         End Function
 
         Public Async Function RemoveCatalogEntryAsync(id As Integer) As Task Implements IVendorProductService.RemoveCatalogEntryAsync
-            If _session.CurrentRole <> UserRole.Manager Then
+            If _session.CurrentRole <> UserRole.Manager AndAlso _session.CurrentRole <> UserRole.Developer Then
                 Throw New UnauthorizedAccessException("Only Managers are authorized to perform this operation.")
             End If
 
@@ -133,7 +133,7 @@ Namespace Services
         End Function
 
         Public Async Function UpdateLastUnitCostAsync(vendorId As Integer, productId As Integer, newCost As Decimal) As Task Implements IVendorProductService.UpdateLastUnitCostAsync
-            If _session.CurrentRole <> UserRole.Manager Then
+            If _session.CurrentRole <> UserRole.Manager AndAlso _session.CurrentRole <> UserRole.Developer Then
                 Throw New UnauthorizedAccessException("Only Managers are authorized to perform this operation.")
             End If
 

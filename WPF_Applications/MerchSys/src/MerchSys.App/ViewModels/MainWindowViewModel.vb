@@ -136,7 +136,7 @@ Namespace ViewModels
             If _session.CurrentRole = UserRole.Owner Then
                 ActiveModule = AppModule.Accounting
                 Dim item = AccountingItems.FirstOrDefault(
-                    Function(i) i.ViewType = GetType(Views.Accounting.FinancialOverviewView))
+                    Function(i) i.ViewType = GetType(Views.OwnerDashboardView))
                 If item IsNot Nothing Then Navigate(item)
             Else
                 ActiveModule = AppModule.Inventory
@@ -250,7 +250,7 @@ Namespace ViewModels
                 New NavigationItem With {.DisplayName = "Transaction History", .ViewType = GetType(Views.POS.TransactionHistoryView)},
                 New NavigationItem With {.DisplayName = "Daily Summary", .ViewType = GetType(Views.POS.DailySummaryView)}
             }
-            If _session.CurrentRole = UserRole.Manager Then
+            If _session.CurrentRole <> UserRole.Owner Then
                 items.Add(New NavigationItem With {.DisplayName = "VAT Settings", .ViewType = GetType(Views.POS.VatSettingsView)})
             End If
             If _session.CurrentRole = UserRole.Owner Then
@@ -262,13 +262,15 @@ Namespace ViewModels
         End Function
 
         Private Function BuildRoleAwareAccountingItems() As List(Of NavigationItem)
-            Dim items As New List(Of NavigationItem) From {
-                New NavigationItem With {.DisplayName = "Financial Overview", .ViewType = GetType(Views.Accounting.FinancialOverviewView)},
-                New NavigationItem With {.DisplayName = "Income Statement", .ViewType = GetType(Views.Accounting.IncomeStatementView)},
-                New NavigationItem With {.DisplayName = "Sales Summary", .ViewType = GetType(Views.Accounting.SalesSummaryView)},
-                New NavigationItem With {.DisplayName = "VAT Relief Report", .ViewType = GetType(Views.Accounting.VatReliefReportView)}
-            }
-            If _session.CurrentRole = UserRole.Manager Then
+            Dim items As New List(Of NavigationItem)()
+            If _session.CurrentRole = UserRole.Owner Then
+                items.Add(New NavigationItem With {.DisplayName = "KPI Overview", .ViewType = GetType(Views.OwnerDashboardView)})
+            End If
+            items.Add(New NavigationItem With {.DisplayName = "Financial Overview", .ViewType = GetType(Views.Accounting.FinancialOverviewView)})
+            items.Add(New NavigationItem With {.DisplayName = "Income Statement", .ViewType = GetType(Views.Accounting.IncomeStatementView)})
+            items.Add(New NavigationItem With {.DisplayName = "Sales Summary", .ViewType = GetType(Views.Accounting.SalesSummaryView)})
+            items.Add(New NavigationItem With {.DisplayName = "VAT Relief Report", .ViewType = GetType(Views.Accounting.VatReliefReportView)})
+            If _session.CurrentRole <> UserRole.Owner Then
                 items.Add(New NavigationItem With {.DisplayName = "Tamper Audit Report", .ViewType = GetType(Views.Accounting.TamperAuditReportView)})
                 items.Add(New NavigationItem With {.DisplayName = "VAT Return (BIR)", .ViewType = GetType(Views.Accounting.VatReturnView)})
             End If
@@ -276,13 +278,14 @@ Namespace ViewModels
         End Function
 
         Private Function BuildDeveloperToolsItems() As List(Of NavigationItem)
-#If DEBUG Then
+            ' Developer Tools are exclusive to the Developer role — not Manager or Owner.
+            ' Gating the items here (not just the rail icon) also closes the Ctrl+0 shortcut path.
+            If _session.CurrentRole <> UserRole.Developer Then
+                Return New List(Of NavigationItem)()
+            End If
             Return New List(Of NavigationItem) From {
                 New NavigationItem With {.DisplayName = "Run VAT Schema Harness", .ViewType = GetType(Views.Debug.DebugMenuView)}
             }
-#Else
-            Return New List(Of NavigationItem)()
-#End If
         End Function
 
         ' ── Legacy group builder (kept for compatibility) ─────────────────────────
@@ -294,11 +297,9 @@ Namespace ViewModels
                 New NavigationGroup("Point of Sale", BuildRoleAwarePosItems()),
                 New NavigationGroup("Accounting", BuildRoleAwareAccountingItems())
             }
-#If DEBUG Then
-            If _session.CurrentRole = UserRole.Manager Then
+            If _session.CurrentRole = UserRole.Developer Then
                 groups.Add(New NavigationGroup("Developer Tools", BuildDeveloperToolsItems()))
             End If
-#End If
             Return groups
         End Function
 

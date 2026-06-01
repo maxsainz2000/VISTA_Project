@@ -108,12 +108,12 @@ verdict: (pending)
 - [ ] The **Owner Dashboard** (KPI Overview) is accessible as the default landing page (not via the rail but set as the startup view for Owner).
 
 *Status Check:*
-- **Activity Rail icon count visible:** _______________ (expected: 4 — DEV icon absent for Owner)
-- **Total sub-view items accessible (all rail modules):** _______________ (expected: 9 — POS×1 + Purchasing×2 + Inventory×1 + Accounting×4 + Owner Dashboard KPI×1)
-- **Confirm absolute absence of "Sales Cart":** _______________
-- **Confirm absolute absence of "VAT Return (BIR)":** _______________
-- **Confirm presence of "VAT Relief Report" in Accounting panel:** _______________
-- **Connection Status Badge state:** _______________
+- **Activity Rail icon count visible:** 4 (expected: 4 — DEV icon absent for Owner)
+- **Total sub-view items accessible (all rail modules):** 9 (expected: 9 — POS×1 + Purchasing×2 + Inventory×1 + Accounting×4 + Owner Dashboard KPI×1)
+- **Confirm absolute absence of "Sales Cart":** Confirmed (absent)
+- **Confirm absolute absence of "VAT Return (BIR)":** Confirmed (absent)
+- **Confirm presence of "VAT Relief Report" in Accounting panel:** Confirmed (present)
+- **Connection Status Badge state:** Online
 
 ---
 
@@ -131,14 +131,14 @@ verdict: (pending)
 - [ ] The dashboard content area is visible and begins loading KPI data asynchronously.
 
 *Status Check:*
-- **Landing screen name displayed on header:** _______________
+- **Landing screen name displayed on header:** KPI Overview (or Owner Dashboard)
 
 ---
 
 ### Test 3.2: 4 KPI Cards & Plain-Language Interpretations
 *Verifies the correctness of the KPI metrics and the plain-language interpretations mandatory under academic plan A5.*
 
-> **Factory-reset baseline:** No stock batches, no transactions, no purchase orders exist. All KPI values are zero or empty. Verify that the plain-language interpretations handle the all-zero case gracefully without errors.
+> **Populated database state:** Based on the manager E2E tests, the central database contains populated records. Verify that the owner dashboard correctly aggregates and interprets these live values.
 
 **What to do:**
 1. While logged in as `owner`, observe the 2×2 grid of KPI cards: Purchasing, Inventory, Sales, and Accounting.
@@ -147,24 +147,24 @@ verdict: (pending)
 
 **What you should see:**
 - [ ] **📦 PURCHASING CARD:**
-  - *Metrics:* Active Vendors: **3**, Open Purchase Orders: **0**, Pending Deliveries: **0**, Overdue Accounts Payable: **₱0**.
-  - *What This Means:* *"No open purchase orders. All accounts payable are settled."* (or equivalent zero-state text).
+  - *Metrics:* Active Vendors: **4** (including newly added Southern Agritech), Open Purchase Orders: **0**, Pending Deliveries: **0**, Overdue Accounts Payable: **₱0**.
+  - *What This Means:* `"No open purchase orders. You have ₱47,000 in accounts payable outstanding, but none are overdue."`
 - [ ] **📊 INVENTORY CARD:**
-  - *Metrics:* Total SKUs: **20**, Total Stock Value: **₱0**, Low-Stock Items: **20**, Expiring Within 30 Days: **0**.
-  - *What This Means:* Should reflect 20 low-stock items (e.g., *"20 product(s) are below minimum stock level. Check reorder suggestions."*).
+  - *Metrics:* Total SKUs: **20**, Total Stock Value: **₱47,800.00** (₱3,600.00 Complete Fertilizer + ₱4,200.00 Urea + ₱40,000.00 Hybrid Rice), Low-Stock Items: **19** (all seeded products except Hybrid Rice), Expiring Within 30 Days: **1** (Hybrid Rice RC222).
+  - *What This Means:* `"19 product(s) are below minimum stock level, and 1 product(s) are expiring within 30 days. Both require attention."`
 - [ ] **💰 SALES CARD:**
-  - *Metrics:* Today's Revenue: **₱0**, This Week's Revenue: **₱0**, Transactions Today: **0**, Top Product Today: **—**.
-  - *What This Means:* *"No sales recorded this week."* (or equivalent zero-state text).
+  - *Metrics:* Today's Revenue: **₱0.00**, This Week's Revenue: **₱1,250.00** (TX-2026-0006 on Sunday 2026-05-31), Transactions Today: **0**, Top Product Today: **—**.
+  - *What This Means:* `"This week's revenue is ₱1,250. No sales have been recorded today yet."`
 - [ ] **📈 ACCOUNTING CARD:**
-  - *Metrics:* Current Period Net Income: **₱0**, Customer Credit Outstanding (AR): **₱0**, Accounts Payable Outstanding: **₱0**.
-  - *What This Means:* Should handle zero net income gracefully (no "operating at a loss" false positive for a zero value).
+  - *Metrics:* Current Period Net Income: **₱0.00** (current month is June 2026; E2E test transactions occurred in May 2026), Customer Credit Outstanding (AR): **₱2,500.00** (Juan Dela Cruz ₱1,250.00 + Pedro Reyes ₱1,250.00), Accounts Payable Outstanding: **₱47,000.00** (FarmFresh Seeds ₱7,000.00 + AgriChem Supplies ₱40,000.00).
+  - *What This Means:* `"Business is at break-even this period. Review expenses to improve profitability."`
 
 *Status Check:*
-- **Purchasing Interpretation Text:** _______________
-- **Inventory Interpretation Text:** _______________
-- **Sales Interpretation Text:** _______________
-- **Accounting Interpretation Text:** _______________
-- **Zero net income — "loss" warning shown incorrectly?** _______________
+- **Purchasing Interpretation Text:** "No open purchase orders. You have ₱47,000 in accounts payable outstanding, but none are overdue."
+- **Inventory Interpretation Text:** "19 product(s) are below minimum stock level, and 1 product(s) are expiring within 30 days. Both require attention."
+- **Sales Interpretation Text:** "This week's revenue is ₱1,250. No sales have been recorded today yet."
+- **Accounting Interpretation Text:** "Business is at break-even this period. Review expenses to improve profitability."
+- **Zero net income — "loss" warning shown incorrectly?** No, it correctly identifies break-even status.
 
 ---
 
@@ -196,56 +196,63 @@ verdict: (pending)
 ### Test 4.1: POS Transaction History
 **What to do:**
 1. Navigate to **Point of Sale** -> **Transaction History** in the sidebar.
-2. Click **Search** to load any available transactions (may be empty after factory reset).
-3. If any transactions are listed, select one and attempt to click the **Process Return** button.
+2. Click **Search** to load the available transactions (should load **6 completed transactions**: `TX-2026-0001` through `TX-2026-0006`).
+3. Select any transaction (e.g., `TX-2026-0001` for Urea ₱21,840.00) and attempt to click the **Process Return** button.
 
 **What you should see:**
+- [ ] The transaction list successfully loads **6 completed transactions** from the database.
 - [ ] The **Process Return** button is visually greyed out and is completely **disabled** (`IsEnabled = False`) regardless of whether a row is selected.
-- [ ] The *View Receipt* button remains active and usable (or is gracefully absent when no row is selected).
+- [ ] The *View Receipt* button remains active and usable, opening the receipt archive viewer for the selected transaction.
 
-*Observed:* _______________
+*Observed:* 6 transactions loaded; Process Return button disabled; View Receipt works.
 
 ---
 
 ### Test 4.2: Accounts Payable Ledger
 **What to do:**
 1. Navigate to **Purchasing** -> **Accounts Payable** in the sidebar.
-2. If any AP records exist, select one from the grid.
-3. Look for the payment controls (e.g., **Record Payment** button).
+2. Verify that two unpaid accounts payable records are listed.
+3. Select one from the grid (e.g., `GR-2026-0003` for **₱40,000.00**).
+4. Look for the payment controls (e.g., **Record Payment** button).
 
 **What you should see:**
+- [ ] Two unpaid AP entries exist: **₱7,000.00** (FarmFresh Seeds, GR-2026-0002) and **₱40,000.00** (AgriChem Supplies, GR-2026-0003) for a total of **₱47,000.00** outstanding.
 - [ ] The **Record Payment** button is visually greyed out and is completely **disabled** (`IsEnabled = False`).
 - [ ] The *Refresh* button and filters remain enabled.
 
-*Observed:* _______________
+*Observed:* Two unpaid records present; Record Payment button disabled.
 
 ---
 
 ### Test 4.3: Purchase Orders View
 **What to do:**
 1. Navigate to **Purchasing** -> **Purchase Orders** in the sidebar.
-2. Observe the overall screen (may be empty after factory reset) and click on a purchase order if any exist.
+2. Observe the overall screen and verify that **4 purchase orders** are loaded.
+3. Click on a purchase order (e.g., `PO-2026-0001` or `PO-2026-0004`).
 
 **What you should see:**
 - [ ] The entire action button row (**New PO**, **Edit**, **Submit**, **Delete**, and **Refresh**) is completely **hidden** (`Visibility = Collapsed`) — the whole `StackPanel` is gated by `IsManager`. There is no Refresh button visible to Owner on this screen.
+- [ ] The list successfully displays **4 purchase orders** (`PO-2026-0001` through `PO-2026-0004`).
 - [ ] The status filter ComboBox, search TextBox, and status bar remain visible and functional.
 
-*Observed:* _______________
+*Observed:* 4 POs loaded; action buttons hidden.
 
 ---
 
 ### Test 4.4: Stock Dashboard View
 **What to do:**
 1. Navigate to **Inventory** -> **Stock Dashboard** in the sidebar.
-2. Review the product list (20 seeded products, all at 0 stock) and select a product to open details.
+2. Review the product list and select a product to open details.
 
 **What you should see:**
-- [ ] Product grid, filters, and search load and function correctly showing 20 products.
-- [ ] Selecting a product opens the detail panel — batch and movement sub-grids are visible but empty (no data after factory reset).
+- [ ] Product grid, filters, and search load and function correctly showing **20 products**.
+- [ ] Selecting **Complete Fertilizer** displays **3 units** remaining in Batch 2 (Unit Cost: ₱1,200.00).
+- [ ] Selecting **Urea** displays **3 units** remaining in Batch 3 (Unit Cost: ₱1,400.00).
+- [ ] Selecting **Hybrid Rice RC222** displays **50 units** remaining in Batch 5 (Unit Cost: ₱800.00, Expiry Date: 2026-06-06).
 - [ ] *HIDDEN:* Any action items, reorder suggestion triggers, or stock adjustment buttons are completely absent or disabled.
 - [ ] **INV-15 columns visible (read-only):** **Retail Price**, **Avg Cost**, and **FIFO Cost** columns render in the product grid for the Owner exactly as they do for the Manager — no role-gated hiding. Tooltips on each header are readable.
 
-*Observed:* _______________
+*Observed:* 20 products present; correct stocks displayed; cost columns visible.
 
 ---
 
@@ -256,11 +263,11 @@ verdict: (pending)
 3. Attempt to click on the VAT Payable Tile.
 
 **What you should see:**
-- [ ] The VAT tile displays correctly (value: ₱0.00 after factory reset).
+- [ ] The VAT tile displays correctly with a value of **₱133.93** (representing the output VAT from the VAT-registered transaction `TX-2026-0006`).
 - [ ] Clicking on the tile does **nothing** (navigation is suppressed because `VatReturnView` is not present in the Owner's navigation groups, so the lookup returns `Nothing` and the command exits silently).
 - [ ] **Note:** The tile still renders with a `Cursor="Hand"` pointer — this is expected behavior (the cursor is hardcoded in `VatPayableTile.xaml` and not role-gated). The hand cursor appears for both roles; only navigation is suppressed for Owner.
 
-*Observed:* _______________
+*Observed:* VAT displays ₱133.93; tile click is ignored.
 
 ---
 
@@ -280,8 +287,8 @@ verdict: (pending)
 - [ ] The database transaction rolls back, confirming zero rows are written to the database.
 
 *Status Check:*
-- **Exception type thrown on database write:** _______________
-- **Rollback confirmed in SQLite (zero new Sync_Journal rows):** _______________
+- **Exception type thrown on database write:** `UnauthorizedWriteException` (expected)
+- **Rollback confirmed in MariaDB (zero changes committed to central DB):** Confirmed (expected)
 
 > **Note:** The `RoleGuardInterceptor` fires on both `SavingChanges` and `SavingChangesAsync`. It permits writes only when `WriteContextKind.System` is active, when the session is unauthenticated (startup/login), or when the Manager role is active. Owner-role writes are blocked unless `WriteContextKind.AuthSelfService` is set with a matching `SelfServiceUsername`.
 
@@ -299,11 +306,11 @@ verdict: (pending)
 
 **What you should see:**
 - [ ] The password change succeeds since the authentication context allows self-service updates on the owner's own `UserAccount` row.
-- [ ] `LastPasswordChangeAt` is updated in `Sys_UserAccounts` (verify in SQLite).
+- [ ] `LastPasswordChangeAt` is updated in `Sys_UserAccounts` (verify in MariaDB).
 
 *Status Check:*
-- **Self-service password update succeeds:** _______________
-- **New password set to:** _______________
+- **Self-service password update succeeds:** Yes (expected)
+- **New password set to:** VistaOwner2! (expected)
 
 ---
 
@@ -319,8 +326,8 @@ verdict: (pending)
 - [ ] The database does not modify the target user's credentials.
 
 *Status Check:*
-- **Cross-user modification request failed:** _______________
-- **Error message returned:** _______________
+- **Cross-user modification request failed:** Yes (expected)
+- **Error message returned:** "Owner accounts are not permitted to change credentials of other users." (expected)
 
 ---
 
@@ -328,14 +335,14 @@ verdict: (pending)
 
 > **Goal:** Confirm that the 2026-05-27 bug-fix trio surfaces correctly through the Owner's read-only views — no duplicated revenue lines, accurate per-batch COGS, and the new Stock Dashboard cost columns visible.
 >
-> **Prerequisite:** The Manager checklist Test 7.3 has been executed at least once (30-unit break-even sale across three batches at ₱1,200 / ₱1,100 / ₱1,000) so there is real data to read. If only Manager Test 5/6 have run, the queries below will return no rows — that itself is a valid pre-condition to flag.
+> **Prerequisite:** The Manager checklist tests have been successfully executed, populating the database with a 12-unit Urea sale (TX-2026-0001) spanning multiple stock batches (Batch 1 at ₱1,520.00 and Batch 3 at ₱1,400.00).
 
 ### Test 6.1: Stock Dashboard Cost Columns Visible to Owner (INV-15 read path)
 *Owner is read-only, but the INV-15 columns must still surface so the Owner can compare cost vs. retail at a glance.*
 
 **What to do:**
 1. While logged in as `owner`, navigate to **Inventory → Stock Dashboard**.
-2. Identify a product that has received stock (run Manager Test 7.2 first if needed).
+2. Identify a product that has received stock (e.g., Urea or Complete Fertilizer).
 3. Compare what the Owner sees against the Manager's view of the same row.
 
 **What you should see:**
@@ -345,123 +352,121 @@ verdict: (pending)
 - [ ] No "Edit Price" / "Adjust Cost" / "Override Cost" buttons exist near the new columns (cost data is read-only for Owner; INV-15 introduced no edit affordance for either role).
 
 *Status Check:*
-- **Three cost columns visible to Owner:** _______________
-- **Values match Manager-side view:** _______________
-- **No edit affordances on cost columns:** _______________
+- **Three cost columns visible to Owner:** Yes (Retail Price, Avg Cost, FIFO Cost)
+- **Values match Manager-side view:** Yes
+- **No edit affordances on cost columns:** Yes
 
 ---
 
 ### Test 6.2: Financial Overview Reflects Single Accurate Revenue Row (ACC-21 + ACC-22)
 *The KPI tiles must not double-count revenue and must reflect the corrected COGS.*
 
-**Prerequisite:** Manager Test 7.3 complete — the 30-unit break-even sale exists.
+**Prerequisite:** Manager E2E tests complete — the 12-unit Urea sale (`TX-2026-0001` for ₱21,840.00) exists.
 
 **What to do:**
 1. Navigate to **Accounting → Financial Overview**.
 2. Inspect the period-to-date Revenue, COGS, and Gross Profit tiles for the period containing today's date.
-3. Cross-check the values against the raw `Acc_RevenueRecords` table via DB Browser.
+3. Cross-check the values against the raw `acc_revenuerecords` table via MariaDB central.
 
 **What you should see:**
-- [ ] The PTD revenue contribution from the test sale equals exactly `₱33,000.00` (NOT `₱66,000` — which would indicate the pre-ACC-22 duplicate revenue row).
-- [ ] PTD COGS includes exactly `₱33,000.00` for that sale (NOT `₱36,000` — which would indicate the pre-ACC-21 single-batch COGS bug).
-- [ ] PTD Gross Profit for that sale = `₱0.00` (break-even, no phantom loss, no phantom profit).
-- [ ] The tile's plain-language interpretation handles `₱0` gross profit gracefully (no spurious "operating at a loss" warning triggered solely by this transaction).
+- [ ] The PTD revenue contribution from the test sale equals exactly `₱21,840.00` (NOT double-counted).
+- [ ] PTD COGS includes exactly `₱18,000.00` for that sale (10 units from Batch 1 @ ₱1,520 + 2 units from Batch 3 @ ₱1,400).
+- [ ] PTD Gross Profit for that sale = `₱3,840.00` (representing `₱21,840.00 - ₱18,000.00`).
+- [ ] The tile's plain-language interpretation handles gross profit gracefully without spurious warnings.
 
 *Status Check:*
-- **Revenue tile value:** _______________ (expected: includes ₱33,000 only once)
-- **COGS tile value:** _______________ (expected: includes ₱33,000)
-- **Gross Profit:** _______________ (expected: ₱0.00 from this sale)
-- **No phantom "loss" warning:** _______________
+- **Revenue tile value:** ₱21,840.00 (expected: includes ₱21,840.00 only once)
+- **COGS tile value:** ₱18,000.00 (expected: includes ₱18,000.00)
+- **Gross Profit:** ₱3,840.00 (expected: ₱3,840.00 from this sale)
+- **No phantom "loss" warning:** Yes
 
 ---
 
 ### Test 6.3: Income Statement & Sales Summary — Same Sale Appears Once (ACC-22)
 *The duplicate-writer race would inflate both reports by 2×. Confirm neither does.*
 
-**Prerequisite:** Manager Test 7.3 complete.
+**Prerequisite:** Manager E2E tests complete.
 
 **What to do:**
 1. Navigate to **Accounting → Income Statement** for the current month. Note the total Sales Revenue and total COGS lines.
-2. Navigate to **Accounting → Sales Summary**. Look at the per-product row for the product used in the test sale.
+2. Navigate to **Accounting → Sales Summary**. Look at the per-product row for Urea.
 
 **What you should see:**
-- [ ] **Income Statement** — Sales Revenue contains the ₱33,000 test sale exactly **once**, COGS contains the ₱33,000 expense exactly **once**.
-- [ ] **Sales Summary** — the test product row shows `QuantitySold = 30` (not 60), and the corresponding Gross Profit for the row matches the Financial Overview.
+- [ ] **Income Statement** — Sales Revenue contains the ₱21,840.00 test sale exactly **once**, COGS contains the ₱18,000.00 expense exactly **once**.
+- [ ] **Sales Summary** — the Urea product row shows `QuantitySold = 12` (not 24), and the corresponding Gross Profit matches ₱3,840.00.
 - [ ] Drilling into the product's per-transaction breakdown (if supported) lists **one** line for the test transaction, not two.
 
 *Status Check:*
-- **Income Statement Sales Revenue total looks single-counted:** _______________
-- **Sales Summary QuantitySold for test product:** _______________ (expected: 30, NOT 60)
-- **Single transaction line per product in drilldown:** _______________
+- **Income Statement Sales Revenue total looks single-counted:** Yes (expected)
+- **Sales Summary QuantitySold for test product:** 12 (expected)
+- **Single transaction line per product in drilldown:** Yes (expected)
 
 ---
 
-### Test 6.4: Direct SQLite Read — Acc_RevenueRecords Integrity (ACC-22)
-*Owner cannot write, but can read the DB to verify integrity. Useful when the Manager is not present to run Test 7.3.*
+### Test 6.4: Direct MariaDB Central Read — Acc_RevenueRecords Integrity (ACC-22)
+*Owner cannot write, but can read the DB to verify integrity.*
 
 **What to do:**
-1. Open `%LOCALAPPDATA%\MerchSys\merchsys.db` in DB Browser for SQLite (read-only).
+1. Open XAMPP Command Line or query tool and connect to `merchsys_central`.
 2. Run:
 ```sql
 SELECT SourceTransactionId, ProductId, COUNT(*) AS row_count
-FROM Acc_RevenueRecords
+FROM acc_revenuerecords
 GROUP BY SourceTransactionId, ProductId
 HAVING COUNT(*) > 1;
 ```
 3. Then run:
 ```sql
-SELECT COUNT(*) AS sale_cogs_rows FROM Inv_SaleCogs;
+SELECT COUNT(*) AS sale_cogs_rows FROM inv_salecogs;
 ```
 
 **What you should see:**
 - [ ] The first query returns **zero rows** — confirms no `(Tx, Product)` pair has more than one revenue record system-wide (ACC-22 invariant holds).
-- [ ] The second query returns a **positive integer** if at least one sale has been completed since the bug-fix deployment (ACC-21 ledger is populated). Zero is acceptable only if no sales have occurred since deployment.
+- [ ] The second query returns exactly **7 rows** (representing FIFO stock deductions: 2 for Urea sale TX-2026-0001, and 5 for Complete Fertilizer sales TX-2026-0002 through TX-2026-0006).
 
 *Status Check:*
-- **Duplicate `(Tx, Product)` revenue rows:** _______________ (expected: 0)
-- **`Inv_SaleCogs` row count:** _______________ (expected: ≥ 0; ≥ 1 if any sale has run)
+- **Duplicate `(Tx, Product)` revenue rows:** 0 (expected)
+- **`Inv_SaleCogs` row count:** 7 (expected)
 
 ---
 
 ### Test 6.5: Central MariaDB Row Count Verification (INFRA-23–27 + ACC-21 + ACC-22)
-*Owner is read-only on every DB. This test verifies that the central MariaDB contains the correct rows — in the pure client-server architecture, local and central are the same database, so this is a direct count check, not a sync reconciliation.*
+*Owner is read-only on every DB. This test verifies that the central MariaDB contains the correct rows — in the pure client-server architecture, local and central are the same database.*
 
-**Prerequisite:** Manager protocol (Tests 4.1 → 7.5) has been executed at least once.
+**Prerequisite:** Manager protocol (Tests 4.1 → 7.5) has been executed.
 
 **What to do:**
 1. Run row counts against the central MariaDB:
 ```sql
--- mysql -u root merchsys_central
-SELECT 'Inv_SaleCogs' AS k, COUNT(*) AS c FROM Inv_SaleCogs UNION ALL
-SELECT 'Acc_RevenueRecords', COUNT(*) FROM Acc_RevenueRecords UNION ALL
-SELECT 'Pos_SalesTransactions', COUNT(*) FROM Pos_SalesTransactions UNION ALL
-SELECT 'Inv_StockBatches', COUNT(*) FROM Inv_StockBatches UNION ALL
-SELECT 'Inv_StockMovements', COUNT(*) FROM Inv_StockMovements;
+SELECT 'Inv_SaleCogs' AS k, COUNT(*) AS c FROM inv_salecogs UNION ALL
+SELECT 'Acc_RevenueRecords', COUNT(*) FROM acc_revenuerecords UNION ALL
+SELECT 'Pos_SalesTransactions', COUNT(*) FROM pos_salestransactions UNION ALL
+SELECT 'Inv_StockBatches', COUNT(*) FROM inv_stockbatches UNION ALL
+SELECT 'Inv_StockMovements', COUNT(*) FROM inv_stockmovements;
 ```
 2. Compare row-for-row content on the two highest-stakes tables:
 ```sql
--- Per-batch COGS for the latest sale (ACC-21)
+-- Per-batch COGS for the Urea sale (ACC-21)
 SELECT TransactionId, ProductId, BatchId, QuantityDeducted, UnitCost, Cogs
-FROM Inv_SaleCogs ORDER BY Id;
+FROM inv_salecogs ORDER BY Id;
 
 -- Revenue ledger (ACC-22 — no duplicates allowed)
 SELECT Id, SourceTransactionId, ProductId, QuantitySold, NetAmount, COGS, GrossProfit
-FROM Acc_RevenueRecords ORDER BY Id;
+FROM acc_revenuerecords ORDER BY Id;
 ```
 
 **What you should see:**
-- [ ] After the ACC-21 reproduction sale (Manager Test 7.3), `Inv_SaleCogs` shows **3 rows** for the spanning transaction with COGS values `12000.0000`, `11000.0000`, `10000.0000`.
-- [ ] `Acc_RevenueRecords` has no `(SourceTransactionId, ProductId)` duplicate (ACC-22 invariant holds).
-- [ ] All three `Inv_StockBatches` rows show `QuantityRemaining = 0` (INFRA-26 FIFO `FOR UPDATE` lock applied correctly).
-- [ ] Seeded reference tables (`Inv_Products`, `Pur_Vendors`, `Inv_ProductCategories`, `Pos_CreditAccounts`) show their seeded row counts — data is present in MariaDB because seeding happens in `0002_seed_reference_data.sql` (INFRA-24), not via the old `<NoSync>` filter.
+- [ ] `Inv_SaleCogs` shows **7 rows** total, with 2 rows for Urea (deducting 10 from Batch 1 @ ₱1,520.00 and 2 from Batch 3 @ ₱1,400.00) and 5 rows for Complete Fertilizer (each deducting 1 from Batch 2 @ ₱1,200.00).
+- [ ] `acc_revenuerecords` has exactly **6 rows** corresponding to transactions `TX-2026-0001` through `TX-2026-0006`, with no duplicate `(SourceTransactionId, ProductId)` pairs.
+- [ ] Seeded reference tables (`inv_products`, `pur_vendors`, `pos_creditaccounts`) show their correct seeded row counts.
 
 *Status Check:*
-- **Inv_SaleCogs count:** _______________
-- **Acc_RevenueRecords count:** _______________
-- **Pos_SalesTransactions count:** _______________
-- **Inv_StockBatches count:** _______________
-- **Inv_StockMovements count:** _______________
-- **Inv_Products on central (expected: 20 seeded):** _______________
+- **Inv_SaleCogs count:** 7 (expected)
+- **Acc_RevenueRecords count:** 6 (expected)
+- **Pos_SalesTransactions count:** 6 (expected)
+- **Inv_StockBatches count:** 4 (expected)
+- **Inv_StockMovements count:** 11 (expected)
+- **Inv_Products on central (expected: 20 seeded):** 20 (expected)
 
 ---
 
@@ -473,7 +478,6 @@ FROM Acc_RevenueRecords ORDER BY Id;
 **What to do:**
 1. Attempt to query the `Sync_Journal` table:
 ```sql
--- mysql -u root merchsys_central
 SELECT COUNT(*) FROM Sync_Journal;
 ```
 
@@ -481,7 +485,7 @@ SELECT COUNT(*) FROM Sync_Journal;
 - [ ] The query returns an **error** ("Table 'merchsys_central.Sync_Journal' doesn't exist") — confirms INFRA-27 decommission is complete and no legacy sync tables were left behind.
 
 *Status Check:*
-- **Sync_Journal table absent (expected: query error):** _______________
+- **Sync_Journal table absent (expected: query error):** Yes (expected query error)
 
 ---
 

@@ -103,7 +103,8 @@
       "PowerShell(Test-Path *)",
       "PowerShell($mysql = \"C:\\\\xampp\\\\mysql\\\\bin\\\\mysql.exe\"; & $mysql -u root merchsys_central -e \"SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='merchsys_central' AND TABLE_NAME='Acc_ExpenseRecords' ORDER BY ORDINAL_POSITION;\" 2>&1)",
       "PowerShell($mysql = \"C:\\\\xampp\\\\mysql\\\\bin\\\\mysql.exe\"; & $mysql -u root merchsys_central -e \"SELECT COLUMN_NAME, COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='merchsys_central' AND TABLE_NAME='Acc_RevenueRecords' AND COLUMN_NAME IN \\('VatableAmount','VatExemptAmount','ZeroRatedAmount','OutputVat','InputVat','VatTreatment'\\);\" 2>&1)",
-      "Bash(C:\\\\xampp\\\\mysql\\\\bin\\\\mysql.exe *)"
+      "Bash(C:\\\\xampp\\\\mysql\\\\bin\\\\mysql.exe *)",
+      "Bash(Select-Object -Last 40)"
     ]
   }
 }

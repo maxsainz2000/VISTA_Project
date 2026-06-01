@@ -48,15 +48,13 @@ Namespace ViewModels.Shell
                 New RailItem With {.ModuleId = AppModule.POS, .Abbreviation = "POS", .ToolTipText = "Point of Sale  (Ctrl+3)"},
                 New RailItem With {.ModuleId = AppModule.Accounting, .Abbreviation = "ACC", .ToolTipText = "Accounting  (Ctrl+4)"}
             }
-#If DEBUG Then
-            If _session.CurrentRole = UserRole.Manager Then
+            If _session.CurrentRole = UserRole.Developer Then
                 items.Add(New RailItem With {
                     .ModuleId = AppModule.DeveloperTools,
                     .Abbreviation = "DEV",
                     .ToolTipText = "Developer Tools  (Ctrl+0)"
                 })
             End If
-#End If
             Return items
         End Function
 

@@ -1,7 +1,7 @@
 Namespace Enums
 
     ''' <summary>
-    ''' Defines the two user roles in the VISTA system.
+    ''' Defines the user roles in the VISTA system.
     ''' Role enforcement is applied at the data layer, not just the UI.
     ''' </summary>
     Public Enum UserRole
@@ -11,6 +11,12 @@ Namespace Enums
 
         ''' <summary>Read-only access to dashboards, KPIs, and financial reports.</summary>
         Owner = 2
+
+        ''' <summary>
+        ''' Full operational access (superset of Manager) plus exclusive access to the
+        ''' Developer Tools module. Reserved for the single internal developer account.
+        ''' </summary>
+        Developer = 3
 
     End Enum
 

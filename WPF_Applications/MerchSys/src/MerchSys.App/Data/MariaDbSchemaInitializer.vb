@@ -85,6 +85,9 @@ Namespace Data
                 ' 3. Seed user accounts if not present
                 EnsureUserAccountsSeeded(conn, logger)
 
+                ' 4. Ensure the internal Developer account exists (idempotent — runs even on already-seeded DBs)
+                EnsureDeveloperAccount(conn, logger)
+
                 logger.LogInformation("MariaDB Schema Bootstrap: Initialized successfully with 0 errors.")
             End Using
         End Sub
@@ -241,6 +244,42 @@ Namespace Data
                     Throw
                 End Try
             End Using
+        End Sub
+
+        ''' <summary>
+        ''' Idempotently provisions the internal Developer account (Role = Developer = 3).
+        ''' Runs on every startup so the account is created even when the database was seeded
+        ''' before this account existed. Unlike the manager/owner seeds, LastPasswordChangeAt is
+        ''' set on creation so the Developer logs in directly with the supplied password (no DA6
+        ''' first-login change). The Developer role is a Manager superset with exclusive access to
+        ''' the Developer Tools module.
+        ''' </summary>
+        Private Sub EnsureDeveloperAccount(conn As MySqlConnection, logger As ILogger)
+            Dim exists As Integer = 0
+            Using cmd = conn.CreateCommand()
+                cmd.CommandText = "SELECT COUNT(*) FROM `Sys_UserAccounts` WHERE lower(Username) = 'developer'"
+                exists = Convert.ToInt32(cmd.ExecuteScalar())
+            End Using
+
+            If exists > 0 Then Return
+
+            logger.LogWarning("Developer account not found. Provisioning internal Developer account...")
+
+            Dim devHash = PasswordHashHelper.Hash("DevPassword")
+            Dim now = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.ffffff")
+
+            Using cmd = conn.CreateCommand()
+                cmd.CommandText = "INSERT INTO `Sys_UserAccounts` " &
+                                  "(Username, PasswordHash, Role, IsActive, FailedLoginAttempts, LockedUntil, LastPasswordChangeAt, CreatedAt, ModifiedAt) " &
+                                  "VALUES (@u, @h, @r, 1, 0, NULL, @t, @t, NULL)"
+                cmd.Parameters.AddWithValue("@u", "Developer")
+                cmd.Parameters.AddWithValue("@h", devHash)
+                cmd.Parameters.AddWithValue("@r", 3)
+                cmd.Parameters.AddWithValue("@t", now)
+                cmd.ExecuteNonQuery()
+            End Using
+
+            logger.LogInformation("Successfully provisioned the internal Developer account.")
         End Sub
 
         Private Function ComputeSha256(text As String) As String
