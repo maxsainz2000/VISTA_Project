@@ -121,8 +121,9 @@ Namespace Services
             Dim window = QuarterWindow(year, quarter)
             Dim data = Await CollectLedgerDataAsync(window.Start, window.End_)
 
-            ' For Form 2551Q: TotalVatableSales repurposed as gross taxable receipts
-            Dim grossReceipts = data.TotalVatableSales + data.TotalVatExemptSales + data.TotalZeroRatedSales
+            ' For Form 2551Q: Filter to only include Non-VAT (Exempt) sales
+            Dim nonVatRevenues = data.RevenueRecords.Where(Function(r) r.VatTreatment = VatTreatment.Exempt).ToList()
+            Dim grossReceipts = nonVatRevenues.Sum(Function(r) r.VatableAmount + r.VatExemptAmount + r.ZeroRatedAmount)
             Dim taxDue = Math.Round(grossReceipts * vatConfig.NonVatPercentageTaxRate, 2, MidpointRounding.ToEven)
 
             Dim nonVatData = New LedgerData With {
@@ -132,8 +133,8 @@ Namespace Services
                 .TotalOutputVat = 0D,
                 .TotalVatablePurchases = 0D,
                 .TotalInputVat = 0D,
-                .RevenueRecords = data.RevenueRecords,
-                .ExpenseRecords = data.ExpenseRecords
+                .RevenueRecords = nonVatRevenues,
+                .ExpenseRecords = New List(Of ExpenseRecord)()
             }
 
             Await GuardAndClearExistingAsync(year, quarter, VatReturnPeriodType.Quarterly, VatReturnFormType.Form2551Q)
@@ -278,7 +279,8 @@ Namespace Services
                 Case Else ' Form2551Q
                     Dim window = QuarterWindow(original.Year, original.Period)
                     Dim data = Await CollectLedgerDataAsync(window.Start, window.End_)
-                    Dim grossReceipts = data.TotalVatableSales + data.TotalVatExemptSales + data.TotalZeroRatedSales
+                    Dim nonVatRevenues = data.RevenueRecords.Where(Function(r) r.VatTreatment = VatTreatment.Exempt).ToList()
+                    Dim grossReceipts = nonVatRevenues.Sum(Function(r) r.VatableAmount + r.VatExemptAmount + r.ZeroRatedAmount)
                     Dim taxDue = Math.Round(grossReceipts * vatConfig.NonVatPercentageTaxRate, 2, MidpointRounding.ToEven)
                     Dim nonVatData = New LedgerData With {
                         .TotalVatableSales = grossReceipts,
@@ -287,8 +289,8 @@ Namespace Services
                         .TotalOutputVat = 0D,
                         .TotalVatablePurchases = 0D,
                         .TotalInputVat = 0D,
-                        .RevenueRecords = data.RevenueRecords,
-                        .ExpenseRecords = data.ExpenseRecords
+                        .RevenueRecords = nonVatRevenues,
+                        .ExpenseRecords = New List(Of ExpenseRecord)()
                     }
                     amended = BuildVatReturn(original.Year, original.Period,
                                             VatReturnPeriodType.Quarterly, VatReturnFormType.Form2551Q,

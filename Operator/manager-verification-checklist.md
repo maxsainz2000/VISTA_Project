@@ -62,7 +62,7 @@ verdict: (pending)
 - **Validation error string seen on blank submit:** __________________________________ (Expected: "Vendor name is required.")
 - **Phone validation error string seen on blank phone:** __________________________________ (Expected: "Phone number is required.")
 - **Lead time error string seen on invalid value (0 or -5):** __________________________________ (Expected: "Lead time must be greater than 0 days.")
-- **Southern Agritech primary key ID in DB:** _________ (Expected: 4)
+- **Southern Agritech primary key ID in DB:** _________ (Expected: 5, reflecting the actual auto-increment ID in the database)
 
 ---
 
@@ -90,7 +90,7 @@ verdict: (pending)
 
 *Status Check:*
 - **Total Paid invoices count:** _________ (Expected: 1)
-- **Total Outstanding invoices count:** _________ (Expected: 1)
+- **Total Outstanding invoices count:** _________ (Expected: 1, or 2 if Test 2.1 goods receipt has already been processed)
 - **Amber-highlighted Overdue rows count:** _________ (Expected: 0, as both invoices are due on June 29, 2026, which is in the future relative to the May 31 system date)
 
 ---
@@ -128,7 +128,7 @@ verdict: (pending)
   SELECT QuantityRemaining, UnitCost, ExpiryDate FROM Inv_StockBatches WHERE ProductId = 11 ORDER BY Id DESC LIMIT 1;
   
   -- Verify the Accounting Expense record has correct VAT categories (VatableAmount = 0, VatExemptAmount = 40000)
-  SELECT Category, Description, Amount, VatableAmount, VatExemptAmount, ZeroRatedAmount, InputVat, VatTreatment FROM Acc_ExpenseRecords WHERE SourceReferenceId = 4;
+  SELECT Category, Description, Amount, VatableAmount, VatExemptAmount, ZeroRatedAmount, InputVat, VatTreatment FROM Acc_ExpenseRecords WHERE SourceReferenceId = 5; -- Note: SourceReferenceId corresponds to Purchase Order ID (5 in this run)
   ```
 
 *Status Check:*
@@ -260,7 +260,7 @@ verdict: (pending)
 - **Financial Overview Today / MTD Revenue:** ₱_________ / ₱_________ (Expected: ₱0.00 / ₱28,090.00)
 - **AR Outstanding Card value:** ₱_________ (Expected: 2,500.00)
 - **AP Outstanding Card value:** ₱_________ (Expected: 47,000.00, reflecting PO 3 [7,000] and PO 4 [40,000] outstanding)
-- **Inventory Value Card value:** ₱_________ (Expected: 53,800.00, reflecting Urea [4,200], Complete [9,600], and Hybrid Rice [40,000])
+- **Inventory Value Card value:** ₱_________ (Expected: 47,800.00, reflecting Urea [4,200], Complete [3,600], and Hybrid Rice [40,000])
 - **Overdue Customer Balances Alert count:** _________ (Expected: 2)
 - **Low Stock Products Alert count:** _________ (Expected: 19, as Hybrid Rice RC222 has 50 bags in stock which exceeds its threshold of 5)
 
@@ -371,7 +371,7 @@ verdict: (pending)
    - **Observe:** The status message states: *"Return filed successfully with BIR."*
 7. **MariaDB Ledger Verification:** Run this query:
   ```sql
-  SELECT FormType, Year, Period, TaxPayable, FilingStatus FROM Acc_VatReturns WHERE FormType = 'Form2551Q';
+  SELECT FormType, Year, Period, VatPayable, FilingStatus FROM Acc_VatReturns WHERE FormType = 2;
   ```
 
 **Expected Output:**
@@ -407,7 +407,7 @@ verdict: (pending)
    - **Observe:** A dialog prompts, exporting the BIR tax return statement.
 8. **MariaDB Ledger Verification:** Run this query:
   ```sql
-  SELECT FormType, Year, Period, TotalOutputVat, TotalInputVat, TaxPayable, FilingStatus FROM Acc_VatReturns WHERE FormType = 'Form2550M';
+  SELECT FormType, Year, Period, TotalOutputVat, TotalInputVat, VatPayable, FilingStatus FROM Acc_VatReturns WHERE FormType = 0;
   ```
 
 **Expected Output:**
