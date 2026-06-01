@@ -1,6 +1,5 @@
 Imports System.Threading
 Imports Microsoft.EntityFrameworkCore
-Imports Microsoft.Extensions.Configuration
 Imports MerchSys.POS.Data
 Imports MerchSys.POS.Entities
 Imports MerchSys.SharedKernel.Enums
@@ -15,24 +14,18 @@ Namespace Services
         Private ReadOnly _context As POSDbContext
         Private ReadOnly _receiptIntegrity As IReceiptIntegrityService
         Private ReadOnly _bodyComposer As IReceiptBodyComposer
-        Private ReadOnly _businessName As String
-        Private ReadOnly _businessAddress As String
-        Private ReadOnly _businessTIN As String
-        Private ReadOnly _isVatRegistered As Boolean
+        Private ReadOnly _vatConfigLoader As VatConfigurationLoader
         Private ReadOnly _renderer As IReceiptRenderer
 
         Public Sub New(context As POSDbContext,
-                       configuration As IConfiguration,
+                       vatConfigLoader As VatConfigurationLoader,
                        receiptIntegrity As IReceiptIntegrityService,
                        bodyComposer As IReceiptBodyComposer,
                        renderer As IReceiptRenderer)
             _context = context
+            _vatConfigLoader = vatConfigLoader
             _receiptIntegrity = receiptIntegrity
             _bodyComposer = bodyComposer
-            _businessName = If(configuration("POS:BusinessName"), "Villon Farm Supply")
-            _businessAddress = If(configuration("POS:BusinessAddress"), "")
-            _businessTIN = If(configuration("POS:BusinessTIN"), "")
-            _isVatRegistered = String.Equals(configuration("POS:IsVatRegistered"), "true", StringComparison.OrdinalIgnoreCase)
             _renderer = renderer
         End Sub
 
@@ -62,23 +55,29 @@ Namespace Services
             Dim receiptNumber = Await _receiptIntegrity.GetNextReceiptNumberAsync(DateTime.Now.Year)
             Dim now = DateTime.UtcNow
 
+            ' Read VAT config from the database-backed singleton cache so that the
+            ' receipt reflects the current VAT Settings, not a stale IConfiguration key.
+            Dim vatConfig = Await _vatConfigLoader.GetAsync()
+            Dim isVatRegistered = vatConfig IsNot Nothing AndAlso vatConfig.IsVatRegistered
+
             Dim vatableAmount As Decimal = 0D
             Dim vatAmount As Decimal = 0D
-            If _isVatRegistered Then
-                vatableAmount = Math.Round(transaction.TotalAmount / 1.12D, 2)
+            If isVatRegistered Then
+                Dim vatRate = vatConfig.VatRate
+                vatableAmount = Math.Round(transaction.TotalAmount / (1D + vatRate), 2, MidpointRounding.ToEven)
                 vatAmount = transaction.TotalAmount - vatableAmount
             End If
 
             Dim receipt As New OfficialReceipt() With {
                 .TransactionId = transactionId,
                 .ReceiptNumber = receiptNumber,
-                .BusinessName = _businessName,
-                .BusinessAddress = _businessAddress,
-                .BusinessTIN = _businessTIN,
+                .BusinessName = If(vatConfig?.BusinessName, "Villon Farm Supply"),
+                .BusinessAddress = If(vatConfig?.BusinessAddress, ""),
+                .BusinessTIN = If(vatConfig?.BusinessTIN, ""),
                 .IssueDate = now,
                 .TotalAmount = transaction.TotalAmount,
                 .VatAmount = vatAmount,
-                .IsVatRegistered = _isVatRegistered
+                .IsVatRegistered = isVatRegistered
             }
 
             _context.OfficialReceipts.Add(receipt)

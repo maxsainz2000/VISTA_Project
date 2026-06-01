@@ -2,7 +2,6 @@ Imports System.Collections.Concurrent
 Imports System.Threading
 Imports MySqlConnector
 Imports Microsoft.EntityFrameworkCore
-Imports Microsoft.Extensions.Configuration
 Imports MerchSys.POS.Data
 Imports MerchSys.POS.Entities
 Imports MerchSys.SharedKernel.Enums
@@ -22,24 +21,24 @@ Namespace Services
         Private ReadOnly _context As POSDbContext
         Private _txHistoryList As List(Of SalesTransaction)
         Private ReadOnly _receiptService As IReceiptService
-        Private ReadOnly _isVatRegistered As Boolean
+        Private ReadOnly _vatConfigLoader As VatConfigurationLoader
 
         Public Sub New(context As POSDbContext,
                        receiptService As IReceiptService,
-                       configuration As IConfiguration)
+                       vatConfigLoader As VatConfigurationLoader)
             _context = context
             _receiptService = receiptService
-            _isVatRegistered = String.Equals(configuration("POS:IsVatRegistered"), "true", StringComparison.OrdinalIgnoreCase)
+            _vatConfigLoader = vatConfigLoader
         End Sub
 
-        Public Function CreateCartAsync() As Task(Of CartDto) Implements ICartService.CreateCartAsync
+        Public Async Function CreateCartAsync() As Task(Of CartDto) Implements ICartService.CreateCartAsync
             Dim cart As New CartDto() With {.CartId = Guid.NewGuid()}
-            RecalculateTotals(cart)
+            Await RecalculateTotalsAsync(cart)
             _carts(cart.CartId) = cart
-            Return Task.FromResult(cart)
+            Return cart
         End Function
 
-        Public Function AddLineAsync(cartId As Guid, productId As Integer, productName As String, quantity As Integer, unitPrice As Decimal) As Task(Of CartDto) Implements ICartService.AddLineAsync
+        Public Async Function AddLineAsync(cartId As Guid, productId As Integer, productName As String, quantity As Integer, unitPrice As Decimal) As Task(Of CartDto) Implements ICartService.AddLineAsync
             Dim cart = GetCart(cartId)
             cart.Lines.Add(New CartLineDto() With {
                 .ProductId = productId,
@@ -48,32 +47,32 @@ Namespace Services
                 .UnitPrice = unitPrice,
                 .DiscountAmount = 0D
             })
-            RecalculateTotals(cart)
-            Return Task.FromResult(cart)
+            Await RecalculateTotalsAsync(cart)
+            Return cart
         End Function
 
-        Public Function UpdateLineQuantityAsync(cartId As Guid, lineIndex As Integer, newQuantity As Integer) As Task(Of CartDto) Implements ICartService.UpdateLineQuantityAsync
+        Public Async Function UpdateLineQuantityAsync(cartId As Guid, lineIndex As Integer, newQuantity As Integer) As Task(Of CartDto) Implements ICartService.UpdateLineQuantityAsync
             Dim cart = GetCart(cartId)
             ValidateLineIndex(cart, lineIndex)
             cart.Lines(lineIndex).Quantity = newQuantity
-            RecalculateTotals(cart)
-            Return Task.FromResult(cart)
+            Await RecalculateTotalsAsync(cart)
+            Return cart
         End Function
 
-        Public Function RemoveLineAsync(cartId As Guid, lineIndex As Integer) As Task(Of CartDto) Implements ICartService.RemoveLineAsync
+        Public Async Function RemoveLineAsync(cartId As Guid, lineIndex As Integer) As Task(Of CartDto) Implements ICartService.RemoveLineAsync
             Dim cart = GetCart(cartId)
             ValidateLineIndex(cart, lineIndex)
             cart.Lines.RemoveAt(lineIndex)
-            RecalculateTotals(cart)
-            Return Task.FromResult(cart)
+            Await RecalculateTotalsAsync(cart)
+            Return cart
         End Function
 
-        Public Function ApplyLineDiscountAsync(cartId As Guid, lineIndex As Integer, discountAmount As Decimal) As Task(Of CartDto) Implements ICartService.ApplyLineDiscountAsync
+        Public Async Function ApplyLineDiscountAsync(cartId As Guid, lineIndex As Integer, discountAmount As Decimal) As Task(Of CartDto) Implements ICartService.ApplyLineDiscountAsync
             Dim cart = GetCart(cartId)
             ValidateLineIndex(cart, lineIndex)
             cart.Lines(lineIndex).DiscountAmount = discountAmount
-            RecalculateTotals(cart)
-            Return Task.FromResult(cart)
+            Await RecalculateTotalsAsync(cart)
+            Return cart
         End Function
 
         Public Async Function FinalizeAsync(cartId As Guid, paymentMethod As PaymentMethod, amountTendered As Decimal, Optional customerId As Integer? = Nothing) As Task(Of SalesTransaction) Implements ICartService.FinalizeAsync
@@ -242,15 +241,33 @@ Namespace Services
             End If
         End Sub
 
-        Private Sub RecalculateTotals(cart As CartDto)
+        Private Async Function RecalculateTotalsAsync(cart As CartDto) As Task
             For Each cartLine In cart.Lines
                 cartLine.LineTotal = (cartLine.Quantity * cartLine.UnitPrice) - cartLine.DiscountAmount
             Next
             cart.SubTotal = cart.Lines.Sum(Function(l) l.Quantity * l.UnitPrice)
             cart.DiscountTotal = cart.Lines.Sum(Function(l) l.DiscountAmount)
-            cart.VatAmount = If(_isVatRegistered, Math.Round(cart.SubTotal * 0.12D, 2), 0D)
-            cart.GrandTotal = cart.SubTotal - cart.DiscountTotal + cart.VatAmount
-        End Sub
+
+            Dim grossAmount = cart.SubTotal - cart.DiscountTotal
+
+            ' Read VAT status from the database-backed singleton cache (VatConfigurationLoader)
+            ' instead of the stale IConfiguration key, so runtime changes via VAT Settings
+            ' are reflected immediately in the cart.
+            Dim vatConfig = Await _vatConfigLoader.GetAsync()
+            If vatConfig IsNot Nothing AndAlso vatConfig.IsVatRegistered Then
+                ' VAT-inclusive decomposition: Philippine retail prices already include VAT.
+                ' Extract the VAT component per BIR formula.
+                Dim vatRate = vatConfig.VatRate
+                Dim vatableAmount = Math.Round(grossAmount / (1D + vatRate), 2, MidpointRounding.ToEven)
+                cart.VatAmount = grossAmount - vatableAmount
+            Else
+                cart.VatAmount = 0D
+            End If
+
+            ' Grand total equals the gross amount (prices are VAT-inclusive; VAT is
+            ' an informational decomposition, not additive).
+            cart.GrandTotal = grossAmount
+        End Function
 
         Private Async Function ValidateCreditCustomerAsync(customerId As Integer?) As Task(Of CreditAccount)
             If Not customerId.HasValue Then

@@ -1,9 +1,11 @@
 Imports System.Threading
+Imports MediatR
 Imports MySqlConnector
 Imports Microsoft.EntityFrameworkCore
 Imports Microsoft.Extensions.Logging
 Imports MerchSys.Inventory.Data
 Imports MerchSys.Inventory.Entities
+Imports MerchSys.SharedKernel.Events
 Imports MerchSys.SharedKernel.Persistence
 
 Namespace Services
@@ -12,13 +14,16 @@ Namespace Services
         Implements IExpiryTrackingService
 
         Private ReadOnly _db As InventoryDbContext
+        Private ReadOnly _mediator As IMediator
         Private ReadOnly _logger As ILogger(Of ExpiryTrackingService)
         Private _nearExpiryBatchList As List(Of StockBatch)
         Private _expiredBatchList As List(Of StockBatch)
 
         Public Sub New(db As InventoryDbContext,
+                       mediator As IMediator,
                        logger As ILogger(Of ExpiryTrackingService))
             _db = db
+            _mediator = mediator
             _logger = logger
         End Sub
 
@@ -243,7 +248,25 @@ Namespace Services
 
             batch.QuantityRemaining = 0
             _db.ShrinkageRecords.Add(shrinkage)
+
+            _db.StockMovements.Add(New StockMovement With {
+                .ProductId = batch.ProductId,
+                .MovementType = MovementType.Shrinkage,
+                .Quantity = -qtyLost,
+                .OccurredAt = DateTime.UtcNow
+            })
+
             Await _db.SaveChangesAsync()
+
+            Await _mediator.Publish(New ShrinkageRecordedEvent With {
+                .ProductId = batch.ProductId,
+                .ProductName = batch.Product.Name,
+                .QuantityLost = qtyLost,
+                .UnitCost = batch.UnitCost,
+                .TotalValue = totalValue,
+                .Reason = "Expiry",
+                .RecordedDate = DateTime.UtcNow
+            })
 
             _logger.LogInformation(
                 "Expired batch written off: BatchId={BatchId}, ProductId={ProductId}, QtyLost={QtyLost}, TotalValue={TotalValue}",

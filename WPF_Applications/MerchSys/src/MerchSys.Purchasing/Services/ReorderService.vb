@@ -25,116 +25,204 @@ Namespace Services
             _mediator = mediator
         End Sub
 
+        ''' <summary>
+        ''' Generates reorder suggestions. A product qualifies only when it is at/below its
+        ''' reorder point AND has at least one active Vendor Product Catalog association — a
+        ''' suggestion must resolve to a real supplying vendor because it converts into a PO,
+        ''' and a PO line can only reference a product in that vendor's catalog. The preferred
+        ''' vendor is the catalog entry with the lowest LastUnitCost (tie-break: lowest VendorId).
+        ''' An active Pur_ReorderConfigs row, when present, refines the threshold / order qty /
+        ''' lead time / seasonal multiplier; otherwise sensible defaults are derived from the
+        ''' product threshold and the chosen vendor's default lead time.
+        ''' </summary>
         Public Async Function GenerateSuggestionsAsync() As Task(Of List(Of ReorderSuggestion)) Implements IReorderService.GenerateSuggestionsAsync
+            ' Current stock levels already carry MinimumThreshold + IsBelowThreshold (from Inv_Products).
             Dim stockResult = Await _mediator.Send(New GetCurrentStockQuery())
-            Dim stockMap = stockResult.Items.ToDictionary(Function(s) s.ProductId)
 
-            _reorderConfigList = New List(Of ReorderConfig)()
+            Dim catalogByProduct As New Dictionary(Of Integer, List(Of CatalogVendorOption))()
+            Dim configByProduct As New Dictionary(Of Integer, ReorderConfig)()
+            Dim vendorLeadById As New Dictionary(Of Integer, Integer)()
+            Dim existingByProduct As New Dictionary(Of Integer, ExistingSuggestionInfo)()
+            Dim openPoIds As New HashSet(Of Integer)()
+
             Dim genConnStr = _db.Database.GetConnectionString()
             Using genConn As New MySqlConnection(genConnStr)
                 Await genConn.OpenAsync()
-                Using genCmd = genConn.CreateCommand()
-                    genCmd.CommandText = "SELECT Id, ProductId, ProductName, PreferredVendorId, MinimumThreshold, SafetyStock, " &
-                                         "DefaultOrderQuantity, LeadTimeDays, IsSeasonalItem, SeasonalMultiplier, IsActive, " &
-                                         "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
-                                         "FROM Pur_ReorderConfigs WHERE IsActive = 1"
-                    Using genReader = genCmd.ExecuteReader()
-                        While genReader.Read()
-                            _reorderConfigList.Add(New ReorderConfig With {
-                                .Id = genReader.GetInt32(0),
-                                .ProductId = genReader.GetInt32(1),
-                                .ProductName = genReader.GetString(2),
-                                .PreferredVendorId = If(genReader.IsDBNull(3), CType(Nothing, Integer?), genReader.GetInt32(3)),
-                                .MinimumThreshold = genReader.GetInt32(4),
-                                .SafetyStock = genReader.GetInt32(5),
-                                .DefaultOrderQuantity = genReader.GetInt32(6),
-                                .LeadTimeDays = genReader.GetInt32(7),
-                                .IsSeasonalItem = genReader.GetBoolean(8),
-                                .SeasonalMultiplier = genReader.GetDecimal(9),
-                                .IsActive = genReader.GetBoolean(10)
+
+                ' 1. Active vendor-catalog associations -> ProductId => [(VendorId, VendorName, LastUnitCost)].
+                Using catCmd = genConn.CreateCommand()
+                    catCmd.CommandText = "SELECT vp.ProductId, vp.VendorId, v.Name, vp.LastUnitCost " &
+                                         "FROM Pur_VendorProducts vp " &
+                                         "INNER JOIN Pur_Vendors v ON v.Id = vp.VendorId " &
+                                         "WHERE vp.IsDeleted = 0"
+                    Using catReader = catCmd.ExecuteReader()
+                        While catReader.Read()
+                            Dim pid As Integer = catReader.GetInt32(0)
+                            Dim optList As List(Of CatalogVendorOption) = Nothing
+                            If Not catalogByProduct.TryGetValue(pid, optList) Then
+                                optList = New List(Of CatalogVendorOption)()
+                                catalogByProduct(pid) = optList
+                            End If
+                            optList.Add(New CatalogVendorOption With {
+                                .VendorId = catReader.GetInt32(1),
+                                .VendorName = catReader.GetString(2),
+                                .LastUnitCost = catReader.GetDecimal(3)
                             })
                         End While
                     End Using
                 End Using
 
-                Dim vendorIdSet = _reorderConfigList.
-                    Where(Function(cfg) cfg.PreferredVendorId.HasValue).
-                    Select(Function(cfg) cfg.PreferredVendorId.Value).Distinct().ToList()
+                ' 2. Optional active reorder configs (refinement only) -> ProductId => config.
+                Using cfgCmd = genConn.CreateCommand()
+                    cfgCmd.CommandText = "SELECT ProductId, MinimumThreshold, SafetyStock, DefaultOrderQuantity, " &
+                                         "LeadTimeDays, IsSeasonalItem, SeasonalMultiplier " &
+                                         "FROM Pur_ReorderConfigs WHERE IsActive = 1"
+                    Using cfgReader = cfgCmd.ExecuteReader()
+                        While cfgReader.Read()
+                            Dim pid As Integer = cfgReader.GetInt32(0)
+                            configByProduct(pid) = New ReorderConfig With {
+                                .ProductId = pid,
+                                .MinimumThreshold = cfgReader.GetInt32(1),
+                                .SafetyStock = cfgReader.GetInt32(2),
+                                .DefaultOrderQuantity = cfgReader.GetInt32(3),
+                                .LeadTimeDays = cfgReader.GetInt32(4),
+                                .IsSeasonalItem = cfgReader.GetBoolean(5),
+                                .SeasonalMultiplier = cfgReader.GetDecimal(6)
+                            }
+                        End While
+                    End Using
+                End Using
 
+                ' 3. Default lead times for the vendors that appear in the catalog.
+                Dim vendorIdSet = catalogByProduct.Values.
+                    SelectMany(Function(l) l).
+                    Select(Function(o) o.VendorId).Distinct().ToList()
                 If vendorIdSet.Any() Then
-                    Dim genVendorDict As New Dictionary(Of Integer, Vendor)()
-                    Dim genVidList As String = String.Join(",", vendorIdSet)
-                    Using genVCmd = genConn.CreateCommand()
-                        genVCmd.CommandText = "SELECT Id, Name, ContactPerson, Phone, Email, Address, DefaultLeadTimeDays, Notes " &
-                                              $"FROM Pur_Vendors WHERE Id IN ({genVidList})"
-                        Using genVReader = genVCmd.ExecuteReader()
-                            While genVReader.Read()
-                                Dim gv As New Vendor With {
-                                    .Id = genVReader.GetInt32(0),
-                                    .Name = genVReader.GetString(1),
-                                    .ContactPerson = genVReader.GetString(2),
-                                    .Phone = genVReader.GetString(3),
-                                    .Email = If(genVReader.IsDBNull(4), Nothing, genVReader.GetString(4)),
-                                    .Address = genVReader.GetString(5),
-                                    .DefaultLeadTimeDays = genVReader.GetInt32(6),
-                                    .Notes = If(genVReader.IsDBNull(7), Nothing, genVReader.GetString(7))
-                                }
-                                genVendorDict(gv.Id) = gv
+                    Using vlCmd = genConn.CreateCommand()
+                        vlCmd.CommandText = "SELECT Id, DefaultLeadTimeDays FROM Pur_Vendors WHERE Id IN (" &
+                                            String.Join(",", vendorIdSet) & ")"
+                        Using vlReader = vlCmd.ExecuteReader()
+                            While vlReader.Read()
+                                vendorLeadById(vlReader.GetInt32(0)) = vlReader.GetInt32(1)
                             End While
                         End Using
                     End Using
-                    For Each cfg In _reorderConfigList
-                        Dim gv As Vendor = Nothing
-                        If cfg.PreferredVendorId.HasValue AndAlso genVendorDict.TryGetValue(cfg.PreferredVendorId.Value, gv) Then
-                            cfg.PreferredVendor = gv
-                        End If
-                    Next
+                End If
+
+                ' 4. Most-recent existing suggestion per product (drives re-generate suppression).
+                '    Ordering ASC + overwrite leaves the highest Id (latest) per product in the map.
+                Using exCmd = genConn.CreateCommand()
+                    exCmd.CommandText = "SELECT ProductId, Status, CurrentStock, ConvertedToPOId " &
+                                        "FROM Pur_ReorderSuggestions ORDER BY Id ASC"
+                    Using exReader = exCmd.ExecuteReader()
+                        While exReader.Read()
+                            existingByProduct(exReader.GetInt32(0)) = New ExistingSuggestionInfo With {
+                                .Status = exReader.GetString(1),
+                                .CurrentStock = exReader.GetInt32(2),
+                                .ConvertedToPOId = If(exReader.IsDBNull(3), CType(Nothing, Integer?), exReader.GetInt32(3))
+                            }
+                        End While
+                    End Using
+                End Using
+
+                ' 5. Of the accepted suggestions, which converted POs are still OPEN (Draft=1/Submitted=2)?
+                '    An accepted suggestion only suppresses re-suggest while its PO is in flight.
+                Dim acceptedPoIds = existingByProduct.Values.
+                    Where(Function(e) e.Status = "Accepted" AndAlso e.ConvertedToPOId.HasValue).
+                    Select(Function(e) e.ConvertedToPOId.Value).Distinct().ToList()
+                If acceptedPoIds.Any() Then
+                    Using poCmd = genConn.CreateCommand()
+                        poCmd.CommandText = "SELECT Id FROM Pur_PurchaseOrders WHERE Status IN (1, 2) AND Id IN (" &
+                                            String.Join(",", acceptedPoIds) & ")"
+                        Using poReader = poCmd.ExecuteReader()
+                            While poReader.Read()
+                                openPoIds.Add(poReader.GetInt32(0))
+                            End While
+                        End Using
+                    End Using
                 End If
             End Using
-            Dim configs = _reorderConfigList
-
-            ' Collect product IDs that already have a pending suggestion to avoid duplicates.
-            Dim pendingProductIds As New HashSet(Of Integer)(
-                Await _db.ReorderSuggestions.
-                    Where(Function(s) s.Status = "Pending").
-                    Select(Function(s) s.ProductId).
-                    ToListAsync())
 
             Dim newSuggestions As New List(Of ReorderSuggestion)()
 
-            For Each config In configs
-                If pendingProductIds.Contains(config.ProductId) Then
+            For Each level In stockResult.Items
+                ' Gate: skip any product with no active vendor-catalog association.
+                Dim vendorOptions As List(Of CatalogVendorOption) = Nothing
+                If Not catalogByProduct.TryGetValue(level.ProductId, vendorOptions) OrElse vendorOptions.Count = 0 Then
                     Continue For
                 End If
 
-                Dim stockLevel As GetCurrentStockResult.StockLevel = Nothing
-                If Not stockMap.TryGetValue(config.ProductId, stockLevel) Then
-                    Continue For
+                ' Suppress re-suggesting a product already handled in a prior cycle:
+                '   Pending   -> still awaiting the manager's decision (don't duplicate).
+                '   Accepted  -> a draft PO is already replenishing it; skip while that PO is still open.
+                '   Dismissed -> manager declined; only re-arm if stock has dropped further below the
+                '                level recorded when it was dismissed.
+                Dim existing As ExistingSuggestionInfo = Nothing
+                If existingByProduct.TryGetValue(level.ProductId, existing) Then
+                    Select Case existing.Status
+                        Case "Pending"
+                            Continue For
+                        Case "Accepted"
+                            If existing.ConvertedToPOId.HasValue AndAlso openPoIds.Contains(existing.ConvertedToPOId.Value) Then
+                                Continue For
+                            End If
+                        Case "Dismissed"
+                            If level.CurrentQuantity >= existing.CurrentStock Then
+                                Continue For
+                            End If
+                    End Select
                 End If
 
-                Dim reorderPoint As Integer = config.MinimumThreshold
+                ' Threshold (a config refines it; otherwise use the product's seeded threshold).
+                Dim cfg As ReorderConfig = Nothing
+                configByProduct.TryGetValue(level.ProductId, cfg)
+
+                Dim reorderPoint As Integer = If(cfg IsNot Nothing, cfg.MinimumThreshold, level.MinimumThreshold)
                 Dim seasonalAdjusted As Boolean = False
-
-                If config.IsSeasonalItem AndAlso config.SeasonalMultiplier > 1D Then
-                    reorderPoint = CInt(Math.Ceiling(reorderPoint * config.SeasonalMultiplier))
+                If cfg IsNot Nothing AndAlso cfg.IsSeasonalItem AndAlso cfg.SeasonalMultiplier > 1D Then
+                    reorderPoint = CInt(Math.Ceiling(reorderPoint * cfg.SeasonalMultiplier))
                     seasonalAdjusted = True
                 End If
 
-                If stockLevel.CurrentQuantity <= reorderPoint Then
-                    Dim suggestion As New ReorderSuggestion With {
-                        .ProductId = config.ProductId,
-                        .ProductName = config.ProductName,
-                        .CurrentStock = stockLevel.CurrentQuantity,
-                        .ReorderPoint = reorderPoint,
-                        .SuggestedQuantity = config.DefaultOrderQuantity,
-                        .PreferredVendorId = config.PreferredVendorId,
-                        .PreferredVendorName = If(config.PreferredVendor IsNot Nothing, config.PreferredVendor.Name, Nothing),
-                        .EstimatedLeadTimeDays = config.LeadTimeDays,
-                        .IsSeasonalAdjusted = seasonalAdjusted,
-                        .Status = "Pending"
-                    }
-                    newSuggestions.Add(suggestion)
+                If level.CurrentQuantity > reorderPoint Then
+                    Continue For
                 End If
+
+                ' Preferred vendor: lowest last-agreed cost, tie-break lowest VendorId.
+                Dim chosen = vendorOptions.
+                    OrderBy(Function(o) o.LastUnitCost).
+                    ThenBy(Function(o) o.VendorId).
+                    First()
+
+                Dim suggestedQty As Integer
+                If cfg IsNot Nothing AndAlso cfg.DefaultOrderQuantity > 0 Then
+                    suggestedQty = cfg.DefaultOrderQuantity
+                Else
+                    ' Default: top up to the reorder point (at least one unit).
+                    suggestedQty = Math.Max(reorderPoint - level.CurrentQuantity, 1)
+                End If
+
+                Dim leadDays As Integer
+                If cfg IsNot Nothing Then
+                    leadDays = cfg.LeadTimeDays
+                Else
+                    Dim vendorLead As Integer = 0
+                    vendorLeadById.TryGetValue(chosen.VendorId, vendorLead)
+                    leadDays = vendorLead
+                End If
+
+                newSuggestions.Add(New ReorderSuggestion With {
+                    .ProductId = level.ProductId,
+                    .ProductName = level.ProductName,
+                    .CurrentStock = level.CurrentQuantity,
+                    .ReorderPoint = reorderPoint,
+                    .SuggestedQuantity = suggestedQty,
+                    .PreferredVendorId = chosen.VendorId,
+                    .PreferredVendorName = chosen.VendorName,
+                    .EstimatedLeadTimeDays = leadDays,
+                    .IsSeasonalAdjusted = seasonalAdjusted,
+                    .Status = "Pending"
+                })
             Next
 
             If newSuggestions.Any() Then
@@ -144,6 +232,20 @@ Namespace Services
 
             Return newSuggestions
         End Function
+
+        ''' <summary>A candidate supplying vendor for a product, sourced from Pur_VendorProducts.</summary>
+        Private Class CatalogVendorOption
+            Public Property VendorId As Integer
+            Public Property VendorName As String
+            Public Property LastUnitCost As Decimal
+        End Class
+
+        ''' <summary>Snapshot of a product's most-recent reorder suggestion, used to suppress duplicate re-generation.</summary>
+        Private Class ExistingSuggestionInfo
+            Public Property Status As String
+            Public Property CurrentStock As Integer
+            Public Property ConvertedToPOId As Integer?
+        End Class
 
         Public Async Function GetPendingSuggestionsAsync() As Task(Of List(Of ReorderSuggestion)) Implements IReorderService.GetPendingSuggestionsAsync
             _reorderSuggestionList = New List(Of ReorderSuggestion)()

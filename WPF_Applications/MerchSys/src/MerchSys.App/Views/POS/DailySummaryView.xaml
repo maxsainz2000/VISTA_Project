@@ -481,7 +481,7 @@
                                       Height="140">
                             <ScrollViewer.Style>
                                 <Style TargetType="ScrollViewer">
-                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Setter Property="Visibility" Value="Visible"/>
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding TrendBars.Count}" Value="0">
                                             <Setter Property="Visibility" Value="Collapsed"/>

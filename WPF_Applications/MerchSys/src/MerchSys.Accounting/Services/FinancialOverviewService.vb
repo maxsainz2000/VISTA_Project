@@ -63,13 +63,49 @@ Namespace Services
                 currentGrossMargin = Math.Round(((mtdRevenue - mtdCOGS) / mtdRevenue) * 100D, 4)
             End If
 
-            Dim latestSnapshot As FinancialSnapshot = Await _db.FinancialSnapshots _
-                .OrderByDescending(Function(s) s.SnapshotDate) _
-                .FirstOrDefaultAsync()
+            Dim totalAR As Decimal = 0D
+            Dim totalAP As Decimal = 0D
+            Dim inventoryValue As Decimal = 0D
+            Dim overdueARCount As Integer = 0
+            Dim overdueAPCount As Integer = 0
+            Dim lowStockAlertCount As Integer = 0
 
-            Dim totalAR As Decimal = If(latestSnapshot IsNot Nothing, latestSnapshot.TotalAR, 0D)
-            Dim totalAP As Decimal = If(latestSnapshot IsNot Nothing, latestSnapshot.TotalAP, 0D)
-            Dim inventoryValue As Decimal = If(latestSnapshot IsNot Nothing, latestSnapshot.InventoryValue, 0D)
+            Try
+                totalAR = Await _mediator.Send(New GetTotalARQuery())
+            Catch ex As Exception
+                _logger.LogError(ex, "Failed to fetch total AR via mediator.")
+            End Try
+
+            Try
+                totalAP = Await _mediator.Send(New GetTotalAPQuery())
+            Catch ex As Exception
+                _logger.LogError(ex, "Failed to fetch total AP via mediator.")
+            End Try
+
+            Try
+                Dim valResult = Await _mediator.Send(New GetInventoryValuationQuery())
+                inventoryValue = valResult.TotalValue
+            Catch ex As Exception
+                _logger.LogError(ex, "Failed to fetch inventory valuation via mediator.")
+            End Try
+
+            Try
+                overdueARCount = Await _mediator.Send(New GetOverdueARCountQuery())
+            Catch ex As Exception
+                _logger.LogError(ex, "Failed to fetch overdue AR count via mediator.")
+            End Try
+
+            Try
+                overdueAPCount = Await _mediator.Send(New GetOverdueAPCountQuery())
+            Catch ex As Exception
+                _logger.LogError(ex, "Failed to fetch overdue AP count via mediator.")
+            End Try
+
+            Try
+                lowStockAlertCount = Await _mediator.Send(New GetLowStockAlertCountQuery())
+            Catch ex As Exception
+                _logger.LogError(ex, "Failed to fetch low stock alert count via mediator.")
+            End Try
 
             Dim trendStart As DateTime = New DateTime(today.Year, today.Month, 1).AddMonths(-5)
 
@@ -149,9 +185,9 @@ Namespace Services
                 .InventoryValue = inventoryValue,
                 .MonthlyTrend = monthlyTrend,
                 .TopProducts = topProducts,
-                .OverdueARCount = 0,
-                .OverdueAPCount = 0,
-                .LowStockAlertCount = 0
+                .OverdueARCount = overdueARCount,
+                .OverdueAPCount = overdueAPCount,
+                .LowStockAlertCount = lowStockAlertCount
             }
         End Function
 
@@ -173,18 +209,28 @@ Namespace Services
                 .Where(Function(r) r.RecordDate >= yearStart) _
                 .SumAsync(Function(r) r.NetAmount)
 
-            Dim valuationResult As GetInventoryValuationResult = Await _mediator.Send(New GetInventoryValuationQuery())
-            Dim inventoryValue As Decimal = valuationResult.TotalValue
+            Dim inventoryValue As Decimal = 0D
+            Try
+                Dim valuationResult = Await _mediator.Send(New GetInventoryValuationQuery())
+                inventoryValue = valuationResult.TotalValue
+            Catch ex As Exception
+                _logger.LogError(ex, "Failed to fetch inventory valuation for snapshot.")
+            End Try
 
-            ' Carry AR/AP forward from the most recent prior snapshot; no cross-module query is
-            ' defined yet for these totals — handlers will update a dedicated snapshot when available.
-            Dim priorSnapshot As FinancialSnapshot = Await _db.FinancialSnapshots _
-                .Where(Function(s) s.SnapshotDate < today) _
-                .OrderByDescending(Function(s) s.SnapshotDate) _
-                .FirstOrDefaultAsync()
+            Dim totalAR As Decimal = 0D
+            Dim totalAP As Decimal = 0D
 
-            Dim totalAR As Decimal = If(priorSnapshot IsNot Nothing, priorSnapshot.TotalAR, 0D)
-            Dim totalAP As Decimal = If(priorSnapshot IsNot Nothing, priorSnapshot.TotalAP, 0D)
+            Try
+                totalAR = Await _mediator.Send(New GetTotalARQuery())
+            Catch ex As Exception
+                _logger.LogError(ex, "Failed to fetch total AR for snapshot.")
+            End Try
+
+            Try
+                totalAP = Await _mediator.Send(New GetTotalAPQuery())
+            Catch ex As Exception
+                _logger.LogError(ex, "Failed to fetch total AP for snapshot.")
+            End Try
 
             Dim existing As FinancialSnapshot = Await _db.FinancialSnapshots _
                 .FirstOrDefaultAsync(Function(s) s.SnapshotDate = today)

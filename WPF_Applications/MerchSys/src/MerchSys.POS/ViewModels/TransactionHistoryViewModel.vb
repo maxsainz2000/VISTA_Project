@@ -5,6 +5,9 @@ Imports MerchSys.POS.Entities
 Imports MerchSys.POS.Services
 Imports MerchSys.SharedKernel.Enums
 Imports MerchSys.SharedKernel.Interfaces
+Imports Microsoft.Extensions.Configuration
+Imports Microsoft.Extensions.Options
+Imports MerchSys.POS.Services.ReceiptRendering
 
 Namespace ViewModels
 
@@ -107,6 +110,8 @@ Namespace ViewModels
         Private ReadOnly _cartService As ICartService
         Private ReadOnly _returnService As ISalesReturnService
         Private ReadOnly _receiptService As IReceiptService
+        Private ReadOnly _configuration As IConfiguration
+        Private ReadOnly _pdfOptions As IOptions(Of ReceiptPdfOptions)
 
         ''' <summary>
         ''' True when the current role is Manager. Owner role receives read-only access (DA5 UI enforcement).
@@ -177,12 +182,16 @@ Namespace ViewModels
         Public Sub New(session As ISessionService,
                        cartService As ICartService,
                        returnService As ISalesReturnService,
-                       receiptService As IReceiptService)
+                       receiptService As IReceiptService,
+                       configuration As IConfiguration,
+                       pdfOptions As IOptions(Of ReceiptPdfOptions))
 
             _session = session
             _cartService = cartService
             _returnService = returnService
             _receiptService = receiptService
+            _configuration = configuration
+            _pdfOptions = pdfOptions
 
             SearchCommand = New AsyncRelayCommand(AddressOf SearchAsync)
             ClearFiltersCommand = New RelayCommand(AddressOf ClearFilters)
@@ -552,12 +561,49 @@ Namespace ViewModels
 
         Private Async Function ViewReceiptAsync() As Task
             If SelectedTransaction Is Nothing OrElse Not HasReceipt Then Return
-
+ 
             IsBusy = True
+            StatusMessage = ""
             Try
-                Await _receiptService.PrintReceiptAsync(_selectedReceiptId)
+                Dim rendererType = _configuration("POS:Receipt:Renderer")
+                If String.IsNullOrEmpty(rendererType) Then rendererType = "Console"
+                If rendererType.Equals("Pdf", StringComparison.OrdinalIgnoreCase) Then
+                    Dim opt = _pdfOptions.Value
+                    Dim outputDir = Environment.ExpandEnvironmentVariables(opt.OutputDirectory)
+                    Dim fileName = opt.FileNamePattern
+                    fileName = fileName.Replace("{ReceiptNumber}", ReceiptNumber)
+                    fileName = fileName.Replace("{YYYYMMDD}", SelectedTransaction.TransactionDate.ToLocalTime().ToString("yyyyMMdd"))
+                    Dim fullPath = System.IO.Path.Combine(outputDir, fileName)
+
+                    If System.IO.File.Exists(fullPath) Then
+                        ' File already exists, just open it!
+                        Dim psi As New System.Diagnostics.ProcessStartInfo(fullPath) With { .UseShellExecute = True }
+                        System.Diagnostics.Process.Start(psi)
+                        StatusMessage = $"Opened existing receipt PDF: {fileName}"
+                        IsStatusSuccess = True
+                        Return
+                    End If
+
+                    ' Generate it
+                    Await _receiptService.PrintReceiptAsync(_selectedReceiptId)
+
+                    ' Wait a tiny bit and open it
+                    If System.IO.File.Exists(fullPath) Then
+                        Dim psi As New System.Diagnostics.ProcessStartInfo(fullPath) With { .UseShellExecute = True }
+                        System.Diagnostics.Process.Start(psi)
+                        StatusMessage = $"Receipt PDF generated and opened: {fileName}"
+                        IsStatusSuccess = True
+                    Else
+                        StatusMessage = $"Receipt PDF generated at: {fullPath}"
+                        IsStatusSuccess = True
+                    End If
+                Else
+                    Await _receiptService.PrintReceiptAsync(_selectedReceiptId)
+                    StatusMessage = "Receipt printed to diagnostic output (Console/terminal). Check debug logs or set Renderer to 'Pdf' in appsettings.json to view PDF."
+                    IsStatusSuccess = True
+                End If
             Catch ex As Exception
-                StatusMessage = $"Error printing receipt: {ex.Message}"
+                StatusMessage = $"Error viewing receipt: {ex.Message}"
                 IsStatusSuccess = False
             Finally
                 IsBusy = False
