@@ -28,4 +28,6 @@ This page details the MediatR Handlers for the **MerchSys.Inventory** module.
 | `src/MerchSys.Inventory/Handlers/GetSaleCogsBreakdownQueryHandler.vb` | `GetSaleCogsBreakdownQueryHandler` | `GetSaleCogsBreakdownQuery` | Retrieves per-batch FIFO COGS breakdown from `Inv_SaleCogs` for a specific POS transaction and product; projects to DTO. |
 | `src/MerchSys.Inventory/Handlers/GetLowStockAlertCountQueryHandler.vb` | `GetLowStockAlertCountQueryHandler` | `GetLowStockAlertCountQuery` | Returns count of active low-stock alerts via `LowStockAlertService`. |
 | `src/MerchSys.Inventory/Handlers/GetProductsForCatalogQueryHandler.vb` | `GetProductsForCatalogQueryHandler` | `GetProductsForCatalogQuery` | Handles query for populating vendor catalog selection list by querying active products using a raw `MySqlConnection` (bypasses EF Core to work around EF Core 10 + VB.NET query discovery bugs). |
+| `src/MerchSys.Inventory/Handlers/GetInventoryValuationQueryHandler.vb` | `GetInventoryValuationQueryHandler` | `GetInventoryValuationQuery` | Computes real-time FIFO total inventory valuation and itemized breakdown for Accounting. |
+
 

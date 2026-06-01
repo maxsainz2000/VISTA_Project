@@ -114,5 +114,7 @@ This log tracks updates made to the `codebase_wiki/` by Antigravity during the H
 | 2026-05-28 | 13:15 | INFRA-30 | antigravity |
 | 2026-05-28 | 13:20 | Lint Pass — Fixed 3 stale SQLite refs (database.md, inventory/handlers.md, accounting/services.md) | antigravity |
 | 2026-05-29 | 13:55 | Codebase Mirroring Audit: Deleted Class1.vb files, resolved ghosts, added missing entities/migrations | antigravity |
+| 2026-06-01 | 14:30 | Codebase Mirroring Audit: Registered missing cross-module query events and handlers | antigravity |
+
 
 

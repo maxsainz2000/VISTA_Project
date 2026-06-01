@@ -33,6 +33,9 @@ last-updated: 2026-05-27
 | `Queries/GetLowStockAlertCountQuery.vb` | `GetLowStockAlertCountQuery` | `Integer` | N/A | Inventory |
 | `Queries/GetVatConfigurationQuery.vb` | `GetVatConfigurationQuery` | `GetVatConfigurationResult` | N/A | POS |
 | `Queries/GetProductsForCatalogQuery.vb` | `GetProductsForCatalogQuery` | `IReadOnlyList(Of ProductLookupDto)` | `SearchTerm` | Inventory |
+| `Queries/GetOverdueAPCountQuery.vb` | `GetOverdueAPCountQuery` | `Integer` | N/A | Purchasing |
+| `Queries/GetOverdueARCountQuery.vb` | `GetOverdueARCountQuery` | `Integer` | N/A | POS |
+
 
 ## Query Results
 | File Path | Result Class |
