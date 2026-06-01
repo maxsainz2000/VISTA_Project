@@ -107,7 +107,7 @@ Assert.NotEmpty(row.OperatingUser)
 ## What's Next
 
 - [x] Future reporting plan: implement a tamper-incident report UI consuming `ITamperAuditQueryService` *(completed in ACC-18)*
-- [ ] Add MariaDB immutability triggers (`BEFORE UPDATE` / `BEFORE DELETE`, `SIGNAL SQLSTATE '45000'`) directly to the `Acc_TamperAuditLog` table in the central MariaDB schema (e.g., as a new SQL migration file `0003_acc_tamper_audit_triggers.sql`). **Note (2026-05-28):** The original "central replica" framing is obsolete — INFRA-23–27 made MariaDB the sole database. The compliance need (BIR §235 10-year retention, append-only enforcement) is unchanged; only the delivery mechanism is clarified.
+- [x] Add MariaDB immutability triggers (`BEFORE UPDATE` / `BEFORE DELETE`, `SIGNAL SQLSTATE '45000'`) directly to the `Acc_TamperAuditLog` table in the central MariaDB schema (e.g., as a new SQL migration file `0003_acc_tamper_audit_triggers.sql`). **Note (2026-05-28):** The original "central replica" framing is obsolete — INFRA-23–27 made MariaDB the sole database. The compliance need (BIR §235 10-year retention, append-only enforcement) is unchanged; only the delivery mechanism is clarified. *(completed in initial central schema mig 0001)*
 
 ## Cross-References
 

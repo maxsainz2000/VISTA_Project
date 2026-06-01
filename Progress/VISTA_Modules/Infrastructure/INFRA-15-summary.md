@@ -78,7 +78,7 @@ None — build succeeded on first attempt.
 - [x] Operator verification: log in as `owner` / new password — should show Owner-restricted navigation (no VAT Settings, no VAT Return) (criterion 5) *(completed/verified in Operator checklist)*
 - [x] Operator verification: 5 consecutive wrong passwords triggers lockout with remaining-minutes message (criterion 8) *(completed/verified in Operator checklist)*
 - [x] Operator verification: Log Out → log in as Owner in same session → nav items change (criterion 11 / POS-13) *(completed/verified in Operator checklist)*
-- [ ] **Deferred:** Session inactivity timeout (DA2 partial — 15–30 min idle detection + warning dialog). Non-trivial UI concern; follow-up plan required. Documented here per plan spec.
+- [x] **Deferred:** Session inactivity timeout (DA2 partial — 15–30 min idle detection + warning dialog). Non-trivial UI concern; follow-up plan required. Documented here per plan spec. *(completed in INFRA-19)*
 
 ## Cross-References
 

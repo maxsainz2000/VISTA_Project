@@ -95,7 +95,7 @@ Implemented the Connection Status Indicator and Multi-Client Configuration (INFR
 
 - [x] INFRA-29: Operational Runbook — document per-client setup of `appsettings.json` including `WorkstationName`, connection string, and failover steps *(completed 2026-05-28 — see `runbooks/01-04` + `02-client-laptop-setup.md`)*
 - [x] INFRA-30: Master-Detail Rail Sidebar *(completed 2026-05-28)*
-- [ ] Apply `behaviors:DisableOnOfflineBehavior.IsDisabledWhenOffline="True"` to mutation buttons in each view (Save PO, Issue OR, Add Vendor, Record Shrinkage, etc.) — can be done incrementally during testing
+- [ ] Apply `behaviors:DisableOnOfflineBehavior.IsDisabledWhenOffline="True"` to mutation buttons in each view (Save PO, Issue OR, Add Vendor, Record Shrinkage, etc.) *(deferred/future UI improvement; database-level role-based write rejection is robustly implemented)*
 
 ## Cross-References
 

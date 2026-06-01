@@ -1,8 +1,8 @@
 ---
 module: Infrastructure
-source: Infrastructure-audit-2026-05-26.md
+source: Infrastructure-audit-2026-06-01.md
 originally-generated: 2026-05-17
-last-synced: 2026-05-26
+last-synced: 2026-06-01
 ---
 
 # Operator Verification Checklist — Infrastructure

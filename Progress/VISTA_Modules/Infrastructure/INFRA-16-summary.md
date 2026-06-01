@@ -123,9 +123,9 @@ None. All VB.NET traps from CLAUDE.md were observed during implementation:
 
 ## What's Next
 
-- [ ] DA5 data-layer enforcement: add role-based write rejection in repositories/services (deferred per plan note)
+- [x] DA5 data-layer enforcement: add role-based write rejection in repositories/services (deferred per plan note) *(completed in INFRA-20)*
 - [x] Manual acceptance testing per INFRA-16 criteria 1–13 *(completed/verified in Operator checklist)*
-- [ ] Consider adding `CanEdit` to `FinancialOverviewViewModel`, `IncomeStatementViewModel`, `SalesSummaryViewModel` if any write-capable actions are discovered during testing (currently these views appear read-only)
+- [x] Consider adding `CanEdit` to `FinancialOverviewViewModel`, `IncomeStatementViewModel`, `SalesSummaryViewModel` if any write-capable actions are discovered during testing (currently these views appear read-only) *(obsolete/moot; views are fully read-only, and DB enforces write rejection)*
 
 ## Cross-References
 

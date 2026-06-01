@@ -1,10 +1,10 @@
 ---
 module: Accounting
-audit-date: 2026-05-26
+audit-date: 2026-06-01
 auditor: claude-code
 ---
 
-# Accounting Module Audit — 2026-05-26
+# Accounting Module Audit — 2026-06-01
 
 ## Mirror Check
 
@@ -28,25 +28,32 @@ auditor: claude-code
 | ACC-16 | VatPayableTile Financial Overview Placement & Navigation Wiring | ✅ Completed |
 | ACC-17 | Schema Verification Harness Dev-Menu Integration | ✅ Completed |
 | ACC-18 | Tamper Incident Report UI | ✅ Completed |
+| ACC-19 | BIR VAT Relief Report | ✅ Completed |
+| ACC-20 | Tamper Report Export (CSV/PDF) | ✅ Completed |
+| ACC-21 | Per-Batch FIFO COGS Accuracy | ✅ Completed |
+| ACC-22 | Revenue Record Consolidation | ✅ Completed |
 
-**Total: 18 plans — 18 Completed, 0 In Progress, 0 Blocked, 0 Missing**
+**Total: 22 plans — 22 Completed, 0 In Progress, 0 Blocked, 0 Missing**
 
 ## What's Next Cleanup (Step 0)
 
-No items required cleanup. The three open items in Accounting summaries are genuine deferred tasks not resolved by any later plan.
+Items resolved by later plans were updated in source summaries during this audit:
+
+| Summary | Item | Resolved By |
+|---------|------|-------------|
+| ACC-15 | Add MariaDB-equivalent immutability triggers for central replica of `Acc_TamperAuditLog` | initial central schema mig 0001 |
+| ACC-18 | Export tamper incident report to CSV/PDF for BIR auditor submission | ACC-20 |
 
 ## Pending Tasks
 
 | Source | Task | Priority |
 |--------|------|----------|
 | ACC-13 | Consider adding `IDbContextFactory(Of AccountingDbContext)` registration to `DatabaseConfig.AddModuleDbContexts` if future harnesses need factory-based multi-instance patterns | Low |
-| ACC-15 | Add MariaDB-equivalent immutability triggers for the central replica of `Acc_TamperAuditLog` (INFRA-08 covers POS tables only, not Acc_* tables) | Medium |
-| ACC-18 | Export tamper incident report to CSV/PDF for BIR auditor submission (explicitly deferred in ACC-18 plan) | Low |
+| ACC-19 | `GetTrailingMonthsAsync` currently loops N calls to `GetMonthlySummaryAsync`; could be optimised to a single GROUP BY query if latency becomes an issue at 24 months | Low |
 
 ## Summary & Recommendations
 
-- 18/18 plans completed. No outstanding plan work.
-- **Medium priority:** ACC-15 MariaDB triggers for `Acc_TamperAuditLog` central replica — if tamper audit integrity matters for the central MariaDB copy, these immutability triggers should be added in a follow-up INFRA or ACC plan.
-- **Low priority:** ACC-18 CSV/PDF export for BIR — a regulatory deliverable deferred until auditor submission is required.
+- 22/22 plans completed. No outstanding plan work.
 - **Low priority:** ACC-13 `IDbContextFactory` registration — only needed if future harnesses use multi-instance patterns.
-- The Accounting service layer (`VatReportingService`, `ITamperAuditQueryService`) had all ToListAsync bugs remediated in INT-16.
+- **Low priority:** ACC-19 trailing months optimization — a database optimization that can be safely deferred until the store has accumulated more than 12–24 months of active historical sales ledger records.
+- All high-severity and medium-priority accounting integrity issues (including duplicate revenue records and split-batch FIFO COGS calculations) have been successfully remediated.

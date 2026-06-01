@@ -1,10 +1,10 @@
 ---
 module: Inventory
-audit-date: 2026-05-26
+audit-date: 2026-06-01
 auditor: claude-code
 ---
 
-# Inventory Module Audit — 2026-05-26
+# Inventory Module Audit — 2026-06-01
 
 ## Mirror Check
 
@@ -23,12 +23,14 @@ auditor: claude-code
 | INV-11 | View — Product Management | ✅ Completed |
 | INV-12 | View — Expiry Monitor | ✅ Completed |
 | INV-13 | View — Shrinkage | ✅ Completed |
+| INV-14 | Price Change History | ✅ Completed |
+| INV-15 | Stock Dashboard Cost Column | ✅ Completed |
 
-**Total: 13 plans — 13 Completed, 0 In Progress, 0 Blocked, 0 Missing**
+**Total: 15 plans — 15 Completed, 0 In Progress, 0 Blocked, 0 Missing**
 
 ## What's Next Cleanup (Step 0)
 
-No unchecked `[ ]` items were found in any Inventory progress summaries. INV-08 What's Next items were already fully checked.
+No unchecked `[ ]` items were found in any Inventory progress summaries. All What's Next items were already fully checked.
 
 ## Pending Tasks
 
@@ -36,6 +38,5 @@ No open pending tasks found in the Inventory module.
 
 ## Summary & Recommendations
 
-- 13/13 plans completed. No outstanding plan work and no pending tasks.
-- The Inventory service layer had all ToListAsync bugs remediated in INT-15 (`StockService`, `LowStockAlertService`, `ShrinkageService`, `InventoryAuditService`, `ExpiryTrackingService`, `VelocityService`, `StockDashboardService`) and `ProductManagementViewModel`.
-- No follow-up plans required for Inventory at this time.
+- 15/15 plans completed. No outstanding plan work and no pending tasks.
+- Inventory is fully complete and compliant. Product pricing history and dashboard cost columns are fully visible and active.

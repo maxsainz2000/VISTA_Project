@@ -44,8 +44,8 @@ None. No reserved-keyword traps hit during implementation.
 
 ## What's Next
 
-- [ ] Operator verification: set `Session:IdleTimeoutMinutes = 1`, verify warning dialog, Stay, Sign out, auto-logout paths (see INFRA-verification-checklist.md INFRA-19 section)
-- [ ] Revert `Session:IdleTimeoutMinutes` to 20 after operator testing
+- [x] Operator verification: set `Session:IdleTimeoutMinutes = 1`, verify warning dialog, Stay, Sign out, auto-logout paths (see INFRA-verification-checklist.md INFRA-19 section) *(completed/verified in operator testing)*
+- [x] Revert `Session:IdleTimeoutMinutes` to 20 after operator testing *(completed/verified in operator testing)*
 
 ## Cross-References
 

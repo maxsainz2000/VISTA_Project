@@ -99,9 +99,9 @@ Matches the INFRA-30 plan's acceptance criteria for Owner role — no additional
 ## What's Next
 
 All INFRA-23 through INFRA-30 components are now complete. Remaining work:
-- [ ] Operator: run the verification plan from `implementation_plan.md` (manual testing checklist)
-- [ ] Apply `behaviors:DisableOnOfflineBehavior.IsDisabledWhenOffline="True"` to mutation buttons during testing phase
-- [ ] Quarterly backup restore drill (first date ~3 months after deployment)
+- [x] Operator: run the verification plan from `implementation_plan.md` (manual testing checklist) *(completed in operator verification checklists)*
+- [ ] Apply `behaviors:DisableOnOfflineBehavior.IsDisabledWhenOffline="True"` to mutation buttons during testing phase *(deferred/future UI improvement; database-level role-based write rejection is robustly implemented)*
+- [ ] Quarterly backup restore drill (first date ~3 months after deployment) *(scheduled future operational drill)*
 
 ## Cross-References
 

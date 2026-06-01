@@ -146,8 +146,8 @@ is unrelated and was present before this plan.
 ## What's Next
 
 - [x] POS-17 (VatSettingsView) — UI to configure `VatConfiguration.BusinessTIN` *(completed in POS-17)*
-- [ ] Future plan: ESC/POS or PDF rendering layer that consumes `ReceiptBody` blocks and
-      applies width-limited formatting and "₱" → "PHP " substitution as needed
+- [x] Future plan: ESC/POS or PDF rendering layer that consumes `ReceiptBody` blocks and
+      applies width-limited formatting and "₱" → "PHP " substitution as needed *(completed in POS-19)*
 
 ## Cross-References
 

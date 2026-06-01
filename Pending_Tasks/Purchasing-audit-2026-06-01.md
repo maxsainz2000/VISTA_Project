@@ -1,10 +1,10 @@
 ---
 module: Purchasing
-audit-date: 2026-05-26
+audit-date: 2026-06-01
 auditor: claude-code
 ---
 
-# Purchasing Module Audit — 2026-05-26
+# Purchasing Module Audit — 2026-06-01
 
 ## Mirror Check
 
@@ -25,12 +25,13 @@ auditor: claude-code
 | PUR-13 | View — Reorder Suggestions | ✅ Completed |
 | PUR-14 | GoodsReceivedWithVatEvent Publisher | ✅ Completed |
 | PUR-15 | GoodsReceiptLine VAT Classification Extension | ✅ Completed |
+| PUR-16 | Vendor Product Catalog & PO Auto-configuration | ✅ Completed |
 
-**Total: 15 plans — 15 Completed, 0 In Progress, 0 Blocked, 0 Missing**
+**Total: 16 plans — 16 Completed, 0 In Progress, 0 Blocked, 0 Missing**
 
 ## What's Next Cleanup (Step 0)
 
-No unchecked `[ ]` items were found in any Purchasing progress summaries. What's Next sections in early summaries (PUR-01 through PUR-13) used plain-text bullets rather than checkbox format; these contain no actionable open items.
+No unchecked `[ ]` items were found in any Purchasing progress summaries. What's Next sections in early summaries contain no actionable open items.
 
 ## Pending Tasks
 
@@ -38,6 +39,5 @@ No open pending tasks found in the Purchasing module.
 
 ## Summary & Recommendations
 
-- 15/15 plans completed. No outstanding plan work and no pending tasks.
-- The Purchasing service layer (`VendorService`, `PurchaseOrderService`, `AccountsPayableService`, `ReorderService`, `GoodsReceivingService`, `PriceChangeService`) had all ToListAsync bugs remediated in INT-16.
-- No follow-up plans required for Purchasing at this time.
+- 16/16 plans completed. No outstanding plan work and no pending tasks.
+- The new Vendor Product Catalog UI, ProductId validation gates, PO line auto-configuration, and cost defaults are fully delivered and verified.

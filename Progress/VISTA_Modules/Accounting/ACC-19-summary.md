@@ -67,8 +67,8 @@ None. The raw `SqliteConnection` pattern from `VatReportingService` was followed
 
 ## What's Next
 
-- [ ] Operator verification checklist tests for ACC-19 (separate testing phase)
-- [ ] `GetTrailingMonthsAsync` currently loops N calls to `GetMonthlySummaryAsync`; could be optimised to a single GROUP BY query if latency becomes an issue at 24 months
+- [x] Operator verification checklist tests for ACC-19 (separate testing phase) *(completed/verified in operator testing)*
+- [ ] `GetTrailingMonthsAsync` currently loops N calls to `GetMonthlySummaryAsync`; could be optimised to a single GROUP BY query if latency becomes an issue at 24 months *(deferred/future optimization task)*
 
 ## Cross-References
 

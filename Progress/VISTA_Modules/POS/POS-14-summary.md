@@ -54,7 +54,7 @@ Implements BIR three-bucket VAT decomposition (Vatable / Exempt / Zero-Rated) at
 - [x] VAT Settings UI (ViewModel + View) for owner to toggle `IsVatRegistered` and set TIN *(completed in POS-17)*
 - [x] Update `ReceiptService.GenerateReceiptAsync` to print the three BIR VAT buckets on the receipt body *(completed in POS-18)*
 - [x] Accounting handler for `SaleCompletedWithVatEvent` to record VAT-disaggregated revenue entries *(completed in ACC-10)*
-- [ ] BIR VAT Relief Report (monthly summary of all three buckets) — Accounting module plan
+- [x] BIR VAT Relief Report (monthly summary of all three buckets) — Accounting module plan *(completed in ACC-19)*
 
 ## Cross-References
 

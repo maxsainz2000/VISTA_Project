@@ -1,7 +1,7 @@
 ---
 created: 2026-05-17
-source: Pending_Tasks audit reports (2026-05-17, 2026-05-26)
-last-synced: 2026-05-28
+source: Pending_Tasks audit reports (2026-05-17, 2026-05-26, 2026-06-01)
+last-synced: 2026-06-01
 item-18-added: 2026-05-27
 items-19-to-27-added: 2026-05-27
 infra-19-completed: 2026-05-26
@@ -47,6 +47,7 @@ item-20-completed: 2026-05-28 (INFRA-29 nightly backup runbook + PowerShell scri
 
 ## 5. MariaDB Immutability Triggers for Acc_TamperAuditLog
 
+**Status:** CLOSED — completed natively in central initial schema migration 0001 (triggers `tr_acc_tamper_no_update` and `tr_acc_tamper_no_delete` are active on `Acc_TamperAuditLog`).
 **Module:** Accounting / Infrastructure
 **Source:** ACC-15 What's Next
 **Description:** The `Acc_TamperAuditLog` table has SQLite immutability triggers (deployed by ACC-15), but no MariaDB equivalents for the central replica. This is a SQL-only task similar to INFRA-08 (which added MariaDB triggers for POS tables, but not Acc_* tables).
@@ -146,10 +147,10 @@ item-20-completed: 2026-05-28 (INFRA-29 nightly backup runbook + PowerShell scri
 
 **Module:** Inventory / Accounting / POS (cross-cutting)
 **Source:** User Observation (2026-05-27) — hands-on testing with multi-vendor purchasing
-**Status:** PROMOTED (2026-05-27) — split into three plans:
-- **18a → INV-15** `Plans/VISTA_Modules/Inventory/15-stock-dashboard-cost-column.md` (UI cost visibility)
-- **18c → ACC-22** `Plans/VISTA_Modules/Accounting/22-revenue-record-consolidation.md` (eliminate duplicate-writer race; ship first)
-- **18b → ACC-21** `Plans/VISTA_Modules/Accounting/21-per-batch-cogs-accuracy.md` (per-batch FIFO COGS via new `Inv_SaleCogs` ledger; depends on ACC-22)
+**Status:** CLOSED — completed via INV-15, ACC-21, and ACC-22. Fully verified under Test 7 of the Manager checklist (split-batch POS checkout and FIFO COGS).
+- **18a → INV-15** `Plans/VISTA_Modules/Inventory/15-stock-dashboard-cost-column.md` (UI cost visibility — completed)
+- **18c → ACC-22** `Plans/VISTA_Modules/Accounting/22-revenue-record-consolidation.md` (eliminate duplicate-writer race — completed)
+- **18b → ACC-21** `Plans/VISTA_Modules/Accounting/21-per-batch-cogs-accuracy.md` (per-batch FIFO COGS via new `Inv_SaleCogs` ledger — completed)
 
 ### Reproduction Steps
 

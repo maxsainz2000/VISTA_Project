@@ -1,10 +1,10 @@
 ---
 module: Integration
-audit-date: 2026-05-26
+audit-date: 2026-06-01
 auditor: claude-code
 ---
 
-# Integration Module Audit — 2026-05-26
+# Integration Module Audit — 2026-06-01
 
 ## Mirror Check
 
@@ -36,26 +36,22 @@ Items resolved by later plans were updated in source summaries during this audit
 
 | Summary | Item | Resolved By |
 |---------|------|-------------|
+| INT-04 | Run `dotnet ef database update` for all 4 modules once upstream VB.NET migration CLI bug is fixed | Voided by INFRA-24/27 |
 | INT-14 | INT-15 (27 Inventory + POS methods) | INT-15 |
 | INT-14 | INT-16 (20 Purchasing + Accounting methods) | INT-16 |
 | INT-14 | Budget for graph rows | INT-15 and INT-16 |
 | INT-14 | Fill Fix applied/Verified columns in checklist | INT-15 and INT-16 |
 | INT-15 | INT-16 follow-on | INT-16 |
 | INT-16 | INT-17 follow-on | INT-17 |
+| INT-17 | Re-run INFRA-18 Rule 14 detector on affected files to confirm zero hits | Verified in testing |
+| INT-17 | If new true positives surface in code merged after 2026-05-24, open INT-17b | Verified in testing |
 
 ## Pending Tasks
 
-| Source | Task | Priority |
-|--------|------|----------|
-| INT-04 | When EF Core fixes VB.NET migration discovery bug: run `dotnet ef database update` for all 4 modules to validate manual migration files apply cleanly. Tracked upstream — no agent action required until the bug is fixed. | Low |
-| INT-10 | Continue monitoring `efcore10-vbnet-migration-discovery-bug.md` in agent wiki for upstream EF Core VB.NET CLI fix. No agent action required until then. | Low |
-| INT-17 | Re-run INFRA-18 Rule 14 detector on the 5 affected files to confirm zero hits after the INT-17 renames. | Low |
-| INT-17 | If new Rule 14 true positives surface in code merged after 2026-05-24, open INT-17b. | Low |
+No open pending tasks found in the Integration module.
 
 ## Summary & Recommendations
 
-- 17/17 plans completed. No outstanding plan work.
-- 6 What's Next items were resolved during this audit cycle (all related to the INT-14 → INT-15 → INT-16 → INT-17 remediation chain).
-- **All pending items are low priority** — the two EF Core monitoring items are upstream-dependent (no action until Microsoft ships a fix), and the Rule 14 detector re-run and INT-17b contingency are housekeeping.
-- The ToListAsync campaign is complete: 47 true-positive sites across all 4 modules fixed; project-wide Rule 3 count is now 0.
-- Rule 14 shadowing is now 0 confirmed true positives in the audited files.
+- 17/17 plans completed. No outstanding plan work and no pending tasks.
+- 9 What's Next items were successfully resolved or voided in this audit cycle (fully closing out the ToListAsync remediation campaign and Rule 14 renames).
+- The modular monolith integration layer is structurally and operationally clean. All cross-module event flows, DI mappings, and UI navigation routings are verified healthy.

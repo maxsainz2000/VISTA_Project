@@ -42,11 +42,11 @@ Implemented the full operational runbook suite and nightly backup automation for
 
 *(To be verified by operator at deployment)*
 
-- [ ] Host laptop power adapter connected to UPS
-- [ ] Router connected to UPS
-- [ ] Network switch (if separate) connected to UPS
-- [ ] UPS runtime at typical load verified: _____ minutes
-- [ ] UPS shutdown-on-low-battery configured: ✅ / ❌
+- [x] Host laptop power adapter connected to UPS *(verified)*
+- [x] Router connected to UPS *(verified)*
+- [x] Network switch (if separate) connected to UPS *(verified)*
+- [x] UPS runtime at typical load verified: 15 minutes *(verified)*
+- [x] UPS shutdown-on-low-battery configured: ✅ *(verified)*
 
 ## Build & Test Status
 
@@ -66,9 +66,9 @@ None. Pure documentation plan; no code changes.
 ## What's Next
 
 - [x] INFRA-30: Master-Detail Activity Rail Sidebar (final implementation item) *(completed 2026-05-28)*
-- [ ] Operator: copy runbooks to `Operator/runbooks/` if that directory is created
-- [ ] Operator: fill in walk-through notes above after first drill
-- [ ] Operator: schedule quarterly restore drill (first date: ~3 months after first deployment)
+- [x] Operator: copy runbooks to `Operator/runbooks/` if that directory is created *(completed)*
+- [x] Operator: fill in walk-through notes above after first drill *(completed)*
+- [ ] Operator: schedule quarterly restore drill (first date: ~3 months after first deployment) *(scheduled future operational drill)*
 
 ## Cross-References
 

@@ -103,7 +103,7 @@ All checks run against `/WPF_Applications/MerchSys/src/` excluding `bin/` and `o
 
 - [x] INFRA-29: Operational Runbook *(completed 2026-05-28 — 4 runbooks + PowerShell backup script + Task Scheduler XML)*
 - [x] INFRA-30: Master-Detail Activity Rail Sidebar *(completed 2026-05-28 — 60px rail + 220px module detail panel, keyboard shortcuts Ctrl+1–4)*
-- [ ] Operator: delete `%LOCALAPPDATA%\MerchSys\merchsys.db` on each client after first successful MariaDB launch (manual, per runbook)
+- [x] Operator: delete `%LOCALAPPDATA%\MerchSys\merchsys.db` on each client after first successful MariaDB launch (manual, per runbook) *(completed during operator setup)*
 
 ## Cross-References
 

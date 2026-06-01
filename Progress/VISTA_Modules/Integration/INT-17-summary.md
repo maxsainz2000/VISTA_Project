@@ -84,8 +84,8 @@ true positives in new code, open a follow-up rename task rather than expanding I
 
 ## What's Next
 
-- [ ] Re-run INFRA-18 Rule 14 detector on affected files to confirm zero hits.
-- [ ] If new true positives surface in code merged after 2026-05-24, open INT-17b.
+- [x] Re-run INFRA-18 Rule 14 detector on affected files to confirm zero hits. *(completed/verified in operator testing)*
+- [x] If new true positives surface in code merged after 2026-05-24, open INT-17b. *(completed/verified in operator testing)*
 
 ## Cross-References
 

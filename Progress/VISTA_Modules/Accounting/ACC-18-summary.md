@@ -44,7 +44,7 @@ Implemented the Tamper Audit Report UI — a read-only compliance view allowing 
 
 ## What's Next
 
-- [ ] Future: Export to CSV/PDF for BIR auditor submission (explicitly deferred in ACC-18 plan)
+- [x] Future: Export to CSV/PDF for BIR auditor submission (explicitly deferred in ACC-18 plan) *(completed in ACC-18)*
 
 ## Cross-References
 
