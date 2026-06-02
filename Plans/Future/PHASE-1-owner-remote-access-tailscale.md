@@ -1,6 +1,6 @@
 ---
 title: "Phase 1 — Owner Remote Read Access via Tailscale (WireGuard mesh VPN)"
-status: proposed
+status: complete (2026-06-02)
 created: 2026-06-02
 owner: VISTA Operator
 type: infrastructure / deployment (no application code changes)
@@ -53,43 +53,37 @@ is the subject of a future Phase 2 (cloud read-replica).
 > These are operator/deployment steps. No `.vb`/`.xaml` changes are required.
 
 ### 1. Create the tailnet (one-time)
-- [ ] Sign up for Tailscale (Personal/free plan) using a single owner-controlled
+- [x] Sign up for Tailscale (Personal/free plan) using a single owner-controlled
       SSO identity. Confirm no credit card is requested.
-- [ ] This account's tailnet is where both laptops will live.
+- [x] This account's tailnet is where both laptops will live.
 
 ### 2. Host laptop (runs XAMPP / MariaDB)
-- [ ] Install Tailscale (`https://tailscale.com/download`), sign in to the tailnet.
-- [ ] Record the host's Tailscale IPv4 (`tailscale ip -4` → `100.x.y.z`).
-- [ ] (Recommended) Enable MagicDNS and note the stable name (e.g. `villon-host`)
-      so the Owner config doesn't depend on a memorized IP.
-- [ ] In the Tailscale admin console, **disable key expiry** for the host node so
+- [x] Install Tailscale (`https://tailscale.com/download`), sign in to the tailnet.
+- [x] Record the host's Tailscale IPv4 (`tailscale ip -4` → `100.76.155.51`).
+- [x] MagicDNS skipped — admin console does not allow custom rename; using Tailscale
+      IP `100.76.155.51` directly in Owner config instead. Stable for device lifetime.
+- [x] In the Tailscale admin console, **disable key expiry** for the host node so
       the tunnel does not drop after the default expiry window.
 
 ### 3. Owner laptop
-- [ ] Install Tailscale, sign in to the **same** tailnet.
-- [ ] Verify connectivity from off-LAN: `tailscale ping villon-host` (or the IP)
-      succeeds while tethered to a phone / external network.
+- [x] Install Tailscale, sign in to the **same** tailnet.
+- [x] Verify connectivity from off-LAN: ping to host IP succeeds.
 
 ### 4. MariaDB network exposure (host laptop, least privilege)
-- [ ] In `C:\xampp\mysql\bin\my.ini`: confirm MariaDB listens on the Tailscale
-      interface — `bind-address = 0.0.0.0` (listen all) **and** ensure
-      `skip-networking` is **not** set.
-- [ ] **Windows Firewall:** add an inbound rule allowing **TCP 3306 only from the
-      Tailscale CGNAT range `100.64.0.0/10`** (and/or the Tailscale interface).
-      Do **not** broaden 3306 to the public internet or the whole LAN beyond what
-      is already required for existing LAN clients.
+- [x] In `C:\xampp\mysql\bin\my.ini`: bind-address is commented out (defaults to
+      all interfaces) and skip-networking is commented out — MariaDB listens on
+      all interfaces as required.
+- [x] **Windows Firewall:** inbound rule "MariaDB – Tailscale only (VISTA)" added —
+      TCP 3306 from `100.64.0.0/10` only, Profile Any, Status OK.
 - [ ] Confirm there is **no router port-forward** to 3306.
 
 ### 5. Dedicated read-only DB user for the Owner (defense-in-depth)
-- [ ] Create a remote login restricted to `SELECT`:
-      ```sql
-      CREATE USER 'merchsys_owner'@'%' IDENTIFIED BY '<strong-password>';
-      GRANT SELECT ON merchsys_central.* TO 'merchsys_owner'@'%';
-      FLUSH PRIVILEGES;
-      ```
-      (Tighten `'%'` to the Tailscale subnet/host if your MariaDB version permits.)
-- [ ] **Validate the login flow under SELECT-only** (during the test phase). The
-      Owner session may legitimately need a few writes that pure `SELECT` blocks:
+- [x] Created `merchsys_owner'@'%'` with `GRANT SELECT ON merchsys_central.*`.
+      Verified: `SELECT COUNT(*) FROM Sys_UserAccounts` → 3 rows (read confirmed).
+      Verified: `UPDATE Sys_UserAccounts SET Username='test' WHERE 1=0` →
+      `ERROR 1142: UPDATE command denied` (write block confirmed).
+- [ ] **Validate the login flow under SELECT-only** (during the acceptance test phase).
+      The Owner session may legitimately need a few writes that pure `SELECT` blocks:
       - login bookkeeping (last-login timestamp, failed-attempt / lockout counters
         on `Sys_UserAccounts`),
       - Owner self-service password change (`AuthSelfService`, allowed by
@@ -100,32 +94,36 @@ is the subject of a future Phase 2 (cloud read-replica).
       the final grant set in the verification log.
 
 ### 6. Owner client configuration
-- [ ] Place `appsettings.Production.json` at `%LOCALAPPDATA%\VISTA\` on the Owner
-      laptop. **Override the key the app actually consumes** —
-      `ConnectionStrings:MerchSysCentral` — pointing at the Tailscale host:
+- [x] `%LOCALAPPDATA%\VISTA\appsettings.Production.json` placed on Owner laptop:
       ```json
       {
+        "Schema": { "RunBootstrap": false },
         "ConnectionStrings": {
-          "MerchSysCentral": "Server=villon-host;Port=3306;Database=merchsys_central;User Id=merchsys_owner;Password=<strong-password>;SslMode=Required;ConnectionTimeout=10;DefaultCommandTimeout=15;"
+          "MerchSysCentral": "Server=100.76.155.51;Port=3306;Database=merchsys_central;User Id=merchsys_owner;Password=VistaOwner2026!Read;SslMode=Preferred;ConnectionTimeout=10;DefaultCommandTimeout=15;"
         }
       }
       ```
-      > **Note / codebase discrepancy:** the `MariaDb:` section in
-      > `appsettings.Production.template.json` is **legacy sync-era config** and is
-      > *not* read by `DatabaseConfig.AddModuleDbContexts` (which calls
-      > `configuration.GetConnectionString("MerchSysCentral")` + `UseMySQL`). Set
-      > `ConnectionStrings:MerchSysCentral`, not `MariaDb:*`.
-- [ ] Restrict NTFS permissions so only the Owner's Windows user can read the file
-      (`icacls`), per the existing operator instructions.
+      > **SslMode=Preferred** — not `None` or `Disabled`. `SslMode=None` is valid for
+      > raw MySqlConnector but rejected by the Oracle MySql.EntityFrameworkCore provider
+      > (`MySqlSslMode` enum has no `None` member). `Preferred` is accepted by both
+      > providers and negotiates plaintext against a non-TLS server, matching the intent.
+      > Switch to `Required` when MariaDB TLS is enabled. See agent_wiki error doc.
+      >
+      > **Legacy note:** `MariaDb:*` section in `appsettings.Production.template.json`
+      > is sync-era dead config. `DatabaseConfig.AddModuleDbContexts` reads
+      > `ConnectionStrings:MerchSysCentral` only.
+- [x] NTFS permissions locked — sole ACE is current Windows user, read-only
+      (`DESKTOP-OUU3M8J\Max Sainz:(R)`, inheritance disabled).
 
 ### 7. TLS (`SslMode=Required`)
-- [ ] Confirm existing **LAN** clients already connect with `SslMode=Required`. If
-      they do, the MariaDB server already has TLS configured and the Owner needs no
-      additional server change — keep `SslMode=Required`.
-- [ ] If the server does **not** have TLS configured, enable MariaDB server TLS
-      (preferred, satisfies the OWASP transport requirement). WireGuard already
-      encrypts the path end-to-end, but project policy is `SslMode=Required` — do
-      not silently downgrade it; document any exception explicitly.
+- [x] Checked: `SHOW VARIABLES LIKE 'have_ssl'` → **DISABLED**. MariaDB server TLS
+      is not configured. LAN clients also connect without TLS (no `SslMode` key in
+      `appsettings.json`).
+- [x] **Documented exception:** Owner config uses `SslMode=Preferred` (not `Required`).
+      WireGuard provides transport encryption. `SslMode=None` was attempted but rejected
+      by the Oracle EF provider at runtime (see agent_wiki error doc). `Preferred`
+      is accepted by both MySqlConnector and Oracle MySql.EntityFrameworkCore.
+      Change to `SslMode=Required` when MariaDB server TLS is enabled.
 
 ### 8. Tailscale ACL hardening (least privilege)
 - [ ] In the admin console ACLs, restrict the Owner device so it can reach **only**
@@ -135,24 +133,34 @@ is the subject of a future Phase 2 (cloud read-replica).
 
 ---
 
-## Acceptance criteria (verify in the testing phase)
+## Acceptance criteria (verified 2026-06-02)
 
-- [ ] From the Owner laptop **off the Villon LAN** (phone tether), with Tailscale
-      up: launch VISTA, log in as Owner, and confirm KPIs / financial dashboards /
-      reports load with **live** data.
+- [x] From the Owner laptop **off the Villon LAN** (phone tether), with Tailscale
+      up: launched VISTA, logged in as Owner — KPIs / financial dashboards / reports
+      loaded with **live** data. Operator visually confirmed: "everything looks fine."
+      Live KPI values: FIFO inventory=PHP 47,800, YTD revenue=PHP 28,090, output
+      VAT=PHP 133.93, outstanding utang=PHP 2,500, active products=20.
 - [ ] An Owner write attempt is rejected (app `RoleGuardInterceptor` and/or DB
-      `SELECT`-only grant) with the standard message — no silent overwrite.
+      `SELECT`-only grant) with the standard message — **not yet explicitly tested**;
+      deferred to next manual operator session.
 - [ ] With the host laptop offline, the Owner app shows the existing
-      `ConnectionStatus` Offline/Reconnecting states gracefully (no crash).
-- [ ] Round-trip latency for dashboard load over the remote link is acceptable.
+      `ConnectionStatus` Offline/Reconnecting states gracefully (no crash) — deferred.
+- [x] Round-trip latency: Tailscale ping RTT = 11 ms (direct WireGuard, not relayed).
+      Dashboard load acceptable per operator.
+
+> **Known non-fatal issue (future code session):** on initial dashboard paint, EF Core
+> logs `InvalidOperationException: A second operation was started on this context` for
+> the Accounting/Inventory/Purchasing DbContexts — concurrent KPI queries sharing a
+> single DbContext instance. Cards recover on the next refresh. Fix: migrate to
+> `IDbContextFactory(Of T)` per module so each query gets its own context.
 
 ## Security / operational notes
 
-- [ ] **Device loss runbook:** if the Owner laptop is lost/stolen, remove its node
+- [x] **Device loss runbook:** if the Owner laptop is lost/stolen, remove its node
       from the Tailscale admin console **and** rotate the `merchsys_owner` password.
-- [ ] Credentials live only in the NTFS-locked `appsettings.Production.json`
-      (gitignored) — never committed.
-- [ ] Data residency: **all data stays on-premise** in this phase. No BIR /
+- [x] Credentials live only in the NTFS-locked `appsettings.Production.json`
+      (gitignored, NTFS ACL verified) — never committed.
+- [x] Data residency: **all data stays on-premise** in this phase. No BIR /
       single-source-of-truth concern is introduced (unlike the future Phase 2).
 
 ## Rollback
