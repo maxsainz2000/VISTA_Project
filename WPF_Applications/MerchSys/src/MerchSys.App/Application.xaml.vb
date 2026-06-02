@@ -6,6 +6,7 @@ Imports MerchSys.App.Configuration
 Imports MerchSys.App.Data
 Imports MerchSys.App.Services
 Imports MerchSys.App.Startup
+Imports MerchSys.App.Services.Theming
 Imports MerchSys.App.ViewModels
 Imports MerchSys.App.Views
 Imports MerchSys.Inventory.Services
@@ -202,8 +203,11 @@ Class Application
                                       services.AddSingleton(Of Views.Shell.ModuleDetailPanel)()
                                       services.AddSingleton(Of MainWindow)()
 
-                                      ' ── Developer Tools (Developer role only; all build configurations) ────────
-                                      services.AddDebugServices()
+                                       ' ── Theming Foundation (UX-01) ────────────────────────
+                                       services.AddSingleton(Of IThemeService, ThemeService)()
+
+                                       ' ── Developer Tools (Developer role only; all build configurations) ────────
+                                       services.AddDebugServices()
 
                                   End Sub)
 
@@ -243,6 +247,11 @@ Class Application
         _idleMonitor = _host.Services.GetRequiredService(Of IIdleMonitor)()
         AddHandler _idleMonitor.WarningShown, AddressOf HandleIdleWarning
         AddHandler _idleMonitor.SessionExpired, AddressOf HandleSessionExpired
+
+        ' Load and apply persisted theme before showing UI (UX-01)
+        Dim themeService = _host.Services.GetRequiredService(Of IThemeService)()
+        Dim savedTheme = themeService.LoadPersisted()
+        themeService.Apply(savedTheme)
 
         ShowLoginView()
     End Sub

@@ -1,0 +1,39 @@
+<!-- 
+    VISTA Design Tokens — Structure & Layout (Theme-agnostic)
+    Note: The UX-00 token contract is authoritative and keys must stay in parity.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+    <!-- Typographic Family -->
+    <FontFamily x:Key="AppFontFamily">pack://application:,,,/Fonts/#Inter</FontFamily>
+
+    <!-- Corner Radii -->
+    <CornerRadius x:Key="RadiusSmall">6</CornerRadius>
+    <CornerRadius x:Key="RadiusMedium">10</CornerRadius>
+    <CornerRadius x:Key="RadiusLarge">14</CornerRadius>
+
+    <!-- Spacing (Thickness) -->
+    <Thickness x:Key="SpacingXS">4</Thickness>
+    <Thickness x:Key="SpacingS">8</Thickness>
+    <Thickness x:Key="SpacingM">12</Thickness>
+    <Thickness x:Key="SpacingL">16</Thickness>
+    <Thickness x:Key="SpacingXL">24</Thickness>
+
+    <!-- Type Scale (Sizes in pt/px equivalent) -->
+    <sys:Double x:Key="FontSizeCaption">11</sys:Double>
+    <sys:Double x:Key="FontSizeBody">13</sys:Double>
+    <sys:Double x:Key="FontSizeSubhead">15</sys:Double>
+    <sys:Double x:Key="FontSizeTitle">20</sys:Double>
+    <sys:Double x:Key="FontSizeLargeTitle">28</sys:Double>
+
+    <!-- Drop Shadow Effect (Soft macOS depth) -->
+    <DropShadowEffect x:Key="CardShadow"
+                      BlurRadius="16"
+                      ShadowDepth="2"
+                      Direction="270"
+                      Opacity="0.12"
+                      Color="{DynamicResource ShadowColor}"/>
+
+</ResourceDictionary>

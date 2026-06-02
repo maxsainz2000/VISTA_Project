@@ -6,6 +6,13 @@
              Exit="Application_Exit"
              ShutdownMode="OnExplicitShutdown">
     <Application.Resources>
-
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- [0] structure tokens -->
+                <ResourceDictionary Source="pack://application:,,,/Themes/Tokens.xaml"/>
+                <!-- [1] active palette — replaced at runtime by ThemeService -->
+                <ResourceDictionary Source="pack://application:,,,/Themes/Light.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </Application.Resources>
 </Application>

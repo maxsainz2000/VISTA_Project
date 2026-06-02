@@ -4,6 +4,23 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignHeight="300" d:DesignWidth="220">
-    <!-- Debug-build only: shows developer tool shortcuts -->
-    <ItemsControl ItemsSource="{Binding DeveloperToolsItems}" Focusable="False"/>
+    <StackPanel>
+        <!-- Debug-build only: shows developer tool shortcuts -->
+        <ItemsControl ItemsSource="{Binding DeveloperToolsItems}" Focusable="False">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Button Content="{Binding DisplayName}"
+                            Style="{DynamicResource NavItemStyle}"
+                            Command="{Binding DataContext.NavigateCommand,
+                                               RelativeSource={RelativeSource AncestorType=UserControl}}"
+                            CommandParameter="{Binding}"/>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!-- UX-01 temp: remove when UX-02 lands the permanent toggle -->
+        <Button Content="Toggle Theme"
+                Style="{DynamicResource NavItemStyle}"
+                Click="ToggleTheme_Click"/>
+    </StackPanel>
 </UserControl>

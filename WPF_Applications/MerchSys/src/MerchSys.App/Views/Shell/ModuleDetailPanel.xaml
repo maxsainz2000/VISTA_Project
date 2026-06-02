@@ -205,9 +205,9 @@
                 </ItemsControl>
 
                 <!-- Developer Tools panel (Debug builds only, Manager role only) -->
-                <ItemsControl ItemsSource="{Binding DeveloperToolsItems}" Focusable="False">
-                    <ItemsControl.Style>
-                        <Style TargetType="ItemsControl">
+                <panels:DeveloperToolsPanel>
+                    <panels:DeveloperToolsPanel.Style>
+                        <Style TargetType="UserControl">
                             <Setter Property="Visibility" Value="Collapsed"/>
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding ActiveModule}"
@@ -216,17 +216,8 @@
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
-                    </ItemsControl.Style>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Button Content="{Binding DisplayName}"
-                                    Style="{StaticResource NavItemStyle}"
-                                    Command="{Binding DataContext.NavigateCommand,
-                                                      RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                    CommandParameter="{Binding}"/>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                    </panels:DeveloperToolsPanel.Style>
+                </panels:DeveloperToolsPanel>
 
             </Grid>
         </ScrollViewer>

@@ -1,0 +1,38 @@
+<!-- 
+    VISTA Design Tokens — Light Palette
+    Note: The UX-00 token contract is authoritative and keys must stay in parity with Dark.xaml.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Card Shadow Color (Plain Color, required by CardShadow effect) -->
+    <Color x:Key="ShadowColor">#000000</Color>
+
+    <!-- Structural Brushes -->
+    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#F5F5F7"/>
+    <SolidColorBrush x:Key="SurfaceBrush"          Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#F2F2F4"/>
+    <SolidColorBrush x:Key="ControlBackgroundBrush" Color="#FFFFFF"/>
+
+    <!-- Text Brushes -->
+    <SolidColorBrush x:Key="TextPrimaryBrush"      Color="#1D1D1F"/>
+    <SolidColorBrush x:Key="TextSecondaryBrush"    Color="#6E6E73"/>
+    <SolidColorBrush x:Key="TextOnAccentBrush"     Color="#FFFFFF"/>
+
+    <!-- Accent Brushes -->
+    <SolidColorBrush x:Key="AccentBrush"           Color="#007AFF"/>
+    <SolidColorBrush x:Key="AccentHoverBrush"      Color="#0A6CFF"/>
+
+    <!-- Separators & Borders -->
+    <SolidColorBrush x:Key="SeparatorBrush"        Color="#D2D2D7"/>
+
+    <!-- Selection/Navigation Brushes -->
+    <SolidColorBrush x:Key="SelectionBackgroundBrush" Color="#E8F0FE"/>
+    <SolidColorBrush x:Key="SelectionForegroundBrush" Color="#007AFF"/>
+
+    <!-- Semantic Status Brushes -->
+    <SolidColorBrush x:Key="DangerBrush"           Color="#FF3B30"/>
+    <SolidColorBrush x:Key="WarningBrush"          Color="#FF9F0A"/>
+    <SolidColorBrush x:Key="SuccessBrush"          Color="#34C759"/>
+
+</ResourceDictionary>
