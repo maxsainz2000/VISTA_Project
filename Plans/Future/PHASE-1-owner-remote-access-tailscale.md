@@ -126,10 +126,10 @@ is the subject of a future Phase 2 (cloud read-replica).
       Change to `SslMode=Required` when MariaDB server TLS is enabled.
 
 ### 8. Tailscale ACL hardening (least privilege)
-- [ ] In the admin console ACLs, restrict the Owner device so it can reach **only**
-      `host:3306` and nothing else on the tailnet (free plan includes 3 ACL groups).
-- [ ] Do **not** enable exit-node or subnet-router features unless separately
-      required — keep the attack surface minimal.
+- [x] Admin console ACLs updated — Owner device (`tag:vista-owner`) restricted to
+      `tag:vista-host:3306` only. Host device (`tag:vista-host`) has full outbound.
+      Exit-node and subnet-router features not enabled.
+- [x] Both machines tagged in the admin console (`vista-host`, `vista-owner`).
 
 ---
 
@@ -148,11 +148,9 @@ is the subject of a future Phase 2 (cloud read-replica).
 - [x] Round-trip latency: Tailscale ping RTT = 11 ms (direct WireGuard, not relayed).
       Dashboard load acceptable per operator.
 
-> **Known non-fatal issue (future code session):** on initial dashboard paint, EF Core
-> logs `InvalidOperationException: A second operation was started on this context` for
-> the Accounting/Inventory/Purchasing DbContexts — concurrent KPI queries sharing a
-> single DbContext instance. Cards recover on the next refresh. Fix: migrate to
-> `IDbContextFactory(Of T)` per module so each query gets its own context.
+> **DbContext concurrency issue resolved (2026-06-02):** `OwnerDashboardViewModel.RefreshAsync`
+> now loads KPI groups sequentially instead of via `Task.WhenAll`. No EF Core
+> `InvalidOperationException` errors on dashboard paint. Verified by operator.
 
 ## Security / operational notes
 
