@@ -304,18 +304,16 @@ Namespace ViewModels
             Dim loadTask = RefreshAsync()
         End Sub
 
-        ''' <summary>Loads all KPI groups concurrently from existing services.</summary>
+        ''' <summary>Loads all KPI groups sequentially to avoid concurrent DbContext access.</summary>
         Private Async Function RefreshAsync() As Task
             If IsLoading Then Return
             IsLoading = True
             Dim errMsg As String = Nothing
             Try
-                Await Task.WhenAll(
-                    LoadPurchasingKpisAsync(),
-                    LoadInventoryKpisAsync(),
-                    LoadSalesKpisAsync(),
-                    LoadAccountingKpisAsync()
-                )
+                Await LoadPurchasingKpisAsync()
+                Await LoadInventoryKpisAsync()
+                Await LoadSalesKpisAsync()
+                Await LoadAccountingKpisAsync()
                 LastRefreshedDisplay = $"Last refreshed: {DateTime.Now:HH:mm:ss}"
             Catch ex As Exception
                 errMsg = ex.Message
