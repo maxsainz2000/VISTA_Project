@@ -9,7 +9,8 @@
         Height="720" Width="1280"
         WindowStartupLocation="CenterScreen"
         WindowState="Maximized"
-        MinHeight="600" MinWidth="900">
+        MinHeight="600" MinWidth="900"
+        FontFamily="{DynamicResource AppFontFamily}">
 
     <!--
         Shell layout — three columns:
@@ -56,9 +57,11 @@
         <ContentControl Grid.Column="1" x:Name="ModuleDetailSlot"/>
 
         <!-- ═══ Col 2 — Active Content View ════════════════════════════════ -->
-        <ContentControl Grid.Column="2"
-                        Content="{Binding CurrentView}"
-                        Background="#F5F6FA"/>
+        <Border Grid.Column="2"
+                Background="{DynamicResource WindowBackgroundBrush}"
+                Padding="{DynamicResource SpacingL}">
+            <ContentControl Content="{Binding CurrentView}"/>
+        </Border>
 
     </Grid>
 </Window>

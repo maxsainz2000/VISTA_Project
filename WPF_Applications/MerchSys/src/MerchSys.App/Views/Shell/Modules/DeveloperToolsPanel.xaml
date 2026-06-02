@@ -17,10 +17,5 @@
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
-
-        <!-- UX-01 temp: remove when UX-02 lands the permanent toggle -->
-        <Button Content="Toggle Theme"
-                Style="{DynamicResource NavItemStyle}"
-                Click="ToggleTheme_Click"/>
     </StackPanel>
 </UserControl>

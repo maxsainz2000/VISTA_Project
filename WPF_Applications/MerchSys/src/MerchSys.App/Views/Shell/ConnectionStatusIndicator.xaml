@@ -10,6 +10,9 @@
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
+        <!-- Subtle white hover background for the retry button (avoids hardcoded hex) -->
+        <SolidColorBrush x:Key="HoverBackgroundBrush" Color="White" Opacity="0.2"/>
+
         <!-- Retry button — stripped chrome, white text on transparent background -->
         <Style x:Key="RetryButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
@@ -28,20 +31,36 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#20FFFFFF"/>
+                                <Setter Property="Background" Value="{StaticResource HoverBackgroundBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <!-- Pill badge style — maps ConnectionStatusViewModel state to design tokens -->
+        <Style x:Key="PillBadgeStyle" TargetType="Border">
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <!-- Default: Online state uses SuccessBrush -->
+            <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
+            <Style.Triggers>
+                <!-- Reconnecting state uses WarningBrush -->
+                <DataTrigger Binding="{Binding IsReconnecting}" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource WarningBrush}"/>
+                </DataTrigger>
+                <!-- Offline state uses DangerBrush -->
+                <DataTrigger Binding="{Binding IsRetryVisible}" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource DangerBrush}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
     </UserControl.Resources>
 
     <!-- Pill badge -->
-    <Border CornerRadius="8"
-            Padding="8,4"
-            Background="{Binding IndicatorBrush}"
-            VerticalAlignment="Center">
+    <Border Style="{StaticResource PillBadgeStyle}">
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
 
             <!-- Filled dot — visible when Online or Offline -->

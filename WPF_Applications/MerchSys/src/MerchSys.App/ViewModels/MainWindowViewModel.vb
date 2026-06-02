@@ -4,6 +4,7 @@ Imports CommunityToolkit.Mvvm.Input
 Imports Microsoft.Extensions.DependencyInjection
 Imports MerchSys.App.Models
 Imports MerchSys.App.Services
+Imports MerchSys.App.Services.Theming
 Imports MerchSys.SharedKernel.Enums
 Imports MerchSys.SharedKernel.Interfaces
 
@@ -15,6 +16,7 @@ Namespace ViewModels
         Private ReadOnly _services As IServiceProvider
         Private ReadOnly _session As ISessionService
         Private ReadOnly _loginSession As LoginSessionService
+        Private ReadOnly _themeService As IThemeService
 
         Private _activeNavItem As NavigationItem
         Private _currentView As Object
@@ -95,6 +97,7 @@ Namespace ViewModels
         Public ReadOnly Property NavigateCommand As RelayCommand(Of NavigationItem)
         Public ReadOnly Property SelectModuleCommand As RelayCommand(Of AppModule)
         Public ReadOnly Property LogoutCommand As RelayCommand
+        Public ReadOnly Property ToggleThemeCommand As RelayCommand
 
         ''' <summary>Raised when the user clicks Log Out.</summary>
         Public Event LogoutRequested As EventHandler
@@ -102,10 +105,11 @@ Namespace ViewModels
         ' ── Constructor ──────────────────────────────────────────────────────────
 
         Public Sub New(services As IServiceProvider, session As ISessionService,
-                       loginSession As LoginSessionService)
+                       loginSession As LoginSessionService, themeService As IThemeService)
             _services = services
             _session = session
             _loginSession = loginSession
+            _themeService = themeService
 
             PurchasingItems = New ObservableCollection(Of NavigationItem)()
             InventoryItems = New ObservableCollection(Of NavigationItem)()
@@ -117,6 +121,7 @@ Namespace ViewModels
             NavigateCommand = New RelayCommand(Of NavigationItem)(AddressOf Navigate)
             SelectModuleCommand = New RelayCommand(Of AppModule)(AddressOf DoSelectModule)
             LogoutCommand = New RelayCommand(AddressOf DoLogout)
+            ToggleThemeCommand = New RelayCommand(AddressOf DoToggleTheme)
 
             RebuildModuleCollections()
         End Sub
@@ -302,6 +307,25 @@ Namespace ViewModels
             End If
             Return groups
         End Function
+
+        ' ── Theming ──────────────────────────────────────────────────────────────
+
+        ''' <summary>
+        ''' Gets whether the application is currently using the Dark theme.
+        ''' </summary>
+        Public ReadOnly Property IsDarkTheme As Boolean
+            Get
+                Return _themeService.Current = AppTheme.Dark
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Command that toggles the application theme and notifies the UI.
+        ''' </summary>
+        Private Sub DoToggleTheme()
+            _themeService.Toggle()
+            OnPropertyChanged(NameOf(IsDarkTheme))
+        End Sub
 
     End Class
 

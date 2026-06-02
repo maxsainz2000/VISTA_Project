@@ -26,6 +26,9 @@
     <!-- Separators & Borders -->
     <SolidColorBrush x:Key="SeparatorBrush"        Color="#D2D2D7"/>
 
+    <!-- Interaction overlay — subtle dark ink for hover states (theme-specific) -->
+    <SolidColorBrush x:Key="HoverBackgroundBrush"  Color="#1D1D1F" Opacity="0.06"/>
+
     <!-- Selection/Navigation Brushes -->
     <SolidColorBrush x:Key="SelectionBackgroundBrush" Color="#E8F0FE"/>
     <SolidColorBrush x:Key="SelectionForegroundBrush" Color="#007AFF"/>
