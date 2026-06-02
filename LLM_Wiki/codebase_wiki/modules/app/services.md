@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.App
 layer: Services
-last-updated: 2026-05-29
+last-updated: 2026-06-02
 ---
 
 # MerchSys.App — Services
@@ -29,6 +29,7 @@ This page details the Service implementations specifically located within the **
 | `src/MerchSys.App/Services/IConnectionHealthMonitor.vb`<br>`src/MerchSys.App/Services/ConnectionHealthMonitor.vb` | `IConnectionHealthMonitor`<br>`ConnectionHealthMonitor` | Periodic MariaDB SELECT 1 health probe with a three-state machine (Online, Reconnecting, Offline), exponential backoff, and UI thread event dispatching. |
 | `src/MerchSys.App/Services/ConnectionHealthMonitorLocator.vb` | `ConnectionHealthMonitorLocator` (Module) | Static accessor used by UI attached behaviors to check current connection health. |
 | `src/MerchSys.App/Startup/ConnectionConfig.vb` | `ConnectionConfig` (Module) | Extension module (`AddConnectionHealthMonitor`) that registers connection health monitor services. |
+| `src/MerchSys.App/Services/Theming/IThemeService.vb`<br>`src/MerchSys.App/Services/Theming/ThemeService.vb`<br>`src/MerchSys.App/Services/Theming/AppTheme.vb` | `IThemeService`<br>`ThemeService`<br>`AppTheme` (Enum) | Manages application-wide theme states (Light/Dark). Hot-swaps MergedDictionaries at runtime and persists theme preference via local JSON settings (`%LOCALAPPDATA%\MerchSys\ui-settings.json`). |
 
 ## Debug & Utilities
 | File Path | Class | Description |

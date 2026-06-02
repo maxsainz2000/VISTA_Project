@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.App
 layer: UI
-last-updated: 2026-05-28
+last-updated: 2026-06-02
 ---
 
 # MerchSys.App — UI (Views)
@@ -13,7 +13,7 @@ This page details the WPF View implementations (XAML and code-behind) in the **M
 
 | File Path | Class | Description | DataContext / Injection |
 |---|---|---|---|
-| `src/MerchSys.App/Application.xaml`<br>`src/MerchSys.App/Application.xaml.vb` | `Application` | Main Application entry point. Handles Generic Host initialization, DI container building, and manual schema bootstrapping via `MariaDbSchemaInitializer`. | (none) |
+| `src/MerchSys.App/Application.xaml`<br>`src/MerchSys.App/Application.xaml.vb` | `Application` | Main Application entry point. Handles Generic Host initialization, DI container building, manual schema bootstrapping via `MariaDbSchemaInitializer`, and startup theme loading (UX-01). | (none) |
 | `src/MerchSys.App/MainWindow.xaml`<br>`src/MerchSys.App/MainWindow.xaml.vb` | `MainWindow` | Main application shell restructured to support the Master-Detail Activity Rail navigation. | `MainWindowViewModel` (Constructor Injection) |
 | `src/MerchSys.App/ViewModels/MainWindowViewModel.vb` | `MainWindowViewModel` | MVVM hub for the shell. Manages `ActiveModule`, `ActiveModuleName`, role-aware `AppModule` collections, and navigation commands. | `IServiceProvider` (Constructor Injection) |
 | `src/MerchSys.App/Models/NavigationItem.vb` | `NavigationItem`, `NavigationGroup` | POCO models representing navigation nodes and their parent groups. | (none) |
@@ -91,3 +91,11 @@ This page details the WPF View implementations (XAML and code-behind) in the **M
 | File Path | Class | Description | DataContext / Injection |
 |---|---|---|---|
 | `src/MerchSys.App/Views/Debug/DebugMenuExtensions.vb` | `DebugMenuView` | Code-only `#If DEBUG`-gated UserControl that renders the developer debug panel. | (none) |
+
+## Themes & Styles
+
+| File Path | Description |
+|---|---|
+| `src/MerchSys.App/Themes/Tokens.xaml` | Theme-agnostic structure tokens including Inter font family configurations, corner radii, margins, borders, type scales, and drop shadow effects. |
+| `src/MerchSys.App/Themes/Light.xaml` | Light color palette keys and values, defining color-parity brushes like `WindowBackgroundBrush`, `SurfaceBrush`, etc. |
+| `src/MerchSys.App/Themes/Dark.xaml` | Dark color palette keys and values, defining color-parity brushes (e.g. `SelectionBackgroundBrush` with 28% alpha opacity). |
