@@ -6,7 +6,7 @@ date: 2026-06-02
 tags: [mariadb, mysqlconnector, schema-bootstrap, ddl, grants, least-privilege, owner, read-only, tailscale, startup, runtime-error]
 error-code: MySQL 1142
 severity: runtime-error
-status: diagnosed (remediation deferred — see Fix)
+status: resolved (Schema:RunBootstrap gate + scoped UPDATE grant applied 2026-06-02)
 ---
 
 ## Problem

@@ -6,7 +6,7 @@ performed-by: Claude Code (operator-assisted)
 client: DESKTOP-OUU3M8J (Owner laptop)
 host: 100.76.155.51 (laptop-3hh6ohhe, XAMPP / MariaDB)
 db-user: merchsys_owner (SELECT-only)
-verdict: PARTIAL — steps 1–4 + 5a PASS; step 5b (in-GUI Owner login + rendered dashboard) BLOCKED, deferred to manual operator verification
+verdict: PASS (after 3 fixes) — steps 1–4 + 5a PASS; 5b now PASS after host-side fixes (bootstrap gate + UPDATE grant) and one client-side connection-string fix (SslMode None→Preferred). One non-fatal dashboard DbContext-concurrency bug remains (data recovers on refresh).
 ---
 
 # Phase 1 Tailscale Owner Remote Access — Acceptance Verification
@@ -158,6 +158,45 @@ Two independent facts make an in-GUI Owner login impossible from this laptop wit
 
 **Conclusion:** step 5b is an operator-side task by necessity. It requires the host operator to (1) apply the `UPDATE` grant on `Sys_UserAccounts`, (2) decide on gating the startup schema bootstrap for read-only clients, and (3) perform the GUI login with the current owner password and confirm the dashboard renders live data.
 
+## Resolution (2026-06-02, later same day — fixes applied)
+
+After the initial diagnosis, the host operator applied two fixes and the agent applied one client-side fix; an in-GUI Owner login then succeeded and the dashboard rendered live data.
+
+**Fix A (host code) — bootstrap gate.** `Application.xaml.vb:221` now reads
+`If config.GetValue(Of Boolean)("Schema:RunBootstrap", True) Then` before calling `MariaDbSchemaInitializer.Initialize`. The Owner overlay sets `"Schema": { "RunBootstrap": false }`, so the read-only client skips the startup DDL (Blocker 1 resolved without granting DDL).
+
+**Fix B (host DB) — minimal login grant.** Confirmed present:
+`GRANT UPDATE (LastPasswordChangeAt, FailedLoginAttempts, LockedUntil, ModifiedAt, PasswordHash) ON merchsys_central.sys_useraccounts TO 'merchsys_owner'@'%'` (Blocker 2 resolved). Final owner grant set is now: `USAGE` + `SELECT` on the DB + the scoped `UPDATE` above.
+
+**Fix C (client config) — SslMode (NEW blocker, found after A+B).** With the bootstrap skipped, the app reached login (login succeeded), then crashed on dashboard navigation:
+```
+System.ArgumentException: Requested value 'None' was not found.
+  at MySql.Data.MySqlClient.MySqlConnectionStringBuilder...
+  at MySql.EntityFrameworkCore.Internal.MySQLOptions.GetConnectionSettings(...)
+  at MerchSys.Inventory.Data.InventoryDbContext..ctor(...)
+  at MainWindowViewModel.Navigate -> NavigateToDefault -> MainWindow_Loaded
+```
+Root cause: `SslMode=None` is valid for raw **MySqlConnector** (used by auth/login/health-check — which is why login worked) but **invalid for the Oracle `MySql.EntityFrameworkCore` provider** used by the module DbContexts (`UseMySQL`), whose `MySqlSslMode` enum has no `None` member (only `Disabled`/`Preferred`/`Required`/…). The first EF context built after login threw. **Fix: changed the Owner overlay to `SslMode=Preferred`** — accepted by both libraries; against the non-TLS server over WireGuard it behaves as no-TLS. (When MariaDB TLS is enabled later, `SslMode=Required` is accepted by both providers, so the plan's TLS step is unaffected.)
+
+**Outcome after A+B+C:** login screen appears (no Fatal), Owner login succeeds and the app stays open, and the dashboard/financial services build live data — confirmed in logs:
+- `StockDashboardService: Products=20, TotalValue=47800.0000, LowStock=19, NearExpiry=1`
+- `GetInventoryValuationQueryHandler: FIFO … TotalValue=47800.0000`
+- `FinancialOverviewService: TodayRevenue=0, MTD=0, YTD=28090.0000`
+- `IncomeStatementService … NI=0` / `SalesSummaryService … Txns=0` (June has no sales; test data is May)
+
+## Remaining non-fatal issue — dashboard DbContext concurrency (recommend code-session fix)
+
+On the **initial** dashboard load, three logged (non-fatal) errors appeared:
+```
+fail: Microsoft.EntityFrameworkCore.Query[10100]
+  An exception occurred while iterating over the results of a query for context type
+  'MerchSys.Accounting.Data.AccountingDbContext' / 'InventoryDbContext' / 'PurchasingDbContext'.
+  System.InvalidOperationException: A second operation was started on this context instance
+  before a previous operation completed. ... different threads concurrently using the same DbContext.
+```
+The Owner dashboard fires multiple KPI/report queries **concurrently on a single shared DbContext per module**, which EF Core forbids → a few cards can fail on first paint. The data recovers on the next refresh pass (the log shows every query re-running successfully with no errors). Recommended fix (future code session): give each concurrent KPI query its own context via `IDbContextFactory(Of T)`, or load the cards sequentially. Not a launch blocker.
+
 ## Session notes
-- Stuck *"VISTA — Fatal"* process and the `dotnet run` host were terminated after diagnosis. No code or DB grants were changed during this run.
-- The agent verified everything automatable (steps 1–4, 5a) and exhausted all client-side paths to 5b; the remainder is blocked on host `root` access and the operator-held owner password.
+- Earlier "VISTA — Fatal" process and stale `dotnet run` hosts were terminated between runs.
+- Client-side changes made this session: added `Schema:RunBootstrap=false` and changed `SslMode` to `Preferred` in `%LOCALAPPDATA%\VISTA\appsettings.Production.json` (re-locked to read-only for the current user after each edit). No production DB grants were changed by the agent (Fix B was applied host-side by the operator).
+- **Operator visual confirmation (2026-06-02):** Owner logged in over Tailscale; KPI dashboard and financial reports render with live data; "everything looks fine." Step 5b confirmed PASS in the running GUI. The non-fatal initial-load concurrency errors did not impede the rendered result.
