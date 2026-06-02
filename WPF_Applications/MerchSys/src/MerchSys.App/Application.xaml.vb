@@ -218,13 +218,15 @@ Class Application
         Dim loggerFactory = _host.Services.GetRequiredService(Of ILoggerFactory)()
         Dim startupLogger = loggerFactory.CreateLogger("Startup")
 
-        Try
-            MariaDbSchemaInitializer.Initialize(connStr, startupLogger)
-        Catch ex As Exception
-            MessageBox.Show($"Cannot initialize database schema: {ex.Message}", "VISTA — Fatal", MessageBoxButton.OK, MessageBoxImage.Error)
-            Shutdown(1)
-            Return
-        End Try
+        If config.GetValue(Of Boolean)("Schema:RunBootstrap", True) Then
+            Try
+                MariaDbSchemaInitializer.Initialize(connStr, startupLogger)
+            Catch ex As Exception
+                MessageBox.Show($"Cannot initialize database schema: {ex.Message}", "VISTA — Fatal", MessageBoxButton.OK, MessageBoxImage.Error)
+                Shutdown(1)
+                Return
+            End Try
+        End If
 
         ' Start connection health monitor — must run before MainWindow is shown
         Dim connMonitor = _host.Services.GetRequiredService(Of IConnectionHealthMonitor)()
