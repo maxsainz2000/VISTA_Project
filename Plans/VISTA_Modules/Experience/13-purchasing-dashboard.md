@@ -65,6 +65,29 @@ contract(s)/handler(s), the DI + nav registration, the implementation summary, a
 
 ## Specification
 
+### 0. Carry-forward watch-items (from the UX-12 review)
+
+1. **The AP delta on the hero is the proven risk — UX-12 already hit this wall.** UX-12 *skipped* the
+   AP/AR/overdue deltas because the existing services expose **no date-parameter support for
+   prior-period history**. This dashboard's hero is **Total Outstanding AP with a `DeltaIndicator
+   InvertSemantics=True`**, so it faces the same gap for its headline metric. Resolve it one of two
+   ways — do not invent a write path either way:
+   - **Add a new read-only query** for last-period AP outstanding. This is a genuinely new read, so it
+     **must** use the raw `MySqlConnector.MySqlConnection` reader loop (**not** `ToListAsync` on an
+     entity query — EF Core 10 VB.NET empty-list bug), with no `Await` inside `Catch`/`Finally`
+     (BC36943); **or**
+   - **Render the AP hero without a delta** and document the omission (consistent with how UX-12
+     handled the same metric). The hero value itself still binds an existing figure — only the delta
+     is in question.
+2. **This is the first real consumer of `InvertSemantics=True`.** UX-12 built and unit-wired the
+   inverted path but never exercised it (all UX-12 deltas were revenue / up-is-good). Visually verify
+   in **both themes** that a **rising** AP balance renders the delta **red (`DangerBrush`)**, not
+   green — and likewise any other rising-is-bad metric (Overdue AP) you decorate.
+3. **Nav/DI is the only non-additive surface — match the existing pattern.** Registering the view in
+   `Application.xaml.vb` and adding the nav entry to `PurchasingPanel`/the `NavigationItem` registry is
+   the one place this plan touches shell code. Read how the other module dashboards register **before**
+   editing; do not invent a new navigation scheme. Everything else in this plan is purely additive.
+
 ### 1. Dashboard content (KPI band → trend/insight → detail, per UX-08)
 
 Compose with UX-09 hierarchy and UX-10 rules. Suggested metrics (all sourced from existing Purchasing
