@@ -88,6 +88,28 @@ a wiki update.
 
 ## Specification
 
+### 0. Carry-forward watch-items (from the UX-10 review)
+
+These three issues were surfaced when UX-10 was reviewed; they are the most likely places this
+sweep goes wrong. Address each explicitly.
+
+1. **`DockPanel`-with-fill-child roots collapse the chart when wrapped.** `FinancialOverview` and
+   `VatReturn` use a root `DockPanel` whose **last (fill) child is a chart/visual** (the 6-month bar
+   chart; the lines area). Moving that body into a `ScrollViewer` removes the auto-fill height, so a
+   chart/bars sized by `*`/`Auto` **collapse to zero**. Give the chart/visual area an explicit
+   `MinHeight` (sized to its current rendered height) instead of relying on `DockPanel` fill. This is
+   the single most likely failure in the sweep — verify the chart still renders at full height after
+   wrapping.
+2. **Never double-wrap a `DataGrid` that already scrolls.** `VatReturn`'s lines grid,
+   `ProductManagement`'s tabbed grids, and any virtualized `DataGrid` bring their own scrolling. The
+   `ScrollViewer` is for the **stacked card/section content only** — wrap that, leave the grid to
+   manage its own viewport (see the set-A blockquote below).
+3. **Stay out of the UX-10 hero region.** UX-10 introduced `1.3*` hero columns on
+   `VatReturn`, `VatReliefReport`, `Owner`, `Stock`, `Expiry`, `Credit`, and `Shrinkage`. This plan
+   wraps the **outer body** and converts **filter/toolbar** layout only — do **not** re-weight,
+   re-style, or reorder those KPI cards. If a card edit seems needed, it belonged in UX-10 (already
+   merged): stop and note it, don't reach into it here.
+
 ### 1. Overflow wrap (set A)
 
 Insert the UX-09 canonical wrapper around the scrolling body:
