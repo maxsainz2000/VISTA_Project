@@ -307,19 +307,21 @@
                                 <DataGridTemplateColumn Header="Status" Width="70" IsReadOnly="True">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <TextBlock HorizontalAlignment="Center"
-                                                       VerticalAlignment="Center" FontSize="14">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="Text" Value="✅"/>
+                                            <Path Width="14" Height="14" HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center">
+                                                <Path.Style>
+                                                    <Style TargetType="Path" BasedOn="{StaticResource IconBase}">
+                                                        <Setter Property="Data" Value="{StaticResource IconCheckGeometry}"/>
+                                                        <Setter Property="Fill" Value="{DynamicResource SuccessBrush}"/>
                                                         <Style.Triggers>
                                                             <DataTrigger Binding="{Binding IsBlocked}" Value="True">
-                                                                <Setter Property="Text" Value="🔴"/>
+                                                                <Setter Property="Data" Value="{StaticResource IconCircleFillGeometry}"/>
+                                                                <Setter Property="Fill" Value="{DynamicResource DangerBrush}"/>
                                                             </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
+                                                </Path.Style>
+                                            </Path>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
@@ -414,9 +416,14 @@
                                 <Border Background="{DynamicResource SidebarBackgroundBrush}" BorderBrush="{DynamicResource DangerBrush}" BorderThickness="1"
                                         CornerRadius="{DynamicResource RadiusSmall}" Padding="8,5" Margin="0,0,0,8"
                                         Visibility="{Binding SelectedAccount.IsBlocked, Converter={StaticResource BoolToVis}}">
-                                    <TextBlock Text="🔴 Blocked — balance must be cleared"
-                                               Foreground="{DynamicResource DangerBrush}" FontSize="11" FontWeight="SemiBold"
-                                               TextWrapping="Wrap"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Path Style="{StaticResource IconBase}" Data="{StaticResource IconCircleFillGeometry}"
+                                              Width="11" Height="11" Margin="0,0,6,0" VerticalAlignment="Top"
+                                              Fill="{DynamicResource DangerBrush}"/>
+                                        <TextBlock Text="Blocked — balance must be cleared"
+                                                   Foreground="{DynamicResource DangerBrush}" FontSize="11" FontWeight="SemiBold"
+                                                   TextWrapping="Wrap"/>
+                                    </StackPanel>
                                 </Border>
 
                                 <Separator Margin="0,0,0,8" Background="{DynamicResource SeparatorBrush}"/>

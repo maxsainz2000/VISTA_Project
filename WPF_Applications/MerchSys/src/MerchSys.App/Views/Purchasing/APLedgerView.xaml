@@ -169,9 +169,15 @@
                                 Style="{StaticResource PrimaryButtonStyle}"
                                 IsEnabled="{Binding CanEdit}"
                                 Margin="0,0,8,0"/>
-                        <Button Content="↻ Refresh"
-                                Command="{Binding RefreshCommand}"
-                                Style="{StaticResource SecondaryButtonStyle}"/>
+                        <Button Command="{Binding RefreshCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Style="{StaticResource IconBase}" Data="{StaticResource IconRefreshGeometry}"
+                                      Width="13" Height="13" Margin="0,0,6,0"
+                                      Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                                <TextBlock Text="Refresh" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
                     </StackPanel>
                 </Grid>
             </Border>

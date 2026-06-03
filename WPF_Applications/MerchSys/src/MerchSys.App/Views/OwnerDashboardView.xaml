@@ -112,9 +112,15 @@
                     <TextBlock Text="{Binding LastRefreshedDisplay}"
                                FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
                                VerticalAlignment="Center" Margin="0,0,12,0"/>
-                    <Button Content="↻ Refresh"
-                            Command="{Binding RefreshCommand}"
-                            Style="{StaticResource RefreshButton}"/>
+                    <Button Command="{Binding RefreshCommand}"
+                            Style="{StaticResource RefreshButton}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Style="{StaticResource IconBase}" Data="{StaticResource IconRefreshGeometry}"
+                                  Width="13" Height="13" Margin="0,0,6,0"
+                                  Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                            <TextBlock Text="Refresh" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
                 </StackPanel>
             </Grid>
         </Border>
@@ -142,8 +148,12 @@
             <!-- ── PURCHASING card ─────────────────────────────────────────────── -->
             <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource KpiCard}">
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Style="{StaticResource CardTitle}"
-                               Text="📦  PURCHASING"/>
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                        <Path Style="{StaticResource IconBase}" Data="{StaticResource IconBoxGeometry}"
+                              Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"
+                              Fill="{DynamicResource TextSecondaryBrush}"/>
+                        <TextBlock Style="{StaticResource CardTitle}" Text="PURCHASING"/>
+                    </StackPanel>
 
                     <Border DockPanel.Dock="Bottom" Style="{StaticResource InterpretationBox}">
                         <StackPanel>
@@ -175,8 +185,12 @@
             <!-- ── INVENTORY card ──────────────────────────────────────────────── -->
             <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource KpiCard}">
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Style="{StaticResource CardTitle}"
-                               Text="📊  INVENTORY"/>
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                        <Path Style="{StaticResource IconBase}" Data="{StaticResource IconChartBarGeometry}"
+                              Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"
+                              Fill="{DynamicResource TextSecondaryBrush}"/>
+                        <TextBlock Style="{StaticResource CardTitle}" Text="INVENTORY"/>
+                    </StackPanel>
 
                     <Border DockPanel.Dock="Bottom" Style="{StaticResource InterpretationBox}">
                         <StackPanel>
@@ -208,8 +222,12 @@
             <!-- ── SALES card ──────────────────────────────────────────────────── -->
             <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource KpiCard}">
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Style="{StaticResource CardTitle}"
-                               Text="💰  SALES"/>
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                        <Path Style="{StaticResource IconBase}" Data="{StaticResource IconCashGeometry}"
+                              Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"
+                              Fill="{DynamicResource TextSecondaryBrush}"/>
+                        <TextBlock Style="{StaticResource CardTitle}" Text="SALES"/>
+                    </StackPanel>
 
                     <Border DockPanel.Dock="Bottom" Style="{StaticResource InterpretationBox}">
                         <StackPanel>
@@ -244,8 +262,12 @@
             <!-- ── ACCOUNTING card ────────────────────────────────────────────── -->
             <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource KpiCard}">
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Style="{StaticResource CardTitle}"
-                               Text="📈  ACCOUNTING"/>
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                        <Path Style="{StaticResource IconBase}" Data="{StaticResource IconChartLineGeometry}"
+                              Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"
+                              Fill="{DynamicResource TextSecondaryBrush}"/>
+                        <TextBlock Style="{StaticResource CardTitle}" Text="ACCOUNTING"/>
+                    </StackPanel>
 
                     <Border DockPanel.Dock="Bottom" Style="{StaticResource InterpretationBox}">
                         <StackPanel>

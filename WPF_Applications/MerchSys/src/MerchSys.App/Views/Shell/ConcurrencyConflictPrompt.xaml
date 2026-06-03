@@ -13,7 +13,8 @@
         <DockPanel>
             <!-- Header Icon & Text -->
             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,20">
-                <TextBlock Text="⚠" FontSize="28" Foreground="{DynamicResource WarningBrush}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                <Path Style="{StaticResource IconBase}" Data="{StaticResource IconWarningGeometry}"
+                      Width="28" Height="28" Fill="{DynamicResource WarningBrush}" VerticalAlignment="Center" Margin="0,0,12,0"/>
                 <StackPanel VerticalAlignment="Center">
                     <TextBlock Text="Data changed elsewhere — refresh and retry." FontWeight="Bold" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" Width="260"/>
                     <TextBlock Text="Another operator has modified this record. Your changes cannot be saved." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Width="260" Margin="0,4,0,0"/>

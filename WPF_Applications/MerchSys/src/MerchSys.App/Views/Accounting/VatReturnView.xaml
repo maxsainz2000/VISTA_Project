@@ -48,7 +48,9 @@
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="&#x1F4CB;" FontSize="20" VerticalAlignment="Top" Margin="0,0,10,0"/>
+                    <Path Grid.Column="0" Style="{StaticResource IconBase}" Data="{StaticResource IconClipboardGeometry}"
+                          Width="20" Height="20" VerticalAlignment="Top" Margin="0,0,10,0"
+                          Fill="{DynamicResource TextSecondaryBrush}"/>
                     <StackPanel Grid.Column="1">
                         <TextBlock Text="What This Means" FontSize="12" FontWeight="Bold"
                                    Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,2"/>

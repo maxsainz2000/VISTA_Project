@@ -15,7 +15,9 @@
                 <!-- [2] implicit control styles -->
                 <ResourceDictionary Source="pack://application:,,,/Themes/Controls.xaml"/>
                 <ResourceDictionary Source="pack://application:,,,/Themes/Controls.DataGrid.xaml"/>
-                <!-- [3] shared keyed component library -->
+                <!-- [3] vector icon geometry library — merged BEFORE Components so component templates can reference icon geometries -->
+                <ResourceDictionary Source="pack://application:,,,/Themes/Icons.xaml"/>
+                <!-- [4] shared keyed component library -->
                 <ResourceDictionary Source="pack://application:,,,/Themes/Components.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>

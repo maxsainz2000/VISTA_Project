@@ -165,7 +165,9 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Grid.Column="0" VerticalAlignment="Top" Margin="0,0,12,0">
-                    <TextBlock Text="💡" FontSize="22" VerticalAlignment="Top"/>
+                    <Path Style="{StaticResource IconBase}" Data="{StaticResource IconLightbulbGeometry}"
+                          Width="22" Height="22" VerticalAlignment="Top"
+                          Fill="{DynamicResource AccentBrush}"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1">

@@ -86,13 +86,25 @@
                                VerticalAlignment="Center"/>
 
                     <StackPanel Grid.Column="1" Orientation="Horizontal">
-                        <Button Content="⚡ Generate Suggestions"
-                                Command="{Binding GenerateCommand}"
+                        <Button Command="{Binding GenerateCommand}"
                                 Style="{StaticResource PrimaryButtonStyle}"
-                                Margin="0,0,8,0"/>
-                        <Button Content="↻ Refresh"
-                                Command="{Binding RefreshCommand}"
-                                Style="{StaticResource SecondaryButtonStyle}"/>
+                                Margin="0,0,8,0">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Style="{StaticResource IconBase}" Data="{StaticResource IconBoltGeometry}"
+                                      Width="13" Height="13" Margin="0,0,6,0"
+                                      Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                                <TextBlock Text="Generate Suggestions" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Command="{Binding RefreshCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Style="{StaticResource IconBase}" Data="{StaticResource IconRefreshGeometry}"
+                                      Width="13" Height="13" Margin="0,0,6,0"
+                                      Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                                <TextBlock Text="Refresh" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
                     </StackPanel>
                 </Grid>
             </Border>
@@ -292,25 +304,29 @@
                             </DataGridTextColumn>
 
                             <!-- Seasonal indicator -->
-                            <DataGridTemplateColumn Header="★" Width="36">
+                            <DataGridTemplateColumn Width="36">
+                                <DataGridTemplateColumn.Header>
+                                    <Path Style="{StaticResource IconBase}" Data="{StaticResource IconStarGeometry}"
+                                          Width="13" Height="13" Fill="{DynamicResource TextSecondaryBrush}"/>
+                                </DataGridTemplateColumn.Header>
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                   FontSize="13">
-                                            <TextBlock.Style>
-                                                <Style TargetType="TextBlock">
-                                                    <Setter Property="Text" Value=""/>
-                                                    <Setter Property="Foreground" Value="Transparent"/>
+                                        <Path Width="14" Height="14" HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              Data="{StaticResource IconStarGeometry}">
+                                            <Path.Style>
+                                                <Style TargetType="Path" BasedOn="{StaticResource IconBase}">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding IsSeasonalAdjusted}" Value="True">
-                                                            <Setter Property="Text" Value="★"/>
-                                                            <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                            <Setter Property="Fill" Value="{DynamicResource WarningBrush}"/>
                                                             <Setter Property="ToolTip" Value="Seasonally adjusted reorder point"/>
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
-                                            </TextBlock.Style>
-                                        </TextBlock>
+                                            </Path.Style>
+                                        </Path>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
@@ -344,8 +360,7 @@
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
                                                     Margin="4,2">
-                                            <Button Content="✓ Accept"
-                                                     Command="{Binding DataContext.AcceptCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            <Button Command="{Binding DataContext.AcceptCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                      CommandParameter="{Binding}">
                                                 <Button.Style>
                                                     <Style TargetType="Button" BasedOn="{StaticResource SuccessButtonStyle}">
@@ -364,9 +379,14 @@
                                                          </Style.Triggers>
                                                      </Style>
                                                 </Button.Style>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Path Style="{StaticResource IconBase}" Data="{StaticResource IconCheckGeometry}"
+                                                          Width="11" Height="11" Margin="0,0,5,0"
+                                                          Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                                                    <TextBlock Text="Accept" VerticalAlignment="Center"/>
+                                                </StackPanel>
                                             </Button>
-                                            <Button Content="✗ Dismiss"
-                                                     Command="{Binding DataContext.DismissCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            <Button Command="{Binding DataContext.DismissCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                      CommandParameter="{Binding}">
                                                 <Button.Style>
                                                      <Style TargetType="Button" BasedOn="{StaticResource DangerButtonStyle}">
@@ -384,6 +404,12 @@
                                                          </Style.Triggers>
                                                      </Style>
                                                 </Button.Style>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Path Style="{StaticResource IconBase}" Data="{StaticResource IconXMarkGeometry}"
+                                                          Width="11" Height="11" Margin="0,0,5,0"
+                                                          Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                                                    <TextBlock Text="Dismiss" VerticalAlignment="Center"/>
+                                                </StackPanel>
                                             </Button>
                                             <!-- Accepted / Dismissed label -->
                                             <TextBlock VerticalAlignment="Center" FontSize="11"
@@ -525,22 +551,21 @@
                             <DataGridTemplateColumn Header="Seasonal" Width="72">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                   FontSize="13">
-                                            <TextBlock.Style>
-                                                <Style TargetType="TextBlock">
-                                                    <Setter Property="Text" Value="✗"/>
-                                                    <Setter Property="Foreground" Value="{DynamicResource SeparatorBrush}"/>
+                                        <Path Width="14" Height="14" HorizontalAlignment="Center"
+                                              VerticalAlignment="Center">
+                                            <Path.Style>
+                                                <Style TargetType="Path" BasedOn="{StaticResource IconBase}">
+                                                    <Setter Property="Data" Value="{StaticResource IconXMarkGeometry}"/>
+                                                    <Setter Property="Fill" Value="{DynamicResource SeparatorBrush}"/>
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding IsSeasonalItem}" Value="True">
-                                                            <Setter Property="Text" Value="★"/>
-                                                            <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
-                                                            <Setter Property="FontWeight" Value="Bold"/>
+                                                            <Setter Property="Data" Value="{StaticResource IconStarGeometry}"/>
+                                                            <Setter Property="Fill" Value="{DynamicResource WarningBrush}"/>
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
-                                            </TextBlock.Style>
-                                        </TextBlock>
+                                            </Path.Style>
+                                        </Path>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>

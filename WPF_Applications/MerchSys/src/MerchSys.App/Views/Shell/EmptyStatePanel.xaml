@@ -7,7 +7,9 @@
     <Grid Margin="32">
         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
             <!-- Icon/Glyph -->
-            <TextBlock Text="📂" FontSize="48" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" Margin="0,0,0,16"/>
+            <Path Style="{StaticResource IconBase}" Data="{StaticResource IconFolderOpenGeometry}"
+                  Width="48" Height="48" Fill="{DynamicResource TextSecondaryBrush}"
+                  HorizontalAlignment="Center" Margin="0,0,0,16"/>
             <!-- Title/Headline -->
             <TextBlock Text="{Binding Title, RelativeSource={RelativeSource AncestorType=UserControl}}"
                        FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center" Margin="0,0,0,8"/>

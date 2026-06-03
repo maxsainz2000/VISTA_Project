@@ -79,12 +79,14 @@
                                 <KeyBinding Key="Return" Command="{Binding LoginCommand}"/>
                             </TextBox.InputBindings>
                         </TextBox>
-                        <Button Content="&#128065;"
-                                Style="{StaticResource EyeButton}"
+                        <Button Style="{StaticResource EyeButton}"
                                 Command="{Binding ToggleShowPasswordCommand}"
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Center"
-                                Margin="0,0,4,0"/>
+                                Margin="0,0,4,0">
+                            <Path Style="{StaticResource IconBase}" Data="{StaticResource IconEyeGeometry}"
+                                  Width="18" Height="18" Fill="{DynamicResource TextSecondaryBrush}"/>
+                        </Button>
                     </Grid>
 
                     <!-- Error message -->
@@ -125,12 +127,14 @@
                                      Visibility="{Binding HideNewPassword, Converter={StaticResource BoolToVis}}"/>
                         <TextBox Text="{Binding NewPassword, UpdateSourceTrigger=PropertyChanged}"
                                  Visibility="{Binding ShowNewPassword, Converter={StaticResource BoolToVis}}"/>
-                        <Button Content="&#128065;"
-                                Style="{StaticResource EyeButton}"
+                        <Button Style="{StaticResource EyeButton}"
                                 Command="{Binding ToggleShowNewPasswordCommand}"
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Center"
-                                Margin="0,0,4,0"/>
+                                Margin="0,0,4,0">
+                            <Path Style="{StaticResource IconBase}" Data="{StaticResource IconEyeGeometry}"
+                                  Width="18" Height="18" Fill="{DynamicResource TextSecondaryBrush}"/>
+                        </Button>
                     </Grid>
 
                     <!-- Confirm New Password -->

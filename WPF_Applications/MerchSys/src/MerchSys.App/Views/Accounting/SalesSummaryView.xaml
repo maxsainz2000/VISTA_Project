@@ -144,8 +144,9 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Column="0" Text="&#x1F4A1;" FontSize="22"
-                           VerticalAlignment="Top" Margin="0,0,12,0"/>
+                <Path Grid.Column="0" Style="{StaticResource IconBase}" Data="{StaticResource IconLightbulbGeometry}"
+                      Width="22" Height="22" VerticalAlignment="Top" Margin="0,0,12,0"
+                      Fill="{DynamicResource AccentBrush}"/>
 
                 <StackPanel Grid.Column="1">
                     <TextBlock Text="What This Means" FontSize="12" FontWeight="Bold" Margin="0,0,0,2">
@@ -160,10 +161,14 @@
                             </Style>
                         </TextBlock.Style>
                     </TextBlock>
-                    <TextBlock Text="⚠ Credit Alert — High AR Exposure"
-                               FontSize="11" FontWeight="Bold" Foreground="{DynamicResource WarningBrush}"
-                               Margin="0,0,0,4"
-                               Visibility="{Binding HasCreditWarning, Converter={StaticResource BoolToVis}}"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4"
+                                Visibility="{Binding HasCreditWarning, Converter={StaticResource BoolToVis}}">
+                        <Path Style="{StaticResource IconBase}" Data="{StaticResource IconWarningGeometry}"
+                              Width="12" Height="12" Margin="0,0,5,0" Fill="{DynamicResource WarningBrush}"/>
+                        <TextBlock Text="Credit Alert — High AR Exposure"
+                                   FontSize="11" FontWeight="Bold" Foreground="{DynamicResource WarningBrush}"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
                     <TextBlock Text="{Binding WhatThisMeansText}"
                                FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"
                                TextWrapping="Wrap" LineHeight="18"/>
