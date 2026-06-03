@@ -13,7 +13,7 @@ This page details the WPF View implementations (XAML and code-behind) in the **M
 
 | File Path | Class | Description | DataContext / Injection |
 |---|---|---|---|
-| `src/MerchSys.App/Application.xaml`<br>`src/MerchSys.App/Application.xaml.vb` | `Application` | Main Application entry point. Handles Generic Host initialization, DI container building, manual schema bootstrapping via `MariaDbSchemaInitializer`, and startup theme loading (UX-01). | (none) |
+| `src/MerchSys.App/Application.xaml`<br>`src/MerchSys.App/Application.xaml.vb` | `Application` | Main Application entry point. Handles Generic Host initialization, DI container building, manual schema bootstrapping via `MariaDbSchemaInitializer`, startup theme loading (UX-01), and merging control styles (UX-03). | (none) |
 | `src/MerchSys.App/MainWindow.xaml`<br>`src/MerchSys.App/MainWindow.xaml.vb` | `MainWindow` | Main application shell. Uses token-based `AppFontFamily` (Inter) and a padded `Border` with `WindowBackgroundBrush` for a floating macOS-style content area. | `MainWindowViewModel` (Constructor Injection) |
 | `src/MerchSys.App/ViewModels/MainWindowViewModel.vb` | `MainWindowViewModel` | MVVM hub for the shell. Manages `ActiveModule`, `ActiveModuleName`, role-aware `AppModule` collections, navigation commands, and theme state (`IsDarkTheme`/`ToggleThemeCommand`). | `IServiceProvider`, `IThemeService` (Constructor Injection) |
 | `src/MerchSys.App/Models/NavigationItem.vb` | `NavigationItem`, `NavigationGroup` | POCO models representing navigation nodes and their parent groups. | (none) |
@@ -99,3 +99,5 @@ This page details the WPF View implementations (XAML and code-behind) in the **M
 | `src/MerchSys.App/Themes/Tokens.xaml` | Theme-agnostic structure tokens including Inter font family configurations, corner radii, margins, borders, type scales, and drop shadow effects. |
 | `src/MerchSys.App/Themes/Light.xaml` | Light color palette keys and values, defining color-parity brushes like `WindowBackgroundBrush`, `SurfaceBrush`, etc. |
 | `src/MerchSys.App/Themes/Dark.xaml` | Dark color palette keys and values, defining color-parity brushes (e.g. `SelectionBackgroundBrush` with 28% alpha opacity). |
+| `src/MerchSys.App/Themes/Controls.xaml` | Implicit, theme-aware control styles for common controls (Button, TextBox, PasswordBox, CheckBox, RadioButton, ListBox, ComboBox, TabControl, ScrollBar) and keyed styles `AccentButtonStyle`/`LinkButtonStyle`. |
+| `src/MerchSys.App/Themes/Controls.DataGrid.xaml` | Implicit, theme-aware styles for `DataGrid`, `DataGridColumnHeader`, `DataGridRow`, and `DataGridCell`. |
