@@ -12,6 +12,9 @@
                 <ResourceDictionary Source="pack://application:,,,/Themes/Tokens.xaml"/>
                 <!-- [1] active palette — replaced at runtime by ThemeService -->
                 <ResourceDictionary Source="pack://application:,,,/Themes/Light.xaml"/>
+                <!-- [2] implicit control styles -->
+                <ResourceDictionary Source="pack://application:,,,/Themes/Controls.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/Themes/Controls.DataGrid.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>
