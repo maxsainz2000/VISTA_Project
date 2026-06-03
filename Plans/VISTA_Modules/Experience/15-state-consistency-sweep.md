@@ -71,15 +71,30 @@ implementation summary, and a wiki update.
    not `Await` inside the `Catch`/`Finally` (`[[feedback-vbnet-await-catch]]`). Many of these VMs
    currently set a `StatusMessage = "Load failed: …"` in the catch and otherwise carry on — convert
    that to the `IsError`/`ErrorMessage` state.
-3. **Obey UX-11 inside the panels (this is the proven layout risk).** The error/empty panels overlay the
+3. **Load-error handling is currently inconsistent — some load methods have *no* `Catch` at all
+   (verified in the UX-14 review).** Watch-item #2 assumes a `Catch` exists to hook into; it does not,
+   uniformly. Today's `LoadDataAsync` paths range across three shapes: (a) catch into a `StatusMessage`
+   string (e.g. `APLedgerViewModel`, `PurchaseOrderListViewModel` — "Load failed: …" / "[ERROR] …",
+   invisible beyond a status line); (b) catch and swallow; and (c) **no `Catch` whatsoever** — only
+   `Try … Finally IsBusy = False` — so a failed load throws **unhandled (crash)** rather than surfacing
+   any state. `ProductManagementViewModel.LoadDataAsync` is the confirmed no-catch example. The sweep
+   must therefore **normalize every load path** onto `IsBusy`/`IsError`/`ErrorMessage` — *adding* a
+   `Catch` where one is missing, not merely re-pointing an existing one. Do not assume a view already
+   degrades gracefully; audit each `LoadDataAsync`/load command individually.
+4. **`IsError` is for *load* failure only — never for a write/concurrency conflict.** UX-14 routes
+   `DbUpdateConcurrencyException` and domain write-errors through the `IConflictPresenter` prompt /
+   toasts; those must **not** trip the error panel. Set `IsError` exclusively in the *read/load* path's
+   catch. When sweeping a VM that UX-14 just touched, leave its write-path `Try`/primitive calls alone —
+   only the load/refresh path gains the error state.
+5. **Obey UX-11 inside the panels (this is the proven layout risk).** The error/empty panels overlay the
    *body* and must sit **inside** the same `ScrollViewer`/`Grid` structure UX-11 established — overlay
    as the last child of the root `Grid`, never docked, never double-wrapping a virtualizing `DataGrid`,
    and never collapsing a fill child to zero height (give it `MinHeight` if it shares a row). Do not
    disturb the UX-10 hero region or UX-11 chrome placement.
-4. **Owner read-only is fine — Owner views still need loading/error/empty.** A read-only KPI view can
+6. **Owner read-only is fine — Owner views still need loading/error/empty.** A read-only KPI view can
    still fail to load or be empty; wire all three. There is simply no write/validation/conflict UI on
    them.
-5. **Retry is read-only and idempotent.** The Retry button re-invokes the existing
+7. **Retry is read-only and idempotent.** The Retry button re-invokes the existing
    load/`RefreshCommand` — it must not mutate anything and must be safe to press repeatedly.
 
 ### 1. The `ErrorStatePanel` control
