@@ -115,7 +115,35 @@ Namespace ViewModels
             End Get
             Set(value As Boolean)
                 SetProperty(_isBusy, value)
+                OnPropertyChanged(NameOf(IsEmpty))
             End Set
+        End Property
+
+        Private _isError As Boolean
+        Public Property IsError As Boolean
+            Get
+                Return _isError
+            End Get
+            Set(value As Boolean)
+                SetProperty(_isError, value)
+                OnPropertyChanged(NameOf(IsEmpty))
+            End Set
+        End Property
+
+        Private _errorMessage As String = String.Empty
+        Public Property ErrorMessage As String
+            Get
+                Return _errorMessage
+            End Get
+            Set(value As String)
+                SetProperty(_errorMessage, value)
+            End Set
+        End Property
+
+        Public ReadOnly Property IsEmpty As Boolean
+            Get
+                Return NearExpiryBatches.Count = 0 AndAlso ExpiredBatches.Count = 0 AndAlso Not IsBusy AndAlso Not IsError
+            End Get
         End Property
 
         Private _lastRefreshed As String = String.Empty
@@ -156,6 +184,7 @@ Namespace ViewModels
         ' ─── Data Loading ─────────────────────────────────────────────────────────
 
         Private Async Function LoadDataAsync() As Task
+            IsError = False
             IsBusy = True
             Try
                 Dim nearTask = _expiryService.GetNearExpiryBatchesAsync(DaysThreshold)
@@ -207,7 +236,11 @@ Namespace ViewModels
                 TotalValueAtRisk = nearValue + expiredValue
 
                 LastRefreshed = $"Refreshed {DateTime.Now:HH:mm:ss}"
+                IsError = False
 
+            Catch ex As Exception
+                ErrorMessage = ex.Message
+                IsError = True
             Finally
                 IsBusy = False
             End Try

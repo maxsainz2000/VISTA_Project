@@ -323,18 +323,8 @@
                         <!-- Empty State Panel overlayed when no margins exist -->
                         <views:EmptyStatePanel Title="No Product Margin Data"
                                                Description="There are no product margin records to display for this period."
-                                               HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <views:EmptyStatePanel.Style>
-                                <Style TargetType="views:EmptyStatePanel">
-                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding ProductMargins.Count}" Value="0">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </views:EmptyStatePanel.Style>
-                        </views:EmptyStatePanel>
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}"/>
                     </Grid>
                 </Border>
             </TabItem>
@@ -347,5 +337,11 @@
     <views:BusyOverlay Message="Loading income statement..."
                        Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"
                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+
+    <views:ErrorStatePanel Title="Load Failed"
+                           Message="{Binding ErrorMessage}"
+                           RetryCommand="{Binding LoadCommand}"
+                           Visibility="{Binding IsError, Converter={StaticResource BoolToVis}}"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
 </Grid>
 </UserControl>

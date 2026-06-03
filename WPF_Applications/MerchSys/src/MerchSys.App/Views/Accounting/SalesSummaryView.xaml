@@ -393,6 +393,12 @@
                                             <DataTrigger Binding="{Binding DailyBreakdown.Count}" Value="0">
                                                 <Setter Property="Visibility" Value="Visible"/>
                                             </DataTrigger>
+                                            <DataTrigger Binding="{Binding IsError}" Value="True">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding IsBusy}" Value="True">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                            </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </views:EmptyStatePanel.Style>
@@ -410,5 +416,11 @@
     <views:BusyOverlay Message="Loading sales summary..."
                        Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"
                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+
+    <views:ErrorStatePanel Title="Load Failed"
+                           Message="{Binding ErrorMessage}"
+                           RetryCommand="{Binding LoadCommand}"
+                           Visibility="{Binding IsError, Converter={StaticResource BoolToVis}}"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
 </Grid>
 </UserControl>

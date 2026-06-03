@@ -379,6 +379,26 @@ Namespace ViewModels
             End Set
         End Property
 
+        Private _isError As Boolean
+        Public Property IsError As Boolean
+            Get
+                Return _isError
+            End Get
+            Set(value As Boolean)
+                SetProperty(_isError, value)
+            End Set
+        End Property
+
+        Private _errorMessage As String = String.Empty
+        Public Property ErrorMessage As String
+            Get
+                Return _errorMessage
+            End Get
+            Set(value As String)
+                SetProperty(_errorMessage, value)
+            End Set
+        End Property
+
         ' ─── Commands ─────────────────────────────────────────────────────────────
 
         Public ReadOnly Property SearchProductCommand As AsyncRelayCommand
@@ -402,9 +422,11 @@ Namespace ViewModels
         Private Async Function SearchProductsAsync() As Task
             If String.IsNullOrWhiteSpace(ProductSearchText) Then
                 ProductSearchResults.Clear()
+                IsError = False
                 Return
             End If
 
+            IsError = False
             IsBusy = True
             Try
                 Dim query As New GetProductCatalogQuery() With {.SearchTerm = ProductSearchText}
@@ -423,6 +445,8 @@ Namespace ViewModels
                 Next
             Catch ex As Exception
                 StatusMessage = $"Product search error: {ex.Message}"
+                ErrorMessage = ex.Message
+                IsError = True
             Finally
                 IsBusy = False
             End Try

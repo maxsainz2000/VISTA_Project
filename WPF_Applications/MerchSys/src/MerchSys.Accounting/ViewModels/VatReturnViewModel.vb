@@ -277,7 +277,35 @@ Namespace ViewModels
             End Get
             Set(value As Boolean)
                 SetProperty(_isBusy, value)
+                OnPropertyChanged(NameOf(IsEmpty))
             End Set
+        End Property
+
+        Private _isError As Boolean
+        Public Property IsError As Boolean
+            Get
+                Return _isError
+            End Get
+            Set(value As Boolean)
+                SetProperty(_isError, value)
+                OnPropertyChanged(NameOf(IsEmpty))
+            End Set
+        End Property
+
+        Private _errorMessage As String = String.Empty
+        Public Property ErrorMessage As String
+            Get
+                Return _errorMessage
+            End Get
+            Set(value As String)
+                SetProperty(_errorMessage, value)
+            End Set
+        End Property
+
+        Public ReadOnly Property IsEmpty As Boolean
+            Get
+                Return Lines.Count = 0 AndAlso Not IsBusy AndAlso Not IsError
+            End Get
         End Property
 
         Private _statusMessage As String
@@ -309,6 +337,7 @@ Namespace ViewModels
         Public ReadOnly Property ExportPdfCommand As AsyncRelayCommand
 
         Private Async Function GenerateAsync() As Task
+            IsError = False
             IsBusy = True
             StatusMessage = String.Empty
             Dim capturedError As String = Nothing
@@ -323,6 +352,7 @@ Namespace ViewModels
                         vatReturn = Await _reportingService.GenerateNonVatPercentageTaxAsync(_selectedYear, _selectedPeriod)
                 End Select
                 PopulateFromReturn(vatReturn)
+                IsError = False
             Catch ex As VatReturnLockedException
                 capturedError = $"This return is filed with BIR. Use Amend to correct it. ({ex.Message})"
             Catch ex As Exception
@@ -332,6 +362,8 @@ Namespace ViewModels
             End Try
             If capturedError IsNot Nothing Then
                 StatusMessage = capturedError
+                ErrorMessage = capturedError
+                IsError = True
             End If
         End Function
 

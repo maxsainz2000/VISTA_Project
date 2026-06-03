@@ -188,8 +188,36 @@ Namespace ViewModels
             Set(value As Boolean)
                 If SetProperty(_isBusy, value) Then
                     ConfirmReceiptCommand.NotifyCanExecuteChanged()
+                    OnPropertyChanged(NameOf(IsEmpty))
                 End If
             End Set
+        End Property
+
+        Private _isError As Boolean
+        Public Property IsError As Boolean
+            Get
+                Return _isError
+            End Get
+            Set(value As Boolean)
+                SetProperty(_isError, value)
+                OnPropertyChanged(NameOf(IsEmpty))
+            End Set
+        End Property
+
+        Private _errorMessage As String = String.Empty
+        Public Property ErrorMessage As String
+            Get
+                Return _errorMessage
+            End Get
+            Set(value As String)
+                SetProperty(_errorMessage, value)
+            End Set
+        End Property
+
+        Public ReadOnly Property IsEmpty As Boolean
+            Get
+                Return SubmittedPOs.Count = 0 AndAlso Not IsBusy AndAlso Not IsError
+            End Get
         End Property
 
         Private _statusMessage As String = String.Empty
@@ -228,6 +256,7 @@ Namespace ViewModels
         ' ─── Data Loading ─────────────────────────────────────────────────────────
 
         Private Async Function LoadSubmittedPOsAsync() As Task
+            IsError = False
             IsBusy = True
             Try
                 Dim pos = Await _poService.GetAllAsync(PurchaseOrderStatus.Submitted)
@@ -241,6 +270,10 @@ Namespace ViewModels
                 StatusMessage = If(SubmittedPOs.Any(),
                     $"{SubmittedPOs.Count} submitted PO(s) awaiting receipt.",
                     "No submitted POs found.")
+                IsError = False
+            Catch ex As Exception
+                ErrorMessage = ex.Message
+                IsError = True
             Finally
                 IsBusy = False
             End Try

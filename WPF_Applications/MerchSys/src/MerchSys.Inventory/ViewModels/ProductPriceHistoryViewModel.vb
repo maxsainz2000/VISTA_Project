@@ -63,12 +63,41 @@ Namespace ViewModels
             End Get
             Set(value As Boolean)
                 SetProperty(_isBusy, value)
+                OnPropertyChanged(NameOf(IsEmpty))
             End Set
+        End Property
+
+        Private _isError As Boolean
+        Public Property IsError As Boolean
+            Get
+                Return _isError
+            End Get
+            Set(value As Boolean)
+                SetProperty(_isError, value)
+                OnPropertyChanged(NameOf(IsEmpty))
+            End Set
+        End Property
+
+        Private _errorMessage As String = String.Empty
+        Public Property ErrorMessage As String
+            Get
+                Return _errorMessage
+            End Get
+            Set(value As String)
+                SetProperty(_errorMessage, value)
+            End Set
+        End Property
+
+        Public ReadOnly Property IsEmpty As Boolean
+            Get
+                Return HistoryItems.Count = 0 AndAlso Not IsBusy AndAlso Not IsError
+            End Get
         End Property
 
         Public Property HistoryItems As ObservableCollection(Of PriceHistoryRowItem)
 
         Public Async Function LoadHistoryAsync() As Task
+            IsError = False
             IsBusy = True
             Try
                 ' Project to an explicit DTO inside the query to bypass the VB.NET silent ToListAsync() bug.
@@ -90,8 +119,8 @@ Namespace ViewModels
                     HistoryItems.Add(item)
                 Next
             Catch ex As Exception
-                ' Fallback or log if exception occurs
-                HistoryItems.Clear()
+                ErrorMessage = ex.Message
+                IsError = True
             Finally
                 IsBusy = False
             End Try

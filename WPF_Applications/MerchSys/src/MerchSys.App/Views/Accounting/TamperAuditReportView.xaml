@@ -155,5 +155,11 @@
         <views:BusyOverlay Message="Loading tamper audit report..."
                            Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}"
                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+
+        <views:ErrorStatePanel Title="Load Failed"
+                               Message="{Binding ErrorMessage}"
+                               RetryCommand="{Binding LoadCommand}"
+                               Visibility="{Binding IsError, Converter={StaticResource BoolToVis}}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
     </Grid>
 </UserControl>

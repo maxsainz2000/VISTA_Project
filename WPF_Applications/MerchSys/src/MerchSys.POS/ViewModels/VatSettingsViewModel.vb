@@ -125,6 +125,26 @@ Namespace ViewModels
             End Set
         End Property
 
+        Private _isError As Boolean
+        Public Property IsError As Boolean
+            Get
+                Return _isError
+            End Get
+            Private Set(value As Boolean)
+                SetProperty(_isError, value)
+            End Set
+        End Property
+
+        Private _errorMessage As String = String.Empty
+        Public Property ErrorMessage As String
+            Get
+                Return _errorMessage
+            End Get
+            Private Set(value As String)
+                SetProperty(_errorMessage, value)
+            End Set
+        End Property
+
         Private _statusMessage As String = String.Empty
         Public Property StatusMessage As String
             Get
@@ -173,6 +193,7 @@ Namespace ViewModels
         ' ── Commands impl ─────────────────────────────────────────────────────────
 
         Public Async Function ReloadAsync() As Task
+            IsError = False
             Dim loadError As String = Nothing
             Dim config As Entities.VatConfiguration = Nothing
 
@@ -185,6 +206,8 @@ Namespace ViewModels
             If loadError IsNot Nothing Then
                 _validationErrors.Clear()
                 _validationErrors.Add("Failed to load VAT settings: " & loadError)
+                ErrorMessage = loadError
+                IsError = True
                 Return
             End If
 

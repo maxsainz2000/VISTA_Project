@@ -98,12 +98,34 @@ Namespace ViewModels
                 SetProperty(_isLoading, value)
                 ExportCsvCommand?.NotifyCanExecuteChanged()
                 ExportPdfCommand?.NotifyCanExecuteChanged()
+                OnPropertyChanged(NameOf(HasNoEntries))
+            End Set
+        End Property
+
+        Private _isError As Boolean
+        Public Property IsError As Boolean
+            Get
+                Return _isError
+            End Get
+            Private Set(value As Boolean)
+                SetProperty(_isError, value)
+                OnPropertyChanged(NameOf(HasNoEntries))
+            End Set
+        End Property
+
+        Private _errorMessage As String = String.Empty
+        Public Property ErrorMessage As String
+            Get
+                Return _errorMessage
+            End Get
+            Private Set(value As String)
+                SetProperty(_errorMessage, value)
             End Set
         End Property
 
         Public ReadOnly Property HasNoEntries As Boolean
             Get
-                Return _entries IsNot Nothing AndAlso _entries.Count = 0 AndAlso Not IsLoading
+                Return _entries IsNot Nothing AndAlso _entries.Count = 0 AndAlso Not IsLoading AndAlso Not IsError
             End Get
         End Property
 
@@ -143,20 +165,26 @@ Namespace ViewModels
         End Function
 
         Public Async Function LoadAsync() As Task
+            IsError = False
             IsLoading = True
             OnPropertyChanged(NameOf(HasNoEntries))
             OnPropertyChanged(NameOf(HasEntries))
+            Try
+                Dim fromUtc = DateFrom.Date
+                Dim toUtc = DateTo.Date.AddDays(1).AddTicks(-1)
 
-            Dim fromUtc = DateFrom.Date
-            Dim toUtc = DateTo.Date.AddDays(1).AddTicks(-1)
-
-            Dim results = Await _queryService.GetIncidentsAsync(fromUtc, toUtc)
-            Entries = New ObservableCollection(Of TamperAuditEntryDto)(
-                results.Select(Function(e) New TamperAuditEntryDto(e)))
-
-            IsLoading = False
-            OnPropertyChanged(NameOf(HasNoEntries))
-            OnPropertyChanged(NameOf(HasEntries))
+                Dim results = Await _queryService.GetIncidentsAsync(fromUtc, toUtc)
+                Entries = New ObservableCollection(Of TamperAuditEntryDto)(
+                    results.Select(Function(e) New TamperAuditEntryDto(e)))
+                IsError = False
+            Catch ex As Exception
+                ErrorMessage = ex.Message
+                IsError = True
+            Finally
+                IsLoading = False
+                OnPropertyChanged(NameOf(HasNoEntries))
+                OnPropertyChanged(NameOf(HasEntries))
+            End Try
         End Function
 
         Public Async Function ExportCsvAsync(targetPath As String) As Task

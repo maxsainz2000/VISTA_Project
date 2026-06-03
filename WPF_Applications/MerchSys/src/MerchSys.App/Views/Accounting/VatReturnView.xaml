@@ -248,18 +248,8 @@
 
                     <views:EmptyStatePanel Title="No Lines Found"
                                            Description="There are no source document lines for this period."
-                                           HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <views:EmptyStatePanel.Style>
-                            <Style TargetType="views:EmptyStatePanel">
-                                <Setter Property="Visibility" Value="Collapsed"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Lines.Count}" Value="0">
-                                        <Setter Property="Visibility" Value="Visible"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </views:EmptyStatePanel.Style>
-                    </views:EmptyStatePanel>
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}"/>
                 </Grid>
             </Border>
 
@@ -269,5 +259,11 @@
         <views:BusyOverlay Message="Loading VAT Return..."
                            Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"
                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+
+        <views:ErrorStatePanel Title="Load Failed"
+                               Message="{Binding ErrorMessage}"
+                               RetryCommand="{Binding GenerateCommand}"
+                               Visibility="{Binding IsError, Converter={StaticResource BoolToVis}}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
     </Grid>
 </UserControl>

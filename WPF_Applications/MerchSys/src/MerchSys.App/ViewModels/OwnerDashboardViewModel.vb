@@ -267,6 +267,26 @@ Namespace ViewModels
             End Set
         End Property
 
+        Private _isError As Boolean
+        Public Property IsError As Boolean
+            Get
+                Return _isError
+            End Get
+            Private Set(value As Boolean)
+                SetProperty(_isError, value)
+            End Set
+        End Property
+
+        Private _errorMessage As String = String.Empty
+        Public Property ErrorMessage As String
+            Get
+                Return _errorMessage
+            End Get
+            Private Set(value As String)
+                SetProperty(_errorMessage, value)
+            End Set
+        End Property
+
         Private _ownerDisplayName As String = String.Empty
         Public Property OwnerDisplayName As String
             Get
@@ -327,6 +347,7 @@ Namespace ViewModels
         ''' <summary>Loads all KPI groups sequentially to avoid concurrent DbContext access.</summary>
         Private Async Function RefreshAsync() As Task
             If IsLoading Then Return
+            IsError = False
             IsLoading = True
             Dim errMsg As String = Nothing
             Try
@@ -335,11 +356,16 @@ Namespace ViewModels
                 Await LoadSalesKpisAsync()
                 Await LoadAccountingKpisAsync()
                 LastRefreshedDisplay = $"Last refreshed: {DateTime.Now:HH:mm:ss}"
+                IsError = False
             Catch ex As Exception
                 errMsg = ex.Message
             End Try
             IsLoading = False
             ' errMsg captured to avoid Await-in-Catch (BC36943). KPI cards retain last-known-good values on failure.
+            If errMsg IsNot Nothing Then
+                ErrorMessage = errMsg
+                IsError = True
+            End If
         End Function
 
         Private Async Function LoadPurchasingKpisAsync() As Task

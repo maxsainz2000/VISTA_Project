@@ -233,7 +233,35 @@ Namespace ViewModels
             End Get
             Set(value As Boolean)
                 SetProperty(_isBusy, value)
+                OnPropertyChanged(NameOf(IsEmpty))
             End Set
+        End Property
+
+        Private _isError As Boolean
+        Public Property IsError As Boolean
+            Get
+                Return _isError
+            End Get
+            Set(value As Boolean)
+                SetProperty(_isError, value)
+                OnPropertyChanged(NameOf(IsEmpty))
+            End Set
+        End Property
+
+        Private _errorMessage As String = String.Empty
+        Public Property ErrorMessage As String
+            Get
+                Return _errorMessage
+            End Get
+            Set(value As String)
+                SetProperty(_errorMessage, value)
+            End Set
+        End Property
+
+        Public ReadOnly Property IsEmpty As Boolean
+            Get
+                Return PendingPurchaseOrders.Count = 0 AndAlso Not IsBusy AndAlso Not IsError
+            End Get
         End Property
 
         Private _lastRefreshed As String = String.Empty
@@ -262,6 +290,7 @@ Namespace ViewModels
         ' ─── Data Loading ─────────────────────────────────────────────────────────
 
         Private Async Function LoadDataAsync() As Task
+            IsError = False
             IsBusy = True
             Dim connStr As String = _db.Database.GetConnectionString()
             Dim errMessage As String = Nothing
@@ -337,6 +366,8 @@ Namespace ViewModels
             ' Handle error if any occurred (avoids await inside catch block)
             If errMessage IsNot Nothing Then
                 LastRefreshed = $"Load failed: {errMessage}"
+                ErrorMessage = errMessage
+                IsError = True
             End If
         End Function
 

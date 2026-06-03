@@ -441,18 +441,8 @@
 
                     <views:EmptyStatePanel Title="No Suggestions"
                                            Description="There are no active reorder suggestions for this filter."
-                                           HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <views:EmptyStatePanel.Style>
-                            <Style TargetType="views:EmptyStatePanel">
-                                <Setter Property="Visibility" Value="Collapsed"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Suggestions.Count}" Value="0">
-                                        <Setter Property="Visibility" Value="Visible"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </views:EmptyStatePanel.Style>
-                    </views:EmptyStatePanel>
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}"/>
                     </Grid>
                 </Border>
 
@@ -631,6 +621,12 @@
                                     <DataTrigger Binding="{Binding Configs.Count}" Value="0">
                                         <Setter Property="Visibility" Value="Visible"/>
                                     </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsError}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsBusy}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </views:EmptyStatePanel.Style>
@@ -643,6 +639,12 @@
             <views:BusyOverlay Message="Processing..."
                                Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"
                                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+
+            <views:ErrorStatePanel Title="Load Failed"
+                                   Message="{Binding ErrorMessage}"
+                                   RetryCommand="{Binding RefreshCommand}"
+                                   Visibility="{Binding IsError, Converter={StaticResource BoolToVis}}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
         </DockPanel>
 

@@ -194,18 +194,8 @@
 
                         <views:EmptyStatePanel Title="No transactions found"
                                                Description="Adjust your search filters to find transactions."
-                                               HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <views:EmptyStatePanel.Style>
-                                <Style TargetType="UserControl">
-                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding Transactions.Count}" Value="0">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </views:EmptyStatePanel.Style>
-                        </views:EmptyStatePanel>
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}"/>
                     </Grid>
                 </Border>
 
@@ -572,6 +562,13 @@
 
         <views:BusyOverlay Grid.RowSpan="3"
                            Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
+
+        <views:ErrorStatePanel Grid.RowSpan="3"
+                               Title="Load Failed"
+                               Message="{Binding ErrorMessage}"
+                               RetryCommand="{Binding SearchCommand}"
+                               Visibility="{Binding IsError, Converter={StaticResource BoolToVis}}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
     </Grid>
 </UserControl>

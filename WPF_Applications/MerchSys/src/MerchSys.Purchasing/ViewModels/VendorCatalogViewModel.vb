@@ -94,8 +94,36 @@ Namespace ViewModels
             Set(value As Boolean)
                 If SetProperty(_isBusy, value) Then
                     AddProductCommand.NotifyCanExecuteChanged()
+                    OnPropertyChanged(NameOf(IsEmpty))
                 End If
             End Set
+        End Property
+
+        Private _isError As Boolean
+        Public Property IsError As Boolean
+            Get
+                Return _isError
+            End Get
+            Set(value As Boolean)
+                SetProperty(_isError, value)
+                OnPropertyChanged(NameOf(IsEmpty))
+            End Set
+        End Property
+
+        Private _errorMessage As String = String.Empty
+        Public Property ErrorMessage As String
+            Get
+                Return _errorMessage
+            End Get
+            Set(value As String)
+                SetProperty(_errorMessage, value)
+            End Set
+        End Property
+
+        Public ReadOnly Property IsEmpty As Boolean
+            Get
+                Return Vendors.Count = 0 AndAlso Not IsBusy AndAlso Not IsError
+            End Get
         End Property
 
         Private _statusMessage As String = String.Empty
@@ -180,6 +208,7 @@ Namespace ViewModels
         ' --- Implementations ---
 
         Public Async Function LoadVendorsAsync() As Task
+            IsError = False
             IsBusy = True
             Try
                 Dim list = Await _vendorService.GetAllAsync()
@@ -188,9 +217,10 @@ Namespace ViewModels
                     Vendors.Add(v)
                 Next
                 StatusMessage = $"Loaded {Vendors.Count} vendors."
+                IsError = False
             Catch ex As Exception
-                StatusMessage = $"[ERROR] Failed to load vendors: {ex.Message}"
-                _notifications.ShowError("Failed to load vendors list.")
+                ErrorMessage = ex.Message
+                IsError = True
             End Try
             IsBusy = False
         End Function

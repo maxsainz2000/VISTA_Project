@@ -495,5 +495,12 @@
         <views:BusyOverlay Grid.Row="0" Grid.RowSpan="3"
                            Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
 
+        <views:ErrorStatePanel Grid.Row="0" Grid.RowSpan="3"
+                               Title="Load Failed"
+                               Message="{Binding ErrorMessage}"
+                               RetryCommand="{Binding LoadCommand}"
+                               Visibility="{Binding IsError, Converter={StaticResource BoolToVis}}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
     </Grid>
 </UserControl>

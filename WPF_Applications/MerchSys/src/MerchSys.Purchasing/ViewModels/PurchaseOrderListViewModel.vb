@@ -157,7 +157,35 @@ Namespace ViewModels
             End Get
             Set(value As Boolean)
                 SetProperty(_isBusy, value)
+                OnPropertyChanged(NameOf(IsEmpty))
             End Set
+        End Property
+
+        Private _isError As Boolean
+        Public Property IsError As Boolean
+            Get
+                Return _isError
+            End Get
+            Set(value As Boolean)
+                SetProperty(_isError, value)
+                OnPropertyChanged(NameOf(IsEmpty))
+            End Set
+        End Property
+
+        Private _errorMessage As String = String.Empty
+        Public Property ErrorMessage As String
+            Get
+                Return _errorMessage
+            End Get
+            Set(value As String)
+                SetProperty(_errorMessage, value)
+            End Set
+        End Property
+
+        Public ReadOnly Property IsEmpty As Boolean
+            Get
+                Return Orders.Count = 0 AndAlso Not IsBusy AndAlso Not IsError
+            End Get
         End Property
 
         Private _statusMessage As String = String.Empty
@@ -198,6 +226,7 @@ Namespace ViewModels
         ' ─── Data Loading ─────────────────────────────────────────────────────────
 
         Private Async Function LoadDataAsync() As Task
+            IsError = False
             IsBusy = True
             Try
                 ' EF Core 10 VB.NET ToListAsync() silently returns empty for full entity queries.
@@ -247,8 +276,10 @@ Namespace ViewModels
                 Editor.LoadVendors(_vendorList)
                 ApplyFilters()
                 StatusMessage = $"Loaded {pos.Count} POs, {_vendorList.Count} vendors"
+                IsError = False
             Catch ex As Exception
-                StatusMessage = $"[ERROR] {ex.GetType().Name}: {ex.Message}"
+                ErrorMessage = ex.Message
+                IsError = True
             Finally
                 IsBusy = False
             End Try
@@ -271,6 +302,7 @@ Namespace ViewModels
             For Each item In filtered
                 Orders.Add(item)
             Next
+            OnPropertyChanged(NameOf(IsEmpty))
         End Sub
 
         ' ─── Editor Lifecycle ─────────────────────────────────────────────────────

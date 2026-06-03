@@ -3,8 +3,8 @@ type: pattern
 module: MerchSys.App
 agent: claude-code
 date: 2026-06-03
-updated: 2026-06-03
-tags: [wpf, mvvm, vb-net, state, feedback, busy, empty, concurrency, validation, notifications]
+updated: 2026-06-03 (UX-15)
+tags: [wpf, mvvm, vb-net, state, feedback, busy, empty, error, concurrency, validation, notifications]
 ---
 
 # WPF VISTA State & Feedback Conventions
@@ -22,18 +22,116 @@ re-inventing per-view feedback. (Foundation for UX-14 concurrency consolidation 
 
 ## The Pattern
 
-### 1. Busy / Empty state (`IsBusy` + `IsEmpty`)
+### 1. Three-state load model (`IsBusy` / `IsError` / `IsEmpty`) — UX-15
 
-Two reusable shell controls in `Views/Shell/`, overlaid on a view's root `Grid`:
+Three reusable shell controls in `Views/Shell/`, overlaid on a view's root `Grid`:
 
-- **`BusyOverlay`** — tokenized dimmed spinner, bound to a VM `IsBusy`/`IsLoading` flag. Set
-  `IsBusy = True` before the first `Await` of a load/save, reset it in a `Finally`.
-- **`EmptyStatePanel`** — icon + headline + hint, shown when a *loaded* collection is empty so
-  "no data" is never confused with "still loading". Drive its visibility from
-  `IsEmpty = (Count = 0) AndAlso Not IsBusy`.
+- **`BusyOverlay`** — tokenized dimmed spinner, bound to `IsBusy`/`IsLoading`. Set True before the
+  first `Await` of a load, reset in `Finally`.
+- **`ErrorStatePanel`** — warning icon + headline + message + **Retry** button (added UX-15). Shown
+  on load failure. Binds `RetryCommand` to the view's load/refresh command (read-only, idempotent).
+  Title=`"Load Failed"`, Message=`{Binding ErrorMessage}`, Retry=`{Binding RefreshCommand}` (or
+  `LoadCommand`, `LoadDataCommand`, etc.), Visibility=`{Binding IsError, Converter=BoolToVis}`.
+- **`EmptyStatePanel`** — icon + headline + hint, shown when loaded and empty. Drive from
+  `IsEmpty` (computed — excludes IsBusy **and** IsError so "error" is never shown as "no data").
 
-> A view with a `DockPanel` root must wrap that `DockPanel` in a parent `Grid` so the overlay can
+**State precedence (mutually exclusive):**
+`IsBusy` (loading) > `IsError` (load threw) > `IsEmpty` (loaded, count=0) > content panel.
+
+**VM state model — add to every data VM:**
+```vb
+' ─── Load State ──────────────────────────────────────────────────────────────
+
+Private _isBusy As Boolean
+Public Property IsBusy As Boolean
+    Get : Return _isBusy : End Get
+    Set(value As Boolean)
+        SetProperty(_isBusy, value)
+        OnPropertyChanged(NameOf(IsEmpty))  ' ← must fire IsEmpty notification
+    End Set
+End Property
+
+Private _isError As Boolean
+Public Property IsError As Boolean
+    Get : Return _isError : End Get
+    Set(value As Boolean)
+        SetProperty(_isError, value)
+        OnPropertyChanged(NameOf(IsEmpty))  ' ← must fire IsEmpty notification
+    End Set
+End Property
+
+Private _errorMessage As String = String.Empty
+Public Property ErrorMessage As String
+    Get : Return _errorMessage : End Get
+    Set(value As String) : SetProperty(_errorMessage, value) : End Set
+End Property
+
+Public ReadOnly Property IsEmpty As Boolean
+    Get
+        Return TheCollection.Count = 0 AndAlso Not IsBusy AndAlso Not IsError
+    End Get
+End Property
+```
+
+**LoadDataAsync pattern — normalize ALL load paths:**
+```vb
+Private Async Function LoadDataAsync() As Task
+    IsError = False
+    IsBusy = True
+    Try
+        ' ... load data ...
+        IsError = False   ' clear on success
+    Catch ex As Exception
+        ErrorMessage = ex.Message
+        IsError = True
+    Finally
+        IsBusy = False    ' always resets
+    End Try
+End Function
+```
+
+**BC36943 trap:** Never `Await` inside a `Catch`/`Finally`. If error handling after the Try block
+needs async work, use the captured-variable pattern (see `[[feedback-vbnet-await-catch]]`).
+
+**Filter-driven VMs:** If `ApplyFilters()` modifies the collection without changing `IsBusy`,
+add `OnPropertyChanged(NameOf(IsEmpty))` at the end of `ApplyFilters()` so IsEmpty re-notifies.
+
+**XAML wiring — simple case (single primary collection, no client-side filter):**
+```xml
+<views:EmptyStatePanel ... Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}"/>
+<views:BusyOverlay ... Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
+<views:ErrorStatePanel Title="Load Failed" Message="{Binding ErrorMessage}"
+                       RetryCommand="{Binding RefreshCommand}"
+                       Visibility="{Binding IsError, Converter={StaticResource BoolToVis}}"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+```
+
+**XAML wiring — filter-driven or multi-section (raw Count + collapse guards):**
+```xml
+<views:EmptyStatePanel ...>
+    <views:EmptyStatePanel.Style>
+        <Style TargetType="UserControl">
+            <Setter Property="Visibility" Value="Collapsed"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Items.Count}" Value="0">
+                    <Setter Property="Visibility" Value="Visible"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsError}" Value="True">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsBusy}" Value="True">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </views:EmptyStatePanel.Style>
+</views:EmptyStatePanel>
+```
+
+> A view with a `DockPanel` root must wrap that `DockPanel` in a parent `Grid` so overlays can
 > sit on top — overlays are the last child of a `Grid`, not docked.
+> VMs using `IsLoading` instead of `IsBusy` (VatReliefReportVM, TamperAuditReportVM) — bind
+> BusyOverlay to `IsLoading`; IsEmpty uses `Not IsLoading AndAlso Not IsError`.
 
 ### 2. Concurrency-conflict UX (`IConflictPresenter` — never overwrite)
 
@@ -122,7 +220,11 @@ three "what's happening?" states stay visually unambiguous across every view.
   `ConcurrencyHelper.ExecuteWithConflictPromptAsync`; do not re-grow per-VM variants.
   Add `Imports MerchSys.SharedKernel.Persistence` and inject `IConflictPresenter` via constructor.
 
-## Wired surface (post UX-14)
+## Wired surface (post UX-15)
+
+**Error state (`IsError`/`ErrorMessage` + `ErrorStatePanel`) — ALL data VMs and views (24 total):**
+Every data view now has `ErrorStatePanel` wired to `IsError`. VMs normalize their load paths with
+`IsError = True` in the catch, `IsError = False` on success, cleared at load start.
 
 **Concurrency (via primitive — all write paths on RowVersion tables):**
 - POS: `SalesCartViewModel`, `CreditManagementViewModel`, `VatSettingsViewModel`, `TransactionHistoryViewModel`
@@ -135,7 +237,8 @@ three "what's happening?" states stay visually unambiguous across every view.
 
 **Validation:** `ProductManagementViewModel`, `ShrinkageViewModel`, `GoodsReceivingViewModel`, `CreditManagementViewModel`, `VatSettingsViewModel`.
 
-**Busy/Empty:** ~23 list/grid/dashboard views across all four modules.
+**Busy/Empty/Error:** 24 list/grid/report/dashboard views across all modules. `OwnerDashboardView`
+was the missing UX-06 view — now has `ErrorStatePanel` (using existing manual loading Border).
 
 ## Related
 

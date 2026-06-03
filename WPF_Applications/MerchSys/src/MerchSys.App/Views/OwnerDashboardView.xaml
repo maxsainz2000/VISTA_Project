@@ -386,5 +386,12 @@
             </Border>
         </Grid>
         </ScrollViewer>
+
+        <views:ErrorStatePanel Grid.RowSpan="2"
+                               Title="Load Failed"
+                               Message="{Binding ErrorMessage}"
+                               RetryCommand="{Binding RefreshCommand}"
+                               Visibility="{Binding IsError, Converter={StaticResource BoolToVis}}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
     </Grid>
 </UserControl>

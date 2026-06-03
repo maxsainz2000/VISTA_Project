@@ -229,18 +229,8 @@
 
                 <views:EmptyStatePanel Title="No Shrinkage Records"
                                        Description="No shrinkage loss records found for the selected period."
-                                       HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <views:EmptyStatePanel.Style>
-                        <Style TargetType="UserControl">
-                            <Setter Property="Visibility" Value="Collapsed"/>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding HistoryItems.Count}" Value="0">
-                                    <Setter Property="Visibility" Value="Visible"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </views:EmptyStatePanel.Style>
-                </views:EmptyStatePanel>
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}"/>
             </Grid>
 
         </DockPanel>
@@ -332,6 +322,12 @@
         </Grid>
 
         <views:BusyOverlay Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
+
+        <views:ErrorStatePanel Title="Load Failed"
+                               Message="{Binding ErrorMessage}"
+                               RetryCommand="{Binding LoadDataCommand}"
+                               Visibility="{Binding IsError, Converter={StaticResource BoolToVis}}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
     </Grid>
 

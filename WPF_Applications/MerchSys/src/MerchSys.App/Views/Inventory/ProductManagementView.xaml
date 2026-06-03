@@ -233,18 +233,8 @@
 
                             <views:EmptyStatePanel Title="No Products Found"
                                                    Description="No products match the selected criteria or search term."
-                                                   HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <views:EmptyStatePanel.Style>
-                                    <Style TargetType="UserControl">
-                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding Products.Count}" Value="0">
-                                                <Setter Property="Visibility" Value="Visible"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </views:EmptyStatePanel.Style>
-                            </views:EmptyStatePanel>
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                   Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}"/>
                         </Grid>
 
                     </DockPanel>
@@ -347,6 +337,12 @@
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding Categories.Count}" Value="0">
                                                 <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding IsError}" Value="True">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding IsBusy}" Value="True">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
@@ -533,6 +529,12 @@
         </Grid>
 
         <views:BusyOverlay Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
+
+        <views:ErrorStatePanel Title="Load Failed"
+                               Message="{Binding ErrorMessage}"
+                               RetryCommand="{Binding LoadDataCommand}"
+                               Visibility="{Binding IsError, Converter={StaticResource BoolToVis}}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
     </Grid>
 

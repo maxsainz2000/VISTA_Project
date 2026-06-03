@@ -545,6 +545,12 @@
             <views:BusyOverlay Message="Loading credit details..."
                                Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"
                                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+
+            <views:ErrorStatePanel Title="Load Failed"
+                                   Message="{Binding ErrorMessage}"
+                                   RetryCommand="{Binding LoadDataCommand}"
+                                   Visibility="{Binding IsError, Converter={StaticResource BoolToVis}}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Grid>
 
         <!-- ═══ Payment Dialog Overlay ═════════════════════════════════════════ -->

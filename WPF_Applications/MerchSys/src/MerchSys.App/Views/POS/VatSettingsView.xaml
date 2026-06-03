@@ -192,5 +192,11 @@
         <views:BusyOverlay Message="Saving settings..."
                            Visibility="{Binding IsSaving, Converter={StaticResource BoolToVis}}"
                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+
+        <views:ErrorStatePanel Title="Load Failed"
+                               Message="{Binding ErrorMessage}"
+                               RetryCommand="{Binding ReloadCommand}"
+                               Visibility="{Binding IsError, Converter={StaticResource BoolToVis}}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
     </Grid>
 </UserControl>

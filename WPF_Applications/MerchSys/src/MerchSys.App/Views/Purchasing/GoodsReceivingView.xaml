@@ -302,5 +302,11 @@
         <views:BusyOverlay Message="Processing receipt..."
                            Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"
                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+
+        <views:ErrorStatePanel Title="Load Failed"
+                               Message="{Binding ErrorMessage}"
+                               RetryCommand="{Binding LoadPOsCommand}"
+                               Visibility="{Binding IsError, Converter={StaticResource BoolToVis}}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
     </Grid>
 </UserControl>

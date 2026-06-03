@@ -287,18 +287,8 @@
 
                     <views:EmptyStatePanel Title="No Entries"
                                            Description="There are no accounts payable ledger entries available."
-                                           HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <views:EmptyStatePanel.Style>
-                            <Style TargetType="views:EmptyStatePanel">
-                                <Setter Property="Visibility" Value="Collapsed"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Entries.Count}" Value="0">
-                                        <Setter Property="Visibility" Value="Visible"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </views:EmptyStatePanel.Style>
-                    </views:EmptyStatePanel>
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}"/>
                 </Grid>
             </Border>
 
@@ -307,6 +297,12 @@
         <views:BusyOverlay Message="Loading ledger..."
                            Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"
                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+
+        <views:ErrorStatePanel Title="Load Failed"
+                               Message="{Binding ErrorMessage}"
+                               RetryCommand="{Binding RefreshCommand}"
+                               Visibility="{Binding IsError, Converter={StaticResource BoolToVis}}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
         <!-- ═══════════════════════════════════════════════════════════
              PAYMENT DIALOG OVERLAY

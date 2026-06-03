@@ -76,7 +76,35 @@ Namespace ViewModels
             End Get
             Set(value As Boolean)
                 SetProperty(_isLoading, value)
+                OnPropertyChanged(NameOf(IsEmpty))
             End Set
+        End Property
+
+        Private _isError As Boolean
+        Public Property IsError As Boolean
+            Get
+                Return _isError
+            End Get
+            Set(value As Boolean)
+                SetProperty(_isError, value)
+                OnPropertyChanged(NameOf(IsEmpty))
+            End Set
+        End Property
+
+        Private _errorMessage As String = String.Empty
+        Public Property ErrorMessage As String
+            Get
+                Return _errorMessage
+            End Get
+            Set(value As String)
+                SetProperty(_errorMessage, value)
+            End Set
+        End Property
+
+        Public ReadOnly Property IsEmpty As Boolean
+            Get
+                Return TrailingMonths.Count = 0 AndAlso Not IsLoading AndAlso Not IsError
+            End Get
         End Property
 
         Private _whatThisMeans As String = "Select a year and month, then click Refresh to load the VAT Relief summary."
@@ -102,6 +130,7 @@ Namespace ViewModels
         ' ─── Commands ────────────────────────────────────────────────────────────────
 
         Private Async Function LoadAsync() As Task
+            IsError = False
             IsLoading = True
             Try
                 Dim s = Await _service.GetMonthlySummaryAsync(_selectedYear, _selectedMonth)
@@ -114,6 +143,10 @@ Namespace ViewModels
                 Next
 
                 WhatThisMeans = BuildWhatThisMeans(s)
+                IsError = False
+            Catch ex As Exception
+                ErrorMessage = ex.Message
+                IsError = True
             Finally
                 IsLoading = False
             End Try

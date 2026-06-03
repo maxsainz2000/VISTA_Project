@@ -310,7 +310,35 @@ Namespace ViewModels
             End Get
             Private Set(value As Boolean)
                 SetProperty(_isBusy, value)
+                OnPropertyChanged(NameOf(IsEmpty))
             End Set
+        End Property
+
+        Private _isError As Boolean
+        Public Property IsError As Boolean
+            Get
+                Return _isError
+            End Get
+            Private Set(value As Boolean)
+                SetProperty(_isError, value)
+                OnPropertyChanged(NameOf(IsEmpty))
+            End Set
+        End Property
+
+        Private _errorMessage As String = String.Empty
+        Public Property ErrorMessage As String
+            Get
+                Return _errorMessage
+            End Get
+            Private Set(value As String)
+                SetProperty(_errorMessage, value)
+            End Set
+        End Property
+
+        Public ReadOnly Property IsEmpty As Boolean
+            Get
+                Return Accounts.Count = 0 AndAlso Not IsBusy AndAlso Not IsError
+            End Get
         End Property
 
         ''' <summary>Payment method options shown in the Record Payment dialog (Credit is excluded).</summary>
@@ -405,11 +433,15 @@ Namespace ViewModels
         ' ── Command handlers ──────────────────────────────────────────────────────
 
         Private Async Function LoadDataAsync() As Task
+            IsError = False
             IsBusy = True
             Try
                 Await LoadDataInternalAsync()
+                IsError = False
             Catch ex As Exception
                 ShowError("Failed to load accounts: " & ex.Message)
+                ErrorMessage = ex.Message
+                IsError = True
             Finally
                 IsBusy = False
             End Try
@@ -437,6 +469,7 @@ Namespace ViewModels
             For Each account In filtered.OrderBy(Function(a) a.CustomerName)
                 Accounts.Add(account)
             Next
+            OnPropertyChanged(NameOf(IsEmpty))
         End Sub
 
         Private Sub SetFilter(filter As String)

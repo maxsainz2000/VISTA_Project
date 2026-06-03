@@ -557,5 +557,11 @@
         <views:BusyOverlay Grid.ColumnSpan="3"
                            Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
 
+        <views:ErrorStatePanel Grid.ColumnSpan="3"
+                               Title="Search Failed"
+                               Message="{Binding ErrorMessage}"
+                               Visibility="{Binding IsError, Converter={StaticResource BoolToVis}}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
     </Grid>
 </UserControl>

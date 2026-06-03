@@ -381,22 +381,18 @@
 
                     <views:EmptyStatePanel Title="No Purchase Orders"
                                            Description="There are no purchase orders found matching the filter."
-                                           HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <views:EmptyStatePanel.Style>
-                            <Style TargetType="views:EmptyStatePanel">
-                                <Setter Property="Visibility" Value="Collapsed"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Orders.Count}" Value="0">
-                                        <Setter Property="Visibility" Value="Visible"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </views:EmptyStatePanel.Style>
-                    </views:EmptyStatePanel>
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}"/>
 
                     <views:BusyOverlay Message="Loading purchase orders..."
                                        Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"
                                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+
+                    <views:ErrorStatePanel Title="Load Failed"
+                                           Message="{Binding ErrorMessage}"
+                                           RetryCommand="{Binding RefreshCommand}"
+                                           Visibility="{Binding IsError, Converter={StaticResource BoolToVis}}"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Grid>
             </DockPanel>
         </Border>

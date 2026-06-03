@@ -171,6 +171,12 @@
                                                             </MultiDataTrigger.Conditions>
                                                             <Setter Property="Visibility" Value="Visible"/>
                                                         </MultiDataTrigger>
+                                                        <DataTrigger Binding="{Binding IsError}" Value="True">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding IsBusy}" Value="True">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                        </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
                                             </views:EmptyStatePanel.Style>
@@ -184,6 +190,12 @@
                         <views:BusyOverlay Message="Loading catalog..."
                                            Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"
                                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+
+                        <views:ErrorStatePanel Title="Load Failed"
+                                               Message="{Binding ErrorMessage}"
+                                               RetryCommand="{Binding LoadVendorsCommand}"
+                                               Visibility="{Binding IsError, Converter={StaticResource BoolToVis}}"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Grid>
                 </Border>
             </Grid>
