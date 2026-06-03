@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.POS
 layer: UI
-last-updated: 2026-05-11
+last-updated: 2026-06-03
 ---
 
 # MerchSys.POS — User Interface

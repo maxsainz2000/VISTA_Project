@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.Accounting
 layer: Views
-last-updated: 2026-05-29
+last-updated: 2026-06-03
 ---
 
 # MerchSys.Accounting — Views
