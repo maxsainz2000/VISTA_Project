@@ -55,6 +55,19 @@ AccountingPanel, DeveloperToolsPanel, ModuleDetailPanel if not fully done in UX-
 
 > The shell files reskinned in UX-02 (`MainWindow`, `ActivityRail`, `ModuleDetailPanel`,
 > `ConnectionStatusIndicator`) are **excluded** — already migrated.
+>
+> **Two known shell carry-forwards from UX-02 — fix these as part of Batch E (the only shell
+> exception):**
+> 1. **`ConnectionStatusIndicator.xaml` — two `FontSize="11"` literals** (the `RetryButtonStyle`
+>    setter and the state-label `TextBlock`). Replace both with `{DynamicResource FontSizeCaption}`
+>    (= 11). Not a color defect, which is why UX-02 deferred it; it's a type-ramp cleanup.
+> 2. **`ConnectionStatusIndicator.xaml` — local `HoverBackgroundBrush` shadow.** It defines its own
+>    `<SolidColorBrush x:Key="HoverBackgroundBrush" Color="White" Opacity="0.2"/>` in
+>    `UserControl.Resources`, which now collides by name with the real palette token. The pill's
+>    retry button intentionally needs a *white* hover over a saturated background, so the fix is to
+>    **rename the local brush** (e.g. `PillHoverBrush`) and update its single consumer — not to delete
+>    it and inherit the palette token (that would be the wrong color on the colored pill). Eliminates
+>    the same-name-different-meaning trap.
 
 ## Deliverables
 

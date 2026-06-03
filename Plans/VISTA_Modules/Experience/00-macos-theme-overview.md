@@ -79,10 +79,21 @@ and are shared by both.
 | `DangerBrush` | Errors / overdue / expiry | `#FF3B30` | `#FF453A` |
 | `WarningBrush` | Low-stock / caution | `#FF9F0A` | `#FFB340` |
 | `SuccessBrush` | Positive / paid | `#34C759` | `#30D158` |
+| `HoverBackgroundBrush` | Interaction overlay for hover/pressed rows & buttons | `#1D1D1F` @ 6% | `#FFFFFF` @ 8% |
 | `ShadowColor` | Card drop-shadow color (`Color`, not brush) | `#000000` | `#000000` |
 
 > The four **status** brushes (Danger/Warning/Success/Accent) replace the scattered semantic
 > hex values currently inline in views (e.g. the `⚠️ Low-Stock` and `🔴 Expiring` indicators).
+
+> **`HoverBackgroundBrush` is theme-specific and must be authored per palette — do not derive it in
+> markup.** It is a translucent ink overlay (dark ink on light, white on dark) painted over a row or
+> button on hover/press. It was introduced in UX-02. **Antipattern (validated, see
+> `agent_wiki/antipatterns/wpf-dynamicresource-brush-into-color-property.md`):** never define it as
+> `<SolidColorBrush Color="{DynamicResource TextPrimaryBrush}" Opacity="0.06"/>` — feeding a brush
+> resource into the `Color` property compiles clean (0/0) but throws `InvalidOperationException` at
+> dictionary-realization time, and **only in whichever theme is active at boot**, so a clean build +
+> working Light proves nothing about Dark. Author the literal translucent color in each palette
+> instead (the values above). All consumers reference it via `DynamicResource`.
 
 ### Structure tokens (theme-agnostic — `Themes/Tokens.xaml`)
 

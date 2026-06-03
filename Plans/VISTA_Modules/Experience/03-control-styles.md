@@ -27,6 +27,10 @@ run in parallel with UX-02.
 
 - **UX-01** — tokens (`AccentBrush`, `SurfaceBrush`, `ControlBackgroundBrush`, `TextPrimaryBrush`,
   `SeparatorBrush`, `Radius*`, `Spacing*`, `AppFontFamily`, `FontSize*`, etc.).
+- **`HoverBackgroundBrush`** already exists in both palettes (added in UX-02 — Light `#1D1D1F`@6%,
+  Dark `#FFFFFF`@8%). **Reuse it for every hover/pressed fill in this plan** (Button, ListBoxItem,
+  ComboBoxItem, DataGridRow, TabItem). Do **not** author a new per-control hover brush, and do **not**
+  build one from `TextPrimaryBrush` + `Opacity` in markup — see the antipattern note in UX-00.
 
 ## Deliverables
 
@@ -109,6 +113,12 @@ VISTA's reports/ledgers use grids heavily; this is the highest-impact control af
   UX-04 reconciles them. Verify no view relies on an unstyled default that this plan would alter in a
   way that breaks layout (e.g. a Button whose size assumed zero padding). Where a regression is
   found, document it for UX-04 rather than special-casing here.
+- **These implicit styles take effect app-wide the moment they merge — including in the ~35 views
+  UX-04 has not migrated yet.** That is intended (UX-04 then mostly just strips inline hex), but
+  expect transient visual collisions where a not-yet-migrated view still carries inline
+  `Background`/`Foreground` hex that fights the new implicit chrome. Do **not** chase those here —
+  note any that look broken and leave them for UX-04. The gate for UX-03 is that controls render
+  correctly where they inherit cleanly, not that every legacy view is already perfect.
 - **Test both themes and a few representative views at runtime** (a DataGrid-heavy report, an input
   form like Login, a list view) to confirm the implicit styles read well before UX-04 starts.
 - Templates must keep `ContentPresenter`/`ScrollViewer`/`ItemsPresenter` wiring intact so controls
