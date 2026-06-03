@@ -38,6 +38,7 @@ This page details the WPF View implementations (XAML and code-behind) in the **M
 | `src/MerchSys.App/Views/Shell/ConcurrencyConflictPrompt.xaml`<br>`src/MerchSys.App/Views/Shell/ConcurrencyConflictPrompt.xaml.vb` | `ConcurrencyConflictPrompt` | Modal dialog displayed on database concurrency conflicts prompting operators to Refresh or Cancel. | (Transient) |
 | `src/MerchSys.App/Views/Shell/BusyOverlay.xaml`<br>`src/MerchSys.App/Views/Shell/BusyOverlay.xaml.vb` | `BusyOverlay` | Reusable overlay UserControl presenting a rotating spinner and text during long-running operations. | (none) |
 | `src/MerchSys.App/Views/Shell/EmptyStatePanel.xaml`<br>`src/MerchSys.App/Views/Shell/EmptyStatePanel.xaml.vb` | `EmptyStatePanel` | Reusable UserControl presenting a folder icon, title, and description for empty list/grid collections. | (none) |
+| `src/MerchSys.App/Views/Shell/ErrorStatePanel.xaml`<br>`src/MerchSys.App/Views/Shell/ErrorStatePanel.xaml.vb` | `ErrorStatePanel` | Reusable UserControl presenting a warning icon, headline, and message with a Retry button for failed load states (UX-15). | (none) |
 | `src/MerchSys.App/Views/Shell/DeltaIndicator.xaml`<br>`src/MerchSys.App/Views/Shell/DeltaIndicator.xaml.vb` | `DeltaIndicator` | Reusable presentation control displaying percentage changes and arrow icons. | (none) |
 | `src/MerchSys.App/Views/Shell/Sparkline.xaml`<br>`src/MerchSys.App/Views/Shell/Sparkline.xaml.vb` | `Sparkline` | Reusable inline chart rendering mini vertical trend bars. | (none) |
 
