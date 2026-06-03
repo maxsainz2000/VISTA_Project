@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
              mc:Ignorable="d"
              d:DesignHeight="768" d:DesignWidth="1280"
              Background="{DynamicResource WindowBackgroundBrush}">
@@ -10,44 +11,8 @@
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
-        <!-- Summary card border -->
-        <Style x:Key="SummaryCard" TargetType="Border">
-            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}"/>
-            <Setter Property="Padding" Value="16,12"/>
-            <Setter Property="Margin" Value="0,0,8,0"/>
-            <Setter Property="Effect" Value="{DynamicResource CardShadow}"/>
-        </Style>
-
-        <Style x:Key="CardValue" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="24"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-        </Style>
-
-        <Style x:Key="CardLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-            <Setter Property="Margin" Value="0,2,0,0"/>
-        </Style>
-
-        <Style x:Key="SectionHeader" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-        </Style>
-
-        <Style x:Key="FilterLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="0,0,4,0"/>
-        </Style>
-
         <!-- DataGrid row coloring using themed foreground triggers -->
-        <Style x:Key="StockRowStyle" TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+        <Style x:Key="StockRowStyle" TargetType="DataGridRow" BasedOn="{StaticResource SemanticRowStyle}">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding ExpiryStatus}" Value="NearExpiry">
                     <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
@@ -70,433 +35,403 @@
             <Setter Property="HorizontalAlignment" Value="Center"/>
             <Setter Property="Padding" Value="6,2"/>
         </Style>
-
-        <Style x:Key="DetailHeader" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-            <Setter Property="Margin" Value="0,0,0,4"/>
-        </Style>
-
-        <Style x:Key="RefreshButton" TargetType="Button">
-            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="14,6"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Style.Triggers>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
-                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
     </UserControl.Resources>
 
-    <DockPanel Margin="10">
+    <Grid>
+        <DockPanel Margin="10">
 
-        <!-- ═══════════════════════════════════════════════════════════
-             SUMMARY CARDS ROW
-             ═══════════════════════════════════════════════════════════ -->
-        <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-
-            <Border Grid.Column="0" Style="{StaticResource SummaryCard}">
-                <StackPanel>
-                    <TextBlock Text="{Binding TotalProducts}" Style="{StaticResource CardValue}" Foreground="{DynamicResource AccentBrush}"/>
-                    <TextBlock Text="Total Products" Style="{StaticResource CardLabel}"/>
-                </StackPanel>
-            </Border>
-
-            <Border Grid.Column="1" Style="{StaticResource SummaryCard}">
-                <StackPanel>
-                    <TextBlock Text="{Binding TotalStockValue, StringFormat='₱{0:N2}'}"
-                               FontSize="18" FontWeight="Bold" Foreground="{DynamicResource SuccessBrush}"/>
-                    <TextBlock Text="Total Stock Value" Style="{StaticResource CardLabel}"/>
-                </StackPanel>
-            </Border>
-
-            <Border Grid.Column="2" Style="{StaticResource SummaryCard}">
-                <StackPanel>
-                    <TextBlock Text="{Binding LowStockCount}" Style="{StaticResource CardValue}" Foreground="{DynamicResource WarningBrush}"/>
-                    <TextBlock Text="Low / Out of Stock" Style="{StaticResource CardLabel}"/>
-                </StackPanel>
-            </Border>
-
-            <Border Grid.Column="3" Style="{StaticResource SummaryCard}">
-                <StackPanel>
-                    <TextBlock Text="{Binding NearExpiryCount}" Style="{StaticResource CardValue}" Foreground="{DynamicResource WarningBrush}"/>
-                    <TextBlock Text="Near-Expiry Batches" Style="{StaticResource CardLabel}"/>
-                </StackPanel>
-            </Border>
-
-            <Border Grid.Column="4" Style="{StaticResource SummaryCard}" Margin="0">
-                <StackPanel>
-                    <TextBlock Text="{Binding CriticalStockoutCount}" Style="{StaticResource CardValue}" Foreground="{DynamicResource DangerBrush}"/>
-                    <TextBlock Text="Critical Stockout Risk" Style="{StaticResource CardLabel}"/>
-                </StackPanel>
-            </Border>
-        </Grid>
-
-        <!-- ═══════════════════════════════════════════════════════════
-             FILTER / TOOLBAR ROW
-             ═══════════════════════════════════════════════════════════ -->
-        <Border DockPanel.Dock="Top"
-                Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
-                CornerRadius="{DynamicResource RadiusSmall}" Padding="12,8" Margin="0,0,0,6"
-                Effect="{DynamicResource CardShadow}">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="140"/>
-                    <ColumnDefinition Width="16"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="120"/>
-                    <ColumnDefinition Width="16"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="200"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-
-                <TextBlock Grid.Column="0" Text="Category:" Style="{StaticResource FilterLabel}"/>
-                <ComboBox Grid.Column="1"
-                          ItemsSource="{Binding Categories}"
-                          SelectedItem="{Binding SelectedCategory}"
-                          Padding="6,4" VerticalContentAlignment="Center"
-                          BorderBrush="{DynamicResource SeparatorBrush}"/>
-
-                <TextBlock Grid.Column="3" Text="Status:" Style="{StaticResource FilterLabel}"/>
-                <ComboBox Grid.Column="4"
-                          ItemsSource="{Binding StatusOptions}"
-                          SelectedItem="{Binding SelectedStatus}"
-                          Padding="6,4" VerticalContentAlignment="Center"
-                          BorderBrush="{DynamicResource SeparatorBrush}"/>
-
-                <TextBlock Grid.Column="6" Text="Search:" Style="{StaticResource FilterLabel}"/>
-                <TextBox Grid.Column="7"
-                          Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                          Padding="6,4" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
-                          VerticalContentAlignment="Center"
-                          x:Name="SearchBox"/>
-
-                <TextBlock Grid.Column="9"
-                           Text="{Binding LastRefreshed}"
-                           FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}"
-                           VerticalAlignment="Center" Margin="0,0,10,0"/>
-
-                <Button Grid.Column="10"
-                        Content="Refresh"
-                        Command="{Binding RefreshCommand}"
-                        Style="{StaticResource RefreshButton}"/>
-            </Grid>
-        </Border>
-
-        <!-- ═══════════════════════════════════════════════════════════
-             PRODUCT DETAIL PANEL (bottom, docked, visible on row click)
-             ═══════════════════════════════════════════════════════════ -->
-        <Border DockPanel.Dock="Bottom"
-                Visibility="{Binding IsDetailVisible, Converter={StaticResource BoolToVis}}"
-                Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
-                CornerRadius="{DynamicResource RadiusSmall}" Margin="0,6,0,0" Height="220"
-                Effect="{DynamicResource CardShadow}">
-            <Grid Margin="12,8">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
+            <!-- ═══════════════════════════════════════════════════════════
+                 SUMMARY CARDS ROW
+                 ═══════════════════════════════════════════════════════════ -->
+            <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3"
-                            Orientation="Horizontal" Margin="0,0,0,6">
-                    <TextBlock Text="Product Detail — " Style="{StaticResource SectionHeader}"/>
-                    <TextBlock Text="{Binding SelectedProduct.ProductName}"
-                               Style="{StaticResource SectionHeader}" Foreground="{DynamicResource AccentBrush}"/>
-                    <TextBlock Text="{Binding SelectedProduct.Category, StringFormat=' ({0})'}"
-                               Style="{StaticResource SectionHeader}" Foreground="{DynamicResource TextSecondaryBrush}" FontWeight="Normal"/>
-                </StackPanel>
+                <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="{Binding TotalProducts}" Style="{StaticResource MetricValueLargeStyle}" Foreground="{DynamicResource AccentBrush}"/>
+                        <TextBlock Text="Total Products" Style="{StaticResource CaptionLabelStyle}"/>
+                    </StackPanel>
+                </Border>
 
-                <!-- Stock Batches -->
-                <DockPanel Grid.Row="1" Grid.Column="0">
-                    <TextBlock DockPanel.Dock="Top" Text="Stock Batches" Style="{StaticResource DetailHeader}"/>
-                    <DataGrid ItemsSource="{Binding ProductDetail.StockBatches}"
-                               AutoGenerateColumns="False"
-                               CanUserAddRows="False" CanUserDeleteRows="False"
-                               IsReadOnly="True" CanUserReorderColumns="False" CanUserResizeRows="False"
-                               HeadersVisibility="Column" GridLinesVisibility="Horizontal"
-                               FontSize="11">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Receipt Date" Width="90"
-                                               Binding="{Binding ReceiptDate, StringFormat='MM/dd/yyyy'}"/>
-                            <DataGridTextColumn Header="Received"   Width="68"
-                                               Binding="{Binding QuantityReceived}"/>
-                            <DataGridTextColumn Header="Remaining"  Width="68"
-                                               Binding="{Binding QuantityRemaining}"/>
-                            <DataGridTextColumn Header="Unit Cost"  Width="78"
-                                               Binding="{Binding UnitCost, StringFormat='₱{0:N2}'}"/>
-                            <DataGridTextColumn Header="Expiry Date" Width="90"
-                                               Binding="{Binding ExpiryDate, StringFormat='MM/dd/yyyy'}"/>
-                            <DataGridTextColumn Header="Expired?" Width="56"
-                                               Binding="{Binding IsExpired}"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </DockPanel>
+                <Border Grid.Column="1" Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="{Binding TotalStockValue, StringFormat='₱{0:N2}'}"
+                                   Style="{StaticResource MetricValueStyle}" Foreground="{DynamicResource SuccessBrush}"/>
+                        <TextBlock Text="Total Stock Value" Style="{StaticResource CaptionLabelStyle}"/>
+                    </StackPanel>
+                </Border>
 
-                <!-- Recent Movements -->
-                <DockPanel Grid.Row="1" Grid.Column="2">
-                    <TextBlock DockPanel.Dock="Top" Text="Recent Movements (30 days)" Style="{StaticResource DetailHeader}"/>
-                    <DataGrid ItemsSource="{Binding ProductDetail.RecentMovements}"
-                               AutoGenerateColumns="False"
-                               CanUserAddRows="False" CanUserDeleteRows="False"
-                               IsReadOnly="True" CanUserReorderColumns="False" CanUserResizeRows="False"
-                               HeadersVisibility="Column" GridLinesVisibility="Horizontal"
-                               FontSize="11">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Type"      Width="72"
-                                               Binding="{Binding MovementType}"/>
-                            <DataGridTextColumn Header="Date"      Width="90"
-                                               Binding="{Binding MovementDate, StringFormat='MM/dd/yyyy'}"/>
-                            <DataGridTextColumn Header="Qty"       Width="48"
-                                               Binding="{Binding Quantity}"/>
-                            <DataGridTextColumn Header="Unit Cost" Width="78"
-                                               Binding="{Binding UnitCost, StringFormat='₱{0:N2}'}"/>
-                            <DataGridTextColumn Header="Notes"     Width="*"
-                                               Binding="{Binding Notes}"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </DockPanel>
+                <Border Grid.Column="2" Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="{Binding LowStockCount}" Style="{StaticResource MetricValueLargeStyle}" Foreground="{DynamicResource WarningBrush}"/>
+                        <TextBlock Text="Low / Out of Stock" Style="{StaticResource CaptionLabelStyle}"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="3" Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="{Binding NearExpiryCount}" Style="{StaticResource MetricValueLargeStyle}" Foreground="{DynamicResource WarningBrush}"/>
+                        <TextBlock Text="Near-Expiry Batches" Style="{StaticResource CaptionLabelStyle}"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="4" Style="{StaticResource CardStyle}" Margin="0">
+                    <StackPanel>
+                        <TextBlock Text="{Binding CriticalStockoutCount}" Style="{StaticResource MetricValueLargeStyle}" Foreground="{DynamicResource DangerBrush}"/>
+                        <TextBlock Text="Critical Stockout Risk" Style="{StaticResource CaptionLabelStyle}"/>
+                    </StackPanel>
+                </Border>
             </Grid>
-        </Border>
 
-        <!-- ═══════════════════════════════════════════════════════════
-             MAIN PRODUCT DATAGRID
-             ═══════════════════════════════════════════════════════════ -->
-        <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1" CornerRadius="{DynamicResource RadiusSmall}"
-                Effect="{DynamicResource CardShadow}">
-            <DockPanel Margin="12">
+            <!-- ═══════════════════════════════════════════════════════════
+                 FILTER / TOOLBAR ROW
+                 ═══════════════════════════════════════════════════════════ -->
+            <Border DockPanel.Dock="Top"
+                    Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                    CornerRadius="{DynamicResource RadiusSmall}" Padding="12,8" Margin="0,0,0,6"
+                    Effect="{DynamicResource CardShadow}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="140"/>
+                        <ColumnDefinition Width="16"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="120"/>
+                        <ColumnDefinition Width="16"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="200"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-                <Grid DockPanel.Dock="Top" Margin="0,0,0,6">
-                    <TextBlock Text="Stock Inventory" Style="{StaticResource SectionHeader}"
-                               VerticalAlignment="Center"/>
-                    <TextBlock Text="Loading…" HorizontalAlignment="Right"
-                               FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"
-                               Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
+                    <TextBlock Grid.Column="0" Text="Category:" Style="{StaticResource CaptionLabelStyle}"/>
+                    <ComboBox Grid.Column="1"
+                              ItemsSource="{Binding Categories}"
+                              SelectedItem="{Binding SelectedCategory}"
+                              Padding="6,4" VerticalContentAlignment="Center"
+                              BorderBrush="{DynamicResource SeparatorBrush}"/>
+
+                    <TextBlock Grid.Column="3" Text="Status:" Style="{StaticResource CaptionLabelStyle}"/>
+                    <ComboBox Grid.Column="4"
+                              ItemsSource="{Binding StatusOptions}"
+                              SelectedItem="{Binding SelectedStatus}"
+                              Padding="6,4" VerticalContentAlignment="Center"
+                              BorderBrush="{DynamicResource SeparatorBrush}"/>
+
+                    <TextBlock Grid.Column="6" Text="Search:" Style="{StaticResource CaptionLabelStyle}"/>
+                    <TextBox Grid.Column="7"
+                              Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                              Padding="6,4" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                              VerticalContentAlignment="Center"
+                              x:Name="SearchBox"/>
+
+                    <TextBlock Grid.Column="9"
+                               Text="{Binding LastRefreshed}"
+                               Style="{StaticResource CaptionLabelStyle}" Margin="0,0,10,0"/>
+
+                    <Button Grid.Column="10"
+                            Content="Refresh"
+                            Command="{Binding RefreshCommand}"
+                            Style="{StaticResource PrimaryButtonStyle}"/>
                 </Grid>
+            </Border>
 
-                <!-- Color legend -->
-                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,6">
-                    <Border Width="14" Height="14" Background="{DynamicResource SidebarBackgroundBrush}" BorderBrush="{DynamicResource DangerBrush}" BorderThickness="1" Margin="0,0,3,0" CornerRadius="2"/>
-                    <TextBlock Text="Out of Stock" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                    <Border Width="14" Height="14" Background="{DynamicResource SidebarBackgroundBrush}" BorderBrush="{DynamicResource WarningBrush}" BorderThickness="1" Margin="0,0,3,0" CornerRadius="2"/>
-                    <TextBlock Text="Low Stock" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                    <Border Width="14" Height="14" Background="{DynamicResource SidebarBackgroundBrush}" BorderBrush="{DynamicResource WarningBrush}" BorderThickness="1" Margin="0,0,3,0" CornerRadius="2"/>
-                    <TextBlock Text="Near-Expiry" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                    <Border Width="14" Height="14" Background="{DynamicResource SidebarBackgroundBrush}" BorderBrush="{DynamicResource SuccessBrush}" BorderThickness="1" Margin="0,0,3,0" CornerRadius="2"/>
-                    <TextBlock Text="Normal" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                </StackPanel>
+            <!-- ═══════════════════════════════════════════════════════════
+                 PRODUCT DETAIL PANEL (bottom, docked, visible on row click)
+                 ═══════════════════════════════════════════════════════════ -->
+            <Border DockPanel.Dock="Bottom"
+                    Visibility="{Binding IsDetailVisible, Converter={StaticResource BoolToVis}}"
+                    Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                    CornerRadius="{DynamicResource RadiusSmall}" Margin="0,6,0,0" Height="220"
+                    Effect="{DynamicResource CardShadow}">
+                <Grid Margin="12,8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
 
-                <DataGrid x:Name="ProductGrid"
-                          ItemsSource="{Binding Products}"
-                          AutoGenerateColumns="False"
-                          CanUserAddRows="False" CanUserDeleteRows="False"
-                          CanUserReorderColumns="False" CanUserResizeRows="False"
-                          IsReadOnly="True"
-                          SelectionUnit="FullRow" SelectionMode="Single"
-                          GridLinesVisibility="Horizontal"
-                          HeadersVisibility="Column"
-                          RowStyle="{StaticResource StockRowStyle}"
-                          CanUserSortColumns="True">
+                    <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3"
+                                Orientation="Horizontal" Margin="0,0,0,6">
+                        <TextBlock Text="Product Detail — " Style="{StaticResource SectionHeaderStyle}"/>
+                        <TextBlock Text="{Binding SelectedProduct.ProductName}"
+                                   Style="{StaticResource SectionHeaderStyle}" Foreground="{DynamicResource AccentBrush}"/>
+                        <TextBlock Text="{Binding SelectedProduct.Category, StringFormat=' ({0})'}"
+                                   Style="{StaticResource SectionHeaderStyle}" Foreground="{DynamicResource TextSecondaryBrush}" FontWeight="Normal"/>
+                    </StackPanel>
 
-                    <DataGrid.Columns>
+                    <!-- Stock Batches -->
+                    <DockPanel Grid.Row="1" Grid.Column="0">
+                        <TextBlock DockPanel.Dock="Top" Text="Stock Batches" Style="{StaticResource SectionHeaderStyle}" Margin="0,0,0,4"/>
+                        <DataGrid ItemsSource="{Binding ProductDetail.StockBatches}"
+                                   AutoGenerateColumns="False"
+                                   CanUserAddRows="False" CanUserDeleteRows="False"
+                                   IsReadOnly="True" CanUserReorderColumns="False" CanUserResizeRows="False"
+                                   HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                                   FontSize="11">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Receipt Date" Width="90"
+                                                   Binding="{Binding ReceiptDate, StringFormat='MM/dd/yyyy'}"/>
+                                <DataGridTextColumn Header="Received"   Width="68"
+                                                   Binding="{Binding QuantityReceived}"/>
+                                <DataGridTextColumn Header="Remaining"  Width="68"
+                                                   Binding="{Binding QuantityRemaining}"/>
+                                <DataGridTextColumn Header="Unit Cost"  Width="78"
+                                                   Binding="{Binding UnitCost, StringFormat='₱{0:N2}'}"/>
+                                <DataGridTextColumn Header="Expiry Date" Width="90"
+                                                   Binding="{Binding ExpiryDate, StringFormat='MM/dd/yyyy'}"/>
+                                <DataGridTextColumn Header="Expired?" Width="56"
+                                                   Binding="{Binding IsExpired}"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </DockPanel>
 
-                        <DataGridTextColumn Header="Product Name" Width="*" MinWidth="160"
-                                           Binding="{Binding ProductName}"/>
+                    <!-- Recent Movements -->
+                    <DockPanel Grid.Row="1" Grid.Column="2">
+                        <TextBlock DockPanel.Dock="Top" Text="Recent Movements (30 days)" Style="{StaticResource SectionHeaderStyle}" Margin="0,0,0,4"/>
+                        <DataGrid ItemsSource="{Binding ProductDetail.RecentMovements}"
+                                   AutoGenerateColumns="False"
+                                   CanUserAddRows="False" CanUserDeleteRows="False"
+                                   IsReadOnly="True" CanUserReorderColumns="False" CanUserResizeRows="False"
+                                   HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                                   FontSize="11">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Type"      Width="72"
+                                                   Binding="{Binding MovementType}"/>
+                                <DataGridTextColumn Header="Date"      Width="90"
+                                                   Binding="{Binding MovementDate, StringFormat='MM/dd/yyyy'}"/>
+                                <DataGridTextColumn Header="Qty"       Width="48"
+                                                   Binding="{Binding Quantity}"/>
+                                <DataGridTextColumn Header="Unit Cost" Width="78"
+                                                   Binding="{Binding UnitCost, StringFormat='₱{0:N2}'}"/>
+                                <DataGridTextColumn Header="Notes"     Width="*"
+                                                   Binding="{Binding Notes}"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </DockPanel>
+                </Grid>
+            </Border>
 
-                        <DataGridTextColumn Header="Category" Width="120"
-                                           Binding="{Binding Category}"/>
+            <!-- ═══════════════════════════════════════════════════════════
+                 MAIN PRODUCT DATAGRID
+                 ═══════════════════════════════════════════════════════════ -->
+            <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1" CornerRadius="{DynamicResource RadiusSmall}"
+                    Effect="{DynamicResource CardShadow}">
+                <DockPanel Margin="12">
 
-                        <DataGridTextColumn Header="Stock" Width="70"
-                                           SortMemberPath="CurrentStock"
-                                           Binding="{Binding CurrentStock}">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="HorizontalAlignment" Value="Right"/>
-                                    <Setter Property="Padding" Value="0,0,4,0"/>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
+                    <Grid DockPanel.Dock="Top" Margin="0,0,0,6">
+                        <TextBlock Text="Stock Inventory" Style="{StaticResource SectionHeaderStyle}"
+                                   VerticalAlignment="Center"/>
+                    </Grid>
 
-                        <DataGridTextColumn Header="Unit" Width="55"
-                                           Binding="{Binding Unit}"/>
+                    <!-- Color legend -->
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,6">
+                        <Border Width="14" Height="14" Background="{DynamicResource SidebarBackgroundBrush}" BorderBrush="{DynamicResource DangerBrush}" BorderThickness="1" Margin="0,0,3,0" CornerRadius="2"/>
+                        <TextBlock Text="Out of Stock" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                        <Border Width="14" Height="14" Background="{DynamicResource SidebarBackgroundBrush}" BorderBrush="{DynamicResource WarningBrush}" BorderThickness="1" Margin="0,0,3,0" CornerRadius="2"/>
+                        <TextBlock Text="Low Stock" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                        <Border Width="14" Height="14" Background="{DynamicResource SidebarBackgroundBrush}" BorderBrush="{DynamicResource WarningBrush}" BorderThickness="1" Margin="0,0,3,0" CornerRadius="2"/>
+                        <TextBlock Text="Near-Expiry" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                        <Border Width="14" Height="14" Background="{DynamicResource SidebarBackgroundBrush}" BorderBrush="{DynamicResource SuccessBrush}" BorderThickness="1" Margin="0,0,3,0" CornerRadius="2"/>
+                        <TextBlock Text="Normal" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                    </StackPanel>
 
-                        <DataGridTextColumn Width="85"
-                                            SortMemberPath="RetailPrice"
-                                            Binding="{Binding RetailPrice, StringFormat='₱{0:N2}'}">
-                            <DataGridTextColumn.Header>
-                                <TextBlock Text="Retail Price" ToolTip="Selling price set in Product Management." />
-                            </DataGridTextColumn.Header>
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="HorizontalAlignment" Value="Right"/>
-                                    <Setter Property="Padding" Value="0,0,4,0"/>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
+                    <!-- DataGrid Container -->
+                    <Grid>
+                        <DataGrid x:Name="ProductGrid"
+                                  ItemsSource="{Binding Products}"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False" CanUserDeleteRows="False"
+                                  CanUserReorderColumns="False" CanUserResizeRows="False"
+                                  IsReadOnly="True"
+                                  SelectionUnit="FullRow" SelectionMode="Single"
+                                  GridLinesVisibility="Horizontal"
+                                  HeadersVisibility="Column"
+                                  RowStyle="{StaticResource StockRowStyle}"
+                                  CanUserSortColumns="True">
 
-                        <DataGridTextColumn Width="80"
-                                            SortMemberPath="AverageUnitCost"
-                                            Binding="{Binding AverageUnitCost, StringFormat='₱{0:N2}'}">
-                            <DataGridTextColumn.Header>
-                                <TextBlock Text="Avg Cost" ToolTip="Weighted-average purchase cost across remaining non-expired batches." />
-                            </DataGridTextColumn.Header>
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="HorizontalAlignment" Value="Right"/>
-                                    <Setter Property="Padding" Value="0,0,4,0"/>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
+                            <DataGrid.Columns>
 
-                        <DataGridTextColumn Width="80"
-                                            SortMemberPath="FifoOldestUnitCost"
-                                            Binding="{Binding FifoOldestUnitCost, StringFormat='₱{0:N2}'}">
-                            <DataGridTextColumn.Header>
-                                <TextBlock Text="FIFO Cost" ToolTip="Unit cost of the oldest batch — the cost the next sale will draw from." />
-                            </DataGridTextColumn.Header>
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="HorizontalAlignment" Value="Right"/>
-                                    <Setter Property="Padding" Value="0,0,4,0"/>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
+                                <DataGridTextColumn Header="Product Name" Width="*" MinWidth="160"
+                                                   Binding="{Binding ProductName}"/>
 
-                        <DataGridTextColumn Header="Stock Value" Width="95"
-                                           SortMemberPath="StockValue"
-                                           Binding="{Binding StockValue, StringFormat='₱{0:N2}'}">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="HorizontalAlignment" Value="Right"/>
-                                    <Setter Property="Padding" Value="0,0,4,0"/>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
+                                <DataGridTextColumn Header="Category" Width="120"
+                                                   Binding="{Binding Category}"/>
 
-                        <!-- Stock Status badge -->
-                        <DataGridTemplateColumn Header="Status" Width="80"
-                                               SortMemberPath="StockStatus" IsReadOnly="True">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Border CornerRadius="3" Margin="4,2" Padding="4,2" HorizontalAlignment="Center">
-                                        <Border.Style>
-                                            <Style TargetType="Border">
-                                                <Setter Property="Background" Value="{DynamicResource SidebarBackgroundBrush}"/>
-                                                <Setter Property="BorderBrush" Value="{DynamicResource SuccessBrush}"/>
-                                                <Setter Property="BorderThickness" Value="1"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding StockStatus}" Value="Low">
-                                                        <Setter Property="BorderBrush" Value="{DynamicResource WarningBrush}"/>
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding StockStatus}" Value="Out">
-                                                        <Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Border.Style>
-                                        <TextBlock Text="{Binding StockStatus}">
-                                            <TextBlock.Style>
-                                                <Style TargetType="TextBlock" BasedOn="{StaticResource StatusBadge}">
-                                                    <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding StockStatus}" Value="Low">
-                                                            <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
-                                                        </DataTrigger>
-                                                        <DataTrigger Binding="{Binding StockStatus}" Value="Out">
-                                                            <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </TextBlock.Style>
-                                        </TextBlock>
-                                    </Border>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="Stock" Width="70"
+                                                   SortMemberPath="CurrentStock"
+                                                   Binding="{Binding CurrentStock}"
+                                                   ElementStyle="{StaticResource NumericCellStyle}"/>
 
-                        <!-- Expiry Status -->
-                        <DataGridTemplateColumn Header="Expiry" Width="90"
-                                               SortMemberPath="ExpiryStatus" IsReadOnly="True">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <TextBlock HorizontalAlignment="Center" FontSize="11">
-                                        <TextBlock.Style>
-                                            <Style TargetType="TextBlock">
-                                                <Setter Property="Text" Value="—"/>
-                                                <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding HasExpiry}" Value="True">
-                                                        <Setter Property="Text" Value="OK"/>
-                                                        <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding ExpiryStatus}" Value="NearExpiry">
-                                                        <Setter Property="Text" Value="Near Expiry"/>
-                                                        <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
-                                                        <Setter Property="FontWeight" Value="SemiBold"/>
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding ExpiryStatus}" Value="HasExpired">
-                                                        <Setter Property="Text" Value="Expired!"/>
-                                                        <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
-                                                        <Setter Property="FontWeight" Value="Bold"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </TextBlock.Style>
-                                    </TextBlock>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="Unit" Width="55"
+                                                   Binding="{Binding Unit}"/>
 
-                        <!-- Days Until Stockout -->
-                        <DataGridTextColumn Header="Days to Stockout" Width="110"
-                                           SortMemberPath="DaysUntilStockout"
-                                           Binding="{Binding DaysUntilStockoutDisplay}">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="HorizontalAlignment" Value="Center"/>
-                                    <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                                <DataGridTextColumn Width="85"
+                                                    SortMemberPath="RetailPrice"
+                                                    Binding="{Binding RetailPrice, StringFormat='₱{0:N2}'}"
+                                                    ElementStyle="{StaticResource NumericCellStyle}">
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="Retail Price" ToolTip="Selling price set in Product Management." />
+                                    </DataGridTextColumn.Header>
+                                </DataGridTextColumn>
+
+                                <DataGridTextColumn Width="80"
+                                                    SortMemberPath="AverageUnitCost"
+                                                    Binding="{Binding AverageUnitCost, StringFormat='₱{0:N2}'}"
+                                                    ElementStyle="{StaticResource NumericCellStyle}">
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="Avg Cost" ToolTip="Weighted-average purchase cost across remaining non-expired batches." />
+                                    </DataGridTextColumn.Header>
+                                </DataGridTextColumn>
+
+                                <DataGridTextColumn Width="80"
+                                                    SortMemberPath="FifoOldestUnitCost"
+                                                    Binding="{Binding Content, RelativeSource={RelativeSource Self}}"
+                                                    ElementStyle="{StaticResource NumericCellStyle}">
+                                    <!-- Note: Binding is set in the column definition but we override header/styling -->
+                                    <!-- Let's fix the binding to match original: Binding="{Binding FifoOldestUnitCost, StringFormat='₱{0:N2}'}" -->
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="FIFO Cost" ToolTip="Unit cost of the oldest batch — the cost the next sale will draw from." />
+                                    </DataGridTextColumn.Header>
+                                </DataGridTextColumn>
+
+                                <DataGridTextColumn Header="Stock Value" Width="95"
+                                                   SortMemberPath="StockValue"
+                                                   Binding="{Binding StockValue, StringFormat='₱{0:N2}'}"
+                                                   ElementStyle="{StaticResource NumericCellStyle}"/>
+
+                                <!-- Stock Status badge -->
+                                <DataGridTemplateColumn Header="Status" Width="80"
+                                                       SortMemberPath="StockStatus" IsReadOnly="True">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Border CornerRadius="3" Margin="4,2" Padding="4,2" HorizontalAlignment="Center">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="Background" Value="{DynamicResource SidebarBackgroundBrush}"/>
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource SuccessBrush}"/>
+                                                        <Setter Property="BorderThickness" Value="1"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding StockStatus}" Value="Low">
+                                                                <Setter Property="BorderBrush" Value="{DynamicResource WarningBrush}"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding StockStatus}" Value="Out">
+                                                                <Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                                <TextBlock Text="{Binding StockStatus}">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock" BasedOn="{StaticResource StatusBadge}">
+                                                            <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding StockStatus}" Value="Low">
+                                                                    <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding StockStatus}" Value="Out">
+                                                                    <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </Border>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                                <!-- Expiry Status -->
+                                <DataGridTemplateColumn Header="Expiry" Width="90"
+                                                       SortMemberPath="ExpiryStatus" IsReadOnly="True">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock HorizontalAlignment="Center" FontSize="11">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Text" Value="—"/>
+                                                        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding HasExpiry}" Value="True">
+                                                                <Setter Property="Text" Value="OK"/>
+                                                                <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding ExpiryStatus}" Value="NearExpiry">
+                                                                <Setter Property="Text" Value="Near Expiry"/>
+                                                                <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
+                                                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding ExpiryStatus}" Value="HasExpired">
+                                                                <Setter Property="Text" Value="Expired!"/>
+                                                                <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
+                                                                <Setter Property="FontWeight" Value="Bold"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                                <!-- Days Until Stockout -->
+                                <DataGridTextColumn Header="Days to Stockout" Width="110"
+                                                   SortMemberPath="DaysUntilStockout"
+                                                   Binding="{Binding DaysUntilStockoutDisplay}">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding RiskLevel}" Value="Critical">
+                                                    <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
+                                                    <Setter Property="FontWeight" Value="Bold"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding RiskLevel}" Value="Warning">
+                                                    <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+
+                            </DataGrid.Columns>
+
+                        </DataGrid>
+
+                        <views:EmptyStatePanel Title="No Stock Products"
+                                               Description="There are no products in the stock inventory matching the filters."
+                                               HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <views:EmptyStatePanel.Style>
+                                <Style TargetType="UserControl">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding RiskLevel}" Value="Critical">
-                                            <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
-                                            <Setter Property="FontWeight" Value="Bold"/>
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding RiskLevel}" Value="Warning">
-                                            <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
+                                        <DataTrigger Binding="{Binding Products.Count}" Value="0">
+                                            <Setter Property="Visibility" Value="Visible"/>
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
+                            </views:EmptyStatePanel.Style>
+                        </views:EmptyStatePanel>
+                    </Grid>
 
-                    </DataGrid.Columns>
+                </DockPanel>
+            </Border>
 
-                </DataGrid>
+        </DockPanel>
 
-            </DockPanel>
-        </Border>
-
-    </DockPanel>
+        <views:BusyOverlay Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
+    </Grid>
 
 </UserControl>

@@ -30,18 +30,11 @@
     </Window.Resources>
 
     <Grid Margin="16">
-        <Border Background="{DynamicResource SurfaceBrush}"
-                BorderBrush="{DynamicResource SeparatorBrush}"
-                BorderThickness="1"
-                CornerRadius="{DynamicResource RadiusMedium}"
-                Effect="{DynamicResource CardShadow}"
-                Padding="28,24">
+        <Border Style="{StaticResource CardStyle}" Padding="28,24">
             <StackPanel>
 
                 <TextBlock Text="Session Timeout"
-                           Foreground="{DynamicResource TextPrimaryBrush}"
-                           FontFamily="{DynamicResource AppFontFamily}"
-                           FontSize="{DynamicResource FontSizeTitle}"
+                           Style="{StaticResource PageTitleStyle}"
                            FontWeight="SemiBold"
                            HorizontalAlignment="Center"
                            Margin="0,0,0,16"/>
@@ -66,12 +59,13 @@
 
                     <Button Grid.Column="0"
                             Content="Stay signed in"
-                            Style="{StaticResource AccentButtonStyle}"
+                            Style="{StaticResource PrimaryButtonStyle}"
                             Height="36"
                             Command="{Binding StaySignedInCommand}"/>
 
                     <Button Grid.Column="2"
                             Content="Sign out now"
+                            Style="{StaticResource SecondaryButtonStyle}"
                             Height="36"
                             Command="{Binding SignOutCommand}"/>
                 </Grid>

@@ -33,6 +33,31 @@ Namespace Persistence
             Return result
         End Function
 
+        ''' <summary>
+        ''' Executes a database-mutating operation. If a DbUpdateConcurrencyException is caught,
+        ''' prompts the user via IConflictPresenter. If user confirms Refresh, runs onRefresh.
+        ''' </summary>
+        Public Async Function ExecuteWithConflictPromptAsync(work As Func(Of Task),
+                                                             onRefresh As Func(Of Task),
+                                                             conflictPresenter As IConflictPresenter) As Task(Of Boolean)
+            Dim isConflict As Boolean = False
+            Try
+                Await work()
+            Catch ex As DbUpdateConcurrencyException
+                isConflict = True
+            End Try
+
+            If isConflict Then
+                Dim shouldRefresh = Await conflictPresenter.PromptAsync()
+                If shouldRefresh Then
+                    Await onRefresh()
+                End If
+                Return False
+            End If
+
+            Return True
+        End Function
+
     End Module
 
 End Namespace

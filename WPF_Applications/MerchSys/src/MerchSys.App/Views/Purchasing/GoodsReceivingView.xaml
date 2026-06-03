@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
              mc:Ignorable="d"
              d:DesignHeight="620" d:DesignWidth="1100"
              Background="{DynamicResource WindowBackgroundBrush}">
@@ -10,58 +11,8 @@
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
-        <Style x:Key="SectionHeader" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-        </Style>
-
-        <Style x:Key="FieldLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="0,0,6,0"/>
-        </Style>
-
-        <Style x:Key="ActionButton" TargetType="Button">
-            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="14,6"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="0,0,6,0"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}"/>
-                </Trigger>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
-                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style x:Key="ConfirmButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
-            <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
-            <Setter Property="Padding" Value="18,6"/>
-            <Setter Property="Margin" Value="0"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
-                    <Setter Property="Opacity" Value="0.9"/>
-                </Trigger>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
-                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
         <!-- Row coloring: discrepancy rows turn warning color -->
-        <Style x:Key="GRRowStyle" TargetType="DataGridRow">
+        <Style x:Key="GRRowStyle" TargetType="DataGridRow" BasedOn="{StaticResource SemanticRowStyle}">
             <Setter Property="Background" Value="Transparent"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding HasDiscrepancy}" Value="True">
@@ -88,8 +39,7 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock Grid.Column="0" Text="Select Submitted PO:" Style="{StaticResource FieldLabel}"
-                               FontSize="12"/>
+                    <TextBlock Grid.Column="0" Text="Select Submitted PO:" Style="{StaticResource FieldLabelStyle}" Margin="0,0,6,0"/>
                     <ComboBox Grid.Column="1"
                               ItemsSource="{Binding SubmittedPOs}"
                               SelectedItem="{Binding SelectedPO}"
@@ -107,7 +57,8 @@
                     <Button Grid.Column="3"
                             Content="Confirm Receipt"
                             Command="{Binding ConfirmReceiptCommand}"
-                            Style="{StaticResource ConfirmButton}"/>
+                            Style="{StaticResource SuccessButtonStyle}"
+                            Padding="18,6"/>
                 </Grid>
             </Border>
 
@@ -117,10 +68,7 @@
             <Border DockPanel.Dock="Top" Padding="8,3" Margin="0,0,0,4">
                 <Grid>
                     <TextBlock Text="{Binding StatusMessage}"
-                               FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                    <TextBlock Text="Loading…" HorizontalAlignment="Right"
-                               FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"
-                               Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
+                               Style="{StaticResource CaptionLabelStyle}"/>
                 </Grid>
             </Border>
 
@@ -154,7 +102,7 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Receiving Lines" Style="{StaticResource SectionHeader}"
+                        <TextBlock Grid.Column="0" Text="Receiving Lines" Style="{StaticResource SectionHeaderStyle}"
                                    VerticalAlignment="Center"/>
                         <!-- Discrepancy legend -->
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
@@ -166,19 +114,19 @@
                     </Grid>
 
                     <DataGrid x:Name="ReceivingGrid"
-                              ItemsSource="{Binding ReceivingLines}"
-                              AutoGenerateColumns="False"
-                              CanUserAddRows="False" CanUserDeleteRows="False"
-                              CanUserReorderColumns="False" CanUserResizeRows="False"
-                              IsReadOnly="False"
-                              SelectionUnit="FullRow" SelectionMode="Single"
-                              GridLinesVisibility="Horizontal"
-                              BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
-                              HeadersVisibility="Column"
-                              RowStyle="{StaticResource GRRowStyle}"
-                              Background="{DynamicResource SurfaceBrush}"
-                              AlternatingRowBackground="{DynamicResource WindowBackgroundBrush}"
-                              FontSize="{DynamicResource FontSizeBody}">
+                               ItemsSource="{Binding ReceivingLines}"
+                               AutoGenerateColumns="False"
+                               CanUserAddRows="False" CanUserDeleteRows="False"
+                               CanUserReorderColumns="False" CanUserResizeRows="False"
+                               IsReadOnly="False"
+                               SelectionUnit="FullRow" SelectionMode="Single"
+                               GridLinesVisibility="Horizontal"
+                               BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                               HeadersVisibility="Column"
+                               RowStyle="{StaticResource GRRowStyle}"
+                               Background="{DynamicResource SurfaceBrush}"
+                               AlternatingRowBackground="{DynamicResource WindowBackgroundBrush}"
+                               FontSize="{DynamicResource FontSizeBody}">
                         <DataGrid.Columns>
 
                             <!-- Read-only: Product -->
@@ -226,10 +174,7 @@
                             <DataGridTextColumn Header="Unit Cost" Width="100"
                                                Binding="{Binding UnitCost, Mode=TwoWay, UpdateSourceTrigger=LostFocus, StringFormat='N2'}">
                                 <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="HorizontalAlignment" Value="Right"/>
-                                        <Setter Property="Padding" Value="0,0,4,0"/>
-                                    </Style>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}"/>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
 
@@ -274,9 +219,7 @@
                                                IsReadOnly="True"
                                                Binding="{Binding VatAmount, StringFormat='N2'}">
                                 <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="HorizontalAlignment" Value="Right"/>
-                                        <Setter Property="Padding" Value="0,0,4,0"/>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}">
                                         <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
                                     </Style>
                                 </DataGridTextColumn.ElementStyle>
@@ -345,12 +288,15 @@
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
 
-                    </DataGrid.Columns>
-                </DataGrid>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Border>
 
-            </DockPanel>
-        </Border>
+        </DockPanel>
 
-    </DockPanel>
+        <views:BusyOverlay Message="Processing receipt..."
+                           Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"
+                           HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
     </Grid>
 </UserControl>

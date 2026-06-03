@@ -3,123 +3,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
              mc:Ignorable="d"
              d:DesignHeight="768" d:DesignWidth="1280"
              Background="{DynamicResource WindowBackgroundBrush}">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
-
-        <Style x:Key="SectionHeader" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-        </Style>
-
-        <Style x:Key="FilterLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="0,0,4,0"/>
-        </Style>
-
-        <Style x:Key="FormLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="HorizontalAlignment" Value="Right"/>
-            <Setter Property="Margin" Value="0,0,6,0"/>
-        </Style>
-
-        <Style x:Key="FormInput" TargetType="TextBox">
-            <Setter Property="Padding" Value="6,4"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
-        </Style>
-
-        <Style x:Key="ActionButton" TargetType="Button">
-            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="12,5"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="0,0,4,0"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}"/>
-                </Trigger>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
-                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
-            <Setter Property="Background" Value="{DynamicResource DangerBrush}"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource DangerBrush}"/>
-                    <Setter Property="Opacity" Value="0.9"/>
-                </Trigger>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
-                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style x:Key="SuccessButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
-            <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
-                    <Setter Property="Opacity" Value="0.9"/>
-                </Trigger>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
-                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style x:Key="SecondaryButton" TargetType="Button">
-            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="12,5"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="0,0,4,0"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource SidebarBackgroundBrush}"/>
-                </Trigger>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style x:Key="StatLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-            <Setter Property="TextAlignment" Value="Center"/>
-        </Style>
-
-        <Style x:Key="StatValue" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeSubhead}"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-            <Setter Property="TextAlignment" Value="Center"/>
-        </Style>
     </UserControl.Resources>
 
     <DockPanel Margin="10">
@@ -138,7 +28,7 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Column="0" Text="Search:" Style="{StaticResource FilterLabel}"/>
+                <TextBlock Grid.Column="0" Text="Search:" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,4,0"/>
                 <TextBox Grid.Column="1"
                          x:Name="SearchBox"
                          Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
@@ -149,16 +39,16 @@
                             Visibility="{Binding IsManager, Converter={StaticResource BoolToVis}}">
                     <Button Content="Add Vendor"
                             Command="{Binding AddVendorCommand}"
-                            Style="{StaticResource SuccessButton}"/>
+                            Style="{StaticResource SuccessButtonStyle}"/>
                     <Button Content="Edit"
                             Command="{Binding EditVendorCommand}"
-                            Style="{StaticResource ActionButton}"/>
+                            Style="{StaticResource PrimaryButtonStyle}"/>
                     <Button Content="Delete"
                             Command="{Binding DeleteVendorCommand}"
-                            Style="{StaticResource DangerButton}"/>
+                            Style="{StaticResource DangerButtonStyle}"/>
                     <Button Content="Refresh"
                             Command="{Binding RefreshCommand}"
-                            Style="{StaticResource SecondaryButton}"
+                            Style="{StaticResource SecondaryButtonStyle}"
                             Margin="0"/>
                 </StackPanel>
             </Grid>
@@ -171,9 +61,6 @@
             <Grid>
                 <TextBlock Text="{Binding StatusMessage}"
                            FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                <TextBlock Text="Loading…" HorizontalAlignment="Right"
-                           FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"
-                           Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
             </Grid>
         </Border>
 
@@ -195,15 +82,15 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0"
                                Text="{Binding Editor.EditorTitle}"
-                               Style="{StaticResource SectionHeader}"
+                               Style="{StaticResource SectionHeaderStyle}"
                                Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
                     <StackPanel Grid.Column="2" Orientation="Horizontal">
                         <Button Content="Save"
                                 Command="{Binding SaveVendorCommand}"
-                                Style="{StaticResource SuccessButton}"/>
+                                Style="{StaticResource SuccessButtonStyle}"/>
                         <Button Content="Cancel"
                                 Command="{Binding CancelEditorCommand}"
-                                Style="{StaticResource SecondaryButton}"
+                                Style="{StaticResource SecondaryButtonStyle}"
                                 Margin="0"/>
                     </StackPanel>
                 </Grid>
@@ -251,43 +138,43 @@
                     </Grid.ColumnDefinitions>
 
                     <!-- Row 0: Name | ContactPerson | LeadTimeDays -->
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Name *" Style="{StaticResource FormLabel}"/>
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Name *" Style="{StaticResource FieldLabelStyle}" HorizontalAlignment="Right" Margin="0,0,6,0"/>
                     <TextBox Grid.Row="0" Grid.Column="1"
                              Text="{Binding Editor.Name, UpdateSourceTrigger=PropertyChanged}"
-                             Style="{StaticResource FormInput}"/>
+                             Padding="6,4" BorderThickness="1" VerticalContentAlignment="Center"/>
 
-                    <TextBlock Grid.Row="0" Grid.Column="3" Text="Contact Person" Style="{StaticResource FormLabel}"/>
+                    <TextBlock Grid.Row="0" Grid.Column="3" Text="Contact Person" Style="{StaticResource FieldLabelStyle}" HorizontalAlignment="Right" Margin="0,0,6,0"/>
                     <TextBox Grid.Row="0" Grid.Column="4"
                              Text="{Binding Editor.ContactPerson, UpdateSourceTrigger=PropertyChanged}"
-                             Style="{StaticResource FormInput}"/>
+                             Padding="6,4" BorderThickness="1" VerticalContentAlignment="Center"/>
 
-                    <TextBlock Grid.Row="0" Grid.Column="6" Text="Lead Time (days) *" Style="{StaticResource FormLabel}"
+                    <TextBlock Grid.Row="0" Grid.Column="6" Text="Lead Time (days) *" Style="{StaticResource FieldLabelStyle}" HorizontalAlignment="Right" Margin="0,0,6,0"
                                TextWrapping="Wrap"/>
                     <TextBox Grid.Row="0" Grid.Column="7"
                              Text="{Binding Editor.DefaultLeadTimeDays, UpdateSourceTrigger=PropertyChanged}"
-                             Style="{StaticResource FormInput}"/>
+                             Padding="6,4" BorderThickness="1" VerticalContentAlignment="Center"/>
 
                     <!-- Row 2: Phone | Email -->
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Phone *" Style="{StaticResource FormLabel}"/>
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Phone *" Style="{StaticResource FieldLabelStyle}" HorizontalAlignment="Right" Margin="0,0,6,0"/>
                     <TextBox Grid.Row="2" Grid.Column="1"
                              Text="{Binding Editor.Phone, UpdateSourceTrigger=PropertyChanged}"
-                             Style="{StaticResource FormInput}"/>
+                             Padding="6,4" BorderThickness="1" VerticalContentAlignment="Center"/>
 
-                    <TextBlock Grid.Row="2" Grid.Column="3" Text="Email" Style="{StaticResource FormLabel}"/>
+                    <TextBlock Grid.Row="2" Grid.Column="3" Text="Email" Style="{StaticResource FieldLabelStyle}" HorizontalAlignment="Right" Margin="0,0,6,0"/>
                     <TextBox Grid.Row="2" Grid.Column="4"
                              Text="{Binding Editor.Email, UpdateSourceTrigger=PropertyChanged}"
-                             Style="{StaticResource FormInput}"/>
+                             Padding="6,4" BorderThickness="1" VerticalContentAlignment="Center"/>
 
                     <!-- Row 4: Address | Notes -->
-                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Address" Style="{StaticResource FormLabel}"/>
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Address" Style="{StaticResource FieldLabelStyle}" HorizontalAlignment="Right" Margin="0,0,6,0"/>
                     <TextBox Grid.Row="4" Grid.Column="1"
                              Text="{Binding Editor.Address, UpdateSourceTrigger=PropertyChanged}"
-                             Style="{StaticResource FormInput}"/>
+                             Padding="6,4" BorderThickness="1" VerticalContentAlignment="Center"/>
 
-                    <TextBlock Grid.Row="4" Grid.Column="3" Text="Notes" Style="{StaticResource FormLabel}"/>
+                    <TextBlock Grid.Row="4" Grid.Column="3" Text="Notes" Style="{StaticResource FieldLabelStyle}" HorizontalAlignment="Right" Margin="0,0,6,0"/>
                     <TextBox Grid.Row="4" Grid.Column="4" Grid.ColumnSpan="4"
                              Text="{Binding Editor.Notes, UpdateSourceTrigger=PropertyChanged}"
-                             Style="{StaticResource FormInput}"/>
+                             Padding="6,4" BorderThickness="1" VerticalContentAlignment="Center"/>
                 </Grid>
 
             </DockPanel>
@@ -306,57 +193,83 @@
             <Border Grid.Column="0"
                     Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
                     CornerRadius="{DynamicResource RadiusSmall}" Margin="0,0,6,0">
-                <DockPanel Margin="12">
-                    <TextBlock DockPanel.Dock="Top" Text="Vendors"
-                               Style="{StaticResource SectionHeader}" Margin="0,0,0,8"/>
+                <Grid>
+                    <DockPanel Margin="12">
+                        <TextBlock DockPanel.Dock="Top" Text="Vendors"
+                                   Style="{StaticResource SectionHeaderStyle}" Margin="0,0,0,8"/>
 
-                    <DataGrid x:Name="VendorGrid"
-                              ItemsSource="{Binding Vendors}"
-                              AutoGenerateColumns="False"
-                              CanUserAddRows="False" CanUserDeleteRows="False"
-                              CanUserReorderColumns="False" CanUserResizeRows="False"
-                              IsReadOnly="True"
-                              SelectionUnit="FullRow" SelectionMode="Single"
-                              GridLinesVisibility="Horizontal"
-                              BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
-                              HeadersVisibility="Column"
-                              Background="{DynamicResource SurfaceBrush}"
-                              AlternatingRowBackground="{DynamicResource WindowBackgroundBrush}"
-                              CanUserSortColumns="True"
-                              FontSize="{DynamicResource FontSizeBody}">
-                        <DataGrid.Columns>
+                        <DataGrid x:Name="VendorGrid"
+                                  ItemsSource="{Binding Vendors}"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False" CanUserDeleteRows="False"
+                                  CanUserReorderColumns="False" CanUserResizeRows="False"
+                                  IsReadOnly="True"
+                                  SelectionUnit="FullRow" SelectionMode="Single"
+                                  GridLinesVisibility="Horizontal"
+                                  BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                                  HeadersVisibility="Column"
+                                  Background="{DynamicResource SurfaceBrush}"
+                                  AlternatingRowBackground="{DynamicResource WindowBackgroundBrush}"
+                                  CanUserSortColumns="True"
+                                  FontSize="{DynamicResource FontSizeBody}">
+                            <DataGrid.RowStyle>
+                                <Style TargetType="{x:Type DataGridRow}" BasedOn="{StaticResource SemanticRowStyle}"/>
+                            </DataGrid.RowStyle>
+                            <DataGrid.Columns>
 
-                            <DataGridTextColumn Header="Name" Width="*" MinWidth="160"
-                                               Binding="{Binding Name}">
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="FontWeight" Value="SemiBold"/>
-                                        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
+                                <DataGridTextColumn Header="Name" Width="*" MinWidth="160"
+                                                   Binding="{Binding Name}">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="FontWeight" Value="SemiBold"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
 
-                            <DataGridTextColumn Header="Contact Person" Width="140"
-                                               Binding="{Binding ContactPerson}"/>
+                                <DataGridTextColumn Header="Contact Person" Width="140"
+                                                   Binding="{Binding ContactPerson}"/>
 
-                            <DataGridTextColumn Header="Phone" Width="120"
-                                               Binding="{Binding Phone}"/>
+                                <DataGridTextColumn Header="Phone" Width="120"
+                                                   Binding="{Binding Phone}"/>
 
-                            <DataGridTextColumn Header="Email" Width="180"
-                                               Binding="{Binding Email}"/>
+                                <DataGridTextColumn Header="Email" Width="180"
+                                                   Binding="{Binding Email}"/>
 
-                            <DataGridTextColumn Header="Lead Time (days)" Width="120"
-                                               Binding="{Binding DefaultLeadTimeDays}">
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="HorizontalAlignment" Value="Center"/>
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
+                                <DataGridTextColumn Header="Lead Time (days)" Width="120"
+                                                   Binding="{Binding DefaultLeadTimeDays}">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
 
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </DockPanel>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </DockPanel>
+
+                    <!-- Empty State Panel -->
+                    <views:EmptyStatePanel Title="No Vendors Found"
+                                           Description="There are no vendors registered in the directory."
+                                           HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <views:EmptyStatePanel.Style>
+                            <Style TargetType="views:EmptyStatePanel">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Vendors.Count}" Value="0">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </views:EmptyStatePanel.Style>
+                    </views:EmptyStatePanel>
+
+                    <!-- Busy Overlay -->
+                    <views:BusyOverlay Message="Loading vendors..."
+                                       Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"
+                                       HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                </Grid>
             </Border>
 
             <!-- Detail Panel -->
@@ -386,47 +299,50 @@
 
                             <StackPanel Grid.Column="0" HorizontalAlignment="Center">
                                 <TextBlock Text="{Binding VendorDetail.TotalPurchaseOrders}"
-                                           Style="{StaticResource StatValue}"/>
-                                <TextBlock Text="Total POs" Style="{StaticResource StatLabel}"/>
+                                           Style="{StaticResource MetricValueStyle}"/>
+                                <TextBlock Text="Total POs" Style="{StaticResource CaptionLabelStyle}" TextAlignment="Center"/>
                             </StackPanel>
 
                             <StackPanel Grid.Column="1" HorizontalAlignment="Center">
                                 <TextBlock Text="{Binding VendorDetail.TotalSpent, StringFormat='₱{0:N0}'}"
-                                           Style="{StaticResource StatValue}" FontSize="13"/>
-                                <TextBlock Text="Total Spent" Style="{StaticResource StatLabel}"/>
+                                           Style="{StaticResource MetricValueStyle}" FontSize="13"/>
+                                <TextBlock Text="Total Spent" Style="{StaticResource CaptionLabelStyle}" TextAlignment="Center"/>
                             </StackPanel>
 
                             <StackPanel Grid.Column="2" HorizontalAlignment="Center">
                                 <TextBlock Text="{Binding VendorDetail.LastOrderDate, StringFormat='MM/dd/yy'}"
-                                           Style="{StaticResource StatValue}" FontSize="12"/>
-                                <TextBlock Text="Last Order" Style="{StaticResource StatLabel}"/>
+                                           Style="{StaticResource MetricValueStyle}" FontSize="12"/>
+                                <TextBlock Text="Last Order" Style="{StaticResource CaptionLabelStyle}" TextAlignment="Center"/>
                             </StackPanel>
 
                             <StackPanel Grid.Column="3" HorizontalAlignment="Center">
                                 <TextBlock Text="{Binding VendorDetail.AverageLeadTimeDays, StringFormat='{}{0:N1}d'}"
-                                           Style="{StaticResource StatValue}" FontSize="13"/>
-                                <TextBlock Text="Avg Lead Time" Style="{StaticResource StatLabel}"/>
+                                           Style="{StaticResource MetricValueStyle}" FontSize="13"/>
+                                <TextBlock Text="Avg Lead Time" Style="{StaticResource CaptionLabelStyle}" TextAlignment="Center"/>
                             </StackPanel>
                         </Grid>
                     </Border>
 
                     <!-- Recent POs header -->
                     <TextBlock DockPanel.Dock="Top" Text="Recent Purchase Orders"
-                               Style="{StaticResource SectionHeader}" Margin="0,0,0,6"/>
+                               Style="{StaticResource SectionHeaderStyle}" Margin="0,0,0,6"/>
 
                     <!-- Recent POs grid -->
                     <DataGrid ItemsSource="{Binding RecentPOs}"
-                              AutoGenerateColumns="False"
-                              CanUserAddRows="False" CanUserDeleteRows="False"
-                              CanUserReorderColumns="False" CanUserResizeRows="False"
-                              IsReadOnly="True"
-                              SelectionUnit="FullRow" SelectionMode="Single"
-                              GridLinesVisibility="Horizontal"
-                              BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
-                              HeadersVisibility="Column"
-                              Background="{DynamicResource SurfaceBrush}"
-                              AlternatingRowBackground="{DynamicResource WindowBackgroundBrush}"
-                              FontSize="{DynamicResource FontSizeBody}">
+                               AutoGenerateColumns="False"
+                               CanUserAddRows="False" CanUserDeleteRows="False"
+                               CanUserReorderColumns="False" CanUserResizeRows="False"
+                               IsReadOnly="True"
+                               SelectionUnit="FullRow" SelectionMode="Single"
+                               GridLinesVisibility="Horizontal"
+                               BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                               HeadersVisibility="Column"
+                               Background="{DynamicResource SurfaceBrush}"
+                               AlternatingRowBackground="{DynamicResource WindowBackgroundBrush}"
+                               FontSize="{DynamicResource FontSizeBody}">
+                        <DataGrid.RowStyle>
+                            <Style TargetType="{x:Type DataGridRow}" BasedOn="{StaticResource SemanticRowStyle}"/>
+                        </DataGrid.RowStyle>
                         <DataGrid.Columns>
 
                             <DataGridTextColumn Header="Order #" Width="*"
@@ -448,9 +364,7 @@
                             <DataGridTextColumn Header="Total" Width="80"
                                                Binding="{Binding Total, StringFormat='₱{0:N0}'}">
                                 <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="HorizontalAlignment" Value="Right"/>
-                                        <Setter Property="Padding" Value="0,0,4,0"/>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}">
                                         <Setter Property="FontWeight" Value="SemiBold"/>
                                     </Style>
                                 </DataGridTextColumn.ElementStyle>

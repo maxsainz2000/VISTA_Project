@@ -1,9 +1,11 @@
 Imports System.Collections.ObjectModel
+Imports System.ComponentModel.DataAnnotations
 Imports System.Threading
 Imports CommunityToolkit.Mvvm.ComponentModel
 Imports CommunityToolkit.Mvvm.Input
 Imports MerchSys.POS.Services
 Imports MerchSys.SharedKernel.Interfaces
+Imports Microsoft.EntityFrameworkCore
 
 Namespace ViewModels
 
@@ -14,10 +16,11 @@ Namespace ViewModels
     ''' Manager-only: Owner role cannot navigate to <c>VatSettingsView</c>.
     ''' </summary>
     Public Class VatSettingsViewModel
-        Inherits ObservableObject
+        Inherits ObservableValidator
 
         Private ReadOnly _writer As IVatConfigurationWriter
         Private ReadOnly _notifications As INotificationService
+        Private ReadOnly _conflictPresenter As IConflictPresenter
 
         ' ── Observable properties ────────────────────────────────────────────────
 
@@ -41,12 +44,16 @@ Namespace ViewModels
         End Property
 
         Private _tin As String = String.Empty
+        <Required(ErrorMessage:="TIN is required.")>
+        <RegularExpression("^\d{3}-\d{3}-\d{3}-\d{3}$|^\d{9}$|^\d{12}$", ErrorMessage:="TIN must be 9 or 12 digits, or formatted as XXX-XXX-XXX-XXX.")>
         Public Property Tin As String
             Get
                 Return _tin
             End Get
             Set(value As String)
-                SetProperty(_tin, value)
+                If SetProperty(_tin, value, True) Then
+                    If SaveCommand IsNot Nothing Then SaveCommand.NotifyCanExecuteChanged()
+                End If
             End Set
         End Property
 
@@ -73,22 +80,28 @@ Namespace ViewModels
         End Property
 
         Private _registeredBusinessName As String = String.Empty
+        <Required(ErrorMessage:="Registered business name is required.")>
         Public Property RegisteredBusinessName As String
             Get
                 Return _registeredBusinessName
             End Get
             Set(value As String)
-                SetProperty(_registeredBusinessName, value)
+                If SetProperty(_registeredBusinessName, value, True) Then
+                    If SaveCommand IsNot Nothing Then SaveCommand.NotifyCanExecuteChanged()
+                End If
             End Set
         End Property
 
         Private _registeredAddress As String = String.Empty
+        <Required(ErrorMessage:="Registered address is required.")>
         Public Property RegisteredAddress As String
             Get
                 Return _registeredAddress
             End Get
             Set(value As String)
-                SetProperty(_registeredAddress, value)
+                If SetProperty(_registeredAddress, value, True) Then
+                    If SaveCommand IsNot Nothing Then SaveCommand.NotifyCanExecuteChanged()
+                End If
             End Set
         End Property
 
@@ -146,11 +159,14 @@ Namespace ViewModels
 
         ' ── Constructor ──────────────────────────────────────────────────────────
 
-        Public Sub New(writer As IVatConfigurationWriter, notifications As INotificationService)
+        Public Sub New(writer As IVatConfigurationWriter,
+                       notifications As INotificationService,
+                       conflictPresenter As IConflictPresenter)
             _writer = writer
             _notifications = notifications
+            _conflictPresenter = conflictPresenter
 
-            _saveCommand = New AsyncRelayCommand(AddressOf SaveAsync)
+            _saveCommand = New AsyncRelayCommand(AddressOf SaveAsync, Function() Not HasErrors)
             _reloadCommand = New AsyncRelayCommand(AddressOf ReloadAsync)
         End Sub
 
@@ -178,23 +194,40 @@ Namespace ViewModels
                 Return
             End If
 
-            IsVatRegistered = config.IsVatRegistered
-            Tin = If(config.BusinessTIN, String.Empty)
-            VatRatePercent = config.VatRate * 100D
-            PercentageTaxRatePercent = config.NonVatPercentageTaxRate * 100D
-            RegisteredBusinessName = If(config.BusinessName, String.Empty)
-            RegisteredAddress = If(config.BusinessAddress, String.Empty)
+            _isVatRegistered = config.IsVatRegistered
+            _tin = If(config.BusinessTIN, String.Empty)
+            _vatRatePercent = config.VatRate * 100D
+            _percentageTaxRatePercent = config.NonVatPercentageTaxRate * 100D
+            _registeredBusinessName = If(config.BusinessName, String.Empty)
+            _registeredAddress = If(config.BusinessAddress, String.Empty)
+
+            ClearErrors(NameOf(Tin))
+            ClearErrors(NameOf(RegisteredBusinessName))
+            ClearErrors(NameOf(RegisteredAddress))
+
+            OnPropertyChanged(NameOf(IsVatRegistered))
+            OnPropertyChanged(NameOf(Tin))
+            OnPropertyChanged(NameOf(VatRatePercent))
+            OnPropertyChanged(NameOf(PercentageTaxRatePercent))
+            OnPropertyChanged(NameOf(RegisteredBusinessName))
+            OnPropertyChanged(NameOf(RegisteredAddress))
+
             _validationErrors.Clear()
             StatusMessage = "Settings loaded."
+            _saveCommand.NotifyCanExecuteChanged()
         End Function
 
         Public Async Function SaveAsync() As Task
+            ValidateAllProperties()
+            If HasErrors Then Return
+
             IsSaving = True
             _validationErrors.Clear()
             StatusMessage = String.Empty
 
             Dim result As VatConfigurationUpdateResult = Nothing
             Dim saveError As String = Nothing
+            Dim concurrencyError As Boolean = False
 
             Try
                 Dim request As New VatConfigurationUpdateRequest With {
@@ -206,24 +239,30 @@ Namespace ViewModels
                     .RegisteredAddress = RegisteredAddress
                 }
                 result = Await _writer.UpdateAsync(request, CancellationToken.None)
+            Catch ex As DbUpdateConcurrencyException
+                concurrencyError = True
             Catch ex As Exception
                 saveError = ex.Message
             Finally
                 IsSaving = False
             End Try
 
-            If saveError IsNot Nothing Then
+            If concurrencyError Then
+                Dim shouldRefresh = Await _conflictPresenter.PromptAsync()
+                If shouldRefresh Then
+                    Await ReloadAsync()
+                End If
+            ElseIf saveError IsNot Nothing Then
                 _validationErrors.Add("Unexpected error: " & saveError)
-                Return
-            End If
-
-            If result.Persisted Then
-                StatusMessage = "VAT settings saved."
-                _notifications.ShowSuccess("VAT settings updated — receipts will use new values immediately.")
-            Else
-                For Each errMsg In result.ValidationErrors
-                    _validationErrors.Add(errMsg)
-                Next
+            ElseIf result IsNot Nothing Then
+                If result.Persisted Then
+                    StatusMessage = "VAT settings saved."
+                    _notifications.ShowSuccess("VAT settings updated — receipts will use new values immediately.")
+                Else
+                    For Each errMsg In result.ValidationErrors
+                        _validationErrors.Add(errMsg)
+                    Next
+                End If
             End If
         End Function
 

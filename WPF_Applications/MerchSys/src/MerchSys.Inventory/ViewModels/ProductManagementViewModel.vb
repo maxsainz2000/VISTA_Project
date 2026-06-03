@@ -1,4 +1,5 @@
 Imports System.Collections.ObjectModel
+Imports System.ComponentModel.DataAnnotations
 Imports CommunityToolkit.Mvvm.ComponentModel
 Imports CommunityToolkit.Mvvm.Input
 Imports MySqlConnector
@@ -34,7 +35,7 @@ Namespace ViewModels
     End Class
 
     Public Class ProductManagementViewModel
-        Inherits ObservableObject
+        Inherits ObservableValidator
 
         Private ReadOnly _db As InventoryDbContext
         Private ReadOnly _session As ISessionService
@@ -55,7 +56,7 @@ Namespace ViewModels
             AddProductCommand = New RelayCommand(AddressOf OpenAddProductEditor)
             EditProductCommand = New RelayCommand(Of ProductManagementRowItem)(AddressOf OpenEditProductEditor)
             DeactivateProductCommand = New AsyncRelayCommand(Of ProductManagementRowItem)(AddressOf ToggleActiveAsync)
-            SaveProductCommand = New AsyncRelayCommand(AddressOf SaveProductAsync)
+            SaveProductCommand = New AsyncRelayCommand(AddressOf SaveProductAsync, Function() Not HasErrors)
             CancelEditorCommand = New RelayCommand(AddressOf CloseProductEditor)
             AddCategoryCommand = New RelayCommand(AddressOf OpenAddCategoryEditor)
             EditCategoryCommand = New RelayCommand(Of CategoryManagementItem)(AddressOf OpenEditCategoryEditor)
@@ -162,22 +163,28 @@ Namespace ViewModels
         End Property
 
         Private _editorName As String = String.Empty
+        <Required(ErrorMessage:="Product name is required.")>
         Public Property EditorName As String
             Get
                 Return _editorName
             End Get
             Set(value As String)
-                SetProperty(_editorName, value)
+                If SetProperty(_editorName, value, True) Then
+                    If SaveProductCommand IsNot Nothing Then SaveProductCommand.NotifyCanExecuteChanged()
+                End If
             End Set
         End Property
 
         Private _editorSku As String = String.Empty
+        <Required(ErrorMessage:="SKU is required.")>
         Public Property EditorSku As String
             Get
                 Return _editorSku
             End Get
             Set(value As String)
-                SetProperty(_editorSku, value)
+                If SetProperty(_editorSku, value, True) Then
+                    If SaveProductCommand IsNot Nothing Then SaveProductCommand.NotifyCanExecuteChanged()
+                End If
             End Set
         End Property
 
@@ -192,14 +199,17 @@ Namespace ViewModels
         End Property
 
         Private _editorRetailPriceText As String = "0.00"
+        <Required(ErrorMessage:="Retail price is required.")>
+        <RegularExpression("^\d+(\.\d{1,2})?$", ErrorMessage:="Retail price must be a positive number with up to 2 decimal places.")>
         Public Property EditorRetailPriceText As String
             Get
                 Return _editorRetailPriceText
             End Get
             Set(value As String)
-                If SetProperty(_editorRetailPriceText, value) Then
+                If SetProperty(_editorRetailPriceText, value, True) Then
                     OnPropertyChanged(NameOf(EditorMargin))
                     OnPropertyChanged(NameOf(EditorMarginPercent))
+                    If SaveProductCommand IsNot Nothing Then SaveProductCommand.NotifyCanExecuteChanged()
                 End If
             End Set
         End Property
@@ -225,12 +235,16 @@ Namespace ViewModels
         End Property
 
         Private _editorMinThresholdText As String = "0"
+        <Required(ErrorMessage:="Minimum threshold is required.")>
+        <RegularExpression("^\d+$", ErrorMessage:="Minimum threshold must be a non-negative integer.")>
         Public Property EditorMinThresholdText As String
             Get
                 Return _editorMinThresholdText
             End Get
             Set(value As String)
-                SetProperty(_editorMinThresholdText, value)
+                If SetProperty(_editorMinThresholdText, value, True) Then
+                    If SaveProductCommand IsNot Nothing Then SaveProductCommand.NotifyCanExecuteChanged()
+                End If
             End Set
         End Property
 
@@ -517,21 +531,34 @@ Namespace ViewModels
 
         ' ─── Product Editor ────────────────────────────────────────────────────────
 
+        Private Sub ClearProductEditorErrors()
+            ClearErrors(NameOf(EditorName))
+            ClearErrors(NameOf(EditorSku))
+            ClearErrors(NameOf(EditorRetailPriceText))
+            ClearErrors(NameOf(EditorMinThresholdText))
+        End Sub
+
         Private Sub OpenAddProductEditor()
             EditorId = 0
             EditorTitle = "Add Product"
-            EditorName = String.Empty
-            EditorSku = String.Empty
+            _editorName = String.Empty
+            _editorSku = String.Empty
             EditorCategoryId = If(Categories.Count > 0, Categories(0).CategoryId, 0)
-            EditorRetailPriceText = "0.00"
+            _editorRetailPriceText = "0.00"
             EditorUnit = "bag"
             EditorHasExpiry = False
-            EditorMinThresholdText = "0"
+            _editorMinThresholdText = "0"
             EditorDescription = String.Empty
             EditorPriceChangeReason = String.Empty
             EditorError = String.Empty
             EditorFifoCost = 0D
+            ClearProductEditorErrors()
+            OnPropertyChanged(NameOf(EditorName))
+            OnPropertyChanged(NameOf(EditorSku))
+            OnPropertyChanged(NameOf(EditorRetailPriceText))
+            OnPropertyChanged(NameOf(EditorMinThresholdText))
             IsEditorOpen = True
+            If SaveProductCommand IsNot Nothing Then SaveProductCommand.NotifyCanExecuteChanged()
         End Sub
 
         Private Async Sub OpenEditProductEditor(row As ProductManagementRowItem)
@@ -539,18 +566,25 @@ Namespace ViewModels
 
             EditorId = row.ProductId
             EditorTitle = "Edit Product"
-            EditorName = row.Name
-            EditorSku = row.Sku
+            _editorName = row.Name
+            _editorSku = row.Sku
 
             Dim cat = Categories.FirstOrDefault(Function(c) c.Name = row.CategoryName)
             EditorCategoryId = If(cat IsNot Nothing, cat.CategoryId, 0)
 
-            EditorRetailPriceText = row.RetailPrice.ToString("F2")
+            _editorRetailPriceText = row.RetailPrice.ToString("F2")
             EditorUnit = If(String.IsNullOrEmpty(row.Unit), "bag", row.Unit)
             EditorHasExpiry = row.HasExpiry
-            EditorMinThresholdText = row.MinThreshold.ToString()
+            _editorMinThresholdText = row.MinThreshold.ToString()
             EditorDescription = row.Description
             EditorError = String.Empty
+            ClearProductEditorErrors()
+
+            OnPropertyChanged(NameOf(EditorName))
+            OnPropertyChanged(NameOf(EditorSku))
+            OnPropertyChanged(NameOf(EditorRetailPriceText))
+            OnPropertyChanged(NameOf(EditorMinThresholdText))
+            If SaveProductCommand IsNot Nothing Then SaveProductCommand.NotifyCanExecuteChanged()
 
             ' Load current FIFO cost (Option A)
             IsBusy = True
@@ -575,9 +609,13 @@ Namespace ViewModels
         Private Sub CloseProductEditor()
             IsEditorOpen = False
             EditorError = String.Empty
+            ClearProductEditorErrors()
         End Sub
 
         Private Async Function SaveProductAsync() As Task
+            ValidateAllProperties()
+            If HasErrors Then Return
+
             If String.IsNullOrWhiteSpace(EditorName) Then
                 EditorError = "Product name is required."
                 Return

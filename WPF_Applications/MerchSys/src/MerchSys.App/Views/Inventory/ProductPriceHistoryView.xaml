@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
         mc:Ignorable="d"
         Title="Product Price History" Height="500" Width="750"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False" ResizeMode="NoResize"
@@ -11,39 +12,6 @@
 
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
-
-        <Style x:Key="PageTitle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeSubhead}"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-        </Style>
-
-        <Style x:Key="SubTitle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-            <Setter Property="Margin" Value="0,2,0,0"/>
-        </Style>
-
-        <Style x:Key="SecondaryButton" TargetType="Button">
-            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="18,6"/>
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource SidebarBackgroundBrush}"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style x:Key="RightAlignCell" TargetType="TextBlock">
-            <Setter Property="HorizontalAlignment" Value="Right"/>
-            <Setter Property="Padding" Value="0,0,8,0"/>
-        </Style>
     </Window.Resources>
 
     <Grid Margin="16">
@@ -53,104 +21,115 @@
             <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="0,0,0,1" Padding="0,0,0,12" Margin="0,0,0,12">
                 <Grid>
                     <StackPanel>
-                        <TextBlock Text="Product Retail Price History" Style="{StaticResource PageTitle}"/>
+                        <TextBlock Text="Product Retail Price History" Style="{StaticResource PageTitleStyle}"/>
                         <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                            <TextBlock Text="Product: " Style="{StaticResource SubTitle}" FontWeight="SemiBold"/>
-                            <TextBlock Text="{Binding ProductName}" Style="{StaticResource SubTitle}"/>
+                            <TextBlock Text="Product: " Style="{StaticResource CaptionLabelStyle}" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding ProductName}" Style="{StaticResource CaptionLabelStyle}"/>
                         </StackPanel>
                     </StackPanel>
-                    <TextBlock Text="Loading History…" HorizontalAlignment="Right" VerticalAlignment="Center"
-                               FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}"
-                               Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
                 </Grid>
             </Border>
 
             <!-- Footer Close Button -->
             <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
-                <Button Content="Close" Style="{StaticResource SecondaryButton}" Click="CloseButton_Click" IsCancel="True"/>
+                <Button Content="Close" Style="{StaticResource SecondaryButtonStyle}" Click="CloseButton_Click" IsCancel="True"/>
             </StackPanel>
 
-            <!-- Main DataGrid -->
-            <DataGrid ItemsSource="{Binding HistoryItems}"
-                      AutoGenerateColumns="False"
-                      CanUserAddRows="False" CanUserDeleteRows="False"
-                      IsReadOnly="True" CanUserReorderColumns="False" CanUserResizeRows="False"
-                      SelectionUnit="FullRow" SelectionMode="Single"
-                      HeadersVisibility="Column" GridLinesVisibility="Horizontal"
-                      BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
-                      Background="{DynamicResource SurfaceBrush}"
-                      FontSize="{DynamicResource FontSizeBody}"
-                      AlternatingRowBackground="{DynamicResource WindowBackgroundBrush}"
-                      x:Name="HistoryGrid">
-                
-                <DataGrid.Columns>
+            <!-- Main DataGrid Container -->
+            <Grid>
+                <!-- Main DataGrid -->
+                <DataGrid ItemsSource="{Binding HistoryItems}"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False" CanUserDeleteRows="False"
+                          IsReadOnly="True" CanUserReorderColumns="False" CanUserResizeRows="False"
+                          SelectionUnit="FullRow" SelectionMode="Single"
+                          HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                          BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                          Background="{DynamicResource SurfaceBrush}"
+                          FontSize="{DynamicResource FontSizeBody}"
+                          AlternatingRowBackground="{DynamicResource WindowBackgroundBrush}"
+                          x:Name="HistoryGrid">
                     
-                    <DataGridTextColumn Header="Date &amp; Time" Width="135"
-                                       Binding="{Binding ChangedAt, StringFormat='yyyy-MM-dd HH:mm:ss UTC'}"/>
+                    <DataGrid.Columns>
+                        
+                        <DataGridTextColumn Header="Date &amp; Time" Width="135"
+                                           Binding="{Binding ChangedAt, StringFormat='yyyy-MM-dd HH:mm:ss UTC'}"/>
 
-                    <DataGridTextColumn Header="Old Price" Width="95"
-                                       Binding="{Binding OldPrice, StringFormat='₱{0:N2}'}">
-                        <DataGridTextColumn.ElementStyle>
-                            <Style TargetType="TextBlock" BasedOn="{StaticResource RightAlignCell}"/>
-                        </DataGridTextColumn.ElementStyle>
-                    </DataGridTextColumn>
+                        <DataGridTextColumn Header="Old Price" Width="95"
+                                           Binding="{Binding OldPrice, StringFormat='₱{0:N2}'}"
+                                           ElementStyle="{StaticResource NumericCellStyle}"/>
 
-                    <DataGridTextColumn Header="New Price" Width="95"
-                                       Binding="{Binding NewPrice, StringFormat='₱{0:N2}'}">
-                        <DataGridTextColumn.ElementStyle>
-                            <Style TargetType="TextBlock" BasedOn="{StaticResource RightAlignCell}"/>
-                        </DataGridTextColumn.ElementStyle>
-                    </DataGridTextColumn>
+                        <DataGridTextColumn Header="New Price" Width="95"
+                                           Binding="{Binding NewPrice, StringFormat='₱{0:N2}'}"
+                                           ElementStyle="{StaticResource NumericCellStyle}"/>
 
-                    <DataGridTemplateColumn Header="Delta" Width="95">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBlock FontWeight="SemiBold" HorizontalAlignment="Right" Padding="0,0,8,0">
-                                    <TextBlock.Style>
-                                        <Style TargetType="TextBlock">
-                                            <Setter Property="Text" Value="₱0.00"/>
-                                            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsIncrease}" Value="True">
-                                                    <Setter Property="Text" Value="{Binding Delta, StringFormat='+₱{0:N2}'}"/>
-                                                    <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding IsDecrease}" Value="True">
-                                                    <Setter Property="Text" Value="{Binding Delta, StringFormat='₱{0:N2}'}"/>
-                                                    <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </TextBlock.Style>
-                                </TextBlock>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Delta" Width="95">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock FontWeight="SemiBold" HorizontalAlignment="Right" Padding="0,0,8,0">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Text" Value="₱0.00"/>
+                                                <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsIncrease}" Value="True">
+                                                        <Setter Property="Text" Value="{Binding Delta, StringFormat='+₱{0:N2}'}"/>
+                                                        <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding IsDecrease}" Value="True">
+                                                        <Setter Property="Text" Value="{Binding Delta, StringFormat='₱{0:N2}'}"/>
+                                                        <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
 
-                    <DataGridTextColumn Header="Changed By" Width="110"
-                                       Binding="{Binding ChangedBy}">
-                        <DataGridTextColumn.ElementStyle>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-                                <Setter Property="Padding" Value="4,0,0,0"/>
-                            </Style>
-                        </DataGridTextColumn.ElementStyle>
-                    </DataGridTextColumn>
+                        <DataGridTextColumn Header="Changed By" Width="110"
+                                           Binding="{Binding ChangedBy}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                                    <Setter Property="Padding" Value="4,0,0,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
 
-                    <DataGridTextColumn Header="Reason" Width="*" MinWidth="130"
-                                       Binding="{Binding Reason}">
-                        <DataGridTextColumn.ElementStyle>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
-                                <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-                                <Setter Property="Padding" Value="4,0,0,0"/>
-                            </Style>
-                        </DataGridTextColumn.ElementStyle>
-                    </DataGridTextColumn>
+                        <DataGridTextColumn Header="Reason" Width="*" MinWidth="130"
+                                           Binding="{Binding Reason}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+                                    <Setter Property="Padding" Value="4,0,0,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
 
-                </DataGrid.Columns>
-            </DataGrid>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <views:EmptyStatePanel Title="No Price History"
+                                       Description="No price changes have been recorded for this product."
+                                       HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <views:EmptyStatePanel.Style>
+                        <Style TargetType="UserControl">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HistoryItems.Count}" Value="0">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </views:EmptyStatePanel.Style>
+                </views:EmptyStatePanel>
+            </Grid>
 
         </DockPanel>
+
+        <views:BusyOverlay Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
     </Grid>
 </Window>

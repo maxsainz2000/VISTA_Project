@@ -3,117 +3,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
              mc:Ignorable="d"
              d:DesignHeight="768" d:DesignWidth="1280"
              Background="{DynamicResource WindowBackgroundBrush}">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
-
-        <Style x:Key="SummaryCard" TargetType="Border">
-            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}"/>
-            <Setter Property="Padding" Value="16,12"/>
-            <Setter Property="Margin" Value="0,0,8,0"/>
-        </Style>
-
-        <Style x:Key="SectionHeader" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-        </Style>
-
-        <Style x:Key="FilterLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="0,0,4,0"/>
-        </Style>
-
-        <Style x:Key="ActionButton" TargetType="Button">
-            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="12,5"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="0,0,4,0"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}"/>
-                </Trigger>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
-                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
-            <Setter Property="Background" Value="{DynamicResource DangerBrush}"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource DangerBrush}"/>
-                    <Setter Property="Opacity" Value="0.9"/>
-                </Trigger>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
-                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style x:Key="SuccessButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
-            <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
-                    <Setter Property="Opacity" Value="0.9"/>
-                </Trigger>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
-                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style x:Key="SecondaryButton" TargetType="Button">
-            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="12,5"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="0,0,4,0"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource SidebarBackgroundBrush}"/>
-                </Trigger>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style x:Key="SmallButton" TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
-            <Setter Property="Padding" Value="8,3"/>
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Margin" Value="0,0,3,0"/>
-        </Style>
-
-        <Style x:Key="EditorLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="0,0,6,0"/>
-        </Style>
     </UserControl.Resources>
 
     <DockPanel Margin="10">
@@ -135,13 +31,13 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Column="0" Text="Status:" Style="{StaticResource FilterLabel}"/>
+                <TextBlock Grid.Column="0" Text="Status:" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,4,0"/>
                 <ComboBox Grid.Column="1"
                           ItemsSource="{Binding StatusOptions}"
                           SelectedItem="{Binding SelectedStatus}"
                           Padding="6,4" VerticalContentAlignment="Center"/>
 
-                <TextBlock Grid.Column="3" Text="Search:" Style="{StaticResource FilterLabel}"/>
+                <TextBlock Grid.Column="3" Text="Search:" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,4,0"/>
                 <TextBox Grid.Column="4"
                           x:Name="SearchBox"
                           Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
@@ -153,19 +49,19 @@
                             Visibility="{Binding IsManager, Converter={StaticResource BoolToVis}}">
                     <Button Content="New PO"
                             Command="{Binding NewPOCommand}"
-                            Style="{StaticResource SuccessButton}"/>
+                            Style="{StaticResource SuccessButtonStyle}"/>
                     <Button Content="Edit"
                             Command="{Binding EditPOCommand}"
-                            Style="{StaticResource ActionButton}"/>
+                            Style="{StaticResource PrimaryButtonStyle}"/>
                     <Button Content="Submit"
                             Command="{Binding SubmitPOCommand}"
-                            Style="{StaticResource ActionButton}"/>
+                            Style="{StaticResource PrimaryButtonStyle}"/>
                     <Button Content="Delete"
                             Command="{Binding DeletePOCommand}"
-                            Style="{StaticResource DangerButton}"/>
+                            Style="{StaticResource DangerButtonStyle}"/>
                     <Button Content="Refresh"
                             Command="{Binding RefreshCommand}"
-                            Style="{StaticResource SecondaryButton}"
+                            Style="{StaticResource SecondaryButtonStyle}"
                             Margin="0"/>
                 </StackPanel>
             </Grid>
@@ -178,10 +74,7 @@
                 Padding="8,3" Margin="0,0,0,4">
             <Grid>
                 <TextBlock Text="{Binding StatusMessage}"
-                           FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                <TextBlock Text="Loading…" HorizontalAlignment="Right"
-                           FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"
-                           Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
+                           Style="{StaticResource CaptionLabelStyle}"/>
             </Grid>
         </Border>
 
@@ -206,11 +99,11 @@
 
                     <TextBlock Grid.Column="0"
                                Text="{Binding Editor.EditorTitle}"
-                               Style="{StaticResource SectionHeader}"
+                               Style="{StaticResource SectionHeaderStyle}"
                                Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"
                                Margin="0,0,16,0"/>
 
-                    <TextBlock Grid.Column="2" Text="Vendor:" Style="{StaticResource EditorLabel}"/>
+                    <TextBlock Grid.Column="2" Text="Vendor:" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,6,0"/>
                     <ComboBox Grid.Column="3"
                                ItemsSource="{Binding Editor.Vendors}"
                                SelectedItem="{Binding Editor.SelectedVendor}"
@@ -220,13 +113,13 @@
                     <StackPanel Grid.Column="4" Orientation="Horizontal" Margin="12,0,0,0">
                         <Button Content="Save Draft"
                                 Command="{Binding SaveDraftCommand}"
-                                Style="{StaticResource ActionButton}"/>
+                                Style="{StaticResource PrimaryButtonStyle}"/>
                         <Button Content="Submit PO"
                                 Command="{Binding SubmitEditorCommand}"
-                                Style="{StaticResource SuccessButton}"/>
+                                Style="{StaticResource SuccessButtonStyle}"/>
                         <Button Content="Cancel"
                                 Command="{Binding CancelEditorCommand}"
-                                Style="{StaticResource SecondaryButton}"
+                                Style="{StaticResource SecondaryButtonStyle}"
                                 Margin="0"/>
                     </StackPanel>
                 </Grid>
@@ -241,11 +134,11 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock Grid.Column="0" Text="Expected Delivery:" Style="{StaticResource EditorLabel}"/>
+                    <TextBlock Grid.Column="0" Text="Expected Delivery:" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,6,0"/>
                     <DatePicker Grid.Column="1"
                                 SelectedDate="{Binding Editor.ExpectedDeliveryDate}"/>
 
-                    <TextBlock Grid.Column="3" Text="Notes:" Style="{StaticResource EditorLabel}"/>
+                    <TextBlock Grid.Column="3" Text="Notes:" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,6,0"/>
                     <TextBox Grid.Column="4"
                              Text="{Binding Editor.Notes, UpdateSourceTrigger=PropertyChanged}"
                              Padding="6,3"
@@ -261,11 +154,12 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0" Orientation="Horizontal">
-                        <TextBlock Text="Line Items" Style="{StaticResource SectionHeader}"
+                        <TextBlock Text="Line Items" Style="{StaticResource SectionHeaderStyle}"
                                    VerticalAlignment="Center" Margin="0,0,12,0"/>
                         <Button Content="+ Add Line"
                                 Command="{Binding Editor.AddLineCommand}"
-                                Style="{StaticResource SmallButton}"/>
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Padding="8,3" FontSize="11" Margin="0,0,3,0"/>
                     </StackPanel>
 
                     <TextBlock Grid.Column="2"
@@ -288,6 +182,9 @@
                           Background="{DynamicResource SurfaceBrush}"
                           AlternatingRowBackground="{DynamicResource WindowBackgroundBrush}"
                           FontSize="{DynamicResource FontSizeBody}">
+                    <DataGrid.RowStyle>
+                        <Style TargetType="{x:Type DataGridRow}" BasedOn="{StaticResource SemanticRowStyle}"/>
+                    </DataGrid.RowStyle>
                     <DataGrid.Columns>
 
                         <DataGridTemplateColumn Header="Product" Width="*" MinWidth="200">
@@ -312,20 +209,14 @@
                         <DataGridTextColumn Header="Qty" Width="70"
                                             Binding="{Binding QuantityOrdered, Mode=TwoWay, UpdateSourceTrigger=LostFocus}">
                             <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="HorizontalAlignment" Value="Right"/>
-                                    <Setter Property="Padding" Value="0,0,4,0"/>
-                                </Style>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}"/>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
 
                         <DataGridTextColumn Header="Unit Cost" Width="100"
                                             Binding="{Binding UnitCost, Mode=TwoWay, UpdateSourceTrigger=LostFocus, StringFormat='N2'}">
                             <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="HorizontalAlignment" Value="Right"/>
-                                    <Setter Property="Padding" Value="0,0,4,0"/>
-                                </Style>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}"/>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
 
@@ -333,9 +224,7 @@
                                             IsReadOnly="True"
                                             Binding="{Binding LineTotal, StringFormat='₱{0:N2}'}">
                             <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="HorizontalAlignment" Value="Right"/>
-                                    <Setter Property="Padding" Value="0,0,4,0"/>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}">
                                     <Setter Property="FontWeight" Value="SemiBold"/>
                                 </Style>
                             </DataGridTextColumn.ElementStyle>
@@ -347,8 +236,7 @@
                                 <DataTemplate>
                                     <Button Content="Remove"
                                             FontSize="10" Padding="4,2"
-                                            Background="{DynamicResource DangerBrush}" Foreground="{DynamicResource TextOnAccentBrush}"
-                                            BorderThickness="0" Cursor="Hand"
+                                            Style="{StaticResource DangerButtonStyle}"
                                             Command="{Binding DataContext.Editor.RemoveLineCommand,
                                                       RelativeSource={RelativeSource AncestorType=UserControl}}"
                                             CommandParameter="{Binding}"/>
@@ -369,7 +257,7 @@
             <DockPanel Margin="12">
 
                 <Grid DockPanel.Dock="Top" Margin="0,0,0,6">
-                    <TextBlock Text="Purchase Orders" Style="{StaticResource SectionHeader}"
+                    <TextBlock Text="Purchase Orders" Style="{StaticResource SectionHeaderStyle}"
                                VerticalAlignment="Center"/>
                 </Grid>
 
@@ -387,110 +275,131 @@
                     <TextBlock Text="Closed" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                 </StackPanel>
 
-                <DataGrid x:Name="POGrid"
-                          ItemsSource="{Binding Orders}"
-                          AutoGenerateColumns="False"
-                          CanUserAddRows="False" CanUserDeleteRows="False"
-                          CanUserReorderColumns="False" CanUserResizeRows="False"
-                          IsReadOnly="True"
-                          SelectionUnit="FullRow" SelectionMode="Single"
-                          GridLinesVisibility="Horizontal"
-                          BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
-                          HeadersVisibility="Column"
-                          CanUserSortColumns="True"
-                          Background="{DynamicResource SurfaceBrush}"
-                          AlternatingRowBackground="{DynamicResource WindowBackgroundBrush}"
-                          FontSize="{DynamicResource FontSizeBody}">
-                    <DataGrid.Columns>
+                <Grid>
+                    <DataGrid x:Name="POGrid"
+                              ItemsSource="{Binding Orders}"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False" CanUserDeleteRows="False"
+                              CanUserReorderColumns="False" CanUserResizeRows="False"
+                              IsReadOnly="True"
+                              SelectionUnit="FullRow" SelectionMode="Single"
+                              GridLinesVisibility="Horizontal"
+                              BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                              HeadersVisibility="Column"
+                              CanUserSortColumns="True"
+                              Background="{DynamicResource SurfaceBrush}"
+                              AlternatingRowBackground="{DynamicResource WindowBackgroundBrush}"
+                              FontSize="{DynamicResource FontSizeBody}">
+                        <DataGrid.RowStyle>
+                            <Style TargetType="{x:Type DataGridRow}" BasedOn="{StaticResource SemanticRowStyle}"/>
+                        </DataGrid.RowStyle>
+                        <DataGrid.Columns>
 
-                        <DataGridTextColumn Header="Order Number" Width="130"
-                                            Binding="{Binding OrderNumber}">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="FontWeight" Value="SemiBold"/>
-                                    <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
+                            <DataGridTextColumn Header="Order Number" Width="130"
+                                                Binding="{Binding OrderNumber}">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
 
-                        <DataGridTextColumn Header="Vendor" Width="*" MinWidth="150"
-                                            Binding="{Binding VendorName}"/>
+                            <DataGridTextColumn Header="Vendor" Width="*" MinWidth="150"
+                                                Binding="{Binding VendorName}"/>
 
-                        <!-- Status badge -->
-                        <DataGridTemplateColumn Header="Status" Width="100"
-                                                SortMemberPath="Status" IsReadOnly="True">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Border CornerRadius="3" Margin="4,2" Padding="5,2" HorizontalAlignment="Center"
-                                            Background="{DynamicResource SidebarBackgroundBrush}" BorderThickness="1">
-                                        <Border.Style>
-                                            <Style TargetType="Border">
-                                                <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding Status}" Value="Submitted">
-                                                        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding Status}" Value="Received">
-                                                        <Setter Property="BorderBrush" Value="{DynamicResource WarningBrush}"/>
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding Status}" Value="Verified">
-                                                        <Setter Property="BorderBrush" Value="{DynamicResource SuccessBrush}"/>
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding Status}" Value="Closed">
-                                                        <Setter Property="BorderBrush" Value="{DynamicResource SuccessBrush}"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Border.Style>
-                                        <TextBlock Text="{Binding Status}" FontSize="11" FontWeight="SemiBold">
-                                            <TextBlock.Style>
-                                                <Style TargetType="TextBlock">
-                                                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+                            <!-- Status badge -->
+                            <DataGridTemplateColumn Header="Status" Width="100"
+                                                    SortMemberPath="Status" IsReadOnly="True">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Border CornerRadius="3" Margin="4,2" Padding="5,2" HorizontalAlignment="Center"
+                                                Background="{DynamicResource SidebarBackgroundBrush}" BorderThickness="1">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding Status}" Value="Submitted">
-                                                            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+                                                            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
                                                         </DataTrigger>
                                                         <DataTrigger Binding="{Binding Status}" Value="Received">
-                                                            <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
+                                                            <Setter Property="BorderBrush" Value="{DynamicResource WarningBrush}"/>
                                                         </DataTrigger>
                                                         <DataTrigger Binding="{Binding Status}" Value="Verified">
-                                                            <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
+                                                            <Setter Property="BorderBrush" Value="{DynamicResource SuccessBrush}"/>
                                                         </DataTrigger>
                                                         <DataTrigger Binding="{Binding Status}" Value="Closed">
-                                                            <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
+                                                            <Setter Property="BorderBrush" Value="{DynamicResource SuccessBrush}"/>
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
-                                            </TextBlock.Style>
-                                        </TextBlock>
-                                    </Border>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
+                                            </Border.Style>
+                                            <TextBlock Text="{Binding Status}" FontSize="11" FontWeight="SemiBold">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Status}" Value="Submitted">
+                                                                <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Status}" Value="Received">
+                                                                <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Status}" Value="Verified">
+                                                                <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Status}" Value="Closed">
+                                                                <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
 
-                        <DataGridTextColumn Header="Order Date" Width="105"
-                                            SortMemberPath="OrderDate"
-                                            Binding="{Binding OrderDate, StringFormat='MM/dd/yyyy'}"/>
+                            <DataGridTextColumn Header="Order Date" Width="105"
+                                                SortMemberPath="OrderDate"
+                                                Binding="{Binding OrderDate, StringFormat='MM/dd/yyyy'}"/>
 
-                        <DataGridTextColumn Header="Expected Delivery" Width="120"
-                                            SortMemberPath="ExpectedDeliveryDate"
-                                            Binding="{Binding ExpectedDeliveryDate, StringFormat='MM/dd/yyyy'}"/>
+                            <DataGridTextColumn Header="Expected Delivery" Width="120"
+                                                SortMemberPath="ExpectedDeliveryDate"
+                                                Binding="{Binding ExpectedDeliveryDate, StringFormat='MM/dd/yyyy'}"/>
 
-                        <DataGridTextColumn Header="Total Amount" Width="110"
-                                            SortMemberPath="TotalAmount"
-                                            Binding="{Binding TotalAmount, StringFormat='₱{0:N2}'}">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="HorizontalAlignment" Value="Right"/>
-                                    <Setter Property="Padding" Value="0,0,8,0"/>
-                                    <Setter Property="FontWeight" Value="SemiBold"/>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
+                            <DataGridTextColumn Header="Total Amount" Width="110"
+                                                SortMemberPath="TotalAmount"
+                                                Binding="{Binding TotalAmount, StringFormat='₱{0:N2}'}">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}">
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
 
-                    </DataGrid.Columns>
-                </DataGrid>
+                        </DataGrid.Columns>
+                    </DataGrid>
 
+                    <views:EmptyStatePanel Title="No Purchase Orders"
+                                           Description="There are no purchase orders found matching the filter."
+                                           HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <views:EmptyStatePanel.Style>
+                            <Style TargetType="views:EmptyStatePanel">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Orders.Count}" Value="0">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </views:EmptyStatePanel.Style>
+                    </views:EmptyStatePanel>
+
+                    <views:BusyOverlay Message="Loading purchase orders..."
+                                       Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"
+                                       HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                </Grid>
             </DockPanel>
         </Border>
 

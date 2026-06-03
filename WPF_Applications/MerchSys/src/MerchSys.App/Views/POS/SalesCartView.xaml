@@ -4,6 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:MerchSys.POS.ViewModels;assembly=MerchSys.POS"
+             xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
              mc:Ignorable="d"
              d:DesignHeight="768" d:DesignWidth="1080"
              Background="{DynamicResource WindowBackgroundBrush}">
@@ -28,21 +29,6 @@
             <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
             <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource AccentHoverBrush}"/>
-        </Style>
-
-        <!-- Section header -->
-        <Style x:Key="SectionHeader" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeSubhead}"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-            <Setter Property="Margin" Value="0,0,0,8"/>
-        </Style>
-
-        <!-- Label -->
-        <Style x:Key="FieldLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-            <Setter Property="Margin" Value="0,4,0,2"/>
         </Style>
 
         <!-- Total row value -->
@@ -91,7 +77,7 @@
 
                 <!-- Header -->
                 <TextBlock DockPanel.Dock="Top" Text="Product Search"
-                           Style="{StaticResource SectionHeader}"/>
+                           Style="{StaticResource SectionHeaderStyle}"/>
 
                 <!-- Search box + button -->
                 <Grid DockPanel.Dock="Top" Margin="0,0,0,8">
@@ -187,7 +173,7 @@
 
                 <!-- Header row -->
                 <Grid DockPanel.Dock="Top" Margin="0,0,0,8">
-                    <TextBlock Text="Cart" Style="{StaticResource SectionHeader}"
+                    <TextBlock Text="Cart" Style="{StaticResource SectionHeaderStyle}"
                                VerticalAlignment="Center"/>
                     <Button Content="New Transaction"
                             Command="{Binding NewTransactionCommand}"
@@ -212,17 +198,17 @@
                             <RowDefinition/>
                         </Grid.RowDefinitions>
 
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Subtotal" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Subtotal" Style="{StaticResource CaptionLabelStyle}"/>
                         <TextBlock Grid.Row="0" Grid.Column="1"
                                    Text="{Binding SubTotal, StringFormat='₱{0:N2}'}"
                                    Style="{StaticResource TotalValue}"/>
 
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Discount" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Discount" Style="{StaticResource CaptionLabelStyle}"/>
                         <TextBlock Grid.Row="1" Grid.Column="1"
                                    Text="{Binding DiscountTotal, StringFormat='− ₱{0:N2}'}"
                                    Style="{StaticResource TotalValue}" Foreground="{DynamicResource DangerBrush}"/>
 
-                        <TextBlock Grid.Row="2" Grid.Column="0" Text="VAT (12%)" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="VAT (12%)" Style="{StaticResource CaptionLabelStyle}"/>
                         <TextBlock Grid.Row="2" Grid.Column="1"
                                    Text="{Binding VatAmount, StringFormat='₱{0:N2}'}"
                                    Style="{StaticResource TotalValue}"/>
@@ -243,58 +229,75 @@
                            TextWrapping="Wrap" Margin="0,4,0,0"
                            Visibility="{Binding StatusMessage, Converter={StaticResource BoolToVis}}"/>
 
-                <!-- Cart DataGrid -->
-                <DataGrid x:Name="CartDataGrid"
-                          ItemsSource="{Binding CartLines}"
-                          AutoGenerateColumns="False"
-                          CanUserAddRows="False"
-                          CanUserDeleteRows="False"
-                          CanUserReorderColumns="False"
-                          CanUserResizeRows="False"
-                          SelectionUnit="FullRow"
-                          GridLinesVisibility="Horizontal"
-                          BorderThickness="1"
-                          HeadersVisibility="Column">
+                <!-- Cart DataGrid and Empty State -->
+                <Grid>
+                    <DataGrid x:Name="CartDataGrid"
+                              ItemsSource="{Binding CartLines}"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False"
+                              CanUserDeleteRows="False"
+                              CanUserReorderColumns="False"
+                              CanUserResizeRows="False"
+                              SelectionUnit="FullRow"
+                              GridLinesVisibility="Horizontal"
+                              BorderThickness="1"
+                              HeadersVisibility="Column">
 
-                    <DataGrid.Columns>
-                        <!-- Product -->
-                        <DataGridTextColumn Header="Product" Width="*"
-                                           Binding="{Binding ProductName}"
-                                           IsReadOnly="True"/>
+                        <DataGrid.Columns>
+                            <!-- Product -->
+                            <DataGridTextColumn Header="Product" Width="*"
+                                               Binding="{Binding ProductName}"
+                                               IsReadOnly="True"/>
 
-                        <!-- Qty (editable) -->
-                        <DataGridTextColumn Header="Qty" Width="60"
-                                            Binding="{Binding Quantity, UpdateSourceTrigger=LostFocus}"/>
+                            <!-- Qty (editable) -->
+                            <DataGridTextColumn Header="Qty" Width="60"
+                                                Binding="{Binding Quantity, UpdateSourceTrigger=LostFocus}"/>
 
-                        <!-- Unit Price -->
-                        <DataGridTextColumn Header="Unit Price" Width="90"
-                                            Binding="{Binding UnitPrice, StringFormat='₱{0:N2}'}"
-                                            IsReadOnly="True"/>
+                            <!-- Unit Price -->
+                            <DataGridTextColumn Header="Unit Price" Width="90"
+                                                Binding="{Binding UnitPrice, StringFormat='₱{0:N2}'}"
+                                                IsReadOnly="True"/>
 
-                        <!-- Discount -->
-                        <DataGridTextColumn Header="Discount" Width="80"
-                                            Binding="{Binding DiscountAmount, UpdateSourceTrigger=LostFocus}"/>
+                            <!-- Discount -->
+                            <DataGridTextColumn Header="Discount" Width="80"
+                                                Binding="{Binding DiscountAmount, UpdateSourceTrigger=LostFocus}"/>
 
-                        <!-- Line Total -->
-                        <DataGridTextColumn Header="Total" Width="90"
-                                            Binding="{Binding LineTotal, StringFormat='₱{0:N2}'}"
-                                            IsReadOnly="True"/>
+                            <!-- Line Total -->
+                            <DataGridTextColumn Header="Total" Width="90"
+                                                Binding="{Binding LineTotal, StringFormat='₱{0:N2}'}"
+                                                IsReadOnly="True"/>
 
-                        <!-- Remove -->
-                        <DataGridTemplateColumn Header="" Width="36" IsReadOnly="True">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Button Content="✕"
-                                            Style="{StaticResource RemoveButton}"
-                                            Command="{Binding DataContext.RemoveLineCommand,
-                                                      RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                            CommandParameter="{Binding}"/>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-                    </DataGrid.Columns>
+                            <!-- Remove -->
+                            <DataGridTemplateColumn Header="" Width="36" IsReadOnly="True">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="✕"
+                                                Style="{StaticResource RemoveButton}"
+                                                Command="{Binding DataContext.RemoveLineCommand,
+                                                          RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
 
-                </DataGrid>
+                    </DataGrid>
+
+                    <views:EmptyStatePanel Title="Cart is empty"
+                                           Description="Search and add products to start a sale."
+                                           HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <views:EmptyStatePanel.Style>
+                            <Style TargetType="UserControl">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CartLines.Count}" Value="0">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </views:EmptyStatePanel.Style>
+                    </views:EmptyStatePanel>
+                </Grid>
 
             </DockPanel>
         </Border>
@@ -308,7 +311,7 @@
                 <StackPanel Margin="{DynamicResource SpacingM}">
 
                     <!-- Payment header -->
-                    <TextBlock Text="Payment" Style="{StaticResource SectionHeader}"/>
+                    <TextBlock Text="Payment" Style="{StaticResource SectionHeaderStyle}"/>
 
                     <!-- Payment method buttons -->
                     <Grid Margin="0,0,0,12">
@@ -388,12 +391,12 @@
 
                     <!-- Cash section -->
                     <StackPanel Visibility="{Binding IsCash, Converter={StaticResource BoolToVis}}">
-                        <TextBlock Text="Amount Tendered (₱)" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="Amount Tendered (₱)" Style="{StaticResource CaptionLabelStyle}"/>
                         <TextBox Text="{Binding AmountTendered, UpdateSourceTrigger=PropertyChanged, StringFormat='N2'}"
                                  Padding="6,4" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
                                  HorizontalContentAlignment="Right" FontSize="{DynamicResource FontSizeSubhead}"/>
 
-                        <TextBlock Text="Change" Style="{StaticResource FieldLabel}" Margin="0,8,0,2"/>
+                        <TextBlock Text="Change" Style="{StaticResource CaptionLabelStyle}" Margin="0,8,0,2"/>
                         <TextBlock Text="{Binding ChangeAmount, StringFormat='₱{0:N2}'}"
                                    FontSize="{DynamicResource FontSizeSubhead}" FontWeight="Bold" Foreground="{DynamicResource SuccessBrush}"
                                    HorizontalAlignment="Right"/>
@@ -401,7 +404,7 @@
 
                     <!-- Credit section -->
                     <StackPanel Visibility="{Binding IsCredit, Converter={StaticResource BoolToVis}}">
-                        <TextBlock Text="Customer" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="Customer" Style="{StaticResource CaptionLabelStyle}"/>
 
                         <Grid Margin="0,0,0,4">
                             <Grid.ColumnDefinitions>
@@ -523,6 +526,9 @@
                 </StackPanel>
             </ScrollViewer>
         </Border>
+
+        <views:BusyOverlay Grid.ColumnSpan="3"
+                           Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
 
     </Grid>
 </UserControl>

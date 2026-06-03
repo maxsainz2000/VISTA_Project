@@ -20,10 +20,7 @@
         </Border.InputBindings>
 
         <Border.Style>
-            <Style TargetType="Border">
-                <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-                <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
-                <Setter Property="BorderThickness" Value="1"/>
+            <Style TargetType="Border" BasedOn="{StaticResource CardStyle}">
                 <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}"/>
                 <Setter Property="Padding" Value="14,10"/>
                 <Setter Property="Margin" Value="0,0,8,0"/>

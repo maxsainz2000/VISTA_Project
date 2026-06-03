@@ -1,4 +1,5 @@
 Imports System.Collections.ObjectModel
+Imports System.ComponentModel.DataAnnotations
 Imports System.Linq
 Imports CommunityToolkit.Mvvm.ComponentModel
 Imports CommunityToolkit.Mvvm.Input
@@ -41,7 +42,7 @@ Namespace ViewModels
     End Class
 
     Public Class ShrinkageViewModel
-        Inherits ObservableObject
+        Inherits ObservableValidator
 
         Private ReadOnly _shrinkageService As IShrinkageService
         Private ReadOnly _stockService As IStockService
@@ -63,7 +64,7 @@ Namespace ViewModels
             LoadDataCommand = New AsyncRelayCommand(AddressOf LoadDataAsync)
             OpenDialogCommand = New RelayCommand(AddressOf OpenDialog)
             CancelDialogCommand = New RelayCommand(AddressOf CloseDialog)
-            ExecuteRecordCommand = New AsyncRelayCommand(AddressOf ExecuteRecordAsync)
+            ExecuteRecordCommand = New AsyncRelayCommand(AddressOf ExecuteRecordAsync, Function() Not HasErrors)
 
             Dim t = LoadDataAsync()
         End Sub
@@ -170,22 +171,28 @@ Namespace ViewModels
         End Property
 
         Private _dialogQuantity As Integer = 1
+        <Range(1, Integer.MaxValue, ErrorMessage:="Quantity must be greater than zero.")>
         Public Property DialogQuantity As Integer
             Get
                 Return _dialogQuantity
             End Get
             Set(value As Integer)
-                SetProperty(_dialogQuantity, value)
+                If SetProperty(_dialogQuantity, value, True) Then
+                    If ExecuteRecordCommand IsNot Nothing Then ExecuteRecordCommand.NotifyCanExecuteChanged()
+                End If
             End Set
         End Property
 
         Private _dialogReason As String = "Damage"
+        <Required(ErrorMessage:="Reason is required.")>
         Public Property DialogReason As String
             Get
                 Return _dialogReason
             End Get
             Set(value As String)
-                SetProperty(_dialogReason, value)
+                If SetProperty(_dialogReason, value, True) Then
+                    If ExecuteRecordCommand IsNot Nothing Then ExecuteRecordCommand.NotifyCanExecuteChanged()
+                End If
             End Set
         End Property
 
@@ -409,10 +416,15 @@ Namespace ViewModels
 
         ' ─── Dialog Logic ─────────────────────────────────────────────────────────
 
+        Private Sub ClearDialogErrors()
+            ClearErrors(NameOf(DialogQuantity))
+            ClearErrors(NameOf(DialogReason))
+        End Sub
+
         Private Sub OpenDialog()
             DialogSelectedProduct = Nothing
-            DialogQuantity = 1
-            DialogReason = "Damage"
+            _dialogQuantity = 1
+            _dialogReason = "Damage"
             DialogNotes = String.Empty
             DialogSelectedBatch = Nothing
             DialogAvailableStock = 0
@@ -421,14 +433,22 @@ Namespace ViewModels
                 .BatchId = 0,
                 .DisplayText = "(Auto — FIFO)"
             })
+            ClearDialogErrors()
+            OnPropertyChanged(NameOf(DialogQuantity))
+            OnPropertyChanged(NameOf(DialogReason))
             IsDialogOpen = True
+            If ExecuteRecordCommand IsNot Nothing Then ExecuteRecordCommand.NotifyCanExecuteChanged()
         End Sub
 
         Private Sub CloseDialog()
             IsDialogOpen = False
+            ClearDialogErrors()
         End Sub
 
         Public Async Function ExecuteRecordAsync() As Task
+            ValidateAllProperties()
+            If HasErrors Then Return
+
             IsBusy = True
             StatusMessage = String.Empty
             IsStatusError = False

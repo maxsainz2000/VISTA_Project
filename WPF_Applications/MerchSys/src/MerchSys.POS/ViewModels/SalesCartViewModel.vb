@@ -6,6 +6,8 @@ Imports MerchSys.POS.Entities
 Imports MerchSys.POS.Services
 Imports MerchSys.SharedKernel.Enums
 Imports MerchSys.SharedKernel.Queries
+Imports MerchSys.SharedKernel.Interfaces
+Imports Microsoft.EntityFrameworkCore
 
 Namespace ViewModels
 
@@ -85,6 +87,8 @@ Namespace ViewModels
         Private ReadOnly _creditService As ICreditService
         Private ReadOnly _receiptService As IReceiptService
         Private ReadOnly _mediator As IMediator
+        Private ReadOnly _conflictPresenter As IConflictPresenter
+        Private ReadOnly _notifications As INotificationService
 
         Private _currentCartId As Guid = Guid.Empty
 
@@ -92,13 +96,17 @@ Namespace ViewModels
                        paymentService As IPaymentService,
                        creditService As ICreditService,
                        receiptService As IReceiptService,
-                       mediator As IMediator)
+                       mediator As IMediator,
+                       conflictPresenter As IConflictPresenter,
+                       notifications As INotificationService)
 
             _cartService = cartService
             _paymentService = paymentService
             _creditService = creditService
             _receiptService = receiptService
             _mediator = mediator
+            _conflictPresenter = conflictPresenter
+            _notifications = notifications
 
             CartLines = New ObservableCollection(Of CartLineItem)()
             ProductSearchResults = New ObservableCollection(Of ProductSearchItem)()
@@ -503,6 +511,10 @@ Namespace ViewModels
 
             IsBusy = True
             StatusMessage = String.Empty
+            Dim concurrencyError As Boolean = False
+            Dim generalError As Boolean = False
+            Dim generalErrorMessage As String = String.Empty
+
             Try
                 Dim customerId As Integer? = Nothing
                 If SelectedPaymentMethod = PaymentMethod.Credit AndAlso SelectedCreditCustomer IsNot Nothing Then
@@ -534,6 +546,7 @@ Namespace ViewModels
                 CurrentReceipt = receipt
                 IsReceiptVisible = True
                 StatusMessage = $"Payment successful — {receipt.ReceiptNumber}"
+                _notifications.ShowSuccess($"Payment successful — {receipt.ReceiptNumber}")
 
                 ' Create a fresh cart ready for the next sale.
                 Dim nextCart = Await _cartService.CreateCartAsync()
@@ -545,11 +558,23 @@ Namespace ViewModels
                 GrandTotal = 0D
                 AmountTendered = 0D
 
+            Catch ex As DbUpdateConcurrencyException
+                concurrencyError = True
             Catch ex As Exception
-                StatusMessage = $"Payment error: {ex.Message}"
+                generalError = True
+                generalErrorMessage = ex.Message
             Finally
                 IsBusy = False
             End Try
+
+            If concurrencyError Then
+                Dim shouldRefresh = Await _conflictPresenter.PromptAsync()
+                If shouldRefresh Then
+                    Await StartNewTransactionAsync()
+                End If
+            ElseIf generalError Then
+                StatusMessage = $"Payment error: {generalErrorMessage}"
+            End If
         End Function
 
         Private Async Function StartNewTransactionAsync() As Task

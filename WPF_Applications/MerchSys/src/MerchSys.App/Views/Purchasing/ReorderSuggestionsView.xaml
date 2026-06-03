@@ -3,25 +3,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
              mc:Ignorable="d"
              d:DesignHeight="700" d:DesignWidth="1200"
              Background="{DynamicResource WindowBackgroundBrush}">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
-
-        <Style x:Key="SectionHeader" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-        </Style>
-
-        <Style x:Key="FieldLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="0,0,6,0"/>
-        </Style>
 
         <!-- Tab buttons -->
         <Style x:Key="TabButton" TargetType="Button">
@@ -55,95 +43,8 @@
             </Style.Triggers>
         </Style>
 
-        <Style x:Key="ActionButton" TargetType="Button">
-            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="14,6"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}"/>
-                </Trigger>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
-                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style x:Key="AcceptRowButton" TargetType="Button">
-            <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="10,3"/>
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Margin" Value="0,0,4,0"/>
-            <Style.Triggers>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
-                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style x:Key="DismissRowButton" TargetType="Button">
-            <Setter Property="Background" Value="{DynamicResource DangerBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="10,3"/>
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Style.Triggers>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
-                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style x:Key="SecondaryButton" TargetType="Button">
-            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
-            <Setter Property="Padding" Value="14,6"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource SidebarBackgroundBrush}"/>
-                </Trigger>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style x:Key="SaveButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
-            <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
-            <Setter Property="Padding" Value="18,6"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
-                    <Setter Property="Opacity" Value="0.9"/>
-                </Trigger>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
-                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
         <!-- Seasonal row highlight -->
-        <Style x:Key="SuggestionRowStyle" TargetType="DataGridRow">
+        <Style x:Key="SuggestionRowStyle" TargetType="DataGridRow" BasedOn="{StaticResource SemanticRowStyle}">
             <Setter Property="Background" Value="Transparent"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsSeasonalAdjusted}" Value="True">
@@ -152,7 +53,7 @@
             </Style.Triggers>
         </Style>
 
-        <Style x:Key="ConfigRowStyle" TargetType="DataGridRow">
+        <Style x:Key="ConfigRowStyle" TargetType="DataGridRow" BasedOn="{StaticResource SemanticRowStyle}">
             <Setter Property="Background" Value="Transparent"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsActive}" Value="False">
@@ -181,17 +82,17 @@
                     </Grid.ColumnDefinitions>
 
                     <TextBlock Grid.Column="0" Text="Reorder Suggestions"
-                               FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"
+                               Style="{StaticResource PageTitleStyle}"
                                VerticalAlignment="Center"/>
 
                     <StackPanel Grid.Column="1" Orientation="Horizontal">
                         <Button Content="⚡ Generate Suggestions"
                                 Command="{Binding GenerateCommand}"
-                                Style="{StaticResource ActionButton}"
+                                Style="{StaticResource PrimaryButtonStyle}"
                                 Margin="0,0,8,0"/>
                         <Button Content="↻ Refresh"
                                 Command="{Binding RefreshCommand}"
-                                Style="{StaticResource SecondaryButton}"/>
+                                Style="{StaticResource SecondaryButtonStyle}"/>
                     </StackPanel>
                 </Grid>
             </Border>
@@ -234,10 +135,7 @@
             <Border DockPanel.Dock="Top" Padding="8,3" Margin="0,0,0,4">
                 <Grid>
                     <TextBlock Text="{Binding StatusMessage}"
-                               FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                    <TextBlock Text="Working…" HorizontalAlignment="Right"
-                               FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"
-                               Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
+                               Style="{StaticResource CaptionLabelStyle}"/>
                 </Grid>
             </Border>
 
@@ -252,7 +150,7 @@
                         Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
                         CornerRadius="{DynamicResource RadiusSmall}" Padding="12,8" Margin="0,0,0,6">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="Filter:" Style="{StaticResource FieldLabel}" FontSize="12"/>
+                        <TextBlock Text="Filter:" Style="{StaticResource FieldLabelStyle}" Margin="0,0,6,0"/>
 
                         <Button Content="Pending" Command="{Binding SetFilterCommand}" CommandParameter="Pending">
                             <Button.Style>
@@ -307,8 +205,9 @@
 
                 <!-- Suggestions grid -->
                 <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1" CornerRadius="{DynamicResource RadiusSmall}">
-                    <DataGrid x:Name="SuggestionsGrid"
-                               ItemsSource="{Binding Suggestions}"
+                    <Grid>
+                        <DataGrid x:Name="SuggestionsGrid"
+                                   ItemsSource="{Binding Suggestions}"
                                AutoGenerateColumns="False"
                                CanUserAddRows="False" CanUserDeleteRows="False"
                                CanUserReorderColumns="False" CanUserResizeRows="False"
@@ -449,32 +348,41 @@
                                                      Command="{Binding DataContext.AcceptCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                      CommandParameter="{Binding}">
                                                 <Button.Style>
-                                                    <Style TargetType="Button" BasedOn="{StaticResource AcceptRowButton}">
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding Status}" Value="Accepted">
-                                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                            </DataTrigger>
-                                                            <DataTrigger Binding="{Binding Status}" Value="Dismissed">
-                                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
+                                                    <Style TargetType="Button" BasedOn="{StaticResource SuccessButtonStyle}">
+                                                         <Setter Property="Padding" Value="10,3"/>
+                                                         <Setter Property="FontSize" Value="11"/>
+                                                         <Setter Property="FontWeight" Value="SemiBold"/>
+                                                         <Setter Property="Cursor" Value="Hand"/>
+                                                         <Setter Property="Margin" Value="0,0,4,0"/>
+                                                         <Style.Triggers>
+                                                             <DataTrigger Binding="{Binding Status}" Value="Accepted">
+                                                                 <Setter Property="Visibility" Value="Collapsed"/>
+                                                             </DataTrigger>
+                                                             <DataTrigger Binding="{Binding Status}" Value="Dismissed">
+                                                                 <Setter Property="Visibility" Value="Collapsed"/>
+                                                             </DataTrigger>
+                                                         </Style.Triggers>
+                                                     </Style>
                                                 </Button.Style>
                                             </Button>
                                             <Button Content="✗ Dismiss"
                                                      Command="{Binding DataContext.DismissCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                      CommandParameter="{Binding}">
                                                 <Button.Style>
-                                                    <Style TargetType="Button" BasedOn="{StaticResource DismissRowButton}">
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding Status}" Value="Accepted">
-                                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                            </DataTrigger>
-                                                            <DataTrigger Binding="{Binding Status}" Value="Dismissed">
-                                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
+                                                     <Style TargetType="Button" BasedOn="{StaticResource DangerButtonStyle}">
+                                                         <Setter Property="Padding" Value="10,3"/>
+                                                         <Setter Property="FontSize" Value="11"/>
+                                                         <Setter Property="FontWeight" Value="SemiBold"/>
+                                                         <Setter Property="Cursor" Value="Hand"/>
+                                                         <Style.Triggers>
+                                                             <DataTrigger Binding="{Binding Status}" Value="Accepted">
+                                                                 <Setter Property="Visibility" Value="Collapsed"/>
+                                                             </DataTrigger>
+                                                             <DataTrigger Binding="{Binding Status}" Value="Dismissed">
+                                                                 <Setter Property="Visibility" Value="Collapsed"/>
+                                                             </DataTrigger>
+                                                         </Style.Triggers>
+                                                     </Style>
                                                 </Button.Style>
                                             </Button>
                                             <!-- Accepted / Dismissed label -->
@@ -504,6 +412,22 @@
 
                         </DataGrid.Columns>
                     </DataGrid>
+
+                    <views:EmptyStatePanel Title="No Suggestions"
+                                           Description="There are no active reorder suggestions for this filter."
+                                           HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <views:EmptyStatePanel.Style>
+                            <Style TargetType="views:EmptyStatePanel">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Suggestions.Count}" Value="0">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </views:EmptyStatePanel.Style>
+                    </views:EmptyStatePanel>
+                    </Grid>
                 </Border>
 
             </DockPanel>
@@ -524,8 +448,9 @@
 
                 <!-- Config grid -->
                 <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1" CornerRadius="{DynamicResource RadiusSmall}">
-                    <DataGrid x:Name="ConfigGrid"
-                               ItemsSource="{Binding Configs}"
+                    <Grid>
+                        <DataGrid x:Name="ConfigGrid"
+                                   ItemsSource="{Binding Configs}"
                                AutoGenerateColumns="False"
                                CanUserAddRows="False" CanUserDeleteRows="False"
                                CanUserReorderColumns="False" CanUserResizeRows="False"
@@ -660,7 +585,7 @@
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <Button Content="Edit"
-                                                 Style="{StaticResource ActionButton}"
+                                                 Style="{StaticResource PrimaryButtonStyle}"
                                                  Padding="10,3" FontSize="11"
                                                  Command="{Binding DataContext.OpenEditConfigCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                  CommandParameter="{Binding}"/>
@@ -670,9 +595,29 @@
 
                         </DataGrid.Columns>
                     </DataGrid>
+
+                    <views:EmptyStatePanel Title="No Configuration"
+                                           Description="There are no product configurations available."
+                                           HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <views:EmptyStatePanel.Style>
+                            <Style TargetType="views:EmptyStatePanel">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Configs.Count}" Value="0">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </views:EmptyStatePanel.Style>
+                    </views:EmptyStatePanel>
+                    </Grid>
                 </Border>
 
             </DockPanel>
+
+            <views:BusyOverlay Message="Processing..."
+                               Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"
+                               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
 
         </DockPanel>
 
@@ -686,16 +631,15 @@
             <Rectangle Fill="{DynamicResource OverlayBrush}"/>
 
             <!-- Dialog card -->
-            <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="{DynamicResource RadiusMedium}" Padding="28,24"
+            <Border Style="{StaticResource CardStyle}" Padding="28,24"
                     MaxWidth="460"
                     HorizontalAlignment="Center" VerticalAlignment="Center"
-                    BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
-                    Effect="{DynamicResource CardShadow}">
+                    BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1">
 
                 <StackPanel MinWidth="380">
 
                     <TextBlock Text="Edit Reorder Configuration"
-                               Style="{StaticResource SectionHeader}"
+                               Style="{StaticResource SectionHeaderStyle}"
                                FontSize="16" Margin="0,0,0,4"/>
                     <TextBlock Text="{Binding EditProductName}"
                                FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,20"/>
@@ -723,43 +667,43 @@
                         </Grid.RowDefinitions>
 
                         <TextBlock Grid.Row="0" Grid.Column="0" Text="Minimum Threshold:"
-                                   Style="{StaticResource FieldLabel}" FontSize="12"/>
+                                   Style="{StaticResource FieldLabelStyle}" Margin="0,0,6,0"/>
                         <TextBox Grid.Row="0" Grid.Column="1"
                                  Text="{Binding EditMinThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                  Padding="8,6" FontSize="13"/>
 
                         <TextBlock Grid.Row="2" Grid.Column="0" Text="Safety Stock:"
-                                   Style="{StaticResource FieldLabel}" FontSize="12"/>
+                                   Style="{StaticResource FieldLabelStyle}" Margin="0,0,6,0"/>
                         <TextBox Grid.Row="2" Grid.Column="1"
                                  Text="{Binding EditSafetyStock, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                  Padding="8,6" FontSize="13"/>
 
                         <TextBlock Grid.Row="4" Grid.Column="0" Text="Default Order Qty:"
-                                   Style="{StaticResource FieldLabel}" FontSize="12"/>
+                                   Style="{StaticResource FieldLabelStyle}" Margin="0,0,6,0"/>
                         <TextBox Grid.Row="4" Grid.Column="1"
                                  Text="{Binding EditDefaultOrderQty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                  Padding="8,6" FontSize="13"/>
 
                         <TextBlock Grid.Row="6" Grid.Column="0" Text="Lead Time (Days):"
-                                   Style="{StaticResource FieldLabel}" FontSize="12"/>
+                                   Style="{StaticResource FieldLabelStyle}" Margin="0,0,6,0"/>
                         <TextBox Grid.Row="6" Grid.Column="1"
                                  Text="{Binding EditLeadTimeDays, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                  Padding="8,6" FontSize="13"/>
 
                         <TextBlock Grid.Row="8" Grid.Column="0" Text="Seasonal Item:"
-                                   Style="{StaticResource FieldLabel}" FontSize="12"/>
+                                   Style="{StaticResource FieldLabelStyle}" Margin="0,0,6,0"/>
                         <CheckBox Grid.Row="8" Grid.Column="1"
                                   IsChecked="{Binding EditIsSeasonalItem, Mode=TwoWay}"
                                   VerticalAlignment="Center"/>
 
                         <TextBlock Grid.Row="10" Grid.Column="0" Text="Seasonal Multiplier:"
-                                   Style="{StaticResource FieldLabel}" FontSize="12"/>
+                                   Style="{StaticResource FieldLabelStyle}" Margin="0,0,6,0"/>
                         <TextBox Grid.Row="10" Grid.Column="1"
                                  Text="{Binding EditSeasonalMultiplier, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                  Padding="8,6" FontSize="13"/>
 
                         <TextBlock Grid.Row="12" Grid.Column="0" Text="Monitoring Active:"
-                                   Style="{StaticResource FieldLabel}" FontSize="12"/>
+                                   Style="{StaticResource FieldLabelStyle}" Margin="0,0,6,0"/>
                         <CheckBox Grid.Row="12" Grid.Column="1"
                                   IsChecked="{Binding EditIsActive, Mode=TwoWay}"
                                   VerticalAlignment="Center"/>

@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
              mc:Ignorable="d"
              d:DesignHeight="680" d:DesignWidth="1200"
              Background="{DynamicResource WindowBackgroundBrush}">
@@ -10,20 +11,7 @@
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
-        <Style x:Key="SectionHeader" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-        </Style>
-
-        <Style x:Key="FieldLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="0,0,6,0"/>
-        </Style>
-
-        <!-- Filter toggle buttons — inactive state -->
+        <!-- Tab/Filter toggle buttons — inactive state -->
         <Style x:Key="FilterButton" TargetType="Button">
             <Setter Property="Background" Value="{DynamicResource SidebarBackgroundBrush}"/>
             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
@@ -40,74 +28,8 @@
             </Style.Triggers>
         </Style>
 
-        <!-- Active filter button -->
-        <Style x:Key="FilterButtonActive" TargetType="Button" BasedOn="{StaticResource FilterButton}">
-            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style x:Key="ActionButton" TargetType="Button">
-            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="14,6"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}"/>
-                </Trigger>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
-                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style x:Key="ConfirmButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
-            <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
-            <Setter Property="Padding" Value="18,6"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
-                    <Setter Property="Opacity" Value="0.9"/>
-                </Trigger>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
-                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style x:Key="SecondaryButton" TargetType="Button">
-            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
-            <Setter Property="Padding" Value="14,6"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource SidebarBackgroundBrush}"/>
-                </Trigger>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
         <!-- Row coloring based on overdue/paid status -->
-        <Style x:Key="APRowStyle" TargetType="DataGridRow">
+        <Style x:Key="APRowStyle" TargetType="DataGridRow" BasedOn="{StaticResource SemanticRowStyle}">
             <Setter Property="Background" Value="Transparent"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsOverdue}" Value="True">
@@ -139,12 +61,11 @@
                     </Grid.ColumnDefinitions>
 
                     <TextBlock Grid.Column="0" Text="Accounts Payable Ledger"
-                               FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"
+                               Style="{StaticResource PageTitleStyle}"
                                VerticalAlignment="Center"/>
 
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="Total Outstanding:" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
-                                   VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBlock Text="Total Outstanding:" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,8,0"/>
                         <TextBlock Text="{Binding TotalOutstanding, StringFormat='₱{0:N2}'}"
                                    FontSize="18" FontWeight="Bold" Foreground="{DynamicResource DangerBrush}"
                                    VerticalAlignment="Center"/>
@@ -166,7 +87,7 @@
 
                     <!-- Status filter buttons -->
                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="Filter:" Style="{StaticResource FieldLabel}" FontSize="12"/>
+                        <TextBlock Text="Filter:" Style="{StaticResource FieldLabelStyle}" Margin="0,0,6,0"/>
 
                         <Button Content="All"
                                 Command="{Binding SetFilterCommand}" CommandParameter="All">
@@ -232,7 +153,7 @@
                     <!-- Vendor filter dropdown -->
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center"
                                 Margin="16,0">
-                        <TextBlock Text="Vendor:" Style="{StaticResource FieldLabel}" FontSize="12"/>
+                        <TextBlock Text="Vendor:" Style="{StaticResource FieldLabelStyle}" Margin="0,0,6,0"/>
                         <ComboBox ItemsSource="{Binding VendorItems}"
                                   SelectedItem="{Binding SelectedVendorItem}"
                                   DisplayMemberPath="DisplayName"
@@ -245,12 +166,12 @@
                     <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
                         <Button Content="Record Payment"
                                 Command="{Binding OpenPaymentDialogCommand}"
-                                Style="{StaticResource ActionButton}"
+                                Style="{StaticResource PrimaryButtonStyle}"
                                 IsEnabled="{Binding CanEdit}"
                                 Margin="0,0,8,0"/>
                         <Button Content="↻ Refresh"
                                 Command="{Binding RefreshCommand}"
-                                Style="{StaticResource SecondaryButton}"/>
+                                Style="{StaticResource SecondaryButtonStyle}"/>
                     </StackPanel>
                 </Grid>
             </Border>
@@ -259,10 +180,7 @@
             <Border DockPanel.Dock="Top" Padding="8,3" Margin="0,0,0,4">
                 <Grid>
                     <TextBlock Text="{Binding StatusMessage}"
-                               FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                    <TextBlock Text="Loading…" HorizontalAlignment="Right"
-                               FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"
-                               Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
+                               Style="{StaticResource CaptionLabelStyle}"/>
                 </Grid>
             </Border>
 
@@ -282,171 +200,107 @@
 
             <!-- AP LEDGER GRID ────────────────────────────────────────── -->
             <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1" CornerRadius="{DynamicResource RadiusSmall}">
-                <DataGrid x:Name="APGrid"
-                          ItemsSource="{Binding Entries}"
-                          SelectedItem="{Binding SelectedEntry}"
-                          AutoGenerateColumns="False"
-                          CanUserAddRows="False" CanUserDeleteRows="False"
-                          CanUserReorderColumns="False" CanUserResizeRows="False"
-                          IsReadOnly="True"
-                          SelectionUnit="FullRow" SelectionMode="Single"
-                          GridLinesVisibility="Horizontal"
-                          BorderThickness="0"
-                          HeadersVisibility="Column"
-                          RowStyle="{StaticResource APRowStyle}"
-                          Background="{DynamicResource SurfaceBrush}"
-                          AlternatingRowBackground="{DynamicResource WindowBackgroundBrush}"
-                          FontSize="{DynamicResource FontSizeBody}" Margin="1">
+                <Grid>
+                    <DataGrid x:Name="APGrid"
+                              ItemsSource="{Binding Entries}"
+                              SelectedItem="{Binding SelectedEntry}"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False" CanUserDeleteRows="False"
+                              CanUserReorderColumns="False" CanUserResizeRows="False"
+                              IsReadOnly="True"
+                              SelectionUnit="FullRow" SelectionMode="Single"
+                              GridLinesVisibility="Horizontal"
+                              BorderThickness="0"
+                              HeadersVisibility="Column"
+                              RowStyle="{StaticResource APRowStyle}"
+                              Background="{DynamicResource SurfaceBrush}"
+                              AlternatingRowBackground="{DynamicResource WindowBackgroundBrush}"
+                              FontSize="{DynamicResource FontSizeBody}" Margin="1">
 
-                    <DataGrid.Columns>
+                        <DataGrid.Columns>
 
-                        <DataGridTextColumn Header="Vendor" Width="140" MinWidth="110"
-                                            Binding="{Binding VendorName}">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="FontWeight" Value="SemiBold"/>
-                                    <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-                                    <Setter Property="VerticalAlignment" Value="Center"/>
-                                    <Setter Property="Padding" Value="4,0"/>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
+                            <DataGridTextColumn Header="Vendor" Width="140" MinWidth="110"
+                                                Binding="{Binding VendorName}">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                        <Setter Property="Padding" Value="4,0"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
 
-                        <DataGridTextColumn Header="Invoice #" Width="120"
-                                            Binding="{Binding InvoiceNumber}">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="VerticalAlignment" Value="Center"/>
-                                    <Setter Property="Padding" Value="4,0"/>
-                                    <Setter Property="FontFamily" Value="Consolas"/>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
+                            <DataGridTextColumn Header="Invoice #" Width="120"
+                                                Binding="{Binding InvoiceNumber}">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                        <Setter Property="Padding" Value="4,0"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
 
-                        <DataGridTextColumn Header="Invoice Date" Width="100"
-                                            Binding="{Binding InvoiceDate, StringFormat='MM/dd/yyyy'}">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="HorizontalAlignment" Value="Center"/>
-                                    <Setter Property="VerticalAlignment" Value="Center"/>
-                                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
+                            <DataGridTextColumn Header="PO Number" Width="110"
+                                                Binding="{Binding PurchaseOrderNumber}">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                        <Setter Property="Padding" Value="4,0"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
 
-                        <DataGridTextColumn Header="Due Date" Width="100"
-                                            Binding="{Binding DueDate, StringFormat='MM/dd/yyyy'}">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="HorizontalAlignment" Value="Center"/>
-                                    <Setter Property="VerticalAlignment" Value="Center"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsOverdue}" Value="True">
-                                            <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
-                                            <Setter Property="FontWeight" Value="SemiBold"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
+                            <DataGridTextColumn Header="Invoice Date" Width="105"
+                                                Binding="{Binding InvoiceDate, StringFormat='MM/dd/yyyy'}"/>
 
-                        <DataGridTextColumn Header="Total Amount" Width="110"
-                                            Binding="{Binding TotalAmount, StringFormat='₱{0:N2}'}">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="HorizontalAlignment" Value="Right"/>
-                                    <Setter Property="VerticalAlignment" Value="Center"/>
-                                    <Setter Property="Padding" Value="0,0,8,0"/>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
+                            <DataGridTextColumn Header="Due Date" Width="105"
+                                                Binding="{Binding DueDate, StringFormat='MM/dd/yyyy'}"/>
 
-                        <DataGridTextColumn Header="Amount Paid" Width="110"
-                                            Binding="{Binding AmountPaid, StringFormat='₱{0:N2}'}">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="HorizontalAlignment" Value="Right"/>
-                                    <Setter Property="VerticalAlignment" Value="Center"/>
-                                    <Setter Property="Padding" Value="0,0,8,0"/>
-                                    <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
+                            <DataGridTextColumn Header="Total Amt" Width="110"
+                                                Binding="{Binding TotalAmount, StringFormat='₱{0:N2}'}">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}">
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
 
-                        <DataGridTextColumn Header="Balance" Width="110"
-                                            Binding="{Binding Balance, StringFormat='₱{0:N2}'}">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="HorizontalAlignment" Value="Right"/>
-                                    <Setter Property="VerticalAlignment" Value="Center"/>
-                                    <Setter Property="Padding" Value="0,0,8,0"/>
-                                    <Setter Property="FontWeight" Value="SemiBold"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsPaid}" Value="False">
-                                            <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding IsPaid}" Value="True">
-                                            <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
+                            <DataGridTextColumn Header="Outstanding" Width="110"
+                                                Binding="{Binding OutstandingBalance, StringFormat='₱{0:N2}'}">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}">
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
 
-                        <!-- IsPaid column -->
-                        <DataGridTemplateColumn Header="Paid" Width="60">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
-                                               FontSize="14">
-                                        <TextBlock.Style>
-                                            <Style TargetType="TextBlock">
-                                                <Setter Property="Text" Value="✗"/>
-                                                <Setter Property="Foreground" Value="{DynamicResource SeparatorBrush}"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding IsPaid}" Value="True">
-                                                        <Setter Property="Text" Value="✓"/>
-                                                        <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
-                                                        <Setter Property="FontWeight" Value="Bold"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </TextBlock.Style>
-                                    </TextBlock>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
 
-                        <!-- IsOverdue column -->
-                        <DataGridTemplateColumn Header="Overdue" Width="72">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
-                                               FontSize="13">
-                                        <TextBlock.Style>
-                                            <Style TargetType="TextBlock">
-                                                <Setter Property="Text" Value=""/>
-                                                <Setter Property="Foreground" Value="Transparent"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding IsOverdue}" Value="True">
-                                                        <Setter Property="Text" Value="⚠ Yes"/>
-                                                        <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
-                                                        <Setter Property="FontWeight" Value="SemiBold"/>
-                                                        <Setter Property="FontSize" Value="11"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </TextBlock.Style>
-                                    </TextBlock>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-
-                    </DataGrid.Columns>
-                </DataGrid>
+                    <views:EmptyStatePanel Title="No Entries"
+                                           Description="There are no accounts payable ledger entries available."
+                                           HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <views:EmptyStatePanel.Style>
+                            <Style TargetType="views:EmptyStatePanel">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Entries.Count}" Value="0">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </views:EmptyStatePanel.Style>
+                    </views:EmptyStatePanel>
+                </Grid>
             </Border>
 
         </DockPanel>
+
+        <views:BusyOverlay Message="Loading ledger..."
+                           Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"
+                           HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
 
         <!-- ═══════════════════════════════════════════════════════════
              PAYMENT DIALOG OVERLAY
@@ -458,15 +312,14 @@
             <Rectangle Fill="{DynamicResource OverlayBrush}"/>
 
             <!-- Dialog card -->
-            <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="{DynamicResource RadiusMedium}" Padding="28,24"
+            <Border Style="{StaticResource CardStyle}" Padding="28,24"
                     MaxWidth="420"
                     HorizontalAlignment="Center" VerticalAlignment="Center"
-                    BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
-                    Effect="{DynamicResource CardShadow}">
+                    BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1">
 
                 <StackPanel MinWidth="340">
 
-                    <TextBlock Text="Record Payment" Style="{StaticResource SectionHeader}"
+                    <TextBlock Text="Record Payment" Style="{StaticResource SectionHeaderStyle}"
                                FontSize="16" Margin="0,0,0,20"/>
 
                     <!-- Invoice details -->
@@ -484,19 +337,19 @@
                         </Grid.RowDefinitions>
 
                         <TextBlock Grid.Row="0" Grid.Column="0" Text="Vendor:"
-                                   Style="{StaticResource FieldLabel}"/>
+                                   Style="{StaticResource FieldLabelStyle}" Margin="0,0,6,0"/>
                         <TextBlock Grid.Row="0" Grid.Column="1"
                                    Text="{Binding PaymentDialogVendorName}"
                                    FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
 
                         <TextBlock Grid.Row="2" Grid.Column="0" Text="Invoice:"
-                                   Style="{StaticResource FieldLabel}"/>
+                                   Style="{StaticResource FieldLabelStyle}" Margin="0,0,6,0"/>
                         <TextBlock Grid.Row="2" Grid.Column="1"
                                    Text="{Binding PaymentDialogInvoice}"
                                    FontFamily="Consolas" Foreground="{DynamicResource TextPrimaryBrush}"/>
 
                         <TextBlock Grid.Row="4" Grid.Column="0" Text="Balance:"
-                                   Style="{StaticResource FieldLabel}"/>
+                                   Style="{StaticResource FieldLabelStyle}" Margin="0,0,6,0"/>
                         <TextBlock Grid.Row="4" Grid.Column="1"
                                    Text="{Binding PaymentDialogBalance, StringFormat='₱{0:N2}'}"
                                    FontWeight="Bold" FontSize="15" Foreground="{DynamicResource DangerBrush}"/>
@@ -506,8 +359,7 @@
                     <Border Height="1" Background="{DynamicResource SeparatorBrush}" Margin="0,0,0,16"/>
 
                     <!-- Payment amount input -->
-                    <TextBlock Text="Payment Amount:" Style="{StaticResource FieldLabel}"
-                               FontSize="12" Margin="0,0,0,6"/>
+                    <TextBlock Text="Payment Amount:" Style="{StaticResource FieldLabelStyle}" Margin="0,0,0,6"/>
                     <TextBox Text="{Binding PaymentAmountText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                               Padding="10,8" FontSize="14"/>
 
@@ -524,11 +376,11 @@
                                 Margin="0,20,0,0">
                         <Button Content="Cancel"
                                 Command="{Binding CancelPaymentCommand}"
-                                Style="{StaticResource SecondaryButton}"
+                                Style="{StaticResource SecondaryButtonStyle}"
                                 Margin="0,0,10,0"/>
                         <Button Content="Confirm Payment"
                                 Command="{Binding ConfirmPaymentCommand}"
-                                Style="{StaticResource ConfirmButton}"/>
+                                Style="{StaticResource SuccessButtonStyle}"/>
                     </StackPanel>
 
                 </StackPanel>
@@ -537,4 +389,3 @@
 
     </Grid>
 </UserControl>
-

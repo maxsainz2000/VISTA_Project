@@ -4,6 +4,7 @@ Imports CommunityToolkit.Mvvm.Input
 Imports MerchSys.Purchasing.Services
 Imports MerchSys.SharedKernel.Enums
 Imports MerchSys.SharedKernel.Interfaces
+Imports Microsoft.EntityFrameworkCore
 
 Namespace ViewModels
 
@@ -56,9 +57,14 @@ Namespace ViewModels
             End Get
         End Property
 
-        Public Sub New(session As ISessionService, apService As IAccountsPayableService)
+        Private ReadOnly _conflictPresenter As IConflictPresenter
+        Private ReadOnly _notifications As INotificationService
+
+        Public Sub New(session As ISessionService, apService As IAccountsPayableService, conflictPresenter As IConflictPresenter, notifications As INotificationService)
             _session = session
             _apService = apService
+            _conflictPresenter = conflictPresenter
+            _notifications = notifications
 
             Entries = New ObservableCollection(Of APLedgerRow)()
             VendorItems = New ObservableCollection(Of VendorSelectorItem)()
@@ -369,16 +375,34 @@ Namespace ViewModels
             End If
 
             IsBusy = True
+            Dim concurrencyError As Boolean = False
+            Dim invalidOperationError As Boolean = False
+            Dim errorMessage As String = String.Empty
+
             Try
                 Await _apService.RecordPaymentAsync(_payingEntryId, parsedAmount)
                 ClosePaymentDialog()
                 Await LoadDataAsync()
                 StatusMessage = $"Payment of ₱{parsedAmount:N2} recorded."
+                _notifications.ShowSuccess($"Payment of ₱{parsedAmount:N2} recorded.")
+            Catch ex As DbUpdateConcurrencyException
+                concurrencyError = True
             Catch ex As InvalidOperationException
-                PaymentError = ex.Message
+                invalidOperationError = True
+                errorMessage = ex.Message
             Finally
                 IsBusy = False
             End Try
+
+            If concurrencyError Then
+                Dim shouldRefresh = Await _conflictPresenter.PromptAsync()
+                If shouldRefresh Then
+                    ClosePaymentDialog()
+                    Await LoadDataAsync()
+                End If
+            ElseIf invalidOperationError Then
+                PaymentError = errorMessage
+            End If
         End Function
 
         Private Sub ClosePaymentDialog()

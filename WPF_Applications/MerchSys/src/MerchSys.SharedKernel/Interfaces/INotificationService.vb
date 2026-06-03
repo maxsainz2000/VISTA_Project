@@ -11,6 +11,12 @@ Namespace Interfaces
         ''' <summary>Displays an error toast notification with the given message.</summary>
         Sub ShowError(message As String)
 
+        ''' <summary>Displays an informational toast notification with the given message.</summary>
+        Sub ShowInfo(message As String)
+
+        ''' <summary>Displays a warning toast notification with the given message.</summary>
+        Sub ShowWarning(message As String)
+
     End Interface
 
 End Namespace

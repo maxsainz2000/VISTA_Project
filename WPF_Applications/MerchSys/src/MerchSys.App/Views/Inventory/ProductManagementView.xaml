@@ -3,39 +3,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
              mc:Ignorable="d"
              d:DesignHeight="768" d:DesignWidth="1280"
              Background="{DynamicResource WindowBackgroundBrush}">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
-
-        <Style x:Key="PageTitle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeTitle}"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-        </Style>
-
-        <Style x:Key="SectionHeader" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-        </Style>
-
-        <Style x:Key="FilterLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="0,0,4,0"/>
-        </Style>
-
-        <Style x:Key="FormLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="0,0,0,2"/>
-        </Style>
 
         <Style x:Key="FormInput" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
             <Setter Property="Padding" Value="6,4"/>
@@ -53,108 +27,13 @@
             <Setter Property="VerticalContentAlignment" Value="Center"/>
         </Style>
 
-        <Style x:Key="PrimaryButton" TargetType="Button">
-            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="14,6"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Style.Triggers>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
-                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-                </Trigger>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style x:Key="SecondaryButton" TargetType="Button">
-            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="12,6"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Style.Triggers>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-                </Trigger>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource SidebarBackgroundBrush}"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style x:Key="DangerButton" TargetType="Button">
-            <Setter Property="Background" Value="{DynamicResource DangerBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="12,6"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Style.Triggers>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
-                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style x:Key="WarningButton" TargetType="Button">
-            <Setter Property="Background" Value="{DynamicResource WarningBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="12,6"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Style.Triggers>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
-                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style x:Key="ProductRowStyle" TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+        <Style x:Key="ProductRowStyle" TargetType="DataGridRow" BasedOn="{StaticResource SemanticRowStyle}">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsActive}" Value="False">
                     <Setter Property="Background" Value="{DynamicResource SidebarBackgroundBrush}"/>
                     <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                 </DataTrigger>
             </Style.Triggers>
-        </Style>
-
-        <Style x:Key="ErrorText" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
-            <Setter Property="TextWrapping" Value="Wrap"/>
-            <Setter Property="Margin" Value="0,0,0,8"/>
-        </Style>
-
-        <Style x:Key="OverlayBackground" TargetType="Grid">
-            <Setter Property="Background" Value="{DynamicResource OverlayBrush}"/>
-        </Style>
-
-        <Style x:Key="DialogCard" TargetType="Border">
-            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="{DynamicResource RadiusMedium}"/>
-            <Setter Property="Padding" Value="24,20"/>
-            <Setter Property="HorizontalAlignment" Value="Center"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="MinWidth" Value="480"/>
-            <Setter Property="MaxWidth" Value="560"/>
-            <Setter Property="Effect" Value="{DynamicResource CardShadow}"/>
         </Style>
     </UserControl.Resources>
 
@@ -169,12 +48,9 @@
             <!-- Page Header -->
             <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="Product Management" Style="{StaticResource PageTitle}"/>
+                    <TextBlock Text="Product Management" Style="{StaticResource PageTitleStyle}"/>
                     <TextBlock Text="  (Manager Only)" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                 </StackPanel>
-                <TextBlock Text="Loading…" HorizontalAlignment="Right" FontSize="11"
-                           Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"
-                           Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
             </Grid>
 
             <!-- Tab Control -->
@@ -208,14 +84,14 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
 
-                                <TextBlock Grid.Column="0" Text="Category:" Style="{StaticResource FilterLabel}"/>
+                                <TextBlock Grid.Column="0" Text="Category:" Style="{StaticResource CaptionLabelStyle}"/>
                                 <ComboBox Grid.Column="1"
                                           ItemsSource="{Binding CategoryFilters}"
                                           SelectedItem="{Binding SelectedCategoryFilter}"
                                           Padding="6,4" VerticalContentAlignment="Center"
                                           BorderBrush="{DynamicResource SeparatorBrush}"/>
 
-                                <TextBlock Grid.Column="3" Text="Search:" Style="{StaticResource FilterLabel}"/>
+                                <TextBlock Grid.Column="3" Text="Search:" Style="{StaticResource CaptionLabelStyle}"/>
                                 <TextBox Grid.Column="4"
                                          Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                                          Padding="6,4" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
@@ -225,14 +101,14 @@
                                 <!-- Add Product -->
                                 <Button Grid.Column="6" Content="+ Add Product"
                                         Command="{Binding AddProductCommand}"
-                                        Style="{StaticResource PrimaryButton}"/>
+                                        Style="{StaticResource PrimaryButtonStyle}"/>
 
                                 <!-- Edit -->
                                 <Button Grid.Column="8" Content="Edit"
                                         Command="{Binding EditProductCommand}"
                                         CommandParameter="{Binding SelectedProduct}"
                                         IsEnabled="{Binding HasSelectedProduct}"
-                                        Style="{StaticResource SecondaryButton}"/>
+                                        Style="{StaticResource SecondaryButtonStyle}"/>
 
                                 <!-- Deactivate / Reactivate -->
                                 <Button Grid.Column="10"
@@ -240,7 +116,7 @@
                                         CommandParameter="{Binding SelectedProduct}"
                                         IsEnabled="{Binding HasSelectedProduct}">
                                     <Button.Style>
-                                        <Style TargetType="Button" BasedOn="{StaticResource WarningButton}">
+                                        <Style TargetType="Button" BasedOn="{StaticResource WarningButtonStyle}">
                                             <Setter Property="Content" Value="Deactivate"/>
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding SelectedProductIsActive}" Value="False">
@@ -256,124 +132,130 @@
                                 <Button Grid.Column="12" Content="Price History"
                                         Click="ViewPriceHistory_Click"
                                         IsEnabled="{Binding HasSelectedProduct}"
-                                        Style="{StaticResource SecondaryButton}"/>
+                                        Style="{StaticResource SecondaryButtonStyle}"/>
  
                                 <!-- Refresh -->
                                 <Button Grid.Column="14" Content="Refresh"
                                         Command="{Binding LoadDataCommand}"
-                                        Style="{StaticResource SecondaryButton}"/>
+                                        Style="{StaticResource SecondaryButtonStyle}"/>
                             </Grid>
                         </Border>
 
-                        <!-- Product DataGrid -->
-                        <DataGrid x:Name="ProductGrid"
-                                  ItemsSource="{Binding Products}"
-                                  SelectedItem="{Binding SelectedProduct, Mode=TwoWay}"
-                                  AutoGenerateColumns="False"
-                                  CanUserAddRows="False" CanUserDeleteRows="False"
-                                  CanUserReorderColumns="False" CanUserResizeRows="False"
-                                  IsReadOnly="True"
-                                  SelectionUnit="FullRow" SelectionMode="Single"
-                                  GridLinesVisibility="Horizontal"
-                                  HeadersVisibility="Column"
-                                  RowStyle="{StaticResource ProductRowStyle}"
-                                  CanUserSortColumns="True">
+                        <!-- Product DataGrid Container -->
+                        <Grid>
+                            <!-- Product DataGrid -->
+                            <DataGrid x:Name="ProductGrid"
+                                      ItemsSource="{Binding Products}"
+                                      SelectedItem="{Binding SelectedProduct, Mode=TwoWay}"
+                                      AutoGenerateColumns="False"
+                                      CanUserAddRows="False" CanUserDeleteRows="False"
+                                      CanUserReorderColumns="False" CanUserResizeRows="False"
+                                      IsReadOnly="True"
+                                      SelectionUnit="FullRow" SelectionMode="Single"
+                                      GridLinesVisibility="Horizontal"
+                                      HeadersVisibility="Column"
+                                      RowStyle="{StaticResource ProductRowStyle}"
+                                      CanUserSortColumns="True">
 
-                            <DataGrid.Columns>
+                                <DataGrid.Columns>
 
-                                <DataGridTextColumn Header="Product Name" Width="*" MinWidth="160"
-                                                   Binding="{Binding Name}"/>
+                                    <DataGridTextColumn Header="Product Name" Width="*" MinWidth="160"
+                                                       Binding="{Binding Name}"/>
 
-                                <DataGridTextColumn Header="SKU" Width="100"
-                                                   Binding="{Binding Sku}"/>
+                                    <DataGridTextColumn Header="SKU" Width="100"
+                                                       Binding="{Binding Sku}"/>
 
-                                <DataGridTextColumn Header="Category" Width="130"
-                                                   Binding="{Binding CategoryName}"/>
+                                    <DataGridTextColumn Header="Category" Width="130"
+                                                       Binding="{Binding CategoryName}"/>
 
-                                <DataGridTextColumn Header="Retail Price" Width="95"
-                                                   SortMemberPath="RetailPrice"
-                                                   Binding="{Binding RetailPrice, StringFormat='₱{0:N2}'}">
-                                    <DataGridTextColumn.ElementStyle>
-                                        <Style TargetType="TextBlock">
-                                            <Setter Property="HorizontalAlignment" Value="Right"/>
-                                            <Setter Property="Padding" Value="0,0,6,0"/>
-                                        </Style>
-                                    </DataGridTextColumn.ElementStyle>
-                                </DataGridTextColumn>
+                                    <DataGridTextColumn Header="Retail Price" Width="95"
+                                                       SortMemberPath="RetailPrice"
+                                                       Binding="{Binding RetailPrice, StringFormat='₱{0:N2}'}"
+                                                       ElementStyle="{StaticResource NumericCellStyle}"/>
 
-                                <DataGridTextColumn Header="Unit" Width="60"
-                                                   Binding="{Binding Unit}"/>
+                                    <DataGridTextColumn Header="Unit" Width="60"
+                                                       Binding="{Binding Unit}"/>
 
-                                <DataGridTemplateColumn Header="Has Expiry" Width="75" IsReadOnly="True">
-                                    <DataGridTemplateColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <TextBlock HorizontalAlignment="Center" FontSize="12">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="Text" Value="No"/>
-                                                        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding HasExpiry}" Value="True">
-                                                                <Setter Property="Text" Value="Yes"/>
-                                                                <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
-                                                                <Setter Property="FontWeight" Value="SemiBold"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
-                                        </DataTemplate>
-                                    </DataGridTemplateColumn.CellTemplate>
-                                </DataGridTemplateColumn>
-
-                                <DataGridTextColumn Header="Min Threshold" Width="95"
-                                                   SortMemberPath="MinThreshold"
-                                                   Binding="{Binding MinThreshold}">
-                                    <DataGridTextColumn.ElementStyle>
-                                        <Style TargetType="TextBlock">
-                                            <Setter Property="HorizontalAlignment" Value="Right"/>
-                                            <Setter Property="Padding" Value="0,0,6,0"/>
-                                        </Style>
-                                    </DataGridTextColumn.ElementStyle>
-                                </DataGridTextColumn>
-
-                                <DataGridTemplateColumn Header="Status" Width="80" IsReadOnly="True">
-                                    <DataGridTemplateColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <Border CornerRadius="3" Margin="4,2" Padding="5,2" HorizontalAlignment="Center">
-                                                <Border.Style>
-                                                    <Style TargetType="Border">
-                                                        <Setter Property="Background" Value="{DynamicResource SidebarBackgroundBrush}"/>
-                                                        <Setter Property="BorderBrush" Value="{DynamicResource SuccessBrush}"/>
-                                                        <Setter Property="BorderThickness" Value="1"/>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding IsActive}" Value="False">
-                                                                <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </Border.Style>
-                                                <TextBlock FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Center">
+                                    <DataGridTemplateColumn Header="Has Expiry" Width="75" IsReadOnly="True">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock HorizontalAlignment="Center" FontSize="12">
                                                     <TextBlock.Style>
                                                         <Style TargetType="TextBlock">
-                                                            <Setter Property="Text" Value="Active"/>
-                                                            <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
+                                                            <Setter Property="Text" Value="No"/>
+                                                            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                                                             <Style.Triggers>
-                                                                 <DataTrigger Binding="{Binding IsActive}" Value="False">
-                                                                    <Setter Property="Text" Value="Inactive"/>
-                                                                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+                                                                <DataTrigger Binding="{Binding HasExpiry}" Value="True">
+                                                                    <Setter Property="Text" Value="Yes"/>
+                                                                    <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
+                                                                    <Setter Property="FontWeight" Value="SemiBold"/>
                                                                 </DataTrigger>
                                                             </Style.Triggers>
                                                         </Style>
                                                     </TextBlock.Style>
                                                 </TextBlock>
-                                            </Border>
-                                        </DataTemplate>
-                                    </DataGridTemplateColumn.CellTemplate>
-                                </DataGridTemplateColumn>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
 
-                            </DataGrid.Columns>
-                        </DataGrid>
+                                    <DataGridTextColumn Header="Min Threshold" Width="95"
+                                                       SortMemberPath="MinThreshold"
+                                                       Binding="{Binding MinThreshold}"
+                                                       ElementStyle="{StaticResource NumericCellStyle}"/>
+
+                                    <DataGridTemplateColumn Header="Status" Width="80" IsReadOnly="True">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Border CornerRadius="3" Margin="4,2" Padding="5,2" HorizontalAlignment="Center">
+                                                    <Border.Style>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="Background" Value="{DynamicResource SidebarBackgroundBrush}"/>
+                                                            <Setter Property="BorderBrush" Value="{DynamicResource SuccessBrush}"/>
+                                                            <Setter Property="BorderThickness" Value="1"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsActive}" Value="False">
+                                                                    <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Border.Style>
+                                                    <TextBlock FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Center">
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Setter Property="Text" Value="Active"/>
+                                                                <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
+                                                                <Style.Triggers>
+                                                                     <DataTrigger Binding="{Binding IsActive}" Value="False">
+                                                                        <Setter Property="Text" Value="Inactive"/>
+                                                                        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                </Border>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+
+                                </DataGrid.Columns>
+                            </DataGrid>
+
+                            <views:EmptyStatePanel Title="No Products Found"
+                                                   Description="No products match the selected criteria or search term."
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <views:EmptyStatePanel.Style>
+                                    <Style TargetType="UserControl">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Products.Count}" Value="0">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </views:EmptyStatePanel.Style>
+                            </views:EmptyStatePanel>
+                        </Grid>
 
                     </DockPanel>
                 </TabItem>
@@ -389,7 +271,7 @@
                             <StackPanel Orientation="Horizontal">
                                 <Button Content="+ Add Category"
                                         Command="{Binding AddCategoryCommand}"
-                                        Style="{StaticResource PrimaryButton}"
+                                        Style="{StaticResource PrimaryButtonStyle}"
                                         Margin="0,0,8,0"/>
                             </StackPanel>
                         </Border>
@@ -398,77 +280,89 @@
                                    Text="Note: Categories with products cannot be deleted."
                                    FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,8"/>
 
-                        <!-- Category DataGrid -->
-                        <DataGrid ItemsSource="{Binding Categories}"
-                                  AutoGenerateColumns="False"
-                                  CanUserAddRows="False" CanUserDeleteRows="False"
-                                  CanUserReorderColumns="False" CanUserResizeRows="False"
-                                  IsReadOnly="True"
-                                  SelectionUnit="FullRow" SelectionMode="Single"
-                                  GridLinesVisibility="Horizontal"
-                                  HeadersVisibility="Column"
-                                  CanUserSortColumns="True">
+                        <!-- Category DataGrid Container -->
+                        <Grid>
+                            <!-- Category DataGrid -->
+                            <DataGrid ItemsSource="{Binding Categories}"
+                                      AutoGenerateColumns="False"
+                                      CanUserAddRows="False" CanUserDeleteRows="False"
+                                      CanUserReorderColumns="False" CanUserResizeRows="False"
+                                      IsReadOnly="True"
+                                      SelectionUnit="FullRow" SelectionMode="Single"
+                                      GridLinesVisibility="Horizontal"
+                                      HeadersVisibility="Column"
+                                      CanUserSortColumns="True">
 
-                            <DataGrid.Columns>
+                                <DataGrid.Columns>
 
-                                <DataGridTextColumn Header="Category Name" Width="*" MinWidth="160"
-                                                   Binding="{Binding Name}"/>
+                                    <DataGridTextColumn Header="Category Name" Width="*" MinWidth="160"
+                                                       Binding="{Binding Name}"/>
 
-                                <DataGridTextColumn Header="Description" Width="*"
-                                                   Binding="{Binding Description}"/>
+                                    <DataGridTextColumn Header="Description" Width="*"
+                                                       Binding="{Binding Description}"/>
 
-                                <DataGridTextColumn Header="Products" Width="80"
-                                                   SortMemberPath="ProductCount"
-                                                   Binding="{Binding ProductCount}">
-                                    <DataGridTextColumn.ElementStyle>
-                                        <Style TargetType="TextBlock">
-                                            <Setter Property="HorizontalAlignment" Value="Right"/>
-                                            <Setter Property="Padding" Value="0,0,6,0"/>
-                                        </Style>
-                                    </DataGridTextColumn.ElementStyle>
-                                </DataGridTextColumn>
+                                    <DataGridTextColumn Header="Products" Width="80"
+                                                       SortMemberPath="ProductCount"
+                                                       Binding="{Binding ProductCount}"
+                                                       ElementStyle="{StaticResource NumericCellStyle}"/>
 
-                                <DataGridTemplateColumn Header="Actions" Width="160" IsReadOnly="True">
-                                    <DataGridTemplateColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <StackPanel Orientation="Horizontal" Margin="4,2">
-                                                <Button Content="Edit"
-                                                        Command="{Binding DataContext.EditCategoryCommand,
-                                                                  RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                        CommandParameter="{Binding}"
-                                                        Padding="10,3" FontSize="11"
-                                                        Background="{DynamicResource AccentBrush}" Foreground="{DynamicResource TextOnAccentBrush}"
-                                                        BorderThickness="0" Cursor="Hand"
-                                                        Margin="0,0,6,0"/>
-                                                <Button Content="Delete"
-                                                        Command="{Binding DataContext.DeleteCategoryCommand,
-                                                                  RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                        CommandParameter="{Binding}"
-                                                        Padding="10,3" FontSize="11"
-                                                        BorderThickness="0" Cursor="Hand">
-                                                    <Button.Style>
-                                                        <Style TargetType="Button">
-                                                            <Setter Property="Background" Value="{DynamicResource DangerBrush}"/>
-                                                            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding ProductCount}" Value="0">
-                                                                    <Setter Property="IsEnabled" Value="True"/>
-                                                                </DataTrigger>
-                                                                <Trigger Property="IsEnabled" Value="False">
-                                                                    <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
-                                                                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-                                                                </Trigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </Button.Style>
-                                                </Button>
-                                            </StackPanel>
-                                        </DataTemplate>
-                                    </DataGridTemplateColumn.CellTemplate>
-                                </DataGridTemplateColumn>
+                                    <DataGridTemplateColumn Header="Actions" Width="160" IsReadOnly="True">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal" Margin="4,2">
+                                                    <Button Content="Edit"
+                                                            Command="{Binding DataContext.EditCategoryCommand,
+                                                                      RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}"
+                                                            Padding="10,3" FontSize="11"
+                                                            Background="{DynamicResource AccentBrush}" Foreground="{DynamicResource TextOnAccentBrush}"
+                                                            BorderThickness="0" Cursor="Hand"
+                                                            Margin="0,0,6,0"/>
+                                                    <Button Content="Delete"
+                                                            Command="{Binding DataContext.DeleteCategoryCommand,
+                                                                      RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}"
+                                                            Padding="10,3" FontSize="11"
+                                                            BorderThickness="0" Cursor="Hand">
+                                                        <Button.Style>
+                                                            <Style TargetType="Button">
+                                                                <Setter Property="Background" Value="{DynamicResource DangerBrush}"/>
+                                                                <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding ProductCount}" Value="0">
+                                                                        <Setter Property="IsEnabled" Value="True"/>
+                                                                    </DataTrigger>
+                                                                    <Trigger Property="IsEnabled" Value="False">
+                                                                        <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
+                                                                        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+                                                                    </Trigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Button.Style>
+                                                    </Button>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
 
-                            </DataGrid.Columns>
-                        </DataGrid>
+                                </DataGrid.Columns>
+                            </DataGrid>
+
+                            <views:EmptyStatePanel Title="No Categories Found"
+                                                   Description="There are no product categories configured."
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <views:EmptyStatePanel.Style>
+                                    <Style TargetType="UserControl">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Categories.Count}" Value="0">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </views:EmptyStatePanel.Style>
+                            </views:EmptyStatePanel>
+                        </Grid>
 
                     </DockPanel>
                 </TabItem>
@@ -479,10 +373,10 @@
         <!-- ═══════════════════════════════════════════════════════════
              PRODUCT EDITOR OVERLAY
              ═══════════════════════════════════════════════════════════ -->
-        <Grid Style="{StaticResource OverlayBackground}"
+        <Grid Background="{DynamicResource OverlayBrush}"
               Visibility="{Binding IsEditorOpen, Converter={StaticResource BoolToVis}}">
 
-            <Border Style="{StaticResource DialogCard}">
+            <Border Style="{StaticResource CardStyle}" Padding="24,20" HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="480" MaxWidth="560">
                 <StackPanel>
 
                     <!-- Dialog Header -->
@@ -499,15 +393,15 @@
 
                         <!-- Left Column -->
                         <StackPanel Grid.Column="0">
-                            <TextBlock Text="Product Name *" Style="{StaticResource FormLabel}"/>
+                            <TextBlock Text="Product Name *" Style="{StaticResource FieldLabelStyle}"/>
                             <TextBox Text="{Binding EditorName, UpdateSourceTrigger=PropertyChanged}"
                                      Style="{StaticResource FormInput}"/>
 
-                            <TextBlock Text="SKU *" Style="{StaticResource FormLabel}"/>
+                            <TextBlock Text="SKU *" Style="{StaticResource FieldLabelStyle}"/>
                             <TextBox Text="{Binding EditorSku, UpdateSourceTrigger=PropertyChanged}"
                                      Style="{StaticResource FormInput}"/>
 
-                            <TextBlock Text="Category *" Style="{StaticResource FormLabel}"/>
+                            <TextBlock Text="Category *" Style="{StaticResource FieldLabelStyle}"/>
                             <ComboBox ItemsSource="{Binding Categories}"
                                       SelectedValuePath="CategoryId"
                                       DisplayMemberPath="Name"
@@ -522,7 +416,7 @@
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="Current FIFO Cost: " Style="{StaticResource FilterLabel}"/>
+                                    <TextBlock Grid.Column="0" Text="Current FIFO Cost: " Style="{StaticResource CaptionLabelStyle}"/>
                                     <TextBlock Grid.Column="1" Text="{Binding EditorFifoCost, StringFormat='₱{0:N2}'}" FontWeight="Bold" VerticalAlignment="Center" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                 </Grid>
                                 <Grid Margin="0,4,0,0">
@@ -530,7 +424,7 @@
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="Suggested Price (20%): " Style="{StaticResource FilterLabel}"/>
+                                    <TextBlock Grid.Column="0" Text="Suggested Price (20%): " Style="{StaticResource CaptionLabelStyle}"/>
                                     <TextBlock Grid.Column="1" Text="{Binding EditorSuggestedPrice, StringFormat='₱{0:N2}'}" FontWeight="Bold" Foreground="{DynamicResource SuccessBrush}" VerticalAlignment="Center" FontSize="11"/>
                                 </Grid>
                                 <Grid Margin="0,4,0,0">
@@ -538,7 +432,7 @@
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="Current Margin: " Style="{StaticResource FilterLabel}"/>
+                                    <TextBlock Grid.Column="0" Text="Current Margin: " Style="{StaticResource CaptionLabelStyle}"/>
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                         <TextBlock Text="{Binding EditorMargin, StringFormat='₱{0:N2}'}" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource SuccessBrush}"/>
                                         <TextBlock Text="{Binding EditorMarginPercent, StringFormat=' ({0}%)'}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
@@ -546,32 +440,32 @@
                                 </Grid>
                             </StackPanel>
 
-                            <TextBlock Text="Retail Price (₱) *" Style="{StaticResource FormLabel}"/>
+                            <TextBlock Text="Retail Price (₱) *" Style="{StaticResource FieldLabelStyle}"/>
                             <TextBox Text="{Binding EditorRetailPriceText, UpdateSourceTrigger=PropertyChanged}"
                                      Style="{StaticResource FormInput}"/>
 
-                            <TextBlock Text="Price Change Reason (optional)" Style="{StaticResource FormLabel}"/>
+                            <TextBlock Text="Price Change Reason (optional)" Style="{StaticResource FieldLabelStyle}"/>
                             <TextBox Text="{Binding EditorPriceChangeReason, UpdateSourceTrigger=PropertyChanged}"
                                      Style="{StaticResource FormInput}"/>
                         </StackPanel>
 
                         <!-- Right Column -->
                         <StackPanel Grid.Column="2">
-                            <TextBlock Text="Unit *" Style="{StaticResource FormLabel}"/>
+                            <TextBlock Text="Unit *" Style="{StaticResource FieldLabelStyle}"/>
                             <ComboBox ItemsSource="{Binding UnitOptions}"
                                       SelectedItem="{Binding EditorUnit}"
                                       Style="{StaticResource FormCombo}"/>
 
-                            <TextBlock Text="Has Expiry Date" Style="{StaticResource FormLabel}"/>
+                            <TextBlock Text="Has Expiry Date" Style="{StaticResource FieldLabelStyle}"/>
                             <CheckBox IsChecked="{Binding EditorHasExpiry}"
                                       Content="Track expiry on batches"
                                       Margin="0,0,0,12" FontSize="12"/>
 
-                            <TextBlock Text="Minimum Threshold *" Style="{StaticResource FormLabel}"/>
+                            <TextBlock Text="Minimum Threshold *" Style="{StaticResource FieldLabelStyle}"/>
                             <TextBox Text="{Binding EditorMinThresholdText, UpdateSourceTrigger=PropertyChanged}"
                                      Style="{StaticResource FormInput}"/>
 
-                            <TextBlock Text="Description" Style="{StaticResource FormLabel}"/>
+                            <TextBlock Text="Description" Style="{StaticResource FieldLabelStyle}"/>
                             <TextBox Text="{Binding EditorDescription, UpdateSourceTrigger=PropertyChanged}"
                                      Height="60" TextWrapping="Wrap" AcceptsReturn="True"
                                      VerticalScrollBarVisibility="Auto"
@@ -582,18 +476,19 @@
 
                     <!-- Validation Error -->
                     <TextBlock Text="{Binding EditorError}"
-                               Style="{StaticResource ErrorText}"
+                               Foreground="{DynamicResource DangerBrush}" FontSize="{DynamicResource FontSizeCaption}"
+                               TextWrapping="Wrap" Margin="0,0,0,8"
                                Visibility="{Binding HasEditorError, Converter={StaticResource BoolToVis}}"/>
 
                     <!-- Footer Buttons -->
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button Content="Cancel"
                                 Command="{Binding CancelEditorCommand}"
-                                Style="{StaticResource SecondaryButton}"
+                                Style="{StaticResource SecondaryButtonStyle}"
                                 Margin="0,0,8,0"/>
                         <Button Content="Save Product"
                                 Command="{Binding SaveProductCommand}"
-                                Style="{StaticResource PrimaryButton}"/>
+                                Style="{StaticResource PrimaryButtonStyle}"/>
                     </StackPanel>
 
                 </StackPanel>
@@ -603,21 +498,21 @@
         <!-- ═══════════════════════════════════════════════════════════
              CATEGORY EDITOR OVERLAY
              ═══════════════════════════════════════════════════════════ -->
-        <Grid Style="{StaticResource OverlayBackground}"
+        <Grid Background="{DynamicResource OverlayBrush}"
               Visibility="{Binding IsCategoryEditorOpen, Converter={StaticResource BoolToVis}}">
 
-            <Border Style="{StaticResource DialogCard}" MaxWidth="420">
+            <Border Style="{StaticResource CardStyle}" MaxWidth="420" Padding="24,20" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel>
 
                     <TextBlock Text="{Binding CategoryEditorTitle}"
                                FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"
                                Margin="0,0,0,16"/>
 
-                    <TextBlock Text="Category Name *" Style="{StaticResource FormLabel}"/>
+                    <TextBlock Text="Category Name *" Style="{StaticResource FieldLabelStyle}"/>
                     <TextBox Text="{Binding CategoryEditorName, UpdateSourceTrigger=PropertyChanged}"
                              Style="{StaticResource FormInput}"/>
 
-                    <TextBlock Text="Description" Style="{StaticResource FormLabel}"/>
+                    <TextBlock Text="Description" Style="{StaticResource FieldLabelStyle}"/>
                     <TextBox Text="{Binding CategoryEditorDescription, UpdateSourceTrigger=PropertyChanged}"
                              Height="70" TextWrapping="Wrap" AcceptsReturn="True"
                              VerticalScrollBarVisibility="Auto"
@@ -626,22 +521,25 @@
 
                     <!-- Validation Error -->
                     <TextBlock Text="{Binding CategoryEditorError}"
-                               Style="{StaticResource ErrorText}"
+                               Foreground="{DynamicResource DangerBrush}" FontSize="{DynamicResource FontSizeCaption}"
+                               TextWrapping="Wrap" Margin="0,0,0,12"
                                Visibility="{Binding HasCategoryEditorError, Converter={StaticResource BoolToVis}}"/>
 
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button Content="Cancel"
                                 Command="{Binding CancelCategoryEditorCommand}"
-                                Style="{StaticResource SecondaryButton}"
+                                Style="{StaticResource SecondaryButtonStyle}"
                                 Margin="0,0,8,0"/>
                         <Button Content="Save Category"
                                 Command="{Binding SaveCategoryCommand}"
-                                Style="{StaticResource PrimaryButton}"/>
+                                Style="{StaticResource PrimaryButtonStyle}"/>
                     </StackPanel>
 
                 </StackPanel>
             </Border>
         </Grid>
+
+        <views:BusyOverlay Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
 
     </Grid>
 

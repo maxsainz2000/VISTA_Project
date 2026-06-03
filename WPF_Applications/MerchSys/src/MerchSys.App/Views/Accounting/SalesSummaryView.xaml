@@ -3,29 +3,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
              mc:Ignorable="d"
              d:DesignHeight="768" d:DesignWidth="1280"
              Background="{DynamicResource WindowBackgroundBrush}">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
-
-        <Style x:Key="SectionCard" TargetType="Border">
-            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}"/>
-            <Setter Property="Padding" Value="14,12"/>
-        </Style>
-
-        <Style x:Key="KpiCard" TargetType="Border">
-            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}"/>
-            <Setter Property="Padding" Value="16,12"/>
-            <Setter Property="Margin" Value="0,0,8,0"/>
-        </Style>
 
         <Style x:Key="KpiLabel" TargetType="TextBlock">
             <Setter Property="FontSize" Value="10"/>
@@ -43,11 +27,6 @@
             <Setter Property="FontSize" Value="16"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-        </Style>
-
-        <Style x:Key="RefreshButton" TargetType="Button" BasedOn="{StaticResource AccentButtonStyle}">
-            <Setter Property="Padding" Value="14,6"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
         </Style>
 
         <Style x:Key="PeriodToggle" TargetType="RadioButton">
@@ -82,14 +61,10 @@
         <Style x:Key="TableCellRightBold" TargetType="TextBlock" BasedOn="{StaticResource TableCellRight}">
             <Setter Property="FontWeight" Value="Bold"/>
         </Style>
-
-        <Style x:Key="DataGridCellRight" TargetType="TextBlock">
-            <Setter Property="HorizontalAlignment" Value="Right"/>
-            <Setter Property="Padding" Value="0,0,6,0"/>
-        </Style>
     </UserControl.Resources>
 
-    <DockPanel Margin="10">
+    <Grid>
+        <DockPanel Margin="10">
 
         <!-- ═══════════════════════════════════════════════════════════
              TOOLBAR ROW
@@ -128,19 +103,19 @@
 
                     <!-- Month + Year Selectors — Monthly -->
                     <ComboBox ItemsSource="{Binding AvailableMonths}"
-                              SelectedItem="{Binding SelectedMonth, Mode=TwoWay}"
-                              Width="50" Margin="0,0,6,0" FontSize="11" VerticalAlignment="Center"
-                              Visibility="{Binding ShowMonthSelectors, Converter={StaticResource BoolToVis}}"/>
+                               SelectedItem="{Binding SelectedMonth, Mode=TwoWay}"
+                               Width="50" Margin="0,0,6,0" FontSize="11" VerticalAlignment="Center"
+                               Visibility="{Binding ShowMonthSelectors, Converter={StaticResource BoolToVis}}"/>
                     <ComboBox ItemsSource="{Binding AvailableYears}"
-                              SelectedItem="{Binding SelectedYear, Mode=TwoWay}"
-                              Width="64" Margin="0,0,12,0" FontSize="11" VerticalAlignment="Center"
-                              Visibility="{Binding ShowMonthSelectors, Converter={StaticResource BoolToVis}}"/>
+                               SelectedItem="{Binding SelectedYear, Mode=TwoWay}"
+                               Width="64" Margin="0,0,12,0" FontSize="11" VerticalAlignment="Center"
+                               Visibility="{Binding ShowMonthSelectors, Converter={StaticResource BoolToVis}}"/>
 
                     <TextBlock Text="Loading…" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"
                                VerticalAlignment="Center" Margin="0,0,10,0"
                                Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
                     <Button Content="Refresh" Command="{Binding LoadCommand}"
-                            Style="{StaticResource RefreshButton}"/>
+                            Style="{StaticResource PrimaryButtonStyle}" Padding="14,6" FontWeight="SemiBold"/>
 
                 </StackPanel>
             </Grid>
@@ -209,7 +184,7 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- Total Sales -->
-                <Border Grid.Column="0" Style="{StaticResource KpiCard}">
+                <Border Grid.Column="0" Style="{StaticResource CardStyle}" CornerRadius="{DynamicResource RadiusSmall}" Padding="16,12" Margin="0,0,8,0">
                     <StackPanel>
                         <TextBlock Text="TOTAL SALES" Style="{StaticResource KpiLabel}"/>
                         <TextBlock Text="{Binding TotalSalesDisplay}"
@@ -218,7 +193,7 @@
                 </Border>
 
                 <!-- Transaction Count -->
-                <Border Grid.Column="1" Style="{StaticResource KpiCard}">
+                <Border Grid.Column="1" Style="{StaticResource CardStyle}" CornerRadius="{DynamicResource RadiusSmall}" Padding="16,12" Margin="0,0,8,0">
                     <StackPanel>
                         <TextBlock Text="TRANSACTIONS" Style="{StaticResource KpiLabel}"/>
                         <TextBlock Text="{Binding TransactionCount}"
@@ -227,7 +202,7 @@
                 </Border>
 
                 <!-- Avg Transaction Value -->
-                <Border Grid.Column="2" Style="{StaticResource KpiCard}">
+                <Border Grid.Column="2" Style="{StaticResource CardStyle}" CornerRadius="{DynamicResource RadiusSmall}" Padding="16,12" Margin="0,0,8,0">
                     <StackPanel>
                         <TextBlock Text="AVG. TRANSACTION VALUE" Style="{StaticResource KpiLabel}"/>
                         <TextBlock Text="{Binding AvgTransactionValueDisplay}"
@@ -236,12 +211,7 @@
                 </Border>
 
                 <!-- Returns -->
-                <Border Grid.Column="3">
-                    <Border.Style>
-                        <Style TargetType="Border" BasedOn="{StaticResource KpiCard}">
-                            <Setter Property="Margin" Value="0"/>
-                        </Style>
-                    </Border.Style>
+                <Border Grid.Column="3" Style="{StaticResource CardStyle}" CornerRadius="{DynamicResource RadiusSmall}" Padding="16,12" Margin="0">
                     <StackPanel>
                         <TextBlock Text="RETURNS" Style="{StaticResource KpiLabel}"/>
                         <TextBlock Text="{Binding TotalReturnsDisplay}"
@@ -259,7 +229,7 @@
             <StackPanel>
 
                 <!-- ── Payment Method Breakdown ─────────────────────── -->
-                <Border Style="{StaticResource SectionCard}" Margin="0,0,0,8">
+                <Border Style="{StaticResource CardStyle}" CornerRadius="{DynamicResource RadiusSmall}" Padding="14,12" Margin="0,0,0,8">
                     <StackPanel>
                         <TextBlock Text="Payment Method Breakdown"
                                    FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"
@@ -364,63 +334,65 @@
                 </Border>
 
                 <!-- ── Daily Breakdown — Weekly/Monthly only ─────────── -->
-                <Border Style="{StaticResource SectionCard}"
+                <Border Style="{StaticResource CardStyle}" CornerRadius="{DynamicResource RadiusSmall}" Padding="14,12"
                         Visibility="{Binding ShowDailyBreakdown, Converter={StaticResource BoolToVis}}">
                     <DockPanel>
                         <TextBlock DockPanel.Dock="Top"
                                    Text="Daily Breakdown"
-                                   FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"
-                                   Margin="0,0,0,10"/>
+                                   Style="{StaticResource SectionHeaderStyle}" Margin="0,0,0,10"/>
                         <TextBlock DockPanel.Dock="Top"
                                    Text="Per-day net sales totals for the selected period."
                                    FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10"/>
 
-                        <DataGrid ItemsSource="{Binding DailyBreakdown}"
-                                  IsReadOnly="True" CanUserReorderColumns="False" CanUserSortColumns="False"
-                                  FontSize="{DynamicResource FontSizeCaption}">
+                        <Grid>
+                            <DataGrid ItemsSource="{Binding DailyBreakdown}"
+                                      IsReadOnly="True" CanUserReorderColumns="False" CanUserSortColumns="False"
+                                      RowStyle="{StaticResource SemanticRowStyle}"
+                                      FontSize="{DynamicResource FontSizeCaption}">
 
-                            <DataGrid.Columns>
+                                <DataGrid.Columns>
 
-                                <DataGridTextColumn Header="Date" Width="110"
-                                                   Binding="{Binding SalesDate, StringFormat='MMM d, yyyy'}"/>
+                                    <DataGridTextColumn Header="Date" Width="110"
+                                                       Binding="{Binding SalesDate, StringFormat='MMM d, yyyy'}"/>
 
-                                <DataGridTextColumn Header="Gross Sales" Width="120"
-                                                   Binding="{Binding GrossSales, StringFormat='₱{0:N2}'}">
-                                    <DataGridTextColumn.ElementStyle>
-                                        <Style TargetType="TextBlock" BasedOn="{StaticResource DataGridCellRight}"/>
-                                    </DataGridTextColumn.ElementStyle>
-                                </DataGridTextColumn>
+                                    <DataGridTextColumn Header="Gross Sales" Width="120"
+                                                       Binding="{Binding GrossSales, StringFormat='₱{0:N2}'}"
+                                                       ElementStyle="{StaticResource NumericCellStyle}"/>
 
-                                <DataGridTextColumn Header="Discounts" Width="110"
-                                                   Binding="{Binding Discounts, StringFormat='₱{0:N2}'}">
-                                    <DataGridTextColumn.ElementStyle>
-                                        <Style TargetType="TextBlock" BasedOn="{StaticResource DataGridCellRight}"/>
-                                    </DataGridTextColumn.ElementStyle>
-                                </DataGridTextColumn>
+                                    <DataGridTextColumn Header="Discounts" Width="110"
+                                                       Binding="{Binding Discounts, StringFormat='₱{0:N2}'}"
+                                                       ElementStyle="{StaticResource NumericCellStyle}"/>
 
-                                <DataGridTextColumn Header="Returns" Width="110"
-                                                   Binding="{Binding Returns, StringFormat='₱{0:N2}'}">
-                                    <DataGridTextColumn.ElementStyle>
-                                        <Style TargetType="TextBlock" BasedOn="{StaticResource DataGridCellRight}"/>
-                                    </DataGridTextColumn.ElementStyle>
-                                </DataGridTextColumn>
+                                    <DataGridTextColumn Header="Returns" Width="110"
+                                                       Binding="{Binding Returns, StringFormat='₱{0:N2}'}"
+                                                       ElementStyle="{StaticResource NumericCellStyle}"/>
 
-                                <DataGridTextColumn Header="Net Sales" Width="120"
-                                                   Binding="{Binding NetSales, StringFormat='₱{0:N2}'}">
-                                    <DataGridTextColumn.ElementStyle>
-                                        <Style TargetType="TextBlock" BasedOn="{StaticResource DataGridCellRight}"/>
-                                    </DataGridTextColumn.ElementStyle>
-                                </DataGridTextColumn>
+                                    <DataGridTextColumn Header="Net Sales" Width="120"
+                                                       Binding="{Binding NetSales, StringFormat='₱{0:N2}'}"
+                                                       ElementStyle="{StaticResource NumericCellStyle}"/>
 
-                                <DataGridTextColumn Header="Transactions" Width="100"
-                                                   Binding="{Binding TransactionCount}">
-                                    <DataGridTextColumn.ElementStyle>
-                                        <Style TargetType="TextBlock" BasedOn="{StaticResource DataGridCellRight}"/>
-                                    </DataGridTextColumn.ElementStyle>
-                                </DataGridTextColumn>
+                                    <DataGridTextColumn Header="Transactions" Width="100"
+                                                       Binding="{Binding TransactionCount}"
+                                                       ElementStyle="{StaticResource NumericCellStyle}"/>
 
-                            </DataGrid.Columns>
-                        </DataGrid>
+                                </DataGrid.Columns>
+                            </DataGrid>
+
+                            <views:EmptyStatePanel Title="No Sales Data"
+                                                   Description="No sales records are available for the selected period."
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <views:EmptyStatePanel.Style>
+                                    <Style TargetType="views:EmptyStatePanel">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding DailyBreakdown.Count}" Value="0">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </views:EmptyStatePanel.Style>
+                            </views:EmptyStatePanel>
+                        </Grid>
                     </DockPanel>
                 </Border>
 
@@ -429,4 +401,9 @@
 
     </DockPanel>
 
+    <!-- Busy Overlay overlaying the entire view -->
+    <views:BusyOverlay Message="Loading sales summary..."
+                       Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"
+                       HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+</Grid>
 </UserControl>

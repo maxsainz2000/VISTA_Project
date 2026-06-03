@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
              mc:Ignorable="d"
              d:DesignHeight="768" d:DesignWidth="1280"
              Background="{DynamicResource WindowBackgroundBrush}">
@@ -10,109 +11,20 @@
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
-        <Style x:Key="SummaryCard" TargetType="Border">
-            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+        <Style x:Key="FormInput" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+            <Setter Property="Padding" Value="6,4"/>
             <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}"/>
-            <Setter Property="Padding" Value="16,12"/>
-            <Setter Property="Margin" Value="0,0,8,0"/>
-            <Setter Property="Effect" Value="{DynamicResource CardShadow}"/>
-        </Style>
-
-        <Style x:Key="CardValue" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="24"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-        </Style>
-
-        <Style x:Key="CardLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-            <Setter Property="Margin" Value="0,2,0,0"/>
-        </Style>
-
-        <Style x:Key="FilterLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="0,0,4,0"/>
-        </Style>
-
-        <Style x:Key="ActionButton" TargetType="Button">
-            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="14,6"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Style.Triggers>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
-                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style x:Key="RecordButton" TargetType="Button">
-            <Setter Property="Background" Value="{DynamicResource DangerBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="14,6"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Style.Triggers>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
-                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style x:Key="DialogPrimaryButton" TargetType="Button">
-            <Setter Property="Background" Value="{DynamicResource DangerBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="20,8"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
-
-        <Style x:Key="DialogCancelButton" TargetType="Button">
-            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="20,8"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource SidebarBackgroundBrush}"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style x:Key="DialogLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-            <Setter Property="Margin" Value="0,0,0,4"/>
-        </Style>
-
-        <Style x:Key="DialogInput" TargetType="Control">
-            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="8,5"/>
             <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
-            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
         </Style>
 
-        <Style x:Key="RightAlignCell" TargetType="TextBlock">
-            <Setter Property="HorizontalAlignment" Value="Right"/>
-            <Setter Property="Padding" Value="0,0,4,0"/>
+        <Style x:Key="FormCombo" TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
+            <Setter Property="Padding" Value="6,4"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
         </Style>
     </UserControl.Resources>
 
@@ -132,27 +44,27 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="0" Style="{StaticResource SummaryCard}">
+                <Border Grid.Column="0" Style="{StaticResource CardStyle}">
                     <StackPanel>
                         <TextBlock Text="{Binding PeriodTotalValue, StringFormat='₱{0:N2}'}"
-                                   Style="{StaticResource CardValue}" Foreground="{DynamicResource DangerBrush}"/>
-                        <TextBlock Text="Period Shrinkage Value" Style="{StaticResource CardLabel}"/>
+                                   Style="{StaticResource MetricValueLargeStyle}" Foreground="{DynamicResource DangerBrush}"/>
+                        <TextBlock Text="Period Shrinkage Value" Style="{StaticResource CaptionLabelStyle}"/>
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="1" Style="{StaticResource SummaryCard}">
+                <Border Grid.Column="1" Style="{StaticResource CardStyle}">
                     <StackPanel>
                         <TextBlock Text="{Binding FilteredCount}"
-                                   Style="{StaticResource CardValue}" Foreground="{DynamicResource AccentBrush}"/>
-                        <TextBlock Text="Records (Filtered)" Style="{StaticResource CardLabel}"/>
+                                   Style="{StaticResource MetricValueLargeStyle}" Foreground="{DynamicResource AccentBrush}"/>
+                        <TextBlock Text="Records (Filtered)" Style="{StaticResource CaptionLabelStyle}"/>
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="2" Style="{StaticResource SummaryCard}" Margin="0">
+                <Border Grid.Column="2" Style="{StaticResource CardStyle}" Margin="0">
                     <StackPanel>
                         <TextBlock Text="{Binding LastRefreshed}"
-                                   FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                        <TextBlock Text="Last Refreshed" Style="{StaticResource CardLabel}"/>
+                                   Style="{StaticResource MetricValueStyle}" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <TextBlock Text="Last Refreshed" Style="{StaticResource CaptionLabelStyle}"/>
                     </StackPanel>
                 </Border>
             </Grid>
@@ -168,42 +80,36 @@
                     <Button DockPanel.Dock="Right"
                             Content="Refresh"
                             Command="{Binding LoadDataCommand}"
-                            Style="{StaticResource ActionButton}"/>
-
-                    <TextBlock DockPanel.Dock="Right"
-                               Text="Loading…"
-                               FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}"
-                               VerticalAlignment="Center" Margin="0,0,8,0"
-                               Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
+                            Style="{StaticResource PrimaryButtonStyle}"/>
 
                     <!-- Record button on left -->
                     <Button DockPanel.Dock="Left"
                             Content="+ Record Shrinkage"
                             Command="{Binding OpenDialogCommand}"
-                            Style="{StaticResource RecordButton}"
+                            Style="{StaticResource DangerButtonStyle}"
                             Margin="0,0,16,0"/>
 
                     <!-- Filters in middle -->
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
 
-                        <TextBlock Text="From:" Style="{StaticResource FilterLabel}"/>
+                        <TextBlock Text="From:" Style="{StaticResource CaptionLabelStyle}"/>
                         <DatePicker x:Name="StartDatePicker"
                                     Width="115" Margin="0,0,10,0"
                                     SelectedDateChanged="StartDatePicker_SelectedDateChanged"/>
 
-                        <TextBlock Text="To:" Style="{StaticResource FilterLabel}"/>
+                        <TextBlock Text="To:" Style="{StaticResource CaptionLabelStyle}"/>
                         <DatePicker x:Name="EndDatePicker"
                                     Width="115" Margin="0,0,16,0"
                                     SelectedDateChanged="EndDatePicker_SelectedDateChanged"/>
 
-                        <TextBlock Text="Product:" Style="{StaticResource FilterLabel}"/>
+                        <TextBlock Text="Product:" Style="{StaticResource CaptionLabelStyle}"/>
                         <ComboBox x:Name="FilterProductCombo"
                                   ItemsSource="{Binding FilterProducts}"
                                   SelectedItem="{Binding FilterSelectedProduct}"
                                   Width="160" Margin="0,0,16,0"
                                   VerticalAlignment="Center"/>
 
-                        <TextBlock Text="Reason:" Style="{StaticResource FilterLabel}"/>
+                        <TextBlock Text="Reason:" Style="{StaticResource CaptionLabelStyle}"/>
                         <ComboBox x:Name="ReasonFilterCombo"
                                   Width="110" VerticalAlignment="Center"
                                   SelectionChanged="ReasonFilterCombo_SelectionChanged">
@@ -237,98 +143,107 @@
                 </DockPanel>
             </Border>
 
-            <!-- ── History DataGrid ───────────────────────────────── -->
-            <DataGrid ItemsSource="{Binding HistoryItems}"
-                      AutoGenerateColumns="False"
-                      CanUserAddRows="False" CanUserDeleteRows="False"
-                      IsReadOnly="True" CanUserReorderColumns="False" CanUserResizeRows="False"
-                      SelectionUnit="FullRow" SelectionMode="Single"
-                      HeadersVisibility="Column" GridLinesVisibility="Horizontal"
-                      CanUserSortColumns="True"
-                      FontSize="12">
-                <DataGrid.Columns>
+            <!-- ── History DataGrid Container ─────────────────────── -->
+            <Grid>
+                <!-- ── History DataGrid ───────────────────────────────── -->
+                <DataGrid ItemsSource="{Binding HistoryItems}"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False" CanUserDeleteRows="False"
+                          IsReadOnly="True" CanUserReorderColumns="False" CanUserResizeRows="False"
+                          SelectionUnit="FullRow" SelectionMode="Single"
+                          HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                          CanUserSortColumns="True"
+                          FontSize="12">
+                    <DataGrid.Columns>
 
-                    <DataGridTextColumn Header="Date" Width="130"
-                                       SortMemberPath="RecordedDate"
-                                       Binding="{Binding RecordedDate, StringFormat='MM/dd/yyyy HH:mm'}"/>
+                        <DataGridTextColumn Header="Date" Width="130"
+                                           SortMemberPath="RecordedDate"
+                                           Binding="{Binding RecordedDate, StringFormat='MM/dd/yyyy HH:mm'}"/>
 
-                    <DataGridTextColumn Header="Product" Width="*" MinWidth="140"
-                                       Binding="{Binding ProductName}"/>
+                        <DataGridTextColumn Header="Product" Width="*" MinWidth="140"
+                                           Binding="{Binding ProductName}"/>
 
-                    <DataGridTextColumn Header="Qty" Width="55"
-                                       SortMemberPath="QuantityLost"
-                                       Binding="{Binding QuantityLost}">
-                        <DataGridTextColumn.ElementStyle>
-                            <Style TargetType="TextBlock" BasedOn="{StaticResource RightAlignCell}"/>
-                        </DataGridTextColumn.ElementStyle>
-                    </DataGridTextColumn>
+                        <DataGridTextColumn Header="Qty" Width="55"
+                                           SortMemberPath="QuantityLost"
+                                           Binding="{Binding QuantityLost}"
+                                           ElementStyle="{StaticResource NumericCellStyle}"/>
 
-                    <DataGridTextColumn Header="Unit Cost" Width="90"
-                                       SortMemberPath="UnitCost"
-                                       Binding="{Binding UnitCost, StringFormat='₱{0:N2}'}">
-                        <DataGridTextColumn.ElementStyle>
-                            <Style TargetType="TextBlock" BasedOn="{StaticResource RightAlignCell}"/>
-                        </DataGridTextColumn.ElementStyle>
-                    </DataGridTextColumn>
+                        <DataGridTextColumn Header="Unit Cost" Width="90"
+                                           SortMemberPath="UnitCost"
+                                           Binding="{Binding UnitCost, StringFormat='₱{0:N2}'}"
+                                           ElementStyle="{StaticResource NumericCellStyle}"/>
 
-                    <DataGridTextColumn Header="Total Value" Width="100"
-                                       SortMemberPath="TotalValue"
-                                       Binding="{Binding TotalValue, StringFormat='₱{0:N2}'}">
-                        <DataGridTextColumn.ElementStyle>
-                            <Style TargetType="TextBlock" BasedOn="{StaticResource RightAlignCell}"/>
-                        </DataGridTextColumn.ElementStyle>
-                    </DataGridTextColumn>
+                        <DataGridTextColumn Header="Total Value" Width="100"
+                                           SortMemberPath="TotalValue"
+                                           Binding="{Binding TotalValue, StringFormat='₱{0:N2}'}"
+                                           ElementStyle="{StaticResource NumericCellStyle}"/>
 
-                    <!-- Reason column with color coding -->
-                    <DataGridTemplateColumn Header="Reason" Width="100" SortMemberPath="Reason" IsReadOnly="True">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding Reason}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="4,0">
-                                    <TextBlock.Style>
-                                        <Style TargetType="TextBlock">
-                                            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding Reason}" Value="Damage">
-                                                    <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding Reason}" Value="Spoilage">
-                                                    <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding Reason}" Value="Expiry">
-                                                    <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding Reason}" Value="Admin Error">
-                                                    <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </TextBlock.Style>
-                                </TextBlock>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
+                        <!-- Reason column with color coding -->
+                        <DataGridTemplateColumn Header="Reason" Width="100" SortMemberPath="Reason" IsReadOnly="True">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Reason}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="4,0">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Reason}" Value="Damage">
+                                                        <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Reason}" Value="Spoilage">
+                                                        <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Reason}" Value="Expiry">
+                                                        <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Reason}" Value="Admin Error">
+                                                        <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
 
-                    <DataGridTextColumn Header="Notes" Width="160"
-                                       Binding="{Binding Notes}">
-                        <DataGridTextColumn.ElementStyle>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
-                                <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-                            </Style>
-                        </DataGridTextColumn.ElementStyle>
-                    </DataGridTextColumn>
+                        <DataGridTextColumn Header="Notes" Width="160"
+                                           Binding="{Binding Notes}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
 
-                    <DataGridTextColumn Header="Recorded By" Width="110"
-                                       Binding="{Binding RecordedBy}">
-                        <DataGridTextColumn.ElementStyle>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-                            </Style>
-                        </DataGridTextColumn.ElementStyle>
-                    </DataGridTextColumn>
+                        <DataGridTextColumn Header="Recorded By" Width="110"
+                                           Binding="{Binding RecordedBy}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
 
-                </DataGrid.Columns>
-            </DataGrid>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <views:EmptyStatePanel Title="No Shrinkage Records"
+                                       Description="No shrinkage loss records found for the selected period."
+                                       HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <views:EmptyStatePanel.Style>
+                        <Style TargetType="UserControl">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HistoryItems.Count}" Value="0">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </views:EmptyStatePanel.Style>
+                </views:EmptyStatePanel>
+            </Grid>
 
         </DockPanel>
 
@@ -339,12 +254,10 @@
               Background="{DynamicResource OverlayBrush}"
               Panel.ZIndex="100">
 
-            <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="{DynamicResource RadiusMedium}"
-                    BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+            <Border Style="{StaticResource CardStyle}"
                     Width="480"
                     HorizontalAlignment="Center" VerticalAlignment="Center"
-                    Padding="28,24"
-                    Effect="{DynamicResource CardShadow}">
+                    Padding="28,24">
 
                 <StackPanel>
 
@@ -354,10 +267,10 @@
                                Margin="0,0,0,20"/>
 
                     <!-- Product -->
-                    <TextBlock Text="Product *" Style="{StaticResource DialogLabel}"/>
+                    <TextBlock Text="Product *" Style="{StaticResource FieldLabelStyle}"/>
                     <ComboBox ItemsSource="{Binding DialogProducts}"
                                SelectedItem="{Binding DialogSelectedProduct}"
-                               Style="{StaticResource DialogInput}"
+                               Style="{StaticResource FormCombo}"
                                Margin="0,0,0,4"/>
                     <TextBlock FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,12">
                         <TextBlock.Style>
@@ -376,49 +289,51 @@
                     </TextBlock>
 
                     <!-- Quantity -->
-                    <TextBlock Text="Quantity *" Style="{StaticResource DialogLabel}"/>
+                    <TextBlock Text="Quantity *" Style="{StaticResource FieldLabelStyle}"/>
                     <TextBox x:Name="QuantityBox"
                               Text="{Binding DialogQuantity, UpdateSourceTrigger=LostFocus}"
-                              Style="{StaticResource DialogInput}"
+                              Style="{StaticResource FormInput}"
                               Margin="0,0,0,12"
                               PreviewTextInput="QuantityBox_PreviewTextInput"/>
 
                     <!-- Reason -->
-                    <TextBlock Text="Reason *" Style="{StaticResource DialogLabel}"/>
+                    <TextBlock Text="Reason *" Style="{StaticResource FieldLabelStyle}"/>
                     <ComboBox ItemsSource="{Binding ReasonOptions}"
                                SelectedItem="{Binding DialogReason}"
-                               Style="{StaticResource DialogInput}"
+                               Style="{StaticResource FormCombo}"
                                Margin="0,0,0,12"/>
 
                     <!-- Notes -->
-                    <TextBlock Text="Notes (optional)" Style="{StaticResource DialogLabel}"/>
+                    <TextBlock Text="Notes (optional)" Style="{StaticResource FieldLabelStyle}"/>
                     <TextBox Text="{Binding DialogNotes, UpdateSourceTrigger=PropertyChanged}"
-                              Style="{StaticResource DialogInput}"
+                              Style="{StaticResource FormInput}"
                               Height="64" TextWrapping="Wrap" AcceptsReturn="True"
                               VerticalScrollBarVisibility="Auto"
                               Margin="0,0,0,12"/>
 
                     <!-- Batch (optional) -->
-                    <TextBlock Text="Batch (optional — leave Auto for FIFO)" Style="{StaticResource DialogLabel}"/>
+                    <TextBlock Text="Batch (optional — leave Auto for FIFO)" Style="{StaticResource FieldLabelStyle}"/>
                     <ComboBox ItemsSource="{Binding DialogBatches}"
                                SelectedItem="{Binding DialogSelectedBatch}"
-                               Style="{StaticResource DialogInput}"
+                               Style="{StaticResource FormCombo}"
                                Margin="0,0,0,20"/>
 
                     <!-- Action buttons -->
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button Content="Cancel"
-                                Style="{StaticResource DialogCancelButton}"
+                                Style="{StaticResource SecondaryButtonStyle}"
                                 Margin="0,0,8,0"
                                 Click="CancelDialogButton_Click"/>
                         <Button Content="Confirm"
-                                Style="{StaticResource DialogPrimaryButton}"
+                                Style="{StaticResource DangerButtonStyle}"
                                 Click="ConfirmRecordButton_Click"/>
                     </StackPanel>
 
                 </StackPanel>
             </Border>
         </Grid>
+
+        <views:BusyOverlay Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
 
     </Grid>
 

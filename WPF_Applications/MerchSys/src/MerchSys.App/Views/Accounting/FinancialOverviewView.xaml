@@ -4,21 +4,13 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vatTiles="clr-namespace:MerchSys.App.Views.Accounting.Components"
+             xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
              mc:Ignorable="d"
              d:DesignHeight="768" d:DesignWidth="1280"
              Background="{DynamicResource WindowBackgroundBrush}">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
-
-        <Style x:Key="KpiCard" TargetType="Border">
-            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}"/>
-            <Setter Property="Padding" Value="14,10"/>
-            <Setter Property="Margin" Value="0,0,8,0"/>
-        </Style>
 
         <Style x:Key="KpiValue" TargetType="TextBlock">
             <Setter Property="FontSize" Value="20"/>
@@ -32,27 +24,7 @@
             <Setter Property="Margin" Value="0,2,0,0"/>
         </Style>
 
-        <Style x:Key="SectionHeader" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-            <Setter Property="Margin" Value="0,0,0,6"/>
-        </Style>
-
-        <Style x:Key="SectionCard" TargetType="Border">
-            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}"/>
-            <Setter Property="Padding" Value="14,12"/>
-        </Style>
-
-        <Style x:Key="RefreshButton" TargetType="Button" BasedOn="{StaticResource AccentButtonStyle}">
-            <Setter Property="Padding" Value="14,6"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-        </Style>
-
-        <Style x:Key="AlertCard" TargetType="Border">
+        <Style x:Key="AlertCard" TargetType="Border" BasedOn="{StaticResource AlertCardStyle}">
             <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}"/>
             <Setter Property="Padding" Value="12,8"/>
             <Setter Property="Margin" Value="0,0,8,0"/>
@@ -73,33 +45,34 @@
         </Style>
     </UserControl.Resources>
 
-    <DockPanel Margin="10">
+    <Grid>
+        <DockPanel Margin="10">
 
-        <!-- ═══════════════════════════════════════════════════════════
-             TOOLBAR ROW
-             ═══════════════════════════════════════════════════════════ -->
-        <Border DockPanel.Dock="Top"
-                Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
-                CornerRadius="{DynamicResource RadiusSmall}" Padding="12,7" Margin="0,0,0,8">
-            <Grid>
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="Financial Overview" FontSize="14" FontWeight="Bold"
-                               Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                    <TextBlock Text=" — Dashboard" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"
-                               VerticalAlignment="Center"/>
-                </StackPanel>
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                    <TextBlock Text="{Binding LastRefreshed}"
-                               FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"
-                               VerticalAlignment="Center" Margin="0,0,10,0"/>
-                    <TextBlock Text="Loading…" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"
-                               VerticalAlignment="Center" Margin="0,0,10,0"
-                               Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
-                    <Button Content="Refresh" Command="{Binding RefreshCommand}"
-                            Style="{StaticResource RefreshButton}"/>
-                </StackPanel>
-            </Grid>
-        </Border>
+            <!-- ═══════════════════════════════════════════════════════════
+                 TOOLBAR ROW
+                 ═══════════════════════════════════════════════════════════ -->
+            <Border DockPanel.Dock="Top"
+                    Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                    CornerRadius="{DynamicResource RadiusSmall}" Padding="12,7" Margin="0,0,0,8">
+                <Grid>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="Financial Overview" FontSize="14" FontWeight="Bold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        <TextBlock Text=" — Dashboard" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <TextBlock Text="{Binding LastRefreshed}"
+                                   FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"
+                                   VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBlock Text="Loading…" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"
+                                   VerticalAlignment="Center" Margin="0,0,10,0"
+                                   Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
+                        <Button Content="Refresh" Command="{Binding RefreshCommand}"
+                                Style="{StaticResource PrimaryButtonStyle}" Padding="14,6" FontWeight="SemiBold"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
 
         <!-- ═══════════════════════════════════════════════════════════
              KPI CARDS ROW — 7 cards
@@ -116,7 +89,7 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0" Style="{StaticResource KpiCard}">
+            <Border Grid.Column="0" Style="{StaticResource CardStyle}" Padding="14,10" CornerRadius="{DynamicResource RadiusSmall}" Margin="0,0,8,0">
                 <StackPanel>
                     <TextBlock Text="{Binding TodayRevenue, StringFormat='₱{0:N0}'}"
                                Style="{StaticResource KpiValue}" Foreground="{DynamicResource AccentBrush}"/>
@@ -124,7 +97,7 @@
                 </StackPanel>
             </Border>
 
-            <Border Grid.Column="1" Style="{StaticResource KpiCard}">
+            <Border Grid.Column="1" Style="{StaticResource CardStyle}" Padding="14,10" CornerRadius="{DynamicResource RadiusSmall}" Margin="0,0,8,0">
                 <StackPanel>
                     <TextBlock Text="{Binding MonthToDateRevenue, StringFormat='₱{0:N0}'}"
                                Style="{StaticResource KpiValue}" Foreground="{DynamicResource AccentBrush}"/>
@@ -132,7 +105,7 @@
                 </StackPanel>
             </Border>
 
-            <Border Grid.Column="2" Style="{StaticResource KpiCard}">
+            <Border Grid.Column="2" Style="{StaticResource CardStyle}" Padding="14,10" CornerRadius="{DynamicResource RadiusSmall}" Margin="0,0,8,0">
                 <StackPanel>
                     <TextBlock Text="{Binding YearToDateRevenue, StringFormat='₱{0:N0}'}"
                                Style="{StaticResource KpiValue}" Foreground="{DynamicResource TextPrimaryBrush}"/>
@@ -140,7 +113,7 @@
                 </StackPanel>
             </Border>
 
-            <Border Grid.Column="3" Style="{StaticResource KpiCard}">
+            <Border Grid.Column="3" Style="{StaticResource CardStyle}" Padding="14,10" CornerRadius="{DynamicResource RadiusSmall}" Margin="0,0,8,0">
                 <StackPanel>
                     <TextBlock Text="{Binding CurrentGrossMargin, StringFormat='{}{0:N1}%'}"
                                Style="{StaticResource KpiValue}" Foreground="{DynamicResource SuccessBrush}"/>
@@ -148,7 +121,7 @@
                 </StackPanel>
             </Border>
 
-            <Border Grid.Column="4" Style="{StaticResource KpiCard}">
+            <Border Grid.Column="4" Style="{StaticResource CardStyle}" Padding="14,10" CornerRadius="{DynamicResource RadiusSmall}" Margin="0,0,8,0">
                 <StackPanel>
                     <TextBlock Text="{Binding TotalAR, StringFormat='₱{0:N0}'}"
                                Style="{StaticResource KpiValue}" Foreground="{DynamicResource WarningBrush}"/>
@@ -156,7 +129,7 @@
                 </StackPanel>
             </Border>
 
-            <Border Grid.Column="5" Style="{StaticResource KpiCard}">
+            <Border Grid.Column="5" Style="{StaticResource CardStyle}" Padding="14,10" CornerRadius="{DynamicResource RadiusSmall}" Margin="0,0,8,0">
                 <StackPanel>
                     <TextBlock Text="{Binding TotalAP, StringFormat='₱{0:N0}'}"
                                Style="{StaticResource KpiValue}" Foreground="{DynamicResource DangerBrush}"/>
@@ -164,7 +137,7 @@
                 </StackPanel>
             </Border>
 
-            <Border Grid.Column="6" Style="{StaticResource KpiCard}">
+            <Border Grid.Column="6" Style="{StaticResource CardStyle}" Padding="14,10" CornerRadius="{DynamicResource RadiusSmall}" Margin="0,0,8,0">
                 <StackPanel>
                     <TextBlock Text="{Binding InventoryValue, StringFormat='₱{0:N0}'}"
                                Style="{StaticResource KpiValue}" Foreground="{DynamicResource TextPrimaryBrush}"/>
@@ -213,7 +186,7 @@
                 Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
                 CornerRadius="{DynamicResource RadiusSmall}" Padding="14,10" Margin="0,8,0,0">
             <StackPanel>
-                <TextBlock Text="Alerts" Style="{StaticResource SectionHeader}"/>
+                <TextBlock Text="Alerts" Style="{StaticResource SectionHeaderStyle}" Margin="0,0,0,6"/>
                 <StackPanel Orientation="Horizontal">
 
                     <!-- Overdue AR -->
@@ -313,10 +286,10 @@
             </Grid.ColumnDefinitions>
 
             <!-- ── 6-Month Trend Chart ────────────────────────────── -->
-            <Border Grid.Column="0" Style="{StaticResource SectionCard}">
+            <Border Grid.Column="0" Style="{StaticResource CardStyle}" Padding="14,12" CornerRadius="{DynamicResource RadiusSmall}">
                 <DockPanel>
                     <TextBlock DockPanel.Dock="Top" Text="6-Month Revenue Trend"
-                               Style="{StaticResource SectionHeader}"/>
+                               Style="{StaticResource SectionHeaderStyle}" Margin="0,0,0,6"/>
 
                     <!-- Legend -->
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
@@ -398,20 +371,21 @@
             </Border>
 
             <!-- ── Top Products Table ─────────────────────────────── -->
-            <Border Grid.Column="2" Style="{StaticResource SectionCard}">
+            <Border Grid.Column="2" Style="{StaticResource CardStyle}" Padding="14,12" CornerRadius="{DynamicResource RadiusSmall}">
                 <DockPanel>
                     <TextBlock DockPanel.Dock="Top" Text="Top 10 Products by Revenue"
-                               Style="{StaticResource SectionHeader}"/>
+                               Style="{StaticResource SectionHeaderStyle}" Margin="0,0,0,6"/>
 
                     <DataGrid ItemsSource="{Binding TopProducts}"
-                              AutoGenerateColumns="False"
-                              CanUserAddRows="False" CanUserDeleteRows="False"
-                              IsReadOnly="True" CanUserReorderColumns="False" CanUserResizeRows="False"
-                              HeadersVisibility="Column" GridLinesVisibility="Horizontal"
-                              BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
-                              RowBackground="{DynamicResource SurfaceBrush}" AlternatingRowBackground="{DynamicResource SidebarBackgroundBrush}"
-                              FontSize="11" CanUserSortColumns="False"
-                              SelectionMode="Single">
+                               AutoGenerateColumns="False"
+                               CanUserAddRows="False" CanUserDeleteRows="False"
+                               IsReadOnly="True" CanUserReorderColumns="False" CanUserResizeRows="False"
+                               HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                               BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                               RowBackground="{DynamicResource SurfaceBrush}" AlternatingRowBackground="{DynamicResource SidebarBackgroundBrush}"
+                               RowStyle="{StaticResource SemanticRowStyle}"
+                               FontSize="11" CanUserSortColumns="False"
+                               SelectionMode="Single">
 
                         <DataGrid.Columns>
 
@@ -419,44 +393,20 @@
                                                Binding="{Binding ProductName}"/>
 
                             <DataGridTextColumn Header="Units Sold" Width="72"
-                                               Binding="{Binding QuantitySold}">
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="HorizontalAlignment" Value="Right"/>
-                                        <Setter Property="Padding" Value="0,0,4,0"/>
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
+                                               Binding="{Binding QuantitySold}"
+                                               ElementStyle="{StaticResource NumericCellStyle}"/>
 
                             <DataGridTextColumn Header="Revenue" Width="88"
-                                               Binding="{Binding Revenue, StringFormat='₱{0:N0}'}">
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="HorizontalAlignment" Value="Right"/>
-                                        <Setter Property="Padding" Value="0,0,4,0"/>
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
+                                               Binding="{Binding Revenue, StringFormat='₱{0:N0}'}"
+                                               ElementStyle="{StaticResource NumericCellStyle}"/>
 
                             <DataGridTextColumn Header="COGS" Width="80"
-                                               Binding="{Binding COGS, StringFormat='₱{0:N0}'}">
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="HorizontalAlignment" Value="Right"/>
-                                        <Setter Property="Padding" Value="0,0,4,0"/>
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
+                                               Binding="{Binding COGS, StringFormat='₱{0:N0}'}"
+                                               ElementStyle="{StaticResource NumericCellStyle}"/>
 
                             <DataGridTextColumn Header="Margin %" Width="70"
-                                               Binding="{Binding GrossMarginPercent, StringFormat='{}{0:N1}%'}">
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="HorizontalAlignment" Value="Right"/>
-                                        <Setter Property="Padding" Value="0,0,4,0"/>
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
+                                               Binding="{Binding GrossMarginPercent, StringFormat='{}{0:N1}%'}"
+                                               ElementStyle="{StaticResource NumericCellStyle}"/>
 
                         </DataGrid.Columns>
                     </DataGrid>
@@ -467,4 +417,9 @@
 
     </DockPanel>
 
+    <!-- Busy Overlay overlaying the entire view -->
+    <views:BusyOverlay Message="Loading financial overview..."
+                       Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"
+                       HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+</Grid>
 </UserControl>

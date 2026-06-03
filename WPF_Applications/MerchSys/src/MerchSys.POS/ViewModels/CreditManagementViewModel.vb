@@ -1,4 +1,5 @@
 Imports System.Collections.ObjectModel
+Imports System.ComponentModel.DataAnnotations
 Imports CommunityToolkit.Mvvm.ComponentModel
 Imports CommunityToolkit.Mvvm.Input
 Imports MySqlConnector
@@ -26,11 +27,13 @@ Namespace ViewModels
     ''' and per-account payment / credit-transaction history.
     ''' </summary>
     Public Class CreditManagementViewModel
-        Inherits ObservableObject
+        Inherits ObservableValidator
 
         Private ReadOnly _creditService As ICreditService
         Private ReadOnly _context As POSDbContext
         Private ReadOnly _session As ISessionService
+        Private ReadOnly _conflictPresenter As IConflictPresenter
+        Private ReadOnly _notifications As INotificationService
 
         ' Unfiltered master list used for in-memory filtering
         Private _allAccounts As List(Of CreditAccount) = New List(Of CreditAccount)()
@@ -204,23 +207,27 @@ Namespace ViewModels
             End Set
         End Property
 
+        <Required(ErrorMessage:="Customer name is required.")>
         Public Property NewAccountName As String
             Get
                 Return _newAccountName
             End Get
             Set(value As String)
-                SetProperty(_newAccountName, value)
-                ConfirmAddAccountCommand.NotifyCanExecuteChanged()
+                If SetProperty(_newAccountName, value, True) Then
+                    ConfirmAddAccountCommand.NotifyCanExecuteChanged()
+                End If
             End Set
         End Property
 
+        <Required(ErrorMessage:="Phone number is required.")>
         Public Property NewAccountPhone As String
             Get
                 Return _newAccountPhone
             End Get
             Set(value As String)
-                SetProperty(_newAccountPhone, value)
-                ConfirmAddAccountCommand.NotifyCanExecuteChanged()
+                If SetProperty(_newAccountPhone, value, True) Then
+                    ConfirmAddAccountCommand.NotifyCanExecuteChanged()
+                End If
             End Set
         End Property
 
@@ -314,10 +321,16 @@ Namespace ViewModels
 
         ' ── Constructor ───────────────────────────────────────────────────────────
 
-        Public Sub New(creditService As ICreditService, context As POSDbContext, session As ISessionService)
+        Public Sub New(creditService As ICreditService,
+                       context As POSDbContext,
+                       session As ISessionService,
+                       conflictPresenter As IConflictPresenter,
+                       notifications As INotificationService)
             _creditService = creditService
             _context = context
             _session = session
+            _conflictPresenter = conflictPresenter
+            _notifications = notifications
 
             LoadDataCommand = New AsyncRelayCommand(AddressOf LoadDataAsync)
             SearchCommand = New RelayCommand(AddressOf ApplyFilter)
@@ -444,17 +457,27 @@ Namespace ViewModels
 
         Private Sub ClearAddAccountForm()
             IsAddAccountVisible = False
-            NewAccountName = String.Empty
-            NewAccountPhone = String.Empty
-            NewAccountAddress = String.Empty
+            _newAccountName = String.Empty
+            _newAccountPhone = String.Empty
+            _newAccountAddress = String.Empty
+            ClearErrors(NameOf(NewAccountName))
+            ClearErrors(NameOf(NewAccountPhone))
+            OnPropertyChanged(NameOf(NewAccountName))
+            OnPropertyChanged(NameOf(NewAccountPhone))
+            OnPropertyChanged(NameOf(NewAccountAddress))
+            ConfirmAddAccountCommand.NotifyCanExecuteChanged()
         End Sub
 
         Private Function CanConfirmAddAccount() As Boolean
             Return Not String.IsNullOrWhiteSpace(NewAccountName) AndAlso
-                   Not String.IsNullOrWhiteSpace(NewAccountPhone)
+                   Not String.IsNullOrWhiteSpace(NewAccountPhone) AndAlso
+                   Not HasErrors
         End Function
 
         Private Async Function ConfirmAddAccountAsync() As Task
+            ValidateAllProperties()
+            If HasErrors Then Return
+
             IsBusy = True
             StatusMessage = String.Empty
             Try
@@ -463,6 +486,7 @@ Namespace ViewModels
                 ClearAddAccountForm()
                 Await LoadDataInternalAsync()
                 ShowSuccess("Account created successfully.")
+                _notifications.ShowSuccess("Credit account created.")
             Catch ex As Exception
                 ShowError("Failed to create account: " & ex.Message)
             Finally
@@ -489,18 +513,22 @@ Namespace ViewModels
         Private Async Function RecordPaymentAsync() As Task
             IsBusy = True
             StatusMessage = String.Empty
+            Dim concurrencyError As Boolean = False
+            Dim generalError As Boolean = False
+            Dim errorMessage As String = String.Empty
+
+            Dim amount = Decimal.Parse(PaymentAmount)
+            Dim clearsBalance = (amount = PaymentTargetAccount.CurrentBalance)
+            Dim targetId = PaymentTargetAccount.Id
+
+            Dim method As PaymentMethod
+            Select Case _selectedPaymentMethodIndex
+                Case 1 : method = PaymentMethod.GCash
+                Case 2 : method = PaymentMethod.BankTransfer
+                Case Else : method = PaymentMethod.Cash
+            End Select
+
             Try
-                Dim amount = Decimal.Parse(PaymentAmount)
-                Dim clearsBalance = (amount = PaymentTargetAccount.CurrentBalance)
-                Dim targetId = PaymentTargetAccount.Id
-
-                Dim method As PaymentMethod
-                Select Case _selectedPaymentMethodIndex
-                    Case 1 : method = PaymentMethod.GCash
-                    Case 2 : method = PaymentMethod.BankTransfer
-                    Case Else : method = PaymentMethod.Cash
-                End Select
-
                 Await _creditService.RecordPaymentAsync(targetId, amount, method, _session.CurrentUsername)
 
                 IsPaymentDialogVisible = False
@@ -521,14 +549,39 @@ Namespace ViewModels
 
                 If clearsBalance Then
                     ShowSuccess("Account cleared — credit re-enabled.")
+                    _notifications.ShowSuccess("Credit account cleared.")
                 Else
                     ShowSuccess($"Payment of ₱{amount:N2} recorded.")
+                    _notifications.ShowSuccess($"Payment of ₱{amount:N2} recorded.")
                 End If
+            Catch ex As DbUpdateConcurrencyException
+                concurrencyError = True
             Catch ex As Exception
-                ShowError("Payment failed: " & ex.Message)
+                generalError = True
+                errorMessage = ex.Message
             Finally
                 IsBusy = False
             End Try
+
+            If concurrencyError Then
+                Dim shouldRefresh = Await _conflictPresenter.PromptAsync()
+                If shouldRefresh Then
+                    IsPaymentDialogVisible = False
+                    PaymentAmount = String.Empty
+                    Await LoadDataInternalAsync()
+                    If SelectedAccount IsNot Nothing AndAlso SelectedAccount.Id = targetId Then
+                        Dim refreshed = _allAccounts.FirstOrDefault(Function(a) a.Id = targetId)
+                        If refreshed IsNot Nothing Then
+                            _selectedAccount = refreshed
+                            OnPropertyChanged(NameOf(SelectedAccount))
+                            OnPropertyChanged(NameOf(HasSelectedAccount))
+                            Await LoadHistoryInternalAsync(refreshed)
+                        End If
+                    End If
+                End If
+            ElseIf generalError Then
+                ShowError("Payment failed: " & errorMessage)
+            End If
         End Function
 
         Private Sub ShowSuccess(message As String)

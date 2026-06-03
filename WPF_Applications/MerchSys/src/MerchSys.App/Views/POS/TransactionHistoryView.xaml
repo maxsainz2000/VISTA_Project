@@ -4,26 +4,13 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:MerchSys.POS.ViewModels;assembly=MerchSys.POS"
+             xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
              mc:Ignorable="d"
              d:DesignHeight="768" d:DesignWidth="1280"
              Background="{DynamicResource WindowBackgroundBrush}">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
-
-        <Style x:Key="SectionHeader" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeSubhead}"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-            <Setter Property="Margin" Value="0,10,0,4"/>
-        </Style>
-
-        <Style x:Key="FieldLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="0,0,6,0"/>
-        </Style>
 
         <Style x:Key="ReceiptLabel" TargetType="TextBlock">
             <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
@@ -36,40 +23,6 @@
             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Margin" Value="0,2,0,2"/>
-        </Style>
-
-        <Style x:Key="ActionButton" TargetType="Button">
-            <Setter Property="Height" Value="34"/>
-            <Setter Property="Padding" Value="14,0"/>
-            <Setter Property="Margin" Value="4,0,0,0"/>
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="BorderThickness" Value="1"/>
-        </Style>
-
-        <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
-            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource AccentHoverBrush}"/>
-        </Style>
-
-        <Style x:Key="SuccessButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
-            <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource SuccessBrush}"/>
-        </Style>
-
-        <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
-            <Setter Property="Background" Value="{DynamicResource DangerBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}"/>
-        </Style>
-
-        <Style x:Key="NeutralButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
-            <Setter Property="Background" Value="{DynamicResource ControlBackgroundBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
         </Style>
 
         <!-- DataGrid base style for read-only display grids -->
@@ -102,7 +55,7 @@
 
                     <!-- Date From -->
                     <StackPanel Orientation="Horizontal" Margin="0,0,16,4" VerticalAlignment="Center">
-                        <TextBlock Text="From:" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="From:" Style="{StaticResource CaptionLabelStyle}"/>
                         <DatePicker x:Name="DateFromPicker"
                                     SelectedDate="{Binding DateFrom, Mode=TwoWay}"
                                     Width="120" Height="30" FontSize="12"/>
@@ -110,7 +63,7 @@
 
                     <!-- Date To -->
                     <StackPanel Orientation="Horizontal" Margin="0,0,16,4" VerticalAlignment="Center">
-                        <TextBlock Text="To:" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="To:" Style="{StaticResource CaptionLabelStyle}"/>
                         <DatePicker x:Name="DateToPicker"
                                     SelectedDate="{Binding DateTo, Mode=TwoWay}"
                                     Width="120" Height="30" FontSize="12"/>
@@ -118,7 +71,7 @@
 
                     <!-- TX Number -->
                     <StackPanel Orientation="Horizontal" Margin="0,0,16,4" VerticalAlignment="Center">
-                        <TextBlock Text="TX #:" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="TX #:" Style="{StaticResource CaptionLabelStyle}"/>
                         <TextBox x:Name="TxNumberBox"
                                  Text="{Binding TxNumberFilter, UpdateSourceTrigger=PropertyChanged}"
                                  Width="130" Height="30" Padding="8,0"
@@ -128,7 +81,7 @@
 
                     <!-- Payment Method -->
                     <StackPanel Orientation="Horizontal" Margin="0,0,16,4" VerticalAlignment="Center">
-                        <TextBlock Text="Payment:" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="Payment:" Style="{StaticResource CaptionLabelStyle}"/>
                         <ComboBox ItemsSource="{Binding PaymentMethodFilters}"
                                   SelectedItem="{Binding SelectedPaymentMethodFilter}"
                                   Width="110" Height="30" FontSize="12"/>
@@ -136,15 +89,15 @@
 
                     <!-- Search button -->
                     <Button Content="Search"
-                            Style="{StaticResource PrimaryButton}"
-                            Command="{Binding SearchCommand}"
-                            Margin="0,0,6,4"/>
+                             Style="{StaticResource PrimaryButtonStyle}"
+                             Command="{Binding SearchCommand}"
+                             Margin="0,0,6,4"/>
 
                     <!-- Clear button -->
                     <Button Content="Clear Filters"
-                            Style="{StaticResource NeutralButton}"
-                            Command="{Binding ClearFiltersCommand}"
-                            Margin="0,0,0,4"/>
+                             Style="{StaticResource SecondaryButtonStyle}"
+                             Command="{Binding ClearFiltersCommand}"
+                             Margin="0,0,0,4"/>
 
                     <!-- Busy indicator -->
                     <ProgressBar IsIndeterminate="True"
@@ -155,12 +108,10 @@
                 </WrapPanel>
             </Border>
 
-            <!-- ── Row 1: Split view ──────────────────────────────────────────────── -->
             <Grid Grid.Row="1">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" MinWidth="400"/>
-                    <ColumnDefinition Width="5"/>
-                    <ColumnDefinition Width="390" MinWidth="320"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="400"/>
                 </Grid.ColumnDefinitions>
 
                 <!-- Left: Transaction DataGrid ──────────────────────────────────── -->
@@ -171,95 +122,102 @@
                         Background="{DynamicResource SurfaceBrush}"
                         CornerRadius="{DynamicResource RadiusMedium}"
                         Effect="{DynamicResource CardShadow}">
-                    <DataGrid x:Name="TransactionGrid"
-                              Style="{StaticResource ReadOnlyGrid}"
-                              ItemsSource="{Binding Transactions}"
-                              BorderThickness="0">
+                    <Grid>
+                        <DataGrid x:Name="TransactionGrid"
+                                  Style="{StaticResource ReadOnlyGrid}"
+                                  ItemsSource="{Binding Transactions}"
+                                  BorderThickness="0">
 
-                        <DataGrid.RowStyle>
-                            <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
-                                <Setter Property="Cursor" Value="Hand"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsVoided}" Value="True">
-                                        <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </DataGrid.RowStyle>
+                            <DataGrid.RowStyle>
+                                <Style TargetType="DataGridRow" BasedOn="{StaticResource SemanticRowStyle}">
+                                    <Setter Property="Cursor" Value="Hand"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsVoided}" Value="True">
+                                            <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.RowStyle>
 
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="TX Number"
-                                                Binding="{Binding TransactionNumber}"
-                                                Width="110"/>
-                            <DataGridTextColumn Header="Date"
-                                                Binding="{Binding TransactionDate, StringFormat='{}{0:MM/dd/yy HH:mm}'}"
-                                                Width="120"/>
-                            <DataGridTextColumn Header="Customer"
-                                                Binding="{Binding CustomerName}"
-                                                Width="*"/>
-                            <DataGridTextColumn Header="Payment"
-                                                Binding="{Binding PaymentMethod}"
-                                                Width="80"/>
-                            <DataGridTextColumn Header="Total"
-                                                Binding="{Binding TotalAmount, StringFormat='₱{0:N2}'}"
-                                                Width="90">
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="HorizontalAlignment" Value="Right"/>
-                                        <Setter Property="Padding" Value="0,0,8,0"/>
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
-                            <DataGridTextColumn Header="Items"
-                                                Binding="{Binding ItemCount}"
-                                                Width="50">
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="HorizontalAlignment" Value="Center"/>
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
-                            <DataGridTextColumn Header="Returns"
-                                                Binding="{Binding HasReturnsText}"
-                                                Width="65">
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="HorizontalAlignment" Value="Center"/>
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
-                            <DataGridTextColumn Header="Status"
-                                                Binding="{Binding StatusText}"
-                                                Width="70">
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="HorizontalAlignment" Value="Center"/>
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
-                        </DataGrid.Columns>
-                    </DataGrid>
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="TX Number"
+                                                    Binding="{Binding TransactionNumber}"
+                                                    Width="110"/>
+                                <DataGridTextColumn Header="Date"
+                                                    Binding="{Binding TransactionDate, StringFormat='{}{0:MM/dd/yy HH:mm}'}"
+                                                    Width="120"/>
+                                <DataGridTextColumn Header="Customer"
+                                                    Binding="{Binding CustomerName}"
+                                                    Width="*"/>
+                                <DataGridTextColumn Header="Payment"
+                                                    Binding="{Binding PaymentMethod}"
+                                                    Width="80"/>
+                                <DataGridTextColumn Header="Total"
+                                                    Binding="{Binding TotalAmount, StringFormat='₱{0:N2}'}"
+                                                    Width="90">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                                            <Setter Property="Padding" Value="0,0,8,0"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Items"
+                                                    Binding="{Binding ItemCount}"
+                                                    Width="50">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Returns"
+                                                    Binding="{Binding HasReturnsText}"
+                                                    Width="65">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Status"
+                                                    Binding="{Binding StatusText}"
+                                                    Width="70">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <views:EmptyStatePanel Title="No transactions found"
+                                               Description="Adjust your search filters to find transactions."
+                                               HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <views:EmptyStatePanel.Style>
+                                <Style TargetType="UserControl">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Transactions.Count}" Value="0">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </views:EmptyStatePanel.Style>
+                        </views:EmptyStatePanel>
+                    </Grid>
                 </Border>
 
-                <!-- GridSplitter -->
-                <GridSplitter Grid.Column="1"
-                              Width="5"
-                              HorizontalAlignment="Stretch"
-                              Background="{DynamicResource SeparatorBrush}"
-                              ShowsPreview="True"/>
-
-                <!-- Right: Detail panel ─────────────────────────────────────────── -->
-                <Grid Grid.Column="2" Margin="0,12,12,12">
-
+                <!-- Right: Details panel ────────────────────────────────────────── -->
+                <Grid Grid.Column="1" Margin="12">
+                    
                     <!-- Empty state -->
-                    <TextBlock VerticalAlignment="Center"
-                               HorizontalAlignment="Center"
-                               Foreground="{DynamicResource TextSecondaryBrush}"
-                               FontSize="{DynamicResource FontSizeBody}"
-                               TextAlignment="Center"
-                               Text="Select a transaction&#x0a;to view details">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
+                    <views:EmptyStatePanel Title="No transaction selected"
+                                           Description="Select a transaction from the list to view details."
+                                           HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <views:EmptyStatePanel.Style>
+                            <Style TargetType="UserControl">
                                 <Setter Property="Visibility" Value="Visible"/>
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding IsDetailVisible}" Value="True">
@@ -267,8 +225,8 @@
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
+                        </views:EmptyStatePanel.Style>
+                    </views:EmptyStatePanel>
 
                     <!-- Detail content -->
                     <Grid Visibility="{Binding IsDetailVisible, Converter={StaticResource BoolToVis}}">
@@ -321,7 +279,7 @@
                                     </StackPanel>
 
                                     <!-- ── Line Items section ──────────────────────── -->
-                                    <TextBlock Text="LINE ITEMS" Style="{StaticResource SectionHeader}"/>
+                                    <TextBlock Text="LINE ITEMS" Style="{StaticResource SectionHeaderStyle}"/>
                                     <DataGrid Style="{StaticResource ReadOnlyGrid}"
                                               ItemsSource="{Binding DetailLines}"
                                               Height="140"
@@ -363,7 +321,7 @@
                                     </DataGrid>
 
                                     <!-- ── Receipt Info section ────────────────────── -->
-                                    <TextBlock Text="OFFICIAL RECEIPT" Style="{StaticResource SectionHeader}"/>
+                                    <TextBlock Text="OFFICIAL RECEIPT" Style="{StaticResource SectionHeaderStyle}"/>
                                     <Border Padding="10,8" Background="{DynamicResource SidebarBackgroundBrush}"
                                             BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1" CornerRadius="{DynamicResource RadiusSmall}">
                                         <Grid>
@@ -408,7 +366,7 @@
                                     </TextBlock>
 
                                     <!-- ── Returns section ────────────────────────── -->
-                                    <TextBlock Text="RETURNS" Style="{StaticResource SectionHeader}"/>
+                                    <TextBlock Text="RETURNS" Style="{StaticResource SectionHeaderStyle}"/>
                                     <DataGrid Style="{StaticResource ReadOnlyGrid}"
                                               ItemsSource="{Binding DetailReturns}"
                                               Height="120"
@@ -473,11 +431,11 @@
                         <Border Grid.Row="1" Padding="0,8,0,0">
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                 <Button Content="View Receipt"
-                                        Style="{StaticResource PrimaryButton}"
+                                        Style="{StaticResource PrimaryButtonStyle}"
                                         Command="{Binding ViewReceiptCommand}"
                                         Margin="0,0,6,0"/>
                                 <Button Content="Process Return"
-                                        Style="{StaticResource SuccessButton}"
+                                        Style="{StaticResource SuccessButtonStyle}"
                                         Command="{Binding OpenReturnDialogCommand}"
                                         IsEnabled="{Binding CanEdit}"/>
                             </StackPanel>
@@ -534,7 +492,7 @@
                     <Separator Margin="0,0,0,16" Background="{DynamicResource SeparatorBrush}"/>
 
                     <!-- Product selection -->
-                    <TextBlock Text="Product to Return" Style="{StaticResource FieldLabel}"
+                    <TextBlock Text="Product to Return" Style="{StaticResource CaptionLabelStyle}"
                                Margin="0,0,0,4"/>
                     <ComboBox ItemsSource="{Binding ReturnableLines}"
                               SelectedItem="{Binding SelectedReturnLine}"
@@ -551,7 +509,7 @@
                         </Grid.ColumnDefinitions>
 
                         <StackPanel Grid.Column="0">
-                            <TextBlock Text="Return Quantity" Style="{StaticResource FieldLabel}"
+                            <TextBlock Text="Return Quantity" Style="{StaticResource CaptionLabelStyle}"
                                        Margin="0,0,0,4"/>
                             <TextBox x:Name="ReturnQtyBox"
                                      Text="{Binding ReturnQuantity, UpdateSourceTrigger=PropertyChanged}"
@@ -561,7 +519,7 @@
                         </StackPanel>
 
                         <StackPanel Grid.Column="2">
-                            <TextBlock Text="Maximum" Style="{StaticResource FieldLabel}"
+                            <TextBlock Text="Maximum" Style="{StaticResource CaptionLabelStyle}"
                                        Margin="0,0,0,4"/>
                             <Border Height="32" Background="{DynamicResource SidebarBackgroundBrush}"
                                     BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
@@ -600,17 +558,20 @@
                     <!-- Buttons -->
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button Content="Cancel"
-                                Style="{StaticResource NeutralButton}"
+                                Style="{StaticResource SecondaryButtonStyle}"
                                 Command="{Binding CancelReturnCommand}"
                                 Width="90" Margin="0,0,10,0"/>
                         <Button Content="Confirm Return"
-                                Style="{StaticResource DangerButton}"
+                                Style="{StaticResource DangerButtonStyle}"
                                 Command="{Binding ProcessReturnCommand}"
                                 Width="130"/>
                     </StackPanel>
                 </StackPanel>
             </Border>
         </Grid>
+
+        <views:BusyOverlay Grid.RowSpan="3"
+                           Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
 
     </Grid>
 </UserControl>

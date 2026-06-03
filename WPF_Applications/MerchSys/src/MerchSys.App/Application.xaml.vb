@@ -104,6 +104,9 @@ Class Application
                                       ' Infrastructure: Notification toasts (Notification.Wpf)
                                       services.AddSingleton(Of MerchSys.SharedKernel.Interfaces.INotificationService, Services.DefaultNotificationService)()
 
+                                      ' Infrastructure: Concurrency conflict presenter
+                                      services.AddSingleton(Of MerchSys.SharedKernel.Interfaces.IConflictPresenter, Services.DefaultConflictPresenter)()
+
                                       ' ── Purchasing ────────────────────────────────────────
                                       services.AddPurchasingServices()
 

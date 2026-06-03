@@ -4,6 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:MerchSys.POS.ViewModels;assembly=MerchSys.POS"
+             xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
              mc:Ignorable="d"
              d:DesignHeight="768" d:DesignWidth="1280"
              Background="{DynamicResource WindowBackgroundBrush}">
@@ -34,32 +35,6 @@
             <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
-        </Style>
-
-        <Style x:Key="PrimaryButton" TargetType="Button">
-            <Setter Property="Height" Value="30"/>
-            <Setter Property="Padding" Value="14,0"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
-        </Style>
-
-        <Style x:Key="FieldLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="0,0,6,0"/>
-        </Style>
-
-        <Style x:Key="SectionHeader" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-            <Setter Property="Margin" Value="0,0,0,6"/>
         </Style>
 
         <Style x:Key="ReadOnlyGrid" TargetType="DataGrid" BasedOn="{StaticResource {x:Type DataGrid}}">
@@ -151,7 +126,7 @@
                                      Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
                         <Button Content="Refresh"
                                 Command="{Binding LoadCommand}"
-                                Style="{StaticResource PrimaryButton}"/>
+                                Style="{StaticResource PrimaryButtonStyle}"/>
                     </StackPanel>
 
                     <!-- Prev / Period Header / Next (center) -->
@@ -187,7 +162,7 @@
                                 </Style.Triggers>
                             </Style>
                         </StackPanel.Style>
-                        <TextBlock Text="Date:" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="Date:" Style="{StaticResource CaptionLabelStyle}"/>
                         <DatePicker SelectedDate="{Binding SelectedDate, Mode=TwoWay}"
                                     Width="130" Height="28" FontSize="12"/>
                     </StackPanel>
@@ -204,7 +179,7 @@
                                 </Style.Triggers>
                             </Style>
                         </StackPanel.Style>
-                        <TextBlock Text="Any date in week:" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="Any date in week:" Style="{StaticResource CaptionLabelStyle}"/>
                         <DatePicker SelectedDate="{Binding WeekDate, Mode=TwoWay}"
                                     Width="130" Height="28" FontSize="12"
                                     Margin="0,0,10,0"/>
@@ -225,12 +200,12 @@
                                 </Style.Triggers>
                             </Style>
                         </StackPanel.Style>
-                        <TextBlock Text="Month:" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="Month:" Style="{StaticResource CaptionLabelStyle}"/>
                         <ComboBox ItemsSource="{Binding AvailableMonths}"
                                   SelectedIndex="{Binding SelectedMonthIndex, Mode=TwoWay}"
                                   Width="110" Height="28" FontSize="12"
                                   Margin="0,0,10,0"/>
-                        <TextBlock Text="Year:" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="Year:" Style="{StaticResource CaptionLabelStyle}"/>
                         <ComboBox ItemsSource="{Binding AvailableYears}"
                                   SelectedItem="{Binding SelectedYear, Mode=TwoWay}"
                                   Width="72" Height="28" FontSize="12"/>
@@ -319,7 +294,7 @@
                             CornerRadius="{DynamicResource RadiusSmall}" Padding="14,12"
                             Effect="{DynamicResource CardShadow}">
                         <StackPanel>
-                            <TextBlock Text="PAYMENT METHOD BREAKDOWN" Style="{StaticResource SectionHeader}"/>
+                            <TextBlock Text="PAYMENT METHOD BREAKDOWN" Style="{StaticResource SectionHeaderStyle}"/>
                             <DataGrid Style="{StaticResource ReadOnlyGrid}"
                                       ItemsSource="{Binding PaymentBreakdown}"
                                       BorderThickness="0"
@@ -382,7 +357,7 @@
                             CornerRadius="{DynamicResource RadiusSmall}" Padding="14,12"
                             Effect="{DynamicResource CardShadow}">
                         <StackPanel>
-                            <TextBlock Text="TOP 5 SELLING PRODUCTS" Style="{StaticResource SectionHeader}"/>
+                            <TextBlock Text="TOP 5 SELLING PRODUCTS" Style="{StaticResource SectionHeaderStyle}"/>
                             <DataGrid Style="{StaticResource ReadOnlyGrid}"
                                       ItemsSource="{Binding TopProducts}"
                                       BorderThickness="0"
@@ -436,7 +411,7 @@
                         CornerRadius="{DynamicResource RadiusSmall}" Padding="14,12"
                         Effect="{DynamicResource CardShadow}">
                     <StackPanel>
-                        <TextBlock Text="DAILY SALES TREND" Style="{StaticResource SectionHeader}"/>
+                        <TextBlock Text="DAILY SALES TREND" Style="{StaticResource SectionHeaderStyle}"/>
 
                         <TextBlock Text="No data to display."
                                    Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource FontSizeCaption}">
@@ -528,6 +503,9 @@
                 </TextBlock.Style>
             </TextBlock>
         </Border>
+
+        <views:BusyOverlay Grid.Row="0" Grid.RowSpan="3"
+                           Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
 
     </Grid>
 </UserControl>

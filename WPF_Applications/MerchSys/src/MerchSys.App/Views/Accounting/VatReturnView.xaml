@@ -3,330 +3,263 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
              mc:Ignorable="d"
              d:DesignHeight="768" d:DesignWidth="1280"
              Background="{DynamicResource WindowBackgroundBrush}">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
-
-        <Style x:Key="SectionCard" TargetType="Border">
-            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}"/>
-            <Setter Property="Padding" Value="14,12"/>
-            <Setter Property="Margin" Value="0,0,0,8"/>
-        </Style>
-
-        <Style x:Key="KpiCard" TargetType="Border">
-            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}"/>
-            <Setter Property="Padding" Value="14,10"/>
-            <Setter Property="Margin" Value="0,0,6,0"/>
-        </Style>
-
-        <Style x:Key="KpiLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="10"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-            <Setter Property="Margin" Value="0,0,0,3"/>
-        </Style>
-
-        <Style x:Key="KpiValue" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="16"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-        </Style>
-
-        <Style x:Key="ActionButton" TargetType="Button" BasedOn="{StaticResource AccentButtonStyle}">
-            <Setter Property="Padding" Value="12,6"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Margin" Value="0,0,6,0"/>
-        </Style>
-
-        <Style x:Key="FileButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-            <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource SuccessBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
-            <Setter Property="Padding" Value="12,6"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Margin" Value="0,0,6,0"/>
-        </Style>
-
-        <Style x:Key="AmendButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-            <Setter Property="Background" Value="{DynamicResource WarningBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource WarningBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
-            <Setter Property="Padding" Value="12,6"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Margin" Value="0,0,6,0"/>
-        </Style>
-
-        <Style x:Key="SectionLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-            <Setter Property="Margin" Value="0,0,0,8"/>
-        </Style>
     </UserControl.Resources>
 
-    <DockPanel Margin="10">
+    <Grid>
+        <DockPanel Margin="10">
 
-        <!-- ═══════════════════════════════════════════════════════════
-             TOOLBAR
-             ═══════════════════════════════════════════════════════════ -->
-        <Border DockPanel.Dock="Top"
-                Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
-                CornerRadius="{DynamicResource RadiusSmall}" Padding="12,8" Margin="0,0,0,8">
-            <Grid>
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="BIR VAT Return" FontSize="14" FontWeight="Bold"
-                               Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                    <TextBlock Text=" — Generate, File, and Export" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
-                               VerticalAlignment="Center"/>
-                </StackPanel>
-
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <TextBlock Text="Loading…" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"
-                               VerticalAlignment="Center" Margin="0,0,10,0"
-                               Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
-                </StackPanel>
-            </Grid>
-        </Border>
-
-        <!-- ═══════════════════════════════════════════════════════════
-             WHAT THIS MEANS
-             ═══════════════════════════════════════════════════════════ -->
-        <Border DockPanel.Dock="Top"
-                Background="{DynamicResource SidebarBackgroundBrush}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1"
-                CornerRadius="{DynamicResource RadiusSmall}" Padding="14,10" Margin="0,0,0,8">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="&#x1F4CB;" FontSize="20" VerticalAlignment="Top" Margin="0,0,10,0"/>
-                <StackPanel Grid.Column="1">
-                    <TextBlock Text="What This Means" FontSize="12" FontWeight="Bold"
-                               Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,2"/>
-                    <TextBlock Text="{Binding WhatThisMeansText}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"
-                               TextWrapping="Wrap" LineHeight="18"/>
-                </StackPanel>
-            </Grid>
-        </Border>
-
-        <!-- ═══════════════════════════════════════════════════════════
-             CONTROLS PANEL
-             ═══════════════════════════════════════════════════════════ -->
-        <Border DockPanel.Dock="Top" Style="{StaticResource SectionCard}">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-
-                <!-- Period selectors -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="Year:" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                    <ComboBox ItemsSource="{Binding AvailableYears}"
-                              SelectedItem="{Binding SelectedYear, Mode=TwoWay}"
-                              Width="70" FontSize="11" VerticalAlignment="Center" Margin="0,0,12,0"/>
-
-                    <TextBlock Text="Period:" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                    <ComboBox ItemsSource="{Binding AvailablePeriods}"
-                              SelectedItem="{Binding SelectedPeriod, Mode=TwoWay}"
-                              Width="60" FontSize="11" VerticalAlignment="Center" Margin="0,0,20,0"/>
-
-                    <!-- Form Type radios -->
-                    <TextBlock Text="Form:" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                    <RadioButton Content="2550M (Monthly VAT)"
-                                 IsChecked="{Binding IsForm2550M, Mode=TwoWay}"
-                                 FontSize="11" VerticalAlignment="Center" Margin="0,0,10,0" Cursor="Hand"/>
-                    <RadioButton Content="2550Q (Quarterly VAT)"
-                                 IsChecked="{Binding IsForm2550Q, Mode=TwoWay}"
-                                 FontSize="11" VerticalAlignment="Center" Margin="0,0,10,0" Cursor="Hand"/>
-                    <RadioButton Content="2551Q (3% Tax)"
-                                 IsChecked="{Binding IsForm2551Q, Mode=TwoWay}"
-                                 FontSize="11" VerticalAlignment="Center" Cursor="Hand"/>
-                </StackPanel>
-
-                <!-- Action buttons -->
-                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Content="Generate" Command="{Binding GenerateCommand}"
-                            Style="{StaticResource ActionButton}"/>
-                    <Button Content="File with BIR" Command="{Binding FileCommand}"
-                            Style="{StaticResource FileButton}"/>
-                    <Button Content="Amend" Command="{Binding AmendCommand}"
-                            Style="{StaticResource AmendButton}"/>
-                    <Button Content="Export CSV" Command="{Binding ExportCsvCommand}"
-                            Style="{StaticResource ActionButton}"/>
-                    <Button Content="Export PDF" Command="{Binding ExportPdfCommand}"
-                            Style="{StaticResource ActionButton}" Margin="0"/>
-                </StackPanel>
-            </Grid>
-        </Border>
-
-        <!-- ═══════════════════════════════════════════════════════════
-             STATUS MESSAGE
-             ═══════════════════════════════════════════════════════════ -->
-        <TextBlock DockPanel.Dock="Top"
-                   Text="{Binding StatusMessage}"
-                   FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}"
-                   Margin="2,0,0,6"
-                   TextWrapping="Wrap"/>
-
-        <!-- ═══════════════════════════════════════════════════════════
-             SUMMARY CARDS
-             ═══════════════════════════════════════════════════════════ -->
-        <Border DockPanel.Dock="Top" Margin="0,0,0,8">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-
-                <Border Grid.Column="0" Style="{StaticResource KpiCard}">
-                    <StackPanel>
-                        <TextBlock Text="VATABLE SALES" Style="{StaticResource KpiLabel}"/>
-                        <TextBlock Text="{Binding TotalVatableSales, StringFormat='₱{0:N2}'}" Style="{StaticResource KpiValue}"/>
+            <!-- ═══════════════════════════════════════════════════════════
+                 TOOLBAR
+                 ═══════════════════════════════════════════════════════════ -->
+            <Border DockPanel.Dock="Top"
+                    Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                    CornerRadius="{DynamicResource RadiusSmall}" Padding="12,8" Margin="0,0,0,8">
+                <Grid>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="BIR VAT Return" FontSize="14" FontWeight="Bold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        <TextBlock Text=" — Generate, File, and Export" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
+                                   VerticalAlignment="Center"/>
                     </StackPanel>
-                </Border>
 
-                <Border Grid.Column="1" Style="{StaticResource KpiCard}">
-                    <StackPanel>
-                        <TextBlock Text="OUTPUT VAT" Style="{StaticResource KpiLabel}"/>
-                        <TextBlock Text="{Binding TotalOutputVat, StringFormat='₱{0:N2}'}" Style="{StaticResource KpiValue}"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <TextBlock Text="Loading…" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"
+                                   VerticalAlignment="Center" Margin="0,0,10,0"
+                                   Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
                     </StackPanel>
-                </Border>
+                </Grid>
+            </Border>
 
-                <Border Grid.Column="2" Style="{StaticResource KpiCard}">
-                    <StackPanel>
-                        <TextBlock Text="INPUT VAT" Style="{StaticResource KpiLabel}"/>
-                        <TextBlock Text="{Binding TotalInputVat, StringFormat='₱{0:N2}'}" Style="{StaticResource KpiValue}"/>
+            <!-- ═══════════════════════════════════════════════════════════
+                 WHAT THIS MEANS
+                 ═══════════════════════════════════════════════════════════ -->
+            <Border DockPanel.Dock="Top"
+                    Background="{DynamicResource SidebarBackgroundBrush}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1"
+                    CornerRadius="{DynamicResource RadiusSmall}" Padding="14,10" Margin="0,0,0,8">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="&#x1F4CB;" FontSize="20" VerticalAlignment="Top" Margin="0,0,10,0"/>
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Text="What This Means" FontSize="12" FontWeight="Bold"
+                                   Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,2"/>
+                        <TextBlock Text="{Binding WhatThisMeansText}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"
+                                   TextWrapping="Wrap" LineHeight="18"/>
                     </StackPanel>
-                </Border>
+                </Grid>
+            </Border>
 
-                <Border Grid.Column="3" Style="{StaticResource KpiCard}">
-                    <StackPanel>
-                        <TextBlock Text="FILING STATUS" Style="{StaticResource KpiLabel}"/>
-                        <TextBlock Text="{Binding FilingStatusDisplay}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap"/>
+            <!-- ═══════════════════════════════════════════════════════════
+                 CONTROLS PANEL
+                 ═══════════════════════════════════════════════════════════ -->
+            <Border DockPanel.Dock="Top" Style="{StaticResource CardStyle}" CornerRadius="{DynamicResource RadiusSmall}" Padding="14,12" Margin="0,0,0,8">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Period selectors -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="Year:" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <ComboBox ItemsSource="{Binding AvailableYears}"
+                                  SelectedItem="{Binding SelectedYear, Mode=TwoWay}"
+                                  Width="70" FontSize="11" VerticalAlignment="Center" Margin="0,0,12,0"/>
+
+                        <TextBlock Text="Period:" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <ComboBox ItemsSource="{Binding AvailablePeriods}"
+                                  SelectedItem="{Binding SelectedPeriod, Mode=TwoWay}"
+                                  Width="60" FontSize="11" VerticalAlignment="Center" Margin="0,0,20,0"/>
+
+                        <!-- Form Type radios -->
+                        <TextBlock Text="Form:" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <RadioButton Content="2550M (Monthly VAT)"
+                                     IsChecked="{Binding IsForm2550M, Mode=TwoWay}"
+                                     FontSize="11" VerticalAlignment="Center" Margin="0,0,10,0" Cursor="Hand"/>
+                        <RadioButton Content="2550Q (Quarterly VAT)"
+                                     IsChecked="{Binding IsForm2550Q, Mode=TwoWay}"
+                                     FontSize="11" VerticalAlignment="Center" Margin="0,0,10,0" Cursor="Hand"/>
+                        <RadioButton Content="2551Q (3% Tax)"
+                                     IsChecked="{Binding IsForm2551Q, Mode=TwoWay}"
+                                     FontSize="11" VerticalAlignment="Center" Cursor="Hand"/>
                     </StackPanel>
-                </Border>
 
-                <Border Grid.Column="4">
-                    <Border.Style>
-                        <Style TargetType="Border" BasedOn="{StaticResource KpiCard}">
-                            <Setter Property="Margin" Value="0"/>
-                            <Setter Property="Background" Value="{DynamicResource SidebarBackgroundBrush}"/>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding VatPayable}" Value="0">
-                                    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Border.Style>
-                    <StackPanel>
-                        <TextBlock Text="VAT PAYABLE" Style="{StaticResource KpiLabel}"/>
-                        <TextBlock Text="{Binding VatPayableDisplay}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap"/>
+                    <!-- Action buttons -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Content="Generate" Command="{Binding GenerateCommand}"
+                                Style="{StaticResource PrimaryButtonStyle}" Padding="12,6" FontWeight="SemiBold" FontSize="12" Margin="0,0,6,0"/>
+                        <Button Content="File with BIR" Command="{Binding FileCommand}"
+                                Style="{StaticResource SuccessButtonStyle}" Padding="12,6" FontWeight="SemiBold" FontSize="12" Margin="0,0,6,0"/>
+                        <Button Content="Amend" Command="{Binding AmendCommand}"
+                                Style="{StaticResource WarningButtonStyle}" Padding="12,6" FontWeight="SemiBold" FontSize="12" Margin="0,0,6,0"/>
+                        <Button Content="Export CSV" Command="{Binding ExportCsvCommand}"
+                                Style="{StaticResource PrimaryButtonStyle}" Padding="12,6" FontWeight="SemiBold" FontSize="12" Margin="0,0,6,0"/>
+                        <Button Content="Export PDF" Command="{Binding ExportPdfCommand}"
+                                Style="{StaticResource PrimaryButtonStyle}" Padding="12,6" FontWeight="SemiBold" FontSize="12" Margin="0"/>
                     </StackPanel>
-                </Border>
-            </Grid>
-        </Border>
+                </Grid>
+            </Border>
 
-        <!-- ═══════════════════════════════════════════════════════════
-             LINES DETAIL
-             ═══════════════════════════════════════════════════════════ -->
-        <Border Style="{StaticResource SectionCard}" Margin="0">
-            <DockPanel>
-                <TextBlock DockPanel.Dock="Top" Text="Source Document Lines" Style="{StaticResource SectionLabel}"/>
-                <TextBlock DockPanel.Dock="Top" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,8"
-                           Text="Each row represents one ledger entry contributing to this return."/>
+            <!-- ═══════════════════════════════════════════════════════════
+                 STATUS MESSAGE
+                 ═══════════════════════════════════════════════════════════ -->
+            <TextBlock DockPanel.Dock="Top"
+                       Text="{Binding StatusMessage}"
+                       FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}"
+                       Margin="2,0,0,6"
+                       TextWrapping="Wrap"/>
 
-                <DataGrid ItemsSource="{Binding Lines}"
-                          AutoGenerateColumns="False"
-                          CanUserAddRows="False" CanUserDeleteRows="False"
-                          IsReadOnly="True" CanUserReorderColumns="True" CanUserResizeRows="False"
-                          HeadersVisibility="Column" GridLinesVisibility="Horizontal"
-                          BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
-                          RowBackground="{DynamicResource SurfaceBrush}" AlternatingRowBackground="{DynamicResource SidebarBackgroundBrush}"
-                          FontSize="11" CanUserSortColumns="True"
-                          SelectionMode="Single">
+            <!-- ═══════════════════════════════════════════════════════════
+                 SUMMARY CARDS
+                 ═══════════════════════════════════════════════════════════ -->
+            <Border DockPanel.Dock="Top" Margin="0,0,0,8">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
 
-                    <DataGrid.Columns>
+                    <Border Grid.Column="0" Style="{StaticResource CardStyle}" CornerRadius="{DynamicResource RadiusSmall}" Padding="14,10" Margin="0,0,6,0">
+                        <StackPanel>
+                            <TextBlock Text="VATABLE SALES" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,0,3"/>
+                            <TextBlock Text="{Binding TotalVatableSales, StringFormat='₱{0:N2}'}" Style="{StaticResource SectionHeaderStyle}"/>
+                        </StackPanel>
+                    </Border>
 
-                        <DataGridTextColumn Header="Source" Width="220"
-                                           Binding="{Binding SourceDescription}"/>
+                    <Border Grid.Column="1" Style="{StaticResource CardStyle}" CornerRadius="{DynamicResource RadiusSmall}" Padding="14,10" Margin="0,0,6,0">
+                        <StackPanel>
+                            <TextBlock Text="OUTPUT VAT" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,0,3"/>
+                            <TextBlock Text="{Binding TotalOutputVat, StringFormat='₱{0:N2}'}" Style="{StaticResource SectionHeaderStyle}"/>
+                        </StackPanel>
+                    </Border>
 
-                        <DataGridTextColumn Header="Date" Width="100"
-                                           Binding="{Binding TransactionDate, StringFormat='yyyy-MM-dd'}"/>
+                    <Border Grid.Column="2" Style="{StaticResource CardStyle}" CornerRadius="{DynamicResource RadiusSmall}" Padding="14,10" Margin="0,0,6,0">
+                        <StackPanel>
+                            <TextBlock Text="INPUT VAT" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,0,3"/>
+                            <TextBlock Text="{Binding TotalInputVat, StringFormat='₱{0:N2}'}" Style="{StaticResource SectionHeaderStyle}"/>
+                        </StackPanel>
+                    </Border>
 
-                        <DataGridTextColumn Header="Treatment" Width="90"
-                                           Binding="{Binding TreatmentDisplay}"/>
+                    <Border Grid.Column="3" Style="{StaticResource CardStyle}" CornerRadius="{DynamicResource RadiusSmall}" Padding="14,10" Margin="0,0,6,0">
+                        <StackPanel>
+                            <TextBlock Text="FILING STATUS" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,0,3"/>
+                            <TextBlock Text="{Binding FilingStatusDisplay}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
 
-                        <DataGridTextColumn Header="Vatable Amt" Width="110"
-                                           Binding="{Binding VatableAmount, StringFormat='₱{0:N2}'}">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="HorizontalAlignment" Value="Right"/>
-                                    <Setter Property="Padding" Value="0,0,4,0"/>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
+                    <Border Grid.Column="4">
+                        <Border.Style>
+                            <Style TargetType="Border" BasedOn="{StaticResource CardStyle}">
+                                <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}"/>
+                                <Setter Property="Padding" Value="14,10"/>
+                                <Setter Property="Margin" Value="0"/>
+                                <Setter Property="Background" Value="{DynamicResource SidebarBackgroundBrush}"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding VatPayable}" Value="0">
+                                        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <StackPanel>
+                            <TextBlock Text="VAT PAYABLE" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,0,3"/>
+                            <TextBlock Text="{Binding VatPayableDisplay}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
 
-                        <DataGridTextColumn Header="Exempt Amt" Width="110"
-                                           Binding="{Binding VatExemptAmount, StringFormat='₱{0:N2}'}">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="HorizontalAlignment" Value="Right"/>
-                                    <Setter Property="Padding" Value="0,0,4,0"/>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
+            <!-- ═══════════════════════════════════════════════════════════
+                 LINES DETAIL
+                 ═══════════════════════════════════════════════════════════ -->
+            <Border Style="{StaticResource CardStyle}" CornerRadius="{DynamicResource RadiusSmall}" Padding="14,12" Margin="0">
+                <Grid>
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top" Text="Source Document Lines" Style="{StaticResource SectionHeaderStyle}" Margin="0,0,0,8"/>
+                        <TextBlock DockPanel.Dock="Top" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,8"
+                                   Text="Each row represents one ledger entry contributing to this return."/>
 
-                        <DataGridTextColumn Header="Zero-Rated Amt" Width="120"
-                                           Binding="{Binding ZeroRatedAmount, StringFormat='₱{0:N2}'}">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="HorizontalAlignment" Value="Right"/>
-                                    <Setter Property="Padding" Value="0,0,4,0"/>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
+                        <DataGrid ItemsSource="{Binding Lines}"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False" CanUserDeleteRows="False"
+                                  IsReadOnly="True" CanUserReorderColumns="True" CanUserResizeRows="False"
+                                  HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                                  BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                                  RowBackground="{DynamicResource SurfaceBrush}" AlternatingRowBackground="{DynamicResource SidebarBackgroundBrush}"
+                                  RowStyle="{StaticResource SemanticRowStyle}"
+                                  FontSize="11" CanUserSortColumns="True"
+                                  SelectionMode="Single">
 
-                        <DataGridTextColumn Header="Output VAT" Width="100"
-                                           Binding="{Binding OutputVat, StringFormat='₱{0:N2}'}">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="HorizontalAlignment" Value="Right"/>
-                                    <Setter Property="Padding" Value="0,0,4,0"/>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
+                            <DataGrid.Columns>
 
-                        <DataGridTextColumn Header="Input VAT" Width="100"
-                                           Binding="{Binding InputVat, StringFormat='₱{0:N2}'}">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="HorizontalAlignment" Value="Right"/>
-                                    <Setter Property="Padding" Value="0,0,4,0"/>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
+                                <DataGridTextColumn Header="Source" Width="220"
+                                                    Binding="{Binding SourceDescription}"/>
 
-                    </DataGrid.Columns>
-                </DataGrid>
-            </DockPanel>
-        </Border>
+                                <DataGridTextColumn Header="Date" Width="100"
+                                                    Binding="{Binding TransactionDate, StringFormat='yyyy-MM-dd'}"/>
 
-    </DockPanel>
+                                <DataGridTextColumn Header="Treatment" Width="90"
+                                                    Binding="{Binding TreatmentDisplay}"/>
 
+                                <DataGridTextColumn Header="Vatable Amt" Width="110"
+                                                    Binding="{Binding VatableAmount, StringFormat='₱{0:N2}'}"
+                                                    ElementStyle="{StaticResource NumericCellStyle}"/>
+
+                                <DataGridTextColumn Header="Exempt Amt" Width="110"
+                                                    Binding="{Binding VatExemptAmount, StringFormat='₱{0:N2}'}"
+                                                    ElementStyle="{StaticResource NumericCellStyle}"/>
+
+                                <DataGridTextColumn Header="Zero-Rated Amt" Width="120"
+                                                    Binding="{Binding ZeroRatedAmount, StringFormat='₱{0:N2}'}"
+                                                    ElementStyle="{StaticResource NumericCellStyle}"/>
+
+                                <DataGridTextColumn Header="Output VAT" Width="100"
+                                                    Binding="{Binding OutputVat, StringFormat='₱{0:N2}'}"
+                                                    ElementStyle="{StaticResource NumericCellStyle}"/>
+
+                                <DataGridTextColumn Header="Input VAT" Width="100"
+                                                    Binding="{Binding InputVat, StringFormat='₱{0:N2}'}"
+                                                    ElementStyle="{StaticResource NumericCellStyle}"/>
+
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </DockPanel>
+
+                    <views:EmptyStatePanel Title="No Lines Found"
+                                           Description="There are no source document lines for this period."
+                                           HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <views:EmptyStatePanel.Style>
+                            <Style TargetType="views:EmptyStatePanel">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Lines.Count}" Value="0">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </views:EmptyStatePanel.Style>
+                    </views:EmptyStatePanel>
+                </Grid>
+            </Border>
+
+        </DockPanel>
+
+        <!-- Busy Overlay -->
+        <views:BusyOverlay Message="Loading VAT Return..."
+                           Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"
+                           HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+    </Grid>
 </UserControl>

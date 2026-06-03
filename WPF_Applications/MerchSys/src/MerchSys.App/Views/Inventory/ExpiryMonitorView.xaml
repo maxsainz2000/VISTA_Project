@@ -3,63 +3,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
              mc:Ignorable="d"
              d:DesignHeight="768" d:DesignWidth="1280"
              Background="{DynamicResource WindowBackgroundBrush}">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
-
-        <Style x:Key="SummaryCard" TargetType="Border">
-            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}"/>
-            <Setter Property="Padding" Value="16,12"/>
-            <Setter Property="Margin" Value="0,0,8,0"/>
-            <Setter Property="Effect" Value="{DynamicResource CardShadow}"/>
-        </Style>
-
-        <Style x:Key="CardValue" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="24"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-        </Style>
-
-        <Style x:Key="CardLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-            <Setter Property="Margin" Value="0,2,0,0"/>
-        </Style>
-
-        <Style x:Key="SectionHeader" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-        </Style>
-
-        <Style x:Key="FilterLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="0,0,4,0"/>
-        </Style>
-
-        <Style x:Key="ActionButton" TargetType="Button">
-            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="14,6"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Style.Triggers>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
-                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
 
         <Style x:Key="WriteOffButton" TargetType="Button">
             <Setter Property="Background" Value="{DynamicResource DangerBrush}"/>
@@ -77,7 +27,7 @@
         </Style>
 
         <!-- Row style for near-expiry tab: color by UrgencyLevel -->
-        <Style x:Key="NearExpiryRowStyle" TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+        <Style x:Key="NearExpiryRowStyle" TargetType="DataGridRow" BasedOn="{StaticResource SemanticRowStyle}">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding UrgencyLevel}" Value="Red">
                     <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
@@ -92,17 +42,13 @@
         </Style>
 
         <!-- Row style for expired tab: always red -->
-        <Style x:Key="ExpiredRowStyle" TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+        <Style x:Key="ExpiredRowStyle" TargetType="DataGridRow" BasedOn="{StaticResource SemanticRowStyle}">
             <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
-        </Style>
-
-        <Style x:Key="RightAlignCell" TargetType="TextBlock">
-            <Setter Property="HorizontalAlignment" Value="Right"/>
-            <Setter Property="Padding" Value="0,0,4,0"/>
         </Style>
     </UserControl.Resources>
 
-    <DockPanel Margin="10">
+    <Grid>
+        <DockPanel Margin="10">
 
         <!-- ═══════════════════════════════════════════════════════════
              SUMMARY CARDS ROW
@@ -114,25 +60,25 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0" Style="{StaticResource SummaryCard}">
+            <Border Grid.Column="0" Style="{StaticResource CardStyle}">
                 <StackPanel>
-                    <TextBlock Text="{Binding NearExpiryCount}" Style="{StaticResource CardValue}" Foreground="{DynamicResource WarningBrush}"/>
-                    <TextBlock Text="Near-Expiry Batches" Style="{StaticResource CardLabel}"/>
+                    <TextBlock Text="{Binding NearExpiryCount}" Style="{StaticResource MetricValueLargeStyle}" Foreground="{DynamicResource WarningBrush}"/>
+                    <TextBlock Text="Near-Expiry Batches" Style="{StaticResource CaptionLabelStyle}"/>
                 </StackPanel>
             </Border>
 
-            <Border Grid.Column="1" Style="{StaticResource SummaryCard}">
+            <Border Grid.Column="1" Style="{StaticResource CardStyle}">
                 <StackPanel>
-                    <TextBlock Text="{Binding ExpiredCount}" Style="{StaticResource CardValue}" Foreground="{DynamicResource DangerBrush}"/>
-                    <TextBlock Text="Expired Batches" Style="{StaticResource CardLabel}"/>
+                    <TextBlock Text="{Binding ExpiredCount}" Style="{StaticResource MetricValueLargeStyle}" Foreground="{DynamicResource DangerBrush}"/>
+                    <TextBlock Text="Expired Batches" Style="{StaticResource CaptionLabelStyle}"/>
                 </StackPanel>
             </Border>
 
-            <Border Grid.Column="2" Style="{StaticResource SummaryCard}" Margin="0">
+            <Border Grid.Column="2" Style="{StaticResource CardStyle}" Margin="0">
                 <StackPanel>
                     <TextBlock Text="{Binding TotalValueAtRisk, StringFormat='₱{0:N2}'}"
-                               FontSize="20" FontWeight="Bold" Foreground="{DynamicResource DangerBrush}"/>
-                    <TextBlock Text="Total Value at Risk" Style="{StaticResource CardLabel}"/>
+                               Style="{StaticResource MetricValueLargeStyle}" Foreground="{DynamicResource DangerBrush}"/>
+                    <TextBlock Text="Total Value at Risk" Style="{StaticResource CaptionLabelStyle}"/>
                 </StackPanel>
             </Border>
         </Grid>
@@ -156,7 +102,7 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- Threshold spinner -->
-                <TextBlock Grid.Column="0" Text="Near-expiry threshold:" Style="{StaticResource FilterLabel}"/>
+                <TextBlock Grid.Column="0" Text="Near-expiry threshold:" Style="{StaticResource CaptionLabelStyle}"/>
                 <Border Grid.Column="1" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1" CornerRadius="3" Margin="0,0,4,0">
                     <Grid Width="78">
                         <Grid.ColumnDefinitions>
@@ -181,7 +127,7 @@
                         </StackPanel>
                     </Grid>
                 </Border>
-                <TextBlock Grid.Column="2" Text="days" Style="{StaticResource FilterLabel}" Margin="0,0,12,0"/>
+                <TextBlock Grid.Column="2" Text="days" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,12,0"/>
 
                 <!-- Status message -->
                 <TextBlock Grid.Column="3"
@@ -215,7 +161,7 @@
                 <Button Grid.Column="6"
                         Content="Refresh"
                         Command="{Binding RefreshCommand}"
-                        Style="{StaticResource ActionButton}"/>
+                        Style="{StaticResource PrimaryButtonStyle}"/>
             </Grid>
         </Border>
 
@@ -245,7 +191,8 @@
                         <TextBlock Text="15 – 30 days" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                     </StackPanel>
 
-                    <DataGrid ItemsSource="{Binding NearExpiryBatches}"
+                    <Grid>
+                        <DataGrid ItemsSource="{Binding NearExpiryBatches}"
                               AutoGenerateColumns="False"
                               CanUserAddRows="False" CanUserDeleteRows="False"
                               IsReadOnly="True" CanUserReorderColumns="False" CanUserResizeRows="False"
@@ -262,7 +209,7 @@
                             <DataGridTextColumn Header="Batch #" Width="68"
                                                Binding="{Binding BatchId}">
                                 <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock" BasedOn="{StaticResource RightAlignCell}"/>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}"/>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
 
@@ -270,7 +217,7 @@
                                                SortMemberPath="QtyRemaining"
                                                Binding="{Binding QtyRemaining}">
                                 <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock" BasedOn="{StaticResource RightAlignCell}"/>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}"/>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
 
@@ -278,7 +225,7 @@
                                                SortMemberPath="UnitCost"
                                                Binding="{Binding UnitCost, StringFormat='₱{0:N2}'}">
                                 <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock" BasedOn="{StaticResource RightAlignCell}"/>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}"/>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
 
@@ -286,7 +233,7 @@
                                                SortMemberPath="Value"
                                                Binding="{Binding Value, StringFormat='₱{0:N2}'}">
                                 <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock" BasedOn="{StaticResource RightAlignCell}"/>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}"/>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
 
@@ -320,7 +267,22 @@
 
                         </DataGrid.Columns>
                     </DataGrid>
-                </DockPanel>
+                    <views:EmptyStatePanel Title="No near-expiry batches"
+                                           Description="There are no batches expiring within the specified threshold."
+                                           HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <views:EmptyStatePanel.Style>
+                            <Style TargetType="UserControl">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding NearExpiryBatches.Count}" Value="0">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </views:EmptyStatePanel.Style>
+                    </views:EmptyStatePanel>
+                </Grid>
+            </DockPanel>
             </TabItem>
 
             <!-- ── Expired Tab ─────────────────────────────────────── -->
@@ -338,7 +300,8 @@
                                Text="These batches are past their expiry date. Use Write Off to zero the quantity and record a shrinkage loss."
                                FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,6"/>
 
-                    <DataGrid ItemsSource="{Binding ExpiredBatches}"
+                    <Grid>
+                        <DataGrid ItemsSource="{Binding ExpiredBatches}"
                               AutoGenerateColumns="False"
                               CanUserAddRows="False" CanUserDeleteRows="False"
                               IsReadOnly="False" CanUserReorderColumns="False" CanUserResizeRows="False"
@@ -357,7 +320,7 @@
                                                IsReadOnly="True"
                                                Binding="{Binding BatchId}">
                                 <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock" BasedOn="{StaticResource RightAlignCell}"/>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}"/>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
 
@@ -366,7 +329,7 @@
                                                SortMemberPath="QtyRemaining"
                                                Binding="{Binding QtyRemaining}">
                                 <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock" BasedOn="{StaticResource RightAlignCell}"/>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}"/>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
 
@@ -375,7 +338,7 @@
                                                SortMemberPath="UnitCost"
                                                Binding="{Binding UnitCost, StringFormat='₱{0:N2}'}">
                                 <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock" BasedOn="{StaticResource RightAlignCell}"/>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}"/>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
 
@@ -384,7 +347,7 @@
                                                SortMemberPath="Value"
                                                Binding="{Binding Value, StringFormat='₱{0:N2}'}">
                                 <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock" BasedOn="{StaticResource RightAlignCell}"/>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}"/>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
 
@@ -420,11 +383,27 @@
 
                         </DataGrid.Columns>
                     </DataGrid>
-                </DockPanel>
-            </TabItem>
+                    <views:EmptyStatePanel Title="No expired batches"
+                                           Description="There are no expired product batches in inventory."
+                                           HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <views:EmptyStatePanel.Style>
+                            <Style TargetType="UserControl">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ExpiredBatches.Count}" Value="0">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </views:EmptyStatePanel.Style>
+                    </views:EmptyStatePanel>
+                </Grid>
+            </DockPanel>
+        </TabItem>
 
-        </TabControl>
+    </TabControl>
 
-    </DockPanel>
-
+</DockPanel>
+<views:BusyOverlay Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}" />
+</Grid>
 </UserControl>

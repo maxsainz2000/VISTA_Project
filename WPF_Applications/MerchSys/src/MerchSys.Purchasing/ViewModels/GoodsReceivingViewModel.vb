@@ -1,10 +1,13 @@
 Imports System.Collections.ObjectModel
+Imports System.ComponentModel.DataAnnotations
 Imports CommunityToolkit.Mvvm.ComponentModel
 Imports CommunityToolkit.Mvvm.Input
 Imports MerchSys.Purchasing.Dtos
 Imports MerchSys.Purchasing.Entities
 Imports MerchSys.Purchasing.Services
 Imports MerchSys.SharedKernel.Enums
+Imports MerchSys.SharedKernel.Interfaces
+Imports Microsoft.EntityFrameworkCore
 
 Namespace ViewModels
 
@@ -22,19 +25,20 @@ Namespace ViewModels
     ''' HasDiscrepancy and VatAmount auto-recalculate on relevant property changes.
     ''' </summary>
     Public Class GRLineItem
-        Inherits ObservableObject
+        Inherits ObservableValidator
 
         Public Property ProductId As Integer
         Public Property ProductName As String
         Public Property QtyOrdered As Integer
 
         Private _qtyReceived As Integer
+        <Range(0, Integer.MaxValue, ErrorMessage:="Quantity must be non-negative.")>
         Public Property QtyReceived As Integer
             Get
                 Return _qtyReceived
             End Get
             Set(value As Integer)
-                If SetProperty(_qtyReceived, value) Then
+                If SetProperty(_qtyReceived, value, True) Then
                     OnPropertyChanged(NameOf(HasDiscrepancy))
                     OnPropertyChanged(NameOf(VatAmount))
                 End If
@@ -42,12 +46,13 @@ Namespace ViewModels
         End Property
 
         Private _unitCost As Decimal
+        <Range(0.01, Double.MaxValue, ErrorMessage:="Unit cost must be greater than zero.")>
         Public Property UnitCost As Decimal
             Get
                 Return _unitCost
             End Get
             Set(value As Decimal)
-                If SetProperty(_unitCost, value) Then
+                If SetProperty(_unitCost, value, True) Then
                     OnPropertyChanged(NameOf(VatAmount))
                 End If
             End Set
@@ -102,6 +107,10 @@ Namespace ViewModels
             End Get
         End Property
 
+        Public Sub Validate()
+            ValidateAllProperties()
+        End Sub
+
     End Class
 
     ''' <summary>
@@ -110,18 +119,25 @@ Namespace ViewModels
     ''' IGoodsReceivingService.ReceiveGoodsAsync on confirmation.
     ''' </summary>
     Public Class GoodsReceivingViewModel
-        Inherits ObservableObject
+        Inherits ObservableValidator
 
         Private ReadOnly _poService As IPurchaseOrderService
         Private ReadOnly _grService As IGoodsReceivingService
+        Private ReadOnly _conflictPresenter As IConflictPresenter
+        Private ReadOnly _notifications As INotificationService
 
         ' Backing field for SelectedPO so ConfirmReceiptAsync can reset without
         ' re-triggering the setter's LoadPOLinesAsync call.
         Private _selectedPO As POSelectorItem
 
-        Public Sub New(poService As IPurchaseOrderService, grService As IGoodsReceivingService)
+        Public Sub New(poService As IPurchaseOrderService,
+                       grService As IGoodsReceivingService,
+                       conflictPresenter As IConflictPresenter,
+                       notifications As INotificationService)
             _poService = poService
             _grService = grService
+            _conflictPresenter = conflictPresenter
+            _notifications = notifications
 
             SubmittedPOs = New ObservableCollection(Of POSelectorItem)()
             ReceivingLines = New ObservableCollection(Of GRLineItem)()
@@ -200,8 +216,14 @@ Namespace ViewModels
         ' ─── CanExecute ───────────────────────────────────────────────────────────
 
         Private Function CanConfirm() As Boolean
-            Return _selectedPO IsNot Nothing AndAlso ReceivingLines.Any() AndAlso Not IsBusy
+            Return _selectedPO IsNot Nothing AndAlso ReceivingLines.Any() AndAlso Not IsBusy AndAlso ReceivingLines.All(Function(rl) Not rl.HasErrors)
         End Function
+
+        Private Sub OnLineItemPropertyChanged(sender As Object, e As System.ComponentModel.PropertyChangedEventArgs)
+            If e.PropertyName = NameOf(GRLineItem.QtyReceived) OrElse e.PropertyName = NameOf(GRLineItem.UnitCost) OrElse e.PropertyName = "HasErrors" Then
+                ConfirmReceiptCommand.NotifyCanExecuteChanged()
+            End If
+        End Sub
 
         ' ─── Data Loading ─────────────────────────────────────────────────────────
 
@@ -226,6 +248,9 @@ Namespace ViewModels
 
         Private Async Function LoadPOLinesAsync() As Task
             If _selectedPO Is Nothing Then
+                For Each rl In ReceivingLines
+                    RemoveHandler rl.PropertyChanged, AddressOf OnLineItemPropertyChanged
+                Next
                 ReceivingLines.Clear()
                 IsPOSelected = False
                 ConfirmReceiptCommand.NotifyCanExecuteChanged()
@@ -234,17 +259,23 @@ Namespace ViewModels
             IsBusy = True
             Try
                 Dim po = Await _poService.GetByIdAsync(_selectedPO.Id)
+                For Each rl In ReceivingLines
+                    RemoveHandler rl.PropertyChanged, AddressOf OnLineItemPropertyChanged
+                Next
                 ReceivingLines.Clear()
                 If po IsNot Nothing Then
                     For Each line In po.Lines
-                        ReceivingLines.Add(New GRLineItem With {
+                        Dim rl = New GRLineItem With {
                             .ProductId = line.ProductId,
                             .ProductName = line.ProductName,
                             .QtyOrdered = line.QuantityOrdered,
                             .QtyReceived = line.QuantityOrdered,
                             .UnitCost = line.UnitCost,
                             .VatClassification = VatTreatment.Vatable
-                        })
+                        }
+                        rl.Validate()
+                        AddHandler rl.PropertyChanged, AddressOf OnLineItemPropertyChanged
+                        ReceivingLines.Add(rl)
                     Next
                 End If
                 IsPOSelected = True
@@ -278,6 +309,10 @@ Namespace ViewModels
             End If
 
             IsBusy = True
+            Dim concurrencyError As Boolean = False
+            Dim invalidOperationError As Boolean = False
+            Dim errorMessage As String = String.Empty
+
             Try
                 Dim dtos = ReceivingLines.Select(Function(rl) New ReceiveGoodsLineDto With {
                     .ProductId = rl.ProductId,
@@ -292,8 +327,11 @@ Namespace ViewModels
 
                 Dim receipt = Await _grService.ReceiveGoodsAsync(_selectedPO.Id, dtos)
                 StatusMessage = $"Receipt {receipt.ReceiptNumber} confirmed — PO marked Received."
+                _notifications.ShowSuccess($"Receipt {receipt.ReceiptNumber} confirmed.")
 
-                ' Reset without re-triggering LoadPOLinesAsync
+                For Each rl In ReceivingLines
+                    RemoveHandler rl.PropertyChanged, AddressOf OnLineItemPropertyChanged
+                Next
                 _selectedPO = Nothing
                 OnPropertyChanged(NameOf(SelectedPO))
                 ReceivingLines.Clear()
@@ -301,11 +339,31 @@ Namespace ViewModels
                 ConfirmReceiptCommand.NotifyCanExecuteChanged()
 
                 Await LoadSubmittedPOsAsync()
+            Catch ex As DbUpdateConcurrencyException
+                concurrencyError = True
             Catch ex As InvalidOperationException
-                StatusMessage = $"Receipt failed: {ex.Message}"
+                invalidOperationError = True
+                errorMessage = ex.Message
             Finally
                 IsBusy = False
             End Try
+
+            If concurrencyError Then
+                Dim shouldRefresh = Await _conflictPresenter.PromptAsync()
+                If shouldRefresh Then
+                    For Each rl In ReceivingLines
+                        RemoveHandler rl.PropertyChanged, AddressOf OnLineItemPropertyChanged
+                    Next
+                    _selectedPO = Nothing
+                    OnPropertyChanged(NameOf(SelectedPO))
+                    ReceivingLines.Clear()
+                    IsPOSelected = False
+                    ConfirmReceiptCommand.NotifyCanExecuteChanged()
+                    Await LoadSubmittedPOsAsync()
+                End If
+            ElseIf invalidOperationError Then
+                StatusMessage = $"Receipt failed: {errorMessage}"
+            End If
         End Function
 
     End Class
