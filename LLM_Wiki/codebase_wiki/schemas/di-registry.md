@@ -158,3 +158,18 @@ This page documents the composition root in `MerchSys.App`.
 | (Extension) | `AddModuleDbContexts()` | Registers all module DbContexts (Scoped) |
 | (Extension) | `AddMediatRServices()` | Registers MediatR and all module handlers |
 | (Extension) | `AddConnectionHealthMonitor()` | Registers Connection health monitor services |
+
+## UX-14 — Concurrency-Guard Dependency Notes
+
+> `IConflictPresenter` (Singleton, registered above) is injected as a constructor parameter into the following VMs as of UX-14. No new DI registrations were required — DI auto-resolves the Singleton into each Transient VM.
+
+| ViewModel | Module | Write paths guarded |
+|---|---|---|
+| `ProductManagementViewModel` | Inventory | `SaveProductAsync`, `ToggleActiveAsync`, `SaveCategoryAsync`, `DeleteCategoryAsync` |
+| `ShrinkageViewModel` | Inventory | `ExecuteRecordAsync` |
+| `PurchaseOrderListViewModel` | Purchasing | `SaveDraftAsync`, `SubmitFromEditorAsync`, `SubmitSelectedAsync`, `DeleteSelectedAsync` |
+| `ReorderSuggestionsViewModel` | Purchasing | `AcceptAsync` |
+| `VendorListViewModel` | Purchasing | `SaveVendorAsync`, `DeleteSelectedAsync` |
+| `TransactionHistoryViewModel` | POS | `ProcessReturnAsync` |
+
+The five UX-06 VMs (`SalesCartViewModel`, `APLedgerViewModel`, `GoodsReceivingViewModel`, `CreditManagementViewModel`, `VatSettingsViewModel`) already had `IConflictPresenter` injected from UX-06; UX-14 consolidated their inline catch blocks onto the shared primitive.
