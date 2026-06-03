@@ -41,9 +41,8 @@ Namespace Views.Accounting
                 End If
             Next
             If mainVm Is Nothing Then Return
-            Dim item = mainVm.NavigationGroups _
-                .SelectMany(Function(g) g.Items) _
-                .FirstOrDefault(Function(i) i.ViewType = GetType(VatReturnView))
+            Dim pair = mainVm.AllNavigableItems.FirstOrDefault(Function(n) n.Item.ViewType = GetType(VatReturnView))
+            Dim item = pair.Item
             If item IsNot Nothing AndAlso mainVm.NavigateCommand.CanExecute(item) Then
                 mainVm.NavigateCommand.Execute(item)
             End If

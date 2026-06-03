@@ -127,18 +127,20 @@ This page documents the composition root in `MerchSys.App`.
 | `ConnectionStatusIndicator` | (Shell) | Transient |
 | `ActivityRail` | (Shell) | Singleton |
 | `ModuleDetailPanel` | (Shell) | Singleton |
+| `CommandPalette` | (Shell) | Singleton |
 
 
 ## Shell Components
 | Class | Lifetime | Description |
 |---|---|---|
-| `MainWindowViewModel` | Singleton | Main navigation hub and state manager for the shell. |
+| `MainWindowViewModel` | Singleton | Main navigation hub and state manager for the shell. Contains the `AllNavigableItems` aggregator and controls command palette visibility state. |
 | `MainWindow` | Singleton | Main application window. |
 | `LoginViewModel` | Transient | VM for the standalone login window. |
 | `OwnerDashboardViewModel` | Transient | VM for the owner dashboard. |
 | `SessionTimeoutWarningViewModel` | Transient | VM for the inactivity warning countdown dialog. |
 | `ActivityRailViewModel` | Singleton | VM for the master activity rail module navigation. |
 | `ConnectionStatusViewModel` | Transient | VM for the connection health status indicator pill. |
+| `CommandPaletteViewModel` | Singleton | VM for the Spotlight-style command palette overlay. Handles debounced search and sets active module before routing navigation. |
 
 
 ## Shared Services

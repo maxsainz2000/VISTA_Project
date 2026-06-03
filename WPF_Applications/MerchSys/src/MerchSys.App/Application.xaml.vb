@@ -201,6 +201,8 @@ Class Application
 
                                       ' ── Shell ─────────────────────────────────────────────
                                       services.AddSingleton(Of MainWindowViewModel)()
+                                      services.AddSingleton(Of ViewModels.Shell.CommandPaletteViewModel)()
+                                      services.AddSingleton(Of Views.Shell.CommandPalette)()
                                       ' INFRA-30: Activity Rail + Module Detail Panel (Singleton — created once with MainWindow)
                                       services.AddSingleton(Of ViewModels.Shell.ActivityRailViewModel)()
                                       services.AddSingleton(Of Views.Shell.ActivityRail)()

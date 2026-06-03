@@ -7,6 +7,7 @@ Imports MerchSys.App.Services
 Imports MerchSys.App.Services.Theming
 Imports MerchSys.SharedKernel.Enums
 Imports MerchSys.SharedKernel.Interfaces
+Imports MerchSys.App.ViewModels.Shell
 
 Namespace ViewModels
 
@@ -92,6 +93,42 @@ Namespace ViewModels
         ' Legacy flat-group collection (kept for reference; new UI uses per-module collections above)
         Public ReadOnly Property NavigationGroups As ObservableCollection(Of NavigationGroup)
 
+        Private _allNavigableItems As List(Of ([Module] As AppModule, Item As NavigationItem)) = New List(Of ([Module] As AppModule, Item As NavigationItem))()
+
+        Public ReadOnly Property AllNavigableItems As IReadOnlyList(Of ([Module] As AppModule, Item As NavigationItem))
+            Get
+                Return _allNavigableItems
+            End Get
+        End Property
+
+        ' ── Command Palette Integration ──────────────────────────────────────────
+
+        Private _commandPalette As CommandPaletteViewModel
+
+        Public ReadOnly Property CommandPalette As CommandPaletteViewModel
+            Get
+                If _commandPalette Is Nothing Then
+                    _commandPalette = _services.GetRequiredService(Of CommandPaletteViewModel)()
+                    AddHandler _commandPalette.PropertyChanged, AddressOf OnCommandPalettePropertyChanged
+                End If
+                Return _commandPalette
+            End Get
+        End Property
+
+        Private Sub OnCommandPalettePropertyChanged(sender As Object, e As System.ComponentModel.PropertyChangedEventArgs)
+            If e.PropertyName = NameOf(CommandPaletteViewModel.IsOpen) Then
+                OnPropertyChanged(NameOf(IsCommandPaletteOpen))
+                SelectModuleCommand.NotifyCanExecuteChanged()
+                NavigateCommand.NotifyCanExecuteChanged()
+            End If
+        End Sub
+
+        Public ReadOnly Property IsCommandPaletteOpen As Boolean
+            Get
+                Return CommandPalette.IsOpen
+            End Get
+        End Property
+
         ' ── Commands ─────────────────────────────────────────────────────────────
 
         Public ReadOnly Property NavigateCommand As RelayCommand(Of NavigationItem)
@@ -118,8 +155,8 @@ Namespace ViewModels
             DeveloperToolsItems = New ObservableCollection(Of NavigationItem)()
             NavigationGroups = New ObservableCollection(Of NavigationGroup)(BuildNavigationGroups())
 
-            NavigateCommand = New RelayCommand(Of NavigationItem)(AddressOf Navigate)
-            SelectModuleCommand = New RelayCommand(Of AppModule)(AddressOf DoSelectModule)
+            NavigateCommand = New RelayCommand(Of NavigationItem)(AddressOf Navigate, AddressOf CanNavigate)
+            SelectModuleCommand = New RelayCommand(Of AppModule)(AddressOf DoSelectModule, AddressOf CanSelectModule)
             LogoutCommand = New RelayCommand(AddressOf DoLogout)
             ToggleThemeCommand = New RelayCommand(AddressOf DoToggleTheme)
 
@@ -127,6 +164,14 @@ Namespace ViewModels
         End Sub
 
         ' ── Navigation ───────────────────────────────────────────────────────────
+
+        Private Function CanNavigate(item As NavigationItem) As Boolean
+            Return Not IsCommandPaletteOpen
+        End Function
+
+        Private Function CanSelectModule(m As AppModule) As Boolean
+            Return Not IsCommandPaletteOpen
+        End Function
 
         Private Sub Navigate(item As NavigationItem)
             If item Is Nothing Then Return
@@ -189,6 +234,28 @@ Namespace ViewModels
             RebuildCollection(PosItems, BuildRoleAwarePosItems())
             RebuildCollection(AccountingItems, BuildRoleAwareAccountingItems())
             RebuildCollection(DeveloperToolsItems, BuildDeveloperToolsItems())
+            RebuildAllNavigableItems()
+        End Sub
+
+        Private Sub RebuildAllNavigableItems()
+            Dim list As New List(Of ([Module] As AppModule, Item As NavigationItem))()
+            For Each itm In PurchasingItems
+                list.Add((AppModule.Purchasing, itm))
+            Next
+            For Each itm In InventoryItems
+                list.Add((AppModule.Inventory, itm))
+            Next
+            For Each itm In PosItems
+                list.Add((AppModule.POS, itm))
+            Next
+            For Each itm In AccountingItems
+                list.Add((AppModule.Accounting, itm))
+            Next
+            For Each itm In DeveloperToolsItems
+                list.Add((AppModule.DeveloperTools, itm))
+            Next
+            _allNavigableItems = list
+            OnPropertyChanged(NameOf(AllNavigableItems))
         End Sub
 
         Private Sub RebuildActiveModuleItems()

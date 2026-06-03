@@ -273,6 +273,46 @@
                                FontSize="{DynamicResource FontSizeCaption}" 
                                FontWeight="Bold"
                                Margin="16,0,16,4"/>
+                    <!-- Search Affordance Button -->
+                    <Button Command="{Binding CommandPalette.OpenCommand}"
+                            Style="{StaticResource CleanButtonStyle}"
+                            Margin="12,4,12,8"
+                            Cursor="Hand"
+                            Focusable="False">
+                        <Border Background="{DynamicResource ControlBackgroundBrush}"
+                                BorderBrush="{DynamicResource SeparatorBrush}"
+                                BorderThickness="1"
+                                CornerRadius="{DynamicResource RadiusSmall}"
+                                Padding="8,6">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <Path Grid.Column="0"
+                                      Width="12" Height="12"
+                                      Margin="0,0,6,0"
+                                      Fill="{DynamicResource TextSecondaryBrush}"
+                                      Stretch="Uniform"
+                                      Data="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                                
+                                <TextBlock Grid.Column="1"
+                                           Text="Search..."
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           FontSize="{DynamicResource FontSizeCaption}"
+                                           VerticalAlignment="Center"/>
+                                
+                                <TextBlock Grid.Column="2"
+                                           Text="Ctrl+K"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           FontSize="10"
+                                           Opacity="0.7"
+                                           VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                    </Button>
                 </StackPanel>
             </Border>
 

@@ -10,7 +10,12 @@
         WindowStartupLocation="CenterScreen"
         WindowState="Maximized"
         MinHeight="600" MinWidth="900"
-        FontFamily="{DynamicResource AppFontFamily}">
+        FontFamily="{DynamicResource AppFontFamily}"
+        xmlns:views="clr-namespace:MerchSys.App.Views.Shell">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    </Window.Resources>
 
     <!--
         Shell layout — three columns:
@@ -36,6 +41,8 @@
         <KeyBinding Gesture="Ctrl+D0"
                     Command="{Binding SelectModuleCommand}"
                     CommandParameter="{x:Static models:AppModule.DeveloperTools}"/>
+        <KeyBinding Gesture="Ctrl+K"
+                    Command="{Binding CommandPalette.OpenCommand}"/>
     </Window.InputBindings>
 
     <Grid>
@@ -62,6 +69,12 @@
                 Padding="{DynamicResource SpacingL}">
             <ContentControl Content="{Binding CurrentView}"/>
         </Border>
+
+        <!-- Command Palette Overlay -->
+        <views:CommandPalette x:Name="CommandPaletteControl"
+                              Grid.Column="0" Grid.ColumnSpan="3"
+                              Visibility="{Binding IsOpen, Converter={StaticResource BooleanToVisibilityConverter}}"
+                              DataContext="{Binding CommandPalette}"/>
 
     </Grid>
 </Window>
