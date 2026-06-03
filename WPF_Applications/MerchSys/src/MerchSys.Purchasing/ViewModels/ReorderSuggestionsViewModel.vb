@@ -3,6 +3,8 @@ Imports CommunityToolkit.Mvvm.ComponentModel
 Imports CommunityToolkit.Mvvm.Input
 Imports MerchSys.Purchasing.Entities
 Imports MerchSys.Purchasing.Services
+Imports MerchSys.SharedKernel.Interfaces
+Imports MerchSys.SharedKernel.Persistence
 
 Namespace ViewModels
 
@@ -27,11 +29,13 @@ Namespace ViewModels
         Inherits ObservableObject
 
         Private ReadOnly _reorderService As IReorderService
+        Private ReadOnly _conflictPresenter As IConflictPresenter
         Private _allSuggestions As List(Of SuggestionRow) = New List(Of SuggestionRow)()
         Private _editingConfig As ReorderConfig
 
-        Public Sub New(reorderService As IReorderService)
+        Public Sub New(reorderService As IReorderService, conflictPresenter As IConflictPresenter)
             _reorderService = reorderService
+            _conflictPresenter = conflictPresenter
 
             Suggestions = New ObservableCollection(Of SuggestionRow)()
             Configs = New ObservableCollection(Of ReorderConfig)()
@@ -326,15 +330,32 @@ Namespace ViewModels
         Private Async Function AcceptAsync(row As SuggestionRow) As Task
             If row Is Nothing Then Return
             IsBusy = True
+            Dim invalidOperationError As Boolean = False
+            Dim errorMessage As String = String.Empty
+            Dim poNumber As String = String.Empty
             Try
-                Dim po = Await _reorderService.AcceptSuggestionAsync(row.Id)
-                StatusMessage = $"Draft PO {po.OrderNumber} created."
-                Await LoadDataAsync()
+                Dim saved = Await ConcurrencyHelper.ExecuteWithConflictPromptAsync(
+                    Async Function()
+                        Dim po = Await _reorderService.AcceptSuggestionAsync(row.Id)
+                        poNumber = po.OrderNumber
+                    End Function,
+                    AddressOf LoadDataAsync,
+                    _conflictPresenter)
+
+                If saved Then
+                    StatusMessage = $"Draft PO {poNumber} created."
+                    Await LoadDataAsync()
+                End If
             Catch ex As InvalidOperationException
-                StatusMessage = $"Cannot accept: {ex.Message}"
+                invalidOperationError = True
+                errorMessage = ex.Message
             Finally
                 IsBusy = False
             End Try
+
+            If invalidOperationError Then
+                StatusMessage = $"Cannot accept: {errorMessage}"
+            End If
         End Function
 
         Private Async Function DismissAsync(row As SuggestionRow) As Task

@@ -3,6 +3,8 @@ Imports CommunityToolkit.Mvvm.ComponentModel
 Imports CommunityToolkit.Mvvm.Input
 Imports MerchSys.Purchasing.Entities
 Imports MerchSys.Purchasing.Services
+Imports MerchSys.SharedKernel.Interfaces
+Imports MerchSys.SharedKernel.Persistence
 
 Namespace ViewModels
 
@@ -27,10 +29,12 @@ Namespace ViewModels
         Inherits ObservableObject
 
         Private ReadOnly _vendorService As IVendorService
+        Private ReadOnly _conflictPresenter As IConflictPresenter
         Private _allVendors As List(Of Vendor) = New List(Of Vendor)()
 
-        Public Sub New(vendorService As IVendorService)
+        Public Sub New(vendorService As IVendorService, conflictPresenter As IConflictPresenter)
             _vendorService = vendorService
+            _conflictPresenter = conflictPresenter
 
             Vendors = New ObservableCollection(Of Vendor)()
             RecentPOs = New ObservableCollection(Of POSummaryRow)()
@@ -256,40 +260,71 @@ Namespace ViewModels
             If Not IsEditorOpen Then Return
             If Not Editor.Validate() Then Return
 
+            Dim isNew = Editor.IsNewVendor
             IsBusy = True
+            Dim invalidOperationError As Boolean = False
+            Dim errorMessage As String = String.Empty
+            Dim savedVendorName As String = String.Empty
             Try
-                If Editor.IsNewVendor Then
-                    Dim created = Await _vendorService.CreateAsync(Editor.ToCreateDto())
+                Dim saved = Await ConcurrencyHelper.ExecuteWithConflictPromptAsync(
+                    Async Function()
+                        Dim result As Vendor
+                        If isNew Then
+                            result = Await _vendorService.CreateAsync(Editor.ToCreateDto())
+                        Else
+                            result = Await _vendorService.UpdateAsync(Editor.EditingVendorId.Value, Editor.ToUpdateDto())
+                        End If
+                        savedVendorName = result.Name
+                    End Function,
+                    AddressOf LoadDataAsync,
+                    _conflictPresenter)
+
+                If saved Then
                     CloseEditor()
                     Await LoadDataAsync()
-                    StatusMessage = $"Vendor '{created.Name}' created."
-                Else
-                    Dim updated = Await _vendorService.UpdateAsync(Editor.EditingVendorId.Value, Editor.ToUpdateDto())
-                    CloseEditor()
-                    Await LoadDataAsync()
-                    StatusMessage = $"Vendor '{updated.Name}' updated."
+                    StatusMessage = If(isNew,
+                        $"Vendor '{savedVendorName}' created.",
+                        $"Vendor '{savedVendorName}' updated.")
                 End If
             Catch ex As InvalidOperationException
-                Editor.ValidationError = ex.Message
+                invalidOperationError = True
+                errorMessage = ex.Message
             Finally
                 IsBusy = False
             End Try
+
+            If invalidOperationError Then
+                Editor.ValidationError = errorMessage
+            End If
         End Function
 
         Private Async Function DeleteSelectedAsync() As Task
             If SelectedVendor Is Nothing Then Return
             Dim vendorName = SelectedVendor.Name
             IsBusy = True
+            Dim invalidOperationError As Boolean = False
+            Dim errorMessage As String = String.Empty
             Try
-                Await _vendorService.DeleteAsync(SelectedVendor.Id)
-                ClearVendorDetail()
-                Await LoadDataAsync()
-                StatusMessage = $"Vendor '{vendorName}' deleted."
+                Dim saved = Await ConcurrencyHelper.ExecuteWithConflictPromptAsync(
+                    Async Function() Await _vendorService.DeleteAsync(SelectedVendor.Id),
+                    AddressOf LoadDataAsync,
+                    _conflictPresenter)
+
+                If saved Then
+                    ClearVendorDetail()
+                    Await LoadDataAsync()
+                    StatusMessage = $"Vendor '{vendorName}' deleted."
+                End If
             Catch ex As InvalidOperationException
-                StatusMessage = $"Delete failed: {ex.Message}"
+                invalidOperationError = True
+                errorMessage = ex.Message
             Finally
                 IsBusy = False
             End Try
+
+            If invalidOperationError Then
+                StatusMessage = $"Delete failed: {errorMessage}"
+            End If
         End Function
 
     End Class

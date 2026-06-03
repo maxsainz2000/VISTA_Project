@@ -9,6 +9,7 @@ Imports MerchSys.POS.Entities
 Imports MerchSys.POS.Services
 Imports MerchSys.SharedKernel.Enums
 Imports MerchSys.SharedKernel.Interfaces
+Imports MerchSys.SharedKernel.Persistence
 
 Namespace ViewModels
 
@@ -513,7 +514,6 @@ Namespace ViewModels
         Private Async Function RecordPaymentAsync() As Task
             IsBusy = True
             StatusMessage = String.Empty
-            Dim concurrencyError As Boolean = False
             Dim generalError As Boolean = False
             Dim errorMessage As String = String.Empty
 
@@ -529,46 +529,30 @@ Namespace ViewModels
             End Select
 
             Try
-                Await _creditService.RecordPaymentAsync(targetId, amount, method, _session.CurrentUsername)
+                Dim saved = Await ConcurrencyHelper.ExecuteWithConflictPromptAsync(
+                    Async Function() Await _creditService.RecordPaymentAsync(targetId, amount, method, _session.CurrentUsername),
+                    Async Function()
+                        IsPaymentDialogVisible = False
+                        PaymentAmount = String.Empty
+                        Await LoadDataInternalAsync()
+                        If SelectedAccount IsNot Nothing AndAlso SelectedAccount.Id = targetId Then
+                            Dim refreshed = _allAccounts.FirstOrDefault(Function(a) a.Id = targetId)
+                            If refreshed IsNot Nothing Then
+                                _selectedAccount = refreshed
+                                OnPropertyChanged(NameOf(SelectedAccount))
+                                OnPropertyChanged(NameOf(HasSelectedAccount))
+                                Await LoadHistoryInternalAsync(refreshed)
+                            End If
+                        End If
+                    End Function,
+                    _conflictPresenter)
 
-                IsPaymentDialogVisible = False
-                PaymentAmount = String.Empty
-
-                Await LoadDataInternalAsync()
-
-                ' Refresh history if the paid account is still selected
-                If SelectedAccount IsNot Nothing AndAlso SelectedAccount.Id = targetId Then
-                    Dim refreshed = _allAccounts.FirstOrDefault(Function(a) a.Id = targetId)
-                    If refreshed IsNot Nothing Then
-                        _selectedAccount = refreshed
-                        OnPropertyChanged(NameOf(SelectedAccount))
-                        OnPropertyChanged(NameOf(HasSelectedAccount))
-                        Await LoadHistoryInternalAsync(refreshed)
-                    End If
-                End If
-
-                If clearsBalance Then
-                    ShowSuccess("Account cleared — credit re-enabled.")
-                    _notifications.ShowSuccess("Credit account cleared.")
-                Else
-                    ShowSuccess($"Payment of ₱{amount:N2} recorded.")
-                    _notifications.ShowSuccess($"Payment of ₱{amount:N2} recorded.")
-                End If
-            Catch ex As DbUpdateConcurrencyException
-                concurrencyError = True
-            Catch ex As Exception
-                generalError = True
-                errorMessage = ex.Message
-            Finally
-                IsBusy = False
-            End Try
-
-            If concurrencyError Then
-                Dim shouldRefresh = Await _conflictPresenter.PromptAsync()
-                If shouldRefresh Then
+                If saved Then
                     IsPaymentDialogVisible = False
                     PaymentAmount = String.Empty
+
                     Await LoadDataInternalAsync()
+
                     If SelectedAccount IsNot Nothing AndAlso SelectedAccount.Id = targetId Then
                         Dim refreshed = _allAccounts.FirstOrDefault(Function(a) a.Id = targetId)
                         If refreshed IsNot Nothing Then
@@ -578,8 +562,23 @@ Namespace ViewModels
                             Await LoadHistoryInternalAsync(refreshed)
                         End If
                     End If
+
+                    If clearsBalance Then
+                        ShowSuccess("Account cleared — credit re-enabled.")
+                        _notifications.ShowSuccess("Credit account cleared.")
+                    Else
+                        ShowSuccess($"Payment of ₱{amount:N2} recorded.")
+                        _notifications.ShowSuccess($"Payment of ₱{amount:N2} recorded.")
+                    End If
                 End If
-            ElseIf generalError Then
+            Catch ex As Exception
+                generalError = True
+                errorMessage = ex.Message
+            Finally
+                IsBusy = False
+            End Try
+
+            If generalError Then
                 ShowError("Payment failed: " & errorMessage)
             End If
         End Function

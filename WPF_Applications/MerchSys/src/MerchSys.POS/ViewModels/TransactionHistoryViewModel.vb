@@ -5,6 +5,7 @@ Imports MerchSys.POS.Entities
 Imports MerchSys.POS.Services
 Imports MerchSys.SharedKernel.Enums
 Imports MerchSys.SharedKernel.Interfaces
+Imports MerchSys.SharedKernel.Persistence
 Imports Microsoft.Extensions.Configuration
 Imports Microsoft.Extensions.Options
 Imports MerchSys.POS.Services.ReceiptRendering
@@ -110,6 +111,7 @@ Namespace ViewModels
         Private ReadOnly _cartService As ICartService
         Private ReadOnly _returnService As ISalesReturnService
         Private ReadOnly _receiptService As IReceiptService
+        Private ReadOnly _conflictPresenter As IConflictPresenter
         Private ReadOnly _configuration As IConfiguration
         Private ReadOnly _pdfOptions As IOptions(Of ReceiptPdfOptions)
 
@@ -183,6 +185,7 @@ Namespace ViewModels
                        cartService As ICartService,
                        returnService As ISalesReturnService,
                        receiptService As IReceiptService,
+                       conflictPresenter As IConflictPresenter,
                        configuration As IConfiguration,
                        pdfOptions As IOptions(Of ReceiptPdfOptions))
 
@@ -190,6 +193,7 @@ Namespace ViewModels
             _cartService = cartService
             _returnService = returnService
             _receiptService = receiptService
+            _conflictPresenter = conflictPresenter
             _configuration = configuration
             _pdfOptions = pdfOptions
 
@@ -669,31 +673,46 @@ Namespace ViewModels
         Private Async Function ProcessReturnAsync() As Task
             If Not CanProcessReturn() Then Return
 
+            Dim productName = SelectedReturnLine.ProductName
+            Dim qty = ReturnQuantity
             IsBusy = True
+            Dim generalError As Boolean = False
+            Dim generalErrorMessage As String = String.Empty
             Try
-                Await _returnService.ProcessReturnAsync(
-                    SelectedTransaction.TransactionId,
-                    SelectedReturnLine.ProductId,
-                    ReturnQuantity,
-                    ReturnReason.Trim(),
-                    ShouldRestock)
+                Dim saved = Await ConcurrencyHelper.ExecuteWithConflictPromptAsync(
+                    Async Function()
+                        Await _returnService.ProcessReturnAsync(
+                            SelectedTransaction.TransactionId,
+                            SelectedReturnLine.ProductId,
+                            ReturnQuantity,
+                            ReturnReason.Trim(),
+                            ShouldRestock)
+                    End Function,
+                    Async Function()
+                        IsReturnDialogVisible = False
+                        Await SelectTransactionAsync(SelectedTransaction)
+                    End Function,
+                    _conflictPresenter)
 
-                Dim productName = SelectedReturnLine.ProductName
-                Dim qty = ReturnQuantity
+                If saved Then
+                    IsReturnDialogVisible = False
+                    StatusMessage = $"Return processed: {qty}× {productName}."
+                    IsStatusSuccess = True
 
-                IsReturnDialogVisible = False
-                StatusMessage = $"Return processed: {qty}× {productName}."
-                IsStatusSuccess = True
-
-                ' Mark the grid row and refresh the detail panel
-                SelectedTransaction.HasReturns = True
-                Await SelectTransactionAsync(SelectedTransaction)
+                    SelectedTransaction.HasReturns = True
+                    Await SelectTransactionAsync(SelectedTransaction)
+                End If
             Catch ex As Exception
-                StatusMessage = $"Return failed: {ex.Message}"
-                IsStatusSuccess = False
+                generalError = True
+                generalErrorMessage = ex.Message
             Finally
                 IsBusy = False
             End Try
+
+            If generalError Then
+                StatusMessage = $"Return failed: {generalErrorMessage}"
+                IsStatusSuccess = False
+            End If
         End Function
 
     End Class

@@ -7,7 +7,7 @@ Imports MerchSys.POS.Services
 Imports MerchSys.SharedKernel.Enums
 Imports MerchSys.SharedKernel.Queries
 Imports MerchSys.SharedKernel.Interfaces
-Imports Microsoft.EntityFrameworkCore
+Imports MerchSys.SharedKernel.Persistence
 
 Namespace ViewModels
 
@@ -511,55 +511,49 @@ Namespace ViewModels
 
             IsBusy = True
             StatusMessage = String.Empty
-            Dim concurrencyError As Boolean = False
             Dim generalError As Boolean = False
             Dim generalErrorMessage As String = String.Empty
 
+            Dim customerId As Integer? = Nothing
+            If SelectedPaymentMethod = PaymentMethod.Credit AndAlso SelectedCreditCustomer IsNot Nothing Then
+                customerId = SelectedCreditCustomer.Id
+            End If
+            Dim tenderedAmount = If(SelectedPaymentMethod = PaymentMethod.Cash, AmountTendered, GrandTotal)
+
             Try
-                Dim customerId As Integer? = Nothing
-                If SelectedPaymentMethod = PaymentMethod.Credit AndAlso SelectedCreditCustomer IsNot Nothing Then
-                    customerId = SelectedCreditCustomer.Id
-                End If
+                Await ConcurrencyHelper.ExecuteWithConflictPromptAsync(
+                    Async Function()
+                        Dim transaction = Await _cartService.FinalizeAsync(
+                            _currentCartId, SelectedPaymentMethod, tenderedAmount, customerId)
 
-                ' Amount tendered: cash uses AmountTendered; other methods use exact GrandTotal.
-                Dim tenderedAmount = If(SelectedPaymentMethod = PaymentMethod.Cash, AmountTendered, GrandTotal)
+                        Dim payResult = Await _paymentService.ProcessPaymentAsync(
+                            transaction.Id, SelectedPaymentMethod, tenderedAmount, customerId)
 
-                Dim transaction = Await _cartService.FinalizeAsync(
-                    _currentCartId, SelectedPaymentMethod, tenderedAmount, customerId)
+                        If Not payResult.Success Then
+                            StatusMessage = $"Payment failed: {payResult.ErrorMessage}"
+                            Await _cartService.VoidTransactionAsync(transaction.Id, payResult.ErrorMessage)
+                            Dim newCart = Await _cartService.CreateCartAsync()
+                            _currentCartId = newCart.CartId
+                            Return
+                        End If
 
-                Dim payResult = Await _paymentService.ProcessPaymentAsync(
-                    transaction.Id, SelectedPaymentMethod, tenderedAmount, customerId)
+                        Dim receipt = Await _receiptService.GenerateReceiptAsync(transaction.Id)
+                        CurrentReceipt = receipt
+                        IsReceiptVisible = True
+                        StatusMessage = $"Payment successful — {receipt.ReceiptNumber}"
+                        _notifications.ShowSuccess($"Payment successful — {receipt.ReceiptNumber}")
 
-                If Not payResult.Success Then
-                    StatusMessage = $"Payment failed: {payResult.ErrorMessage}"
-                    ' Void the persisted transaction since payment failed
-                    Await _cartService.VoidTransactionAsync(transaction.Id, payResult.ErrorMessage)
-                    
-                    ' Cart is already persisted — create a new one so we don't re-use the finalized cart ID.
-                    Dim newCart = Await _cartService.CreateCartAsync()
-                    _currentCartId = newCart.CartId
-                    Return
-                End If
-
-                ' Generate the receipt now that payment has succeeded
-                Dim receipt = Await _receiptService.GenerateReceiptAsync(transaction.Id)
-                CurrentReceipt = receipt
-                IsReceiptVisible = True
-                StatusMessage = $"Payment successful — {receipt.ReceiptNumber}"
-                _notifications.ShowSuccess($"Payment successful — {receipt.ReceiptNumber}")
-
-                ' Create a fresh cart ready for the next sale.
-                Dim nextCart = Await _cartService.CreateCartAsync()
-                _currentCartId = nextCart.CartId
-                CartLines.Clear()
-                SubTotal = 0D
-                DiscountTotal = 0D
-                VatAmount = 0D
-                GrandTotal = 0D
-                AmountTendered = 0D
-
-            Catch ex As DbUpdateConcurrencyException
-                concurrencyError = True
+                        Dim nextCart = Await _cartService.CreateCartAsync()
+                        _currentCartId = nextCart.CartId
+                        CartLines.Clear()
+                        SubTotal = 0D
+                        DiscountTotal = 0D
+                        VatAmount = 0D
+                        GrandTotal = 0D
+                        AmountTendered = 0D
+                    End Function,
+                    AddressOf StartNewTransactionAsync,
+                    _conflictPresenter)
             Catch ex As Exception
                 generalError = True
                 generalErrorMessage = ex.Message
@@ -567,12 +561,7 @@ Namespace ViewModels
                 IsBusy = False
             End Try
 
-            If concurrencyError Then
-                Dim shouldRefresh = Await _conflictPresenter.PromptAsync()
-                If shouldRefresh Then
-                    Await StartNewTransactionAsync()
-                End If
-            ElseIf generalError Then
+            If generalError Then
                 StatusMessage = $"Payment error: {generalErrorMessage}"
             End If
         End Function

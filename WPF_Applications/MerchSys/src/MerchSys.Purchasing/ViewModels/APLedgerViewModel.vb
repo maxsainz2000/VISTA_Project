@@ -4,7 +4,7 @@ Imports CommunityToolkit.Mvvm.Input
 Imports MerchSys.Purchasing.Services
 Imports MerchSys.SharedKernel.Enums
 Imports MerchSys.SharedKernel.Interfaces
-Imports Microsoft.EntityFrameworkCore
+Imports MerchSys.SharedKernel.Persistence
 
 Namespace ViewModels
 
@@ -375,18 +375,24 @@ Namespace ViewModels
             End If
 
             IsBusy = True
-            Dim concurrencyError As Boolean = False
             Dim invalidOperationError As Boolean = False
             Dim errorMessage As String = String.Empty
 
             Try
-                Await _apService.RecordPaymentAsync(_payingEntryId, parsedAmount)
-                ClosePaymentDialog()
-                Await LoadDataAsync()
-                StatusMessage = $"Payment of ₱{parsedAmount:N2} recorded."
-                _notifications.ShowSuccess($"Payment of ₱{parsedAmount:N2} recorded.")
-            Catch ex As DbUpdateConcurrencyException
-                concurrencyError = True
+                Dim saved = Await ConcurrencyHelper.ExecuteWithConflictPromptAsync(
+                    Async Function() Await _apService.RecordPaymentAsync(_payingEntryId, parsedAmount),
+                    Async Function()
+                        ClosePaymentDialog()
+                        Await LoadDataAsync()
+                    End Function,
+                    _conflictPresenter)
+
+                If saved Then
+                    ClosePaymentDialog()
+                    Await LoadDataAsync()
+                    StatusMessage = $"Payment of ₱{parsedAmount:N2} recorded."
+                    _notifications.ShowSuccess($"Payment of ₱{parsedAmount:N2} recorded.")
+                End If
             Catch ex As InvalidOperationException
                 invalidOperationError = True
                 errorMessage = ex.Message
@@ -394,13 +400,7 @@ Namespace ViewModels
                 IsBusy = False
             End Try
 
-            If concurrencyError Then
-                Dim shouldRefresh = Await _conflictPresenter.PromptAsync()
-                If shouldRefresh Then
-                    ClosePaymentDialog()
-                    Await LoadDataAsync()
-                End If
-            ElseIf invalidOperationError Then
+            If invalidOperationError Then
                 PaymentError = errorMessage
             End If
         End Function

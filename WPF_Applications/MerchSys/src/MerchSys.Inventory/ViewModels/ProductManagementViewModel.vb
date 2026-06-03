@@ -8,6 +8,7 @@ Imports MerchSys.Inventory.Data
 Imports MerchSys.Inventory.Entities
 Imports MerchSys.Inventory.Services
 Imports MerchSys.SharedKernel.Interfaces
+Imports MerchSys.SharedKernel.Persistence
 
 Namespace ViewModels
 
@@ -39,13 +40,15 @@ Namespace ViewModels
 
         Private ReadOnly _db As InventoryDbContext
         Private ReadOnly _session As ISessionService
+        Private ReadOnly _conflictPresenter As IConflictPresenter
         Private _allProducts As List(Of ProductManagementRowItem) = New List(Of ProductManagementRowItem)()
         Private _loadedProducts As List(Of Product)
         Private _loadedCategories As List(Of ProductCategory)
 
-        Public Sub New(db As InventoryDbContext, session As ISessionService)
+        Public Sub New(db As InventoryDbContext, session As ISessionService, conflictPresenter As IConflictPresenter)
             _db = db
             _session = session
+            _conflictPresenter = conflictPresenter
 
             Products = New ObservableCollection(Of ProductManagementRowItem)()
             Categories = New ObservableCollection(Of CategoryManagementItem)()
@@ -687,55 +690,70 @@ Namespace ViewModels
             End If
 
             IsBusy = True
+            Dim productNotFound As Boolean = False
             Try
-                If EditorId = 0 Then
-                    Dim newProduct As New Product With {
-                        .Name = EditorName.Trim(),
-                        .Sku = EditorSku.Trim(),
-                        .CategoryId = EditorCategoryId,
-                        .RetailPrice = price,
-                        .Unit = EditorUnit,
-                        .HasExpiry = EditorHasExpiry,
-                        .MinimumThreshold = threshold,
-                        .Description = If(String.IsNullOrWhiteSpace(EditorDescription), Nothing, EditorDescription.Trim()),
-                        .IsActive = True,
-                        .IsDeleted = False
-                    }
-                    _db.Products.Add(newProduct)
-                Else
-                    Dim existing = Await _db.Products.FindAsync(EditorId)
-                    If existing Is Nothing Then
-                        EditorError = "Product not found. Please refresh and try again."
-                        Return
-                    End If
-                    existing.Name = EditorName.Trim()
-                    existing.Sku = EditorSku.Trim()
-                    existing.CategoryId = EditorCategoryId
+                Dim saved = Await ConcurrencyHelper.ExecuteWithConflictPromptAsync(
+                    Async Function()
+                        If EditorId = 0 Then
+                            Dim newProduct As New Product With {
+                                .Name = EditorName.Trim(),
+                                .Sku = EditorSku.Trim(),
+                                .CategoryId = EditorCategoryId,
+                                .RetailPrice = price,
+                                .Unit = EditorUnit,
+                                .HasExpiry = EditorHasExpiry,
+                                .MinimumThreshold = threshold,
+                                .Description = If(String.IsNullOrWhiteSpace(EditorDescription), Nothing, EditorDescription.Trim()),
+                                .IsActive = True,
+                                .IsDeleted = False
+                            }
+                            _db.Products.Add(newProduct)
+                        Else
+                            Dim existing = Await _db.Products.FindAsync(EditorId)
+                            If existing Is Nothing Then
+                                productNotFound = True
+                                Return
+                            End If
+                            existing.Name = EditorName.Trim()
+                            existing.Sku = EditorSku.Trim()
+                            existing.CategoryId = EditorCategoryId
 
-                    Dim oldPrice As Decimal = existing.RetailPrice
-                    If oldPrice <> price Then
-                        Dim historyRow As New ProductPriceHistory With {
-                            .ProductId = existing.Id,
-                            .OldPrice = oldPrice,
-                            .NewPrice = price,
-                            .ChangedAt = DateTime.UtcNow,
-                            .ChangedBy = If(_session IsNot Nothing AndAlso Not String.IsNullOrEmpty(_session.CurrentUsername), _session.CurrentUsername, Environment.UserName),
-                            .Reason = If(String.IsNullOrWhiteSpace(EditorPriceChangeReason), Nothing, EditorPriceChangeReason.Trim())
-                        }
-                        _db.ProductPriceHistory.Add(historyRow)
-                    End If
+                            Dim oldPrice As Decimal = existing.RetailPrice
+                            If oldPrice <> price Then
+                                Dim historyRow As New ProductPriceHistory With {
+                                    .ProductId = existing.Id,
+                                    .OldPrice = oldPrice,
+                                    .NewPrice = price,
+                                    .ChangedAt = DateTime.UtcNow,
+                                    .ChangedBy = If(_session IsNot Nothing AndAlso Not String.IsNullOrEmpty(_session.CurrentUsername), _session.CurrentUsername, Environment.UserName),
+                                    .Reason = If(String.IsNullOrWhiteSpace(EditorPriceChangeReason), Nothing, EditorPriceChangeReason.Trim())
+                                }
+                                _db.ProductPriceHistory.Add(historyRow)
+                            End If
 
-                    existing.RetailPrice = price
-                    existing.Unit = EditorUnit
-                    existing.HasExpiry = EditorHasExpiry
-                    existing.MinimumThreshold = threshold
-                    existing.Description = If(String.IsNullOrWhiteSpace(EditorDescription), Nothing, EditorDescription.Trim())
+                            existing.RetailPrice = price
+                            existing.Unit = EditorUnit
+                            existing.HasExpiry = EditorHasExpiry
+                            existing.MinimumThreshold = threshold
+                            existing.Description = If(String.IsNullOrWhiteSpace(EditorDescription), Nothing, EditorDescription.Trim())
+                        End If
+                        Await _db.SaveChangesAsync()
+                    End Function,
+                    Async Function()
+                        CloseProductEditor()
+                        Await LoadDataAsync()
+                    End Function,
+                    _conflictPresenter)
+
+                If productNotFound Then
+                    EditorError = "Product not found. Please refresh and try again."
+                    Return
                 End If
 
-                Await _db.SaveChangesAsync()
-                CloseProductEditor()
-                Await LoadDataAsync()
-
+                If saved Then
+                    CloseProductEditor()
+                    Await LoadDataAsync()
+                End If
             Finally
                 IsBusy = False
             End Try
@@ -747,9 +765,22 @@ Namespace ViewModels
             Dim product = Await _db.Products.FindAsync(row.ProductId)
             If product Is Nothing Then Return
 
-            product.IsActive = Not product.IsActive
-            Await _db.SaveChangesAsync()
-            Await LoadDataAsync()
+            IsBusy = True
+            Try
+                Dim saved = Await ConcurrencyHelper.ExecuteWithConflictPromptAsync(
+                    Async Function()
+                        product.IsActive = Not product.IsActive
+                        Await _db.SaveChangesAsync()
+                    End Function,
+                    AddressOf LoadDataAsync,
+                    _conflictPresenter)
+
+                If saved Then
+                    Await LoadDataAsync()
+                End If
+            Finally
+                IsBusy = False
+            End Try
         End Function
 
         ' ─── Category Editor ──────────────────────────────────────────────────────
@@ -809,28 +840,43 @@ Namespace ViewModels
             End If
 
             IsBusy = True
+            Dim catNotFound As Boolean = False
             Try
-                If CategoryEditorId = 0 Then
-                    Dim newCat As New ProductCategory With {
-                        .Name = nameTrimmed,
-                        .Description = If(String.IsNullOrWhiteSpace(CategoryEditorDescription), Nothing, CategoryEditorDescription.Trim()),
-                        .IsDeleted = False
-                    }
-                    _db.ProductCategories.Add(newCat)
-                Else
-                    Dim existing = Await _db.ProductCategories.FindAsync(CategoryEditorId)
-                    If existing Is Nothing Then
-                        CategoryEditorError = "Category not found. Please refresh and try again."
-                        Return
-                    End If
-                    existing.Name = nameTrimmed
-                    existing.Description = If(String.IsNullOrWhiteSpace(CategoryEditorDescription), Nothing, CategoryEditorDescription.Trim())
+                Dim saved = Await ConcurrencyHelper.ExecuteWithConflictPromptAsync(
+                    Async Function()
+                        If CategoryEditorId = 0 Then
+                            Dim newCat As New ProductCategory With {
+                                .Name = nameTrimmed,
+                                .Description = If(String.IsNullOrWhiteSpace(CategoryEditorDescription), Nothing, CategoryEditorDescription.Trim()),
+                                .IsDeleted = False
+                            }
+                            _db.ProductCategories.Add(newCat)
+                        Else
+                            Dim existing = Await _db.ProductCategories.FindAsync(CategoryEditorId)
+                            If existing Is Nothing Then
+                                catNotFound = True
+                                Return
+                            End If
+                            existing.Name = nameTrimmed
+                            existing.Description = If(String.IsNullOrWhiteSpace(CategoryEditorDescription), Nothing, CategoryEditorDescription.Trim())
+                        End If
+                        Await _db.SaveChangesAsync()
+                    End Function,
+                    Async Function()
+                        CloseCategoryEditor()
+                        Await LoadDataAsync()
+                    End Function,
+                    _conflictPresenter)
+
+                If catNotFound Then
+                    CategoryEditorError = "Category not found. Please refresh and try again."
+                    Return
                 End If
 
-                Await _db.SaveChangesAsync()
-                CloseCategoryEditor()
-                Await LoadDataAsync()
-
+                If saved Then
+                    CloseCategoryEditor()
+                    Await LoadDataAsync()
+                End If
             Finally
                 IsBusy = False
             End Try
@@ -843,9 +889,22 @@ Namespace ViewModels
             Dim cat = Await _db.ProductCategories.FindAsync(item.CategoryId)
             If cat Is Nothing Then Return
 
-            cat.IsDeleted = True
-            Await _db.SaveChangesAsync()
-            Await LoadDataAsync()
+            IsBusy = True
+            Try
+                Dim saved = Await ConcurrencyHelper.ExecuteWithConflictPromptAsync(
+                    Async Function()
+                        cat.IsDeleted = True
+                        Await _db.SaveChangesAsync()
+                    End Function,
+                    AddressOf LoadDataAsync,
+                    _conflictPresenter)
+
+                If saved Then
+                    Await LoadDataAsync()
+                End If
+            Finally
+                IsBusy = False
+            End Try
         End Function
 
     End Class

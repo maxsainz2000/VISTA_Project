@@ -46,4 +46,5 @@ All engineering learnings from debugging and error-fixing sessions. Check this i
 | [wpf-vista-dashboard-layout](patterns/wpf-vista-dashboard-layout.md) | pattern | MerchSys.App | wpf, xaml, dashboard, layout, overflow | antigravity | 2026-06-03 | active |
 | [wpf-vista-trend-indicators](patterns/wpf-vista-trend-indicators.md) | pattern | MerchSys.App | wpf, xaml, dashboard, trend-indicators, delta-indicator, sparkline | antigravity | 2026-06-03 | active |
 | [wpf-vista-purchasing-dashboard](patterns/wpf-vista-purchasing-dashboard.md) | pattern | MerchSys.Purchasing | wpf, xaml, vb-net, mvvm, purchasing, dashboard | antigravity | 2026-06-03 | active |
+| [wpf-vista-state-feedback](patterns/wpf-vista-state-feedback.md) | pattern | MerchSys.App | wpf, mvvm, vb-net, state, feedback, busy, empty, concurrency, validation, notifications | claude-code | 2026-06-03 (updated UX-14) | active |
 

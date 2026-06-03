@@ -7,7 +7,7 @@ Imports MerchSys.Purchasing.Entities
 Imports MerchSys.Purchasing.Services
 Imports MerchSys.SharedKernel.Enums
 Imports MerchSys.SharedKernel.Interfaces
-Imports Microsoft.EntityFrameworkCore
+Imports MerchSys.SharedKernel.Persistence
 
 Namespace ViewModels
 
@@ -309,9 +309,10 @@ Namespace ViewModels
             End If
 
             IsBusy = True
-            Dim concurrencyError As Boolean = False
             Dim invalidOperationError As Boolean = False
             Dim errorMessage As String = String.Empty
+            Dim poId = _selectedPO.Id
+            Dim grReceipt As GoodsReceipt = Nothing
 
             Try
                 Dim dtos = ReceivingLines.Select(Function(rl) New ReceiveGoodsLineDto With {
@@ -325,32 +326,28 @@ Namespace ViewModels
                     .VatClassification = rl.VatClassification
                 }).ToList()
 
-                Dim receipt = Await _grService.ReceiveGoodsAsync(_selectedPO.Id, dtos)
-                StatusMessage = $"Receipt {receipt.ReceiptNumber} confirmed — PO marked Received."
-                _notifications.ShowSuccess($"Receipt {receipt.ReceiptNumber} confirmed.")
+                Dim saved = Await ConcurrencyHelper.ExecuteWithConflictPromptAsync(
+                    Async Function()
+                        Dim rcpt = Await _grService.ReceiveGoodsAsync(poId, dtos)
+                        grReceipt = rcpt
+                    End Function,
+                    Async Function()
+                        For Each rl In ReceivingLines
+                            RemoveHandler rl.PropertyChanged, AddressOf OnLineItemPropertyChanged
+                        Next
+                        _selectedPO = Nothing
+                        OnPropertyChanged(NameOf(SelectedPO))
+                        ReceivingLines.Clear()
+                        IsPOSelected = False
+                        ConfirmReceiptCommand.NotifyCanExecuteChanged()
+                        Await LoadSubmittedPOsAsync()
+                    End Function,
+                    _conflictPresenter)
 
-                For Each rl In ReceivingLines
-                    RemoveHandler rl.PropertyChanged, AddressOf OnLineItemPropertyChanged
-                Next
-                _selectedPO = Nothing
-                OnPropertyChanged(NameOf(SelectedPO))
-                ReceivingLines.Clear()
-                IsPOSelected = False
-                ConfirmReceiptCommand.NotifyCanExecuteChanged()
+                If saved Then
+                    StatusMessage = $"Receipt {grReceipt.ReceiptNumber} confirmed — PO marked Received."
+                    _notifications.ShowSuccess($"Receipt {grReceipt.ReceiptNumber} confirmed.")
 
-                Await LoadSubmittedPOsAsync()
-            Catch ex As DbUpdateConcurrencyException
-                concurrencyError = True
-            Catch ex As InvalidOperationException
-                invalidOperationError = True
-                errorMessage = ex.Message
-            Finally
-                IsBusy = False
-            End Try
-
-            If concurrencyError Then
-                Dim shouldRefresh = Await _conflictPresenter.PromptAsync()
-                If shouldRefresh Then
                     For Each rl In ReceivingLines
                         RemoveHandler rl.PropertyChanged, AddressOf OnLineItemPropertyChanged
                     Next
@@ -359,9 +356,17 @@ Namespace ViewModels
                     ReceivingLines.Clear()
                     IsPOSelected = False
                     ConfirmReceiptCommand.NotifyCanExecuteChanged()
+
                     Await LoadSubmittedPOsAsync()
                 End If
-            ElseIf invalidOperationError Then
+            Catch ex As InvalidOperationException
+                invalidOperationError = True
+                errorMessage = ex.Message
+            Finally
+                IsBusy = False
+            End Try
+
+            If invalidOperationError Then
                 StatusMessage = $"Receipt failed: {errorMessage}"
             End If
         End Function

@@ -5,7 +5,7 @@ Imports CommunityToolkit.Mvvm.ComponentModel
 Imports CommunityToolkit.Mvvm.Input
 Imports MerchSys.POS.Services
 Imports MerchSys.SharedKernel.Interfaces
-Imports Microsoft.EntityFrameworkCore
+Imports MerchSys.SharedKernel.Persistence
 
 Namespace ViewModels
 
@@ -227,42 +227,42 @@ Namespace ViewModels
 
             Dim result As VatConfigurationUpdateResult = Nothing
             Dim saveError As String = Nothing
-            Dim concurrencyError As Boolean = False
+
+            Dim request As New VatConfigurationUpdateRequest With {
+                .IsVatRegistered = IsVatRegistered,
+                .Tin = Tin,
+                .VatRate = VatRatePercent / 100D,
+                .PercentageTaxRate = PercentageTaxRatePercent / 100D,
+                .RegisteredBusinessName = RegisteredBusinessName,
+                .RegisteredAddress = RegisteredAddress
+            }
 
             Try
-                Dim request As New VatConfigurationUpdateRequest With {
-                    .IsVatRegistered = IsVatRegistered,
-                    .Tin = Tin,
-                    .VatRate = VatRatePercent / 100D,
-                    .PercentageTaxRate = PercentageTaxRatePercent / 100D,
-                    .RegisteredBusinessName = RegisteredBusinessName,
-                    .RegisteredAddress = RegisteredAddress
-                }
-                result = Await _writer.UpdateAsync(request, CancellationToken.None)
-            Catch ex As DbUpdateConcurrencyException
-                concurrencyError = True
+                Dim saved = Await ConcurrencyHelper.ExecuteWithConflictPromptAsync(
+                    Async Function()
+                        result = Await _writer.UpdateAsync(request, CancellationToken.None)
+                    End Function,
+                    AddressOf ReloadAsync,
+                    _conflictPresenter)
+
+                If saved AndAlso result IsNot Nothing Then
+                    If result.Persisted Then
+                        StatusMessage = "VAT settings saved."
+                        _notifications.ShowSuccess("VAT settings updated — receipts will use new values immediately.")
+                    Else
+                        For Each errMsg In result.ValidationErrors
+                            _validationErrors.Add(errMsg)
+                        Next
+                    End If
+                End If
             Catch ex As Exception
                 saveError = ex.Message
             Finally
                 IsSaving = False
             End Try
 
-            If concurrencyError Then
-                Dim shouldRefresh = Await _conflictPresenter.PromptAsync()
-                If shouldRefresh Then
-                    Await ReloadAsync()
-                End If
-            ElseIf saveError IsNot Nothing Then
+            If saveError IsNot Nothing Then
                 _validationErrors.Add("Unexpected error: " & saveError)
-            ElseIf result IsNot Nothing Then
-                If result.Persisted Then
-                    StatusMessage = "VAT settings saved."
-                    _notifications.ShowSuccess("VAT settings updated — receipts will use new values immediately.")
-                Else
-                    For Each errMsg In result.ValidationErrors
-                        _validationErrors.Add(errMsg)
-                    Next
-                End If
             End If
         End Function
 

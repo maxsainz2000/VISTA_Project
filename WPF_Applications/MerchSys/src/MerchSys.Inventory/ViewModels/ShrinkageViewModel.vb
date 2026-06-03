@@ -4,6 +4,8 @@ Imports System.Linq
 Imports CommunityToolkit.Mvvm.ComponentModel
 Imports CommunityToolkit.Mvvm.Input
 Imports MerchSys.Inventory.Services
+Imports MerchSys.SharedKernel.Interfaces
+Imports MerchSys.SharedKernel.Persistence
 
 Namespace ViewModels
 
@@ -46,12 +48,14 @@ Namespace ViewModels
 
         Private ReadOnly _shrinkageService As IShrinkageService
         Private ReadOnly _stockService As IStockService
+        Private ReadOnly _conflictPresenter As IConflictPresenter
         Private ReadOnly _reasonOptions As String() = {"Damage", "Spoilage", "Expiry", "Admin Error"}
         Private _allHistory As New List(Of ShrinkageRowItem)()
 
-        Public Sub New(shrinkageService As IShrinkageService, stockService As IStockService)
+        Public Sub New(shrinkageService As IShrinkageService, stockService As IStockService, conflictPresenter As IConflictPresenter)
             _shrinkageService = shrinkageService
             _stockService = stockService
+            _conflictPresenter = conflictPresenter
 
             HistoryItems = New ObservableCollection(Of ShrinkageRowItem)()
             FilterProducts = New ObservableCollection(Of ShrinkageProductItem)()
@@ -453,29 +457,49 @@ Namespace ViewModels
             StatusMessage = String.Empty
             IsStatusError = False
             IsDialogOpen = False
+            Dim generalError As Boolean = False
+            Dim generalErrorMessage As String = String.Empty
+            Dim recordedQty As Integer = 0
+            Dim recordedValue As Decimal = 0D
+            Dim recordedProductName As String = If(DialogSelectedProduct IsNot Nothing, DialogSelectedProduct.ProductName, String.Empty)
+
             Try
                 Dim batchId As Integer? = Nothing
                 If DialogSelectedBatch IsNot Nothing AndAlso DialogSelectedBatch.BatchId <> 0 Then
                     batchId = DialogSelectedBatch.BatchId
                 End If
 
-                Dim record = Await _shrinkageService.RecordShrinkageAsync(
-                    DialogSelectedProduct.ProductId,
-                    DialogQuantity,
-                    DialogReason,
-                    DialogNotes,
-                    batchId)
+                Dim saved = Await ConcurrencyHelper.ExecuteWithConflictPromptAsync(
+                    Async Function()
+                        Dim rec = Await _shrinkageService.RecordShrinkageAsync(
+                            DialogSelectedProduct.ProductId,
+                            DialogQuantity,
+                            DialogReason,
+                            DialogNotes,
+                            batchId)
+                        recordedQty = rec.QuantityLost
+                        recordedValue = rec.TotalValue
+                    End Function,
+                    AddressOf LoadDataAsync,
+                    _conflictPresenter)
 
-                StatusMessage = $"Recorded: {DialogSelectedProduct.ProductName} × {record.QuantityLost} unit(s) — ₱{record.TotalValue:N2}."
-                IsStatusError = False
-                Await LoadDataAsync()
+                If saved Then
+                    StatusMessage = $"Recorded: {recordedProductName} × {recordedQty} unit(s) — ₱{recordedValue:N2}."
+                    IsStatusError = False
+                    Await LoadDataAsync()
+                End If
             Catch ex As Exception
-                StatusMessage = $"Failed: {ex.Message}"
-                IsStatusError = True
-                IsDialogOpen = True
+                generalError = True
+                generalErrorMessage = ex.Message
             Finally
                 IsBusy = False
             End Try
+
+            If generalError Then
+                StatusMessage = $"Failed: {generalErrorMessage}"
+                IsStatusError = True
+                IsDialogOpen = True
+            End If
         End Function
 
     End Class

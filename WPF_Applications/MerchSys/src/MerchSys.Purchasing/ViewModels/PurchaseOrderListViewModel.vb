@@ -8,6 +8,7 @@ Imports MerchSys.Purchasing.Entities
 Imports MerchSys.Purchasing.Services
 Imports MerchSys.SharedKernel.Enums
 Imports MerchSys.SharedKernel.Interfaces
+Imports MerchSys.SharedKernel.Persistence
 
 Namespace ViewModels
 
@@ -39,6 +40,7 @@ Namespace ViewModels
         Private ReadOnly _db As PurchasingDbContext
         Private ReadOnly _notifications As INotificationService
         Private ReadOnly _vendorProductService As IVendorProductService
+        Private ReadOnly _conflictPresenter As IConflictPresenter
 
         Private _allOrders As List(Of PORowItem) = New List(Of PORowItem)()
         Private _vendorList As List(Of Vendor) = New List(Of Vendor)()
@@ -48,13 +50,15 @@ Namespace ViewModels
                        vendorService As IVendorService,
                        db As PurchasingDbContext,
                        notifications As INotificationService,
-                       vendorProductService As IVendorProductService)
+                       vendorProductService As IVendorProductService,
+                       conflictPresenter As IConflictPresenter)
             _session = session
             _poService = poService
             _vendorService = vendorService
             _db = db
             _notifications = notifications
             _vendorProductService = vendorProductService
+            _conflictPresenter = conflictPresenter
 
             Orders = New ObservableCollection(Of PORowItem)()
             StatusOptions = New ObservableCollection(Of String) From {"All", "Draft", "Submitted", "Received", "Verified", "Closed"}
@@ -301,31 +305,57 @@ Namespace ViewModels
 
         Private Async Function SubmitSelectedAsync() As Task
             If SelectedOrder Is Nothing Then Return
+            Dim orderNum = SelectedOrder.OrderNumber
             IsBusy = True
+            Dim invalidOperationError As Boolean = False
+            Dim errorMessage As String = String.Empty
             Try
-                Dim orderNum = SelectedOrder.OrderNumber
-                Await _poService.SubmitAsync(SelectedOrder.Id)
-                Await LoadDataAsync()
-                StatusMessage = $"PO {orderNum} submitted."
+                Dim saved = Await ConcurrencyHelper.ExecuteWithConflictPromptAsync(
+                    Async Function() Await _poService.SubmitAsync(SelectedOrder.Id),
+                    AddressOf LoadDataAsync,
+                    _conflictPresenter)
+
+                If saved Then
+                    Await LoadDataAsync()
+                    StatusMessage = $"PO {orderNum} submitted."
+                End If
             Catch ex As InvalidOperationException
-                StatusMessage = $"Submit failed: {ex.Message}"
+                invalidOperationError = True
+                errorMessage = ex.Message
             Finally
                 IsBusy = False
             End Try
+
+            If invalidOperationError Then
+                StatusMessage = $"Submit failed: {errorMessage}"
+            End If
         End Function
 
         Private Async Function DeleteSelectedAsync() As Task
             If SelectedOrder Is Nothing Then Return
             IsBusy = True
+            Dim invalidOperationError As Boolean = False
+            Dim errorMessage As String = String.Empty
             Try
-                Await _poService.DeleteDraftAsync(SelectedOrder.Id)
-                Await LoadDataAsync()
-                StatusMessage = "Draft deleted."
+                Dim saved = Await ConcurrencyHelper.ExecuteWithConflictPromptAsync(
+                    Async Function() Await _poService.DeleteDraftAsync(SelectedOrder.Id),
+                    AddressOf LoadDataAsync,
+                    _conflictPresenter)
+
+                If saved Then
+                    Await LoadDataAsync()
+                    StatusMessage = "Draft deleted."
+                End If
             Catch ex As InvalidOperationException
-                StatusMessage = $"Delete failed: {ex.Message}"
+                invalidOperationError = True
+                errorMessage = ex.Message
             Finally
                 IsBusy = False
             End Try
+
+            If invalidOperationError Then
+                StatusMessage = $"Delete failed: {errorMessage}"
+            End If
         End Function
 
         ' ─── Editor Save / Submit ─────────────────────────────────────────────────
@@ -357,25 +387,39 @@ Namespace ViewModels
             End If
 
             IsBusy = True
+            Dim invalidOperationError As Boolean = False
+            Dim errorMessage As String = String.Empty
             Try
                 Dim lineDtos = Editor.ToLineDtos()
-                Dim savedPO As PurchaseOrder
-                If Editor.IsNewPO Then
-                    savedPO = Await _poService.CreateDraftAsync(Editor.SelectedVendor.Id, lineDtos,
-                                                      Editor.Notes, Editor.ExpectedDeliveryDate)
-                Else
-                    savedPO = Await _poService.UpdateDraftAsync(Editor.EditingPOId.Value, lineDtos,
-                                                      Editor.Notes, Editor.ExpectedDeliveryDate)
-                End If
 
-                CloseEditor()
-                Await LoadDataAsync()
-                StatusMessage = "Draft saved."
+                Dim saved = Await ConcurrencyHelper.ExecuteWithConflictPromptAsync(
+                    Async Function()
+                        If Editor.IsNewPO Then
+                            Await _poService.CreateDraftAsync(Editor.SelectedVendor.Id, lineDtos,
+                                                              Editor.Notes, Editor.ExpectedDeliveryDate)
+                        Else
+                            Await _poService.UpdateDraftAsync(Editor.EditingPOId.Value, lineDtos,
+                                                              Editor.Notes, Editor.ExpectedDeliveryDate)
+                        End If
+                    End Function,
+                    AddressOf LoadDataAsync,
+                    _conflictPresenter)
+
+                If saved Then
+                    CloseEditor()
+                    Await LoadDataAsync()
+                    StatusMessage = "Draft saved."
+                End If
             Catch ex As InvalidOperationException
-                StatusMessage = $"Save failed: {ex.Message}"
+                invalidOperationError = True
+                errorMessage = ex.Message
             Finally
                 IsBusy = False
             End Try
+
+            If invalidOperationError Then
+                StatusMessage = $"Save failed: {errorMessage}"
+            End If
         End Function
 
         Private Async Function SubmitFromEditorAsync() As Task
@@ -414,26 +458,43 @@ Namespace ViewModels
             End If
 
             IsBusy = True
+            Dim invalidOperationError As Boolean = False
+            Dim errorMessage As String = String.Empty
+            Dim submittedOrderNumber As String = String.Empty
             Try
                 Dim lineDtos = Editor.ToLineDtos()
-                Dim savedPO As PurchaseOrder
-                If Editor.IsNewPO Then
-                    savedPO = Await _poService.CreateDraftAsync(Editor.SelectedVendor.Id, lineDtos,
-                                                                Editor.Notes, Editor.ExpectedDeliveryDate)
-                Else
-                    savedPO = Await _poService.UpdateDraftAsync(Editor.EditingPOId.Value, lineDtos,
-                                                                Editor.Notes, Editor.ExpectedDeliveryDate)
-                End If
 
-                Await _poService.SubmitAsync(savedPO.Id)
-                CloseEditor()
-                Await LoadDataAsync()
-                StatusMessage = $"PO {savedPO.OrderNumber} submitted."
+                Dim saved = Await ConcurrencyHelper.ExecuteWithConflictPromptAsync(
+                    Async Function()
+                        Dim poResult As PurchaseOrder
+                        If Editor.IsNewPO Then
+                            poResult = Await _poService.CreateDraftAsync(Editor.SelectedVendor.Id, lineDtos,
+                                                                         Editor.Notes, Editor.ExpectedDeliveryDate)
+                        Else
+                            poResult = Await _poService.UpdateDraftAsync(Editor.EditingPOId.Value, lineDtos,
+                                                                         Editor.Notes, Editor.ExpectedDeliveryDate)
+                        End If
+                        Await _poService.SubmitAsync(poResult.Id)
+                        submittedOrderNumber = poResult.OrderNumber
+                    End Function,
+                    AddressOf LoadDataAsync,
+                    _conflictPresenter)
+
+                If saved Then
+                    CloseEditor()
+                    Await LoadDataAsync()
+                    StatusMessage = $"PO {submittedOrderNumber} submitted."
+                End If
             Catch ex As InvalidOperationException
-                StatusMessage = $"Submit failed: {ex.Message}"
+                invalidOperationError = True
+                errorMessage = ex.Message
             Finally
                 IsBusy = False
             End Try
+
+            If invalidOperationError Then
+                StatusMessage = $"Submit failed: {errorMessage}"
+            End If
         End Function
 
         Private Async Sub OnEditorPropertyChanged(sender As Object, e As System.ComponentModel.PropertyChangedEventArgs)
