@@ -118,6 +118,42 @@
         <Setter Property="Margin" Value="0,8,0,0"/>
     </Style>
 
+    <!-- PrimaryMetricCardStyle -->
+    <Style x:Key="PrimaryMetricCardStyle" TargetType="{x:Type Border}" BasedOn="{StaticResource CardStyle}">
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+        <Setter Property="Padding" Value="{DynamicResource SpacingXL}"/>
+    </Style>
+
+    <!-- SecondaryMetricCardStyle -->
+    <Style x:Key="SecondaryMetricCardStyle" TargetType="{x:Type Border}" BasedOn="{StaticResource CardStyle}">
+        <Setter Property="Padding" Value="{DynamicResource SpacingL}"/>
+    </Style>
+
+    <!-- TertiaryMetricStyle -->
+    <Style x:Key="TertiaryMetricStyle" TargetType="{x:Type Border}" BasedOn="{StaticResource CardStyle}">
+        <Setter Property="Padding" Value="12,8"/>
+        <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}"/>
+    </Style>
+
+    <!-- ========================================== -->
+    <!-- FILTER BAR                                 -->
+    <!-- ========================================== -->
+
+    <!-- FilterBarStyle: A toolbar surface whose children wrap on narrow windows. -->
+    <Style x:Key="FilterBarStyle" TargetType="{x:Type Border}">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}"/>
+        <Setter Property="Padding" Value="12,8"/>
+    </Style>
+
+    <!-- FilterBarItemStyle: A WrapPanel item style for consistent inter-control spacing inside the bar. -->
+    <Style x:Key="FilterBarItemStyle" TargetType="{x:Type FrameworkElement}">
+        <Setter Property="Margin" Value="0,0,12,4"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
     <!-- ========================================== -->
     <!-- TYPOGRAPHY / LABELS                        -->
     <!-- ========================================== -->
@@ -177,6 +213,20 @@
         <Setter Property="FontWeight" Value="Bold"/>
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
     </Style>
+
+    <!-- PrimaryMetricValueStyle -->
+    <Style x:Key="PrimaryMetricValueStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource MetricValueLargeStyle}"/>
+
+    <!-- SecondaryMetricValueStyle -->
+    <Style x:Key="SecondaryMetricValueStyle" TargetType="{x:Type TextBlock}">
+        <Setter Property="FontFamily" Value="{DynamicResource AppFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeTitle}"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+    </Style>
+
+    <!-- MetricCaptionStyle -->
+    <Style x:Key="MetricCaptionStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource CaptionLabelStyle}"/>
 
     <!-- ========================================== -->
     <!-- DATAGRID HELPERS                           -->

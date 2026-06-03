@@ -43,3 +43,4 @@ All engineering learnings from debugging and error-fixing sessions. Check this i
 | [wpf-setter-targets-clr-property-not-dependencyproperty](antipatterns/wpf-setter-targets-clr-property-not-dependencyproperty.md) | antipattern | MerchSys.App | wpf, xaml, theming, controltemplate, setter, scrollbar, track, dependencyproperty, runtime-error | claude-code | 2026-06-03 | active |
 | [wpf-vista-theming-conventions](patterns/wpf-vista-theming-conventions.md) | pattern | MerchSys.App | wpf, xaml, theming, design-tokens, design-system | antigravity | 2026-06-03 | active |
 | [wpf-vista-iconography](patterns/wpf-vista-iconography.md) | pattern | MerchSys.App | wpf, xaml, theming, icons, geometry, design-system, dynamicresource | claude-code | 2026-06-03 | active |
+| [wpf-vista-dashboard-layout](patterns/wpf-vista-dashboard-layout.md) | pattern | MerchSys.App | wpf, xaml, dashboard, layout, overflow | antigravity | 2026-06-03 | active |
