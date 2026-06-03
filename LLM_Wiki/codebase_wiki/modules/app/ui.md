@@ -35,6 +35,9 @@ This page details the WPF View implementations (XAML and code-behind) in the **M
 | `src/MerchSys.App/ViewModels/OwnerDashboardViewModel.vb` | `OwnerDashboardViewModel` | MVVM hub for the Owner dashboard. Sourced from all four modules to aggregate business metrics and display plain-language interpretations. | `ISessionService`, `IStockDashboardService`, `ILowStockAlertService`, `IExpiryTrackingService`, `IPurchaseOrderService`, `IVendorService`, `IAccountsPayableService`, `IDailySummaryService`, `IFinancialOverviewService`, `IIncomeStatementService` (Constructor Injection) |
 | `src/MerchSys.App/Views/SessionTimeoutWarningView.xaml`<br>`src/MerchSys.App/Views/SessionTimeoutWarningView.xaml.vb` | `SessionTimeoutWarningView` | Modal countdown dialog for session inactivity. Prompts user to extend session or sign out; automatically logs out on timeout (OWASP DA2). | `SessionTimeoutWarningViewModel` (Transient) |
 | `src/MerchSys.App/ViewModels/SessionTimeoutWarningViewModel.vb` | `SessionTimeoutWarningViewModel` | Countdown ViewModel. Formats remaining idle seconds as "M:SS" and exposes commands to stay signed in or sign out. | (none) |
+| `src/MerchSys.App/Views/Shell/ConcurrencyConflictPrompt.xaml`<br>`src/MerchSys.App/Views/Shell/ConcurrencyConflictPrompt.xaml.vb` | `ConcurrencyConflictPrompt` | Modal dialog displayed on database concurrency conflicts prompting operators to Refresh or Cancel. | (Transient) |
+| `src/MerchSys.App/Views/Shell/BusyOverlay.xaml`<br>`src/MerchSys.App/Views/Shell/BusyOverlay.xaml.vb` | `BusyOverlay` | Reusable overlay UserControl presenting a rotating spinner and text during long-running operations. | (none) |
+| `src/MerchSys.App/Views/Shell/EmptyStatePanel.xaml`<br>`src/MerchSys.App/Views/Shell/EmptyStatePanel.xaml.vb` | `EmptyStatePanel` | Reusable UserControl presenting a folder icon, title, and description for empty list/grid collections. | (none) |
 
 
 
@@ -101,3 +104,4 @@ This page details the WPF View implementations (XAML and code-behind) in the **M
 | `src/MerchSys.App/Themes/Dark.xaml` | Dark color palette keys and values, defining color-parity brushes (e.g. `SelectionBackgroundBrush` with 28% alpha opacity). |
 | `src/MerchSys.App/Themes/Controls.xaml` | Implicit, theme-aware control styles for common controls (Button, TextBox, PasswordBox, CheckBox, RadioButton, ListBox, ComboBox, TabControl, ScrollBar) and keyed styles `AccentButtonStyle`/`LinkButtonStyle`. |
 | `src/MerchSys.App/Themes/Controls.DataGrid.xaml` | Implicit, theme-aware styles for `DataGrid`, `DataGridColumnHeader`, `DataGridRow`, and `DataGridCell`. |
+| `src/MerchSys.App/Themes/Components.xaml` | Consolidated semantic components library (Primary/Success/Danger/Warning/Secondary/Subtle Button styles, SegmentToggleStyle, CardStyle, AlertCardStyle, SectionHeaderStyle, PageTitleStyle, SubtitleStyle, CaptionLabelStyle, MetricValueStyle, MetricValueLargeStyle, SemanticRowStyle, NumericCellStyle, ValidationErrorTemplate). |

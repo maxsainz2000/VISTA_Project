@@ -144,6 +144,7 @@ This page documents the composition root in `MerchSys.App`.
 |---|---|---|
 | `IEventBus` | `MediatREventBus` | Scoped |
 | `INotificationService` | `DefaultNotificationService` | Singleton |
+| `IConflictPresenter` | `DefaultConflictPresenter` | Singleton |
 | `ISessionService` | `LoginSessionService` | Singleton |
 | `IWriteContextScope` | `WriteContextScope` | Singleton |
 | `RoleGuardInterceptor` | `RoleGuardInterceptor` | Scoped |

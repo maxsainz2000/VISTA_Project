@@ -104,7 +104,15 @@
       "PowerShell($mysql = \"C:\\\\xampp\\\\mysql\\\\bin\\\\mysql.exe\"; & $mysql -u root merchsys_central -e \"SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='merchsys_central' AND TABLE_NAME='Acc_ExpenseRecords' ORDER BY ORDINAL_POSITION;\" 2>&1)",
       "PowerShell($mysql = \"C:\\\\xampp\\\\mysql\\\\bin\\\\mysql.exe\"; & $mysql -u root merchsys_central -e \"SELECT COLUMN_NAME, COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='merchsys_central' AND TABLE_NAME='Acc_RevenueRecords' AND COLUMN_NAME IN \\('VatableAmount','VatExemptAmount','ZeroRatedAmount','OutputVat','InputVat','VatTreatment'\\);\" 2>&1)",
       "Bash(C:\\\\xampp\\\\mysql\\\\bin\\\\mysql.exe *)",
-      "Bash(Select-Object -Last 40)"
+      "Bash(Select-Object -Last 40)",
+      "Bash(tailscale ip *)",
+      "PowerShell(tailscale ip *)",
+      "PowerShell(& \"C:\\\\Program Files\\\\Tailscale\\\\tailscale.exe\" ip -4)",
+      "PowerShell(& \"C:\\\\xampp\\\\mysql\\\\bin\\\\mysql.exe\" -u root -e \"SHOW VARIABLES LIKE 'have_ssl';\")",
+      "PowerShell(& \"C:\\\\xampp\\\\mysql\\\\bin\\\\mysql.exe\" -u merchsys_owner \"-pVistaOwner2026!Read\" merchsys_central -e \"UPDATE Sys_UserAccounts SET Username='test' WHERE 1=0;\" 2>&1)",
+      "WebSearch",
+      "Read(//c/Users/Admin/**)",
+      "Bash(Select-String -Pattern \"error|warning|Build succeeded|Build FAILED\")"
     ]
   }
 }
