@@ -113,7 +113,6 @@
                                    Visibility="{Binding IsVatRegistered, Converter={StaticResource BoolToVis}}"/>
                         <TextBox Grid.Row="0" Grid.Column="1"
                                  Text="{Binding Tin, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 Style="{StaticResource FieldInput}"
                                  Visibility="{Binding IsVatRegistered, Converter={StaticResource BoolToVis}}"
                                  MaxLength="20"/>
 
@@ -123,7 +122,6 @@
                                    Visibility="{Binding IsVatRegistered, Converter={StaticResource BoolToVis}}"/>
                         <TextBox Grid.Row="2" Grid.Column="1"
                                  Text="{Binding VatRatePercent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 Style="{StaticResource FieldInput}"
                                  Visibility="{Binding IsVatRegistered, Converter={StaticResource BoolToVis}}"
                                  MaxLength="6"/>
 
@@ -133,7 +131,6 @@
                                    Visibility="{Binding IsNotVatRegistered, Converter={StaticResource BoolToVis}}"/>
                         <TextBox Grid.Row="2" Grid.Column="1"
                                  Text="{Binding PercentageTaxRatePercent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 Style="{StaticResource FieldInput}"
                                  Visibility="{Binding IsNotVatRegistered, Converter={StaticResource BoolToVis}}"
                                  MaxLength="6"/>
 
@@ -164,14 +161,12 @@
                                    Style="{StaticResource FieldLabelStyle}"/>
                         <TextBox Grid.Row="0" Grid.Column="1"
                                  Text="{Binding RegisteredBusinessName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 Style="{StaticResource FieldInput}"
                                  MaxLength="200"/>
 
                         <TextBlock Grid.Row="2" Grid.Column="0" Text="Registered Address"
                                    Style="{StaticResource FieldLabelStyle}"/>
                         <TextBox Grid.Row="2" Grid.Column="1"
                                  Text="{Binding RegisteredAddress, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 Style="{StaticResource FieldInput}"
                                  AcceptsReturn="True" MinHeight="60" MaxHeight="100"
                                  TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
                                  MaxLength="500"/>

@@ -724,11 +724,11 @@
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button Content="Cancel"
                                 Command="{Binding CancelEditCommand}"
-                                Style="{StaticResource SecondaryButton}"
+                                Style="{StaticResource SecondaryButtonStyle}"
                                 Margin="0,0,10,0"/>
                         <Button Content="Save Changes"
                                 Command="{Binding SaveConfigCommand}"
-                                Style="{StaticResource SaveButton}"/>
+                                Style="{StaticResource PrimaryButtonStyle}"/>
                     </StackPanel>
 
                 </StackPanel>
