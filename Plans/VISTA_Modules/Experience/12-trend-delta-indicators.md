@@ -63,6 +63,27 @@ members, the view wiring, the implementation summary, and a wiki update.
 
 ## Specification
 
+### 0. Carry-forward watch-items (from the UX-11 review)
+
+1. **The Owner rollup is the only genuinely new data path — treat it as the main risk.** Every other
+   delta in this plan decorates a series the VM already produces (Financial Overview reuses
+   `MonthlyTrend`; Daily derives from the period it already loads). The **Owner dashboard VM exposes no
+   time series**, so "Today's Revenue Δ vs yesterday / week Δ vs last week" requires a **new read-only
+   member backed by a new read**. This is where the Tier-2 "additive only" discipline matters most:
+   - Add the rollup as a **read-only** member sourced from the existing Owner read query/service (or a
+     new read-only MediatR query contract following `GetCurrentStockQuery`) — **never** a write path,
+     and do not modify any existing Owner VM member.
+   - The new read **must** use the raw `MySqlConnector.MySqlConnection` reader loop, **not**
+     `ToListAsync` on an entity query (EF Core 10 VB.NET empty-list bug). Any async added must not
+     `Await` inside `Catch`/`Finally` (BC36943).
+   - If yesterday/last-week revenue is **not cheaply available** from the existing Owner data path,
+     **skip that delta and document it** rather than building a speculative query.
+2. **Add the indicator inside the existing hero card, don't restructure UX-11's wrappers.** UX-11
+   moved several heroes (e.g. Financial Overview) into a `ScrollViewer` + `StackPanel` with a
+   `MinHeight`-sized hero card. Drop the `DeltaIndicator`/`Sparkline` **inside the existing hero card's
+   `StackPanel`** — do not touch the `ScrollViewer`, the `MinHeight`, or the filter toolbars UX-11
+   established.
+
 ### 1. Presentation controls (no behavior, no data access)
 
 `DeltaIndicator` — inputs (all `DependencyProperty`):
