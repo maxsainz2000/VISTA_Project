@@ -44,3 +44,4 @@ All engineering learnings from debugging and error-fixing sessions. Check this i
 | [wpf-vista-theming-conventions](patterns/wpf-vista-theming-conventions.md) | pattern | MerchSys.App | wpf, xaml, theming, design-tokens, design-system | antigravity | 2026-06-03 | active |
 | [wpf-vista-iconography](patterns/wpf-vista-iconography.md) | pattern | MerchSys.App | wpf, xaml, theming, icons, geometry, design-system, dynamicresource | claude-code | 2026-06-03 | active |
 | [wpf-vista-dashboard-layout](patterns/wpf-vista-dashboard-layout.md) | pattern | MerchSys.App | wpf, xaml, dashboard, layout, overflow | antigravity | 2026-06-03 | active |
+| [wpf-vista-trend-indicators](patterns/wpf-vista-trend-indicators.md) | pattern | MerchSys.App | wpf, xaml, dashboard, trend-indicators, delta-indicator, sparkline | antigravity | 2026-06-03 | active |

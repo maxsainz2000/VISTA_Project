@@ -185,6 +185,16 @@ Namespace ViewModels
             End Get
         End Property
 
+        Private _salesDeltaPercent As Double
+        Public Property SalesDeltaPercent As Double
+            Get
+                Return _salesDeltaPercent
+            End Get
+            Private Set(value As Double)
+                SetProperty(_salesDeltaPercent, value)
+            End Set
+        End Property
+
         Private _transactionCount As Integer
         Public Property TransactionCount As Integer
             Get
@@ -403,17 +413,37 @@ Namespace ViewModels
             IsBusy = True
             StatusMessage = String.Empty
             Try
+                Dim prevSales As Decimal = 0D
                 Select Case PeriodMode
                     Case SummaryPeriodMode.Daily
                         Dim dto = Await _summaryService.GetDailySummaryAsync(SelectedDate)
                         ApplyDailySummary(dto)
+
+                        Dim prevDto = Await _summaryService.GetDailySummaryAsync(SelectedDate.AddDays(-1))
+                        prevSales = prevDto.TotalSales
+
                     Case SummaryPeriodMode.Weekly
                         Dim dto = Await _summaryService.GetWeeklySummaryAsync(GetWeekStart(WeekDate))
                         ApplyPeriodSummary(dto, isWeekly:=True)
+
+                        Dim prevDto = Await _summaryService.GetWeeklySummaryAsync(GetWeekStart(WeekDate).AddDays(-7))
+                        prevSales = prevDto.TotalSales
+
                     Case SummaryPeriodMode.Monthly
                         Dim dto = Await _summaryService.GetMonthlySummaryAsync(SelectedYear, SelectedMonth)
                         ApplyPeriodSummary(dto, isWeekly:=False)
+
+                        Dim prevMonthDate = New DateTime(SelectedYear, SelectedMonth, 1).AddMonths(-1)
+                        Dim prevDto = Await _summaryService.GetMonthlySummaryAsync(prevMonthDate.Year, prevMonthDate.Month)
+                        prevSales = prevDto.TotalSales
                 End Select
+
+                If prevSales > 0 Then
+                    SalesDeltaPercent = CDbl(Math.Round(((TotalSales - prevSales) / prevSales) * 100D, 1))
+                Else
+                    SalesDeltaPercent = 0.0
+                End If
+
                 IsStatusSuccess = True
                 StatusMessage = "Loaded: " & PeriodHeader
             Catch ex As Exception

@@ -163,6 +163,26 @@ Namespace ViewModels
             End Set
         End Property
 
+        Private _todayRevenueDelta As Double
+        Public Property TodayRevenueDelta As Double
+            Get
+                Return _todayRevenueDelta
+            End Get
+            Private Set(value As Double)
+                SetProperty(_todayRevenueDelta, value)
+            End Set
+        End Property
+
+        Private _weekRevenueDelta As Double
+        Public Property WeekRevenueDelta As Double
+            Get
+                Return _weekRevenueDelta
+            End Get
+            Private Set(value As Double)
+                SetProperty(_weekRevenueDelta, value)
+            End Set
+        End Property
+
         Private _todayTransactionCount As Integer
         Public Property TodayTransactionCount As Integer
             Get
@@ -361,6 +381,25 @@ Namespace ViewModels
             Dim weekStart = today.AddDays(-dayOfWeekNum)
             Dim weeklyDto = Await _dailySummary.GetWeeklySummaryAsync(weekStart)
             WeekRevenue = weeklyDto.TotalSales
+
+            ' Load yesterday's sales to compute Today's Revenue Delta
+            Dim yesterdayDto = Await _dailySummary.GetDailySummaryAsync(today.AddDays(-1))
+            Dim yesterdayRevenue = yesterdayDto.TotalSales
+            If yesterdayRevenue > 0 Then
+                TodayRevenueDelta = CDbl(Math.Round(((TodayRevenue - yesterdayRevenue) / yesterdayRevenue) * 100D, 1))
+            Else
+                TodayRevenueDelta = 0.0
+            End If
+
+            ' Load last week's sales to compute Week's Revenue Delta
+            Dim lastWeekStart = weekStart.AddDays(-7)
+            Dim lastWeekDto = Await _dailySummary.GetWeeklySummaryAsync(lastWeekStart)
+            Dim lastWeekRevenue = lastWeekDto.TotalSales
+            If lastWeekRevenue > 0 Then
+                WeekRevenueDelta = CDbl(Math.Round(((WeekRevenue - lastWeekRevenue) / lastWeekRevenue) * 100D, 1))
+            Else
+                WeekRevenueDelta = 0.0
+            End If
 
             If dailyDto.TopSellingProducts IsNot Nothing AndAlso dailyDto.TopSellingProducts.Count > 0 Then
                 TopSellingProduct = dailyDto.TopSellingProducts(0).ProductName

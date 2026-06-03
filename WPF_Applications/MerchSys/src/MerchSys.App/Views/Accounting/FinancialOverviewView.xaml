@@ -99,9 +99,22 @@
                             <!-- Hero: MTD Revenue -->
                             <Border Grid.Column="0" Style="{StaticResource PrimaryMetricCardStyle}" Margin="0,0,8,0">
                                 <StackPanel>
-                                    <TextBlock Text="{Binding MonthToDateRevenue, StringFormat='₱{0:N0}'}"
-                                               Style="{StaticResource PrimaryMetricValueStyle}" Foreground="{DynamicResource AccentBrush}"/>
-                                    <TextBlock Text="MTD Revenue" Style="{StaticResource KpiLabel}"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding MonthToDateRevenue, StringFormat='₱{0:N0}'}"
+                                                           Style="{StaticResource PrimaryMetricValueStyle}" Foreground="{DynamicResource AccentBrush}"
+                                                           VerticalAlignment="Center"/>
+                                                <views:DeltaIndicator Percent="{Binding RevenueDeltaPercent}" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                            <TextBlock Text="MTD Revenue" Style="{StaticResource KpiLabel}"/>
+                                        </StackPanel>
+                                        <views:Sparkline Grid.Column="1" Points="{Binding RevenueSparkPoints}" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                    </Grid>
                                 </StackPanel>
                             </Border>
 

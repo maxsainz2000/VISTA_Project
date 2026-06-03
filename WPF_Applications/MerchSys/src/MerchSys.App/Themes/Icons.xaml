@@ -72,6 +72,12 @@
     <!-- Chevron-left — optional, axis label -->
     <Geometry x:Key="IconChevronLeftGeometry">M15,5 L17,7 L11.8,12 L17,17 L15,19 L8,12 Z</Geometry>
 
+    <!-- Arrow up — period-over-period positive direction indicator -->
+    <Geometry x:Key="IconArrowUpGeometry">M12,3 L21,12 L16,12 L16,21 L8,21 L8,12 L3,12 Z</Geometry>
+
+    <!-- Arrow down — period-over-period negative direction indicator -->
+    <Geometry x:Key="IconArrowDownGeometry">M12,21 L3,12 L8,12 L8,3 L16,3 L16,12 L21,12 Z</Geometry>
+
     <!-- ============================================================== -->
     <!-- BASE PRESENTATION STYLE                                        -->
     <!--                                                                -->

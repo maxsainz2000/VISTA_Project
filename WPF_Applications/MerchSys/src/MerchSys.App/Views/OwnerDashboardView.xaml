@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
              mc:Ignorable="d"
              d:DesignHeight="768" d:DesignWidth="1280"
              Background="{DynamicResource WindowBackgroundBrush}"
@@ -157,10 +158,13 @@
                         <TextBlock Style="{StaticResource CardTitle}" Text="TODAY'S REVENUE"/>
                     </StackPanel>
                     <StackPanel>
-                        <TextBlock Style="{StaticResource PrimaryMetricValueStyle}">
-                            <Run Text="₱"/>
-                            <Run Text="{Binding TodayRevenue, Mode=OneWay, StringFormat=N0}"/>
-                        </TextBlock>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Style="{StaticResource PrimaryMetricValueStyle}" VerticalAlignment="Center">
+                                <Run Text="₱"/>
+                                <Run Text="{Binding TodayRevenue, Mode=OneWay, StringFormat=N0}"/>
+                            </TextBlock>
+                            <views:DeltaIndicator Percent="{Binding TodayRevenueDelta}" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                        </StackPanel>
                         <TextBlock Text="Total sales revenue recorded today" Style="{StaticResource MetricCaptionStyle}"/>
                     </StackPanel>
                 </DockPanel>
@@ -304,10 +308,13 @@
 
                         <StackPanel Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" VerticalAlignment="Center">
                             <TextBlock Text="This Week's Revenue" Style="{StaticResource CaptionLabelStyle}"/>
-                            <TextBlock Style="{StaticResource SecondaryMetricValueStyle}">
-                                <Run Text="₱"/>
-                                <Run Text="{Binding WeekRevenue, Mode=OneWay, StringFormat=N0}"/>
-                            </TextBlock>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Style="{StaticResource SecondaryMetricValueStyle}" VerticalAlignment="Center">
+                                    <Run Text="₱"/>
+                                    <Run Text="{Binding WeekRevenue, Mode=OneWay, StringFormat=N0}"/>
+                                </TextBlock>
+                                <views:DeltaIndicator Percent="{Binding WeekRevenueDelta}" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                            </StackPanel>
                         </StackPanel>
 
                         <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,0,8">

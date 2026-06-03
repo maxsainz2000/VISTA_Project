@@ -196,6 +196,26 @@ Namespace ViewModels
         Public Property TopProducts As ObservableCollection(Of TopProductDto)
         Public Property MonthlyTrend As ObservableCollection(Of TrendBarItem)
 
+        Private _revenueDeltaPercent As Double
+        Public Property RevenueDeltaPercent As Double
+            Get
+                Return _revenueDeltaPercent
+            End Get
+            Private Set(value As Double)
+                SetProperty(_revenueDeltaPercent, value)
+            End Set
+        End Property
+
+        Private _revenueSparkPoints As IEnumerable(Of Double)
+        Public Property RevenueSparkPoints As IEnumerable(Of Double)
+            Get
+                Return _revenueSparkPoints
+            End Get
+            Private Set(value As IEnumerable(Of Double))
+                SetProperty(_revenueSparkPoints, value)
+            End Set
+        End Property
+
         ' ─── Status ───────────────────────────────────────────────────────────────
 
         Private _isBusy As Boolean
@@ -243,6 +263,19 @@ Namespace ViewModels
                 WhatThisMeansText = _whatThisMeansService.GenerateOverviewInterpretation(data)
 
                 BuildTrendBars(data.MonthlyTrend)
+
+                RevenueSparkPoints = data.MonthlyTrend.Select(Function(t) CDbl(t.Revenue)).ToList()
+
+                If data.MonthlyTrend.Count >= 2 Then
+                    Dim priorMonthRevenue = data.MonthlyTrend(data.MonthlyTrend.Count - 2).Revenue
+                    If priorMonthRevenue > 0 Then
+                        RevenueDeltaPercent = CDbl(Math.Round(((MonthToDateRevenue - priorMonthRevenue) / priorMonthRevenue) * 100D, 1))
+                    Else
+                        RevenueDeltaPercent = 0.0
+                    End If
+                Else
+                    RevenueDeltaPercent = 0.0
+                End If
 
                 TopProducts.Clear()
                 For Each p In data.TopProducts

@@ -230,8 +230,12 @@
                     <Border Width="210" Margin="0,0,12,0" Style="{StaticResource PrimaryMetricCardStyle}">
                         <StackPanel>
                             <TextBlock Text="TOTAL SALES" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,0,6"/>
-                            <TextBlock Text="{Binding TotalSalesDisplay}"
-                                       Style="{StaticResource PrimaryMetricValueStyle}" Foreground="{DynamicResource SuccessBrush}"/>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding TotalSalesDisplay}"
+                                           Style="{StaticResource PrimaryMetricValueStyle}" Foreground="{DynamicResource SuccessBrush}"
+                                           VerticalAlignment="Center"/>
+                                <views:DeltaIndicator Percent="{Binding SalesDeltaPercent}" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                            </StackPanel>
                         </StackPanel>
                     </Border>
 
