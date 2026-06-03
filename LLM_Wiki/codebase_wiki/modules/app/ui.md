@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.App
 layer: UI
-last-updated: 2026-06-02
+last-updated: 2026-06-03
 ---
 
 # MerchSys.App — UI (Views)
@@ -14,19 +14,19 @@ This page details the WPF View implementations (XAML and code-behind) in the **M
 | File Path | Class | Description | DataContext / Injection |
 |---|---|---|---|
 | `src/MerchSys.App/Application.xaml`<br>`src/MerchSys.App/Application.xaml.vb` | `Application` | Main Application entry point. Handles Generic Host initialization, DI container building, manual schema bootstrapping via `MariaDbSchemaInitializer`, and startup theme loading (UX-01). | (none) |
-| `src/MerchSys.App/MainWindow.xaml`<br>`src/MerchSys.App/MainWindow.xaml.vb` | `MainWindow` | Main application shell restructured to support the Master-Detail Activity Rail navigation. | `MainWindowViewModel` (Constructor Injection) |
-| `src/MerchSys.App/ViewModels/MainWindowViewModel.vb` | `MainWindowViewModel` | MVVM hub for the shell. Manages `ActiveModule`, `ActiveModuleName`, role-aware `AppModule` collections, and navigation commands. | `IServiceProvider` (Constructor Injection) |
+| `src/MerchSys.App/MainWindow.xaml`<br>`src/MerchSys.App/MainWindow.xaml.vb` | `MainWindow` | Main application shell. Uses token-based `AppFontFamily` (Inter) and a padded `Border` with `WindowBackgroundBrush` for a floating macOS-style content area. | `MainWindowViewModel` (Constructor Injection) |
+| `src/MerchSys.App/ViewModels/MainWindowViewModel.vb` | `MainWindowViewModel` | MVVM hub for the shell. Manages `ActiveModule`, `ActiveModuleName`, role-aware `AppModule` collections, navigation commands, and theme state (`IsDarkTheme`/`ToggleThemeCommand`). | `IServiceProvider`, `IThemeService` (Constructor Injection) |
 | `src/MerchSys.App/Models/NavigationItem.vb` | `NavigationItem`, `NavigationGroup` | POCO models representing navigation nodes and their parent groups. | (none) |
 | `src/MerchSys.App/Models/AppModule.vb` | `AppModule` (Enum), `RailItem` | Represents master monolith modules and maps them to vertical rail icons, tooltips, and active states. | (none) |
-| `src/MerchSys.App/Views/Shell/ActivityRail.xaml`<br>`src/MerchSys.App/Views/Shell/ActivityRail.xaml.vb` | `ActivityRail` | Far-left 60px vertical menu rendering the module selection icons (PUR, INV, POS, ACC, DEV). | `ActivityRailViewModel` (Constructor Injection) |
+| `src/MerchSys.App/Views/Shell/ActivityRail.xaml`<br>`src/MerchSys.App/Views/Shell/ActivityRail.xaml.vb` | `ActivityRail` | Far-left 60px vertical menu rendering module selection icons. Updated to use `SidebarBackgroundBrush`, a separator hairline, and soft rounded selection pills via single-template opacity transitions. | `ActivityRailViewModel` (Constructor Injection) |
 | `src/MerchSys.App/ViewModels/Shell/ActivityRailViewModel.vb` | `ActivityRailViewModel` | MVVM controller for the vertical navigation rail. Sourced with AppModule items and binds navigation swaps to `MainWindowViewModel`. | (none) |
-| `src/MerchSys.App/Views/Shell/ModuleDetailPanel.xaml`<br>`src/MerchSys.App/Views/Shell/ModuleDetailPanel.xaml.vb` | `ModuleDetailPanel` | Adjacent 220px detail panel that switches sub-views dynamically based on the selected master module module. Anchors the connection health badge and logout action. | `MainWindowViewModel` (DataContext) |
+| `src/MerchSys.App/Views/Shell/ModuleDetailPanel.xaml`<br>`src/MerchSys.App/Views/Shell/ModuleDetailPanel.xaml.vb` | `ModuleDetailPanel` | Adjacent 220px detail panel that switches sub-views dynamically. Styled with `SidebarBackgroundBrush`, soft selection nav rows, and anchors the connection health badge, logout action, and the sliding theme toggle switch in its footer. | `MainWindowViewModel` (DataContext) |
 | `src/MerchSys.App/Views/Shell/Modules/PurchasingPanel.xaml`<br>`.xaml.vb` | `PurchasingPanel` | UserControl holding sub-views inside the Purchasing module detail panel. | (Inherited) |
 | `src/MerchSys.App/Views/Shell/Modules/InventoryPanel.xaml`<br>`.xaml.vb` | `InventoryPanel` | UserControl holding sub-views inside the Inventory module detail panel. | (Inherited) |
 | `src/MerchSys.App/Views/Shell/Modules/PosPanel.xaml`<br>`.xaml.vb` | `PosPanel` | UserControl holding sub-views inside the POS module detail panel. | (Inherited) |
 | `src/MerchSys.App/Views/Shell/Modules/AccountingPanel.xaml`<br>`.xaml.vb` | `AccountingPanel` | UserControl holding sub-views inside the Accounting module detail panel. | (Inherited) |
-| `src/MerchSys.App/Views/Shell/Modules/DeveloperToolsPanel.xaml`<br>`.xaml.vb` | `DeveloperToolsPanel` | UserControl holding sub-views inside the Developer Tools panel. | (Inherited) |
-| `src/MerchSys.App/Views/Shell/ConnectionStatusIndicator.xaml`<br>`src/MerchSys.App/Views/Shell/ConnectionStatusIndicator.xaml.vb` | `ConnectionStatusIndicator` | Pill-shaped badge showing connection state (Green Online, Orange Reconnecting, Red Offline). | `ConnectionStatusViewModel` (Constructor Injection) |
+| `src/MerchSys.App/Views/Shell/Modules/DeveloperToolsPanel.xaml`<br>`.xaml.vb` | `DeveloperToolsPanel` | UserControl holding sub-views inside the Developer Tools panel (temporary toggle removed). | (Inherited) |
+| `src/MerchSys.App/Views/Shell/ConnectionStatusIndicator.xaml`<br>`src/MerchSys.App/Views/Shell/ConnectionStatusIndicator.xaml.vb` | `ConnectionStatusIndicator` | Pill-shaped badge showing connection state. Maps connection health to `SuccessBrush`/`WarningBrush`/`DangerBrush` tokens using XAML `DataTrigger`s to support runtime theme-swapping. | `ConnectionStatusViewModel` (Constructor Injection) |
 | `src/MerchSys.App/ViewModels/Shell/ConnectionStatusViewModel.vb` | `ConnectionStatusViewModel` | VM for connection status indicator. | `IConnectionHealthMonitor` |
 | `src/MerchSys.App/Behaviors/DisableOnOfflineBehavior.vb` | `DisableOnOfflineBehavior` | Attached behavior rendering `IsDisabledWhenOffline` DependencyProperty on buttons. | (none) |
 | `src/MerchSys.App/Views/LoginView.xaml`<br>`src/MerchSys.App/Views/LoginView.xaml.vb` | `LoginView` | Standalone login window with authentication and first-login password change. | `LoginViewModel` (Constructor Injection) |
