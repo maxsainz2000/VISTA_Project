@@ -86,11 +86,20 @@ wiki update.
    alone, the Activity Rail will still highlight Inventory and the Module Detail Panel will show the
    wrong list. The palette's selection must set `ActiveModule` to the target item's module **then**
    navigate (use the aggregator's module tag). Verify the rail + panel reflect the jump.
-3. **Role-awareness is mandatory — the palette lists only what the role can reach.** Build results from
+3. **A window-level keyboard-shortcut scheme already exists — extend it, don't reinvent it.**
+   `MainWindow.xaml` has a `<Window.InputBindings>` block with `Ctrl+1..4` (module switching) and
+   `Ctrl+D0` (Developer Tools), each a `KeyBinding Gesture=…` bound to a `RelayCommand`. Register the
+   palette's open gesture (`Ctrl+K`) in that **same** block, wired to a command, **not** in a bespoke
+   `PreviewKeyDown`/code-behind handler. `K` is free — confirm no collision with the existing gestures
+   before adding. Two fall-through hazards to close: (a) those module shortcuts are window-level, so
+   they keep firing while the palette is open — decide whether to suppress them or accept it (suppress
+   is cleaner); and (b) the palette must handle `Esc`/`↑`/`↓`/`Enter` **locally** (mark the key event
+   `Handled`) so they don't bubble up to the window bindings or the content underneath.
+4. **Role-awareness is mandatory — the palette lists only what the role can reach.** Build results from
    the role-aware collections, so Owner sees only the Owner-visible (read-only) screens and Developer
    Tools never appear for Manager/Owner. Do not bypass the existing role gating. (This also keeps the
    OWASP-DA5 posture: the palette is a shortcut to already-authorized views, not a new entry point.)
-4. **Entity search is read-only and async-safe.** Debounce input; cap results; run lookups off the UI
+5. **Entity search is read-only and async-safe.** Debounce input; cap results; run lookups off the UI
    thread via MediatR queries; never `Await` inside a `Catch`/`Finally` (BC36943). Reuse UX-06
    `BusyOverlay`/`EmptyStatePanel` semantics for the "searching…/no matches" states inside the palette.
    Selecting an entity navigates to its operational view (read-only) — it does not open an editor in
