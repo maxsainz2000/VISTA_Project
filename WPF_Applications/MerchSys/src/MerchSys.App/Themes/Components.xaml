@@ -45,6 +45,30 @@
         <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
     </Style>
 
+    <!-- CleanButtonStyle: invisible wrapper for making cards / containers clickable.
+         Removes all chrome (background, border, padding, margin) so the child
+         content renders exactly as designed. Hand cursor signals interactivity. -->
+    <Style x:Key="CleanButtonStyle" TargetType="{x:Type Button}">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Margin" Value="0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                      Margin="{TemplateBinding Padding}"
+                                      SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- ========================================== -->
     <!-- SEGMENTED TOGGLE                          -->
     <!-- ========================================== -->
