@@ -75,81 +75,102 @@
             </Border>
 
         <!-- ═══════════════════════════════════════════════════════════
-             KPI CARDS ROW — 7 cards
+             KPI CARDS ROW — Recomposed hierarchical layout (UX-10)
              ═══════════════════════════════════════════════════════════ -->
         <Grid DockPanel.Dock="Top" Margin="0,0,0,8">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-            <Border Grid.Column="0" Style="{StaticResource CardStyle}" Padding="14,10" CornerRadius="{DynamicResource RadiusSmall}" Margin="0,0,8,0">
-                <StackPanel>
-                    <TextBlock Text="{Binding TodayRevenue, StringFormat='₱{0:N0}'}"
-                               Style="{StaticResource KpiValue}" Foreground="{DynamicResource AccentBrush}"/>
-                    <TextBlock Text="Today Revenue" Style="{StaticResource KpiLabel}"/>
-                </StackPanel>
-            </Border>
+            <!-- Row 0: Hero + Secondary (5 columns) -->
+            <Grid Grid.Row="0" Margin="0,0,0,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.3*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="1" Style="{StaticResource CardStyle}" Padding="14,10" CornerRadius="{DynamicResource RadiusSmall}" Margin="0,0,8,0">
-                <StackPanel>
-                    <TextBlock Text="{Binding MonthToDateRevenue, StringFormat='₱{0:N0}'}"
-                               Style="{StaticResource KpiValue}" Foreground="{DynamicResource AccentBrush}"/>
-                    <TextBlock Text="MTD Revenue" Style="{StaticResource KpiLabel}"/>
-                </StackPanel>
-            </Border>
+                <!-- Hero: MTD Revenue -->
+                <Border Grid.Column="0" Style="{StaticResource PrimaryMetricCardStyle}" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="{Binding MonthToDateRevenue, StringFormat='₱{0:N0}'}"
+                                   Style="{StaticResource PrimaryMetricValueStyle}" Foreground="{DynamicResource AccentBrush}"/>
+                        <TextBlock Text="MTD Revenue" Style="{StaticResource KpiLabel}"/>
+                    </StackPanel>
+                </Border>
 
-            <Border Grid.Column="2" Style="{StaticResource CardStyle}" Padding="14,10" CornerRadius="{DynamicResource RadiusSmall}" Margin="0,0,8,0">
-                <StackPanel>
-                    <TextBlock Text="{Binding YearToDateRevenue, StringFormat='₱{0:N0}'}"
-                               Style="{StaticResource KpiValue}" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                    <TextBlock Text="YTD Revenue" Style="{StaticResource KpiLabel}"/>
-                </StackPanel>
-            </Border>
+                <!-- Today Revenue -->
+                <Border Grid.Column="1" Style="{StaticResource SecondaryMetricCardStyle}" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="{Binding TodayRevenue, StringFormat='₱{0:N0}'}"
+                                   Style="{StaticResource SecondaryMetricValueStyle}" Foreground="{DynamicResource AccentBrush}"/>
+                        <TextBlock Text="Today Revenue" Style="{StaticResource KpiLabel}"/>
+                    </StackPanel>
+                </Border>
 
-            <Border Grid.Column="3" Style="{StaticResource CardStyle}" Padding="14,10" CornerRadius="{DynamicResource RadiusSmall}" Margin="0,0,8,0">
-                <StackPanel>
-                    <TextBlock Text="{Binding CurrentGrossMargin, StringFormat='{}{0:N1}%'}"
-                               Style="{StaticResource KpiValue}" Foreground="{DynamicResource SuccessBrush}"/>
-                    <TextBlock Text="Gross Margin %" Style="{StaticResource KpiLabel}"/>
-                </StackPanel>
-            </Border>
+                <!-- Gross Margin % -->
+                <Border Grid.Column="2" Style="{StaticResource SecondaryMetricCardStyle}" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="{Binding CurrentGrossMargin, StringFormat='{}{0:N1}%'}"
+                                   Style="{StaticResource SecondaryMetricValueStyle}" Foreground="{DynamicResource SuccessBrush}"/>
+                        <TextBlock Text="Gross Margin %" Style="{StaticResource KpiLabel}"/>
+                    </StackPanel>
+                </Border>
 
-            <Border Grid.Column="4" Style="{StaticResource CardStyle}" Padding="14,10" CornerRadius="{DynamicResource RadiusSmall}" Margin="0,0,8,0">
-                <StackPanel>
-                    <TextBlock Text="{Binding TotalAR, StringFormat='₱{0:N0}'}"
-                               Style="{StaticResource KpiValue}" Foreground="{DynamicResource WarningBrush}"/>
-                    <TextBlock Text="AR Outstanding" Style="{StaticResource KpiLabel}"/>
-                </StackPanel>
-            </Border>
+                <!-- AR Outstanding -->
+                <Border Grid.Column="3" Style="{StaticResource SecondaryMetricCardStyle}" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="{Binding TotalAR, StringFormat='₱{0:N0}'}"
+                                   Style="{StaticResource SecondaryMetricValueStyle}" Foreground="{DynamicResource WarningBrush}"/>
+                        <TextBlock Text="AR Outstanding" Style="{StaticResource KpiLabel}"/>
+                    </StackPanel>
+                </Border>
 
-            <Border Grid.Column="5" Style="{StaticResource CardStyle}" Padding="14,10" CornerRadius="{DynamicResource RadiusSmall}" Margin="0,0,8,0">
-                <StackPanel>
-                    <TextBlock Text="{Binding TotalAP, StringFormat='₱{0:N0}'}"
-                               Style="{StaticResource KpiValue}" Foreground="{DynamicResource DangerBrush}"/>
-                    <TextBlock Text="AP Outstanding" Style="{StaticResource KpiLabel}"/>
-                </StackPanel>
-            </Border>
+                <!-- AP Outstanding -->
+                <Border Grid.Column="4" Style="{StaticResource SecondaryMetricCardStyle}" Margin="0">
+                    <StackPanel>
+                        <TextBlock Text="{Binding TotalAP, StringFormat='₱{0:N0}'}"
+                                   Style="{StaticResource SecondaryMetricValueStyle}" Foreground="{DynamicResource DangerBrush}"/>
+                        <TextBlock Text="AP Outstanding" Style="{StaticResource KpiLabel}"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
 
-            <Border Grid.Column="6" Style="{StaticResource CardStyle}" Padding="14,10" CornerRadius="{DynamicResource RadiusSmall}" Margin="0,0,8,0">
-                <StackPanel>
-                    <TextBlock Text="{Binding InventoryValue, StringFormat='₱{0:N0}'}"
-                               Style="{StaticResource KpiValue}" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                    <TextBlock Text="Inventory Value" Style="{StaticResource KpiLabel}"/>
-                </StackPanel>
-            </Border>
+            <!-- Row 1: Tertiary strip (3 columns) -->
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-            <!-- VAT Payable tile: DataContext inherited from parent; VAT data supplied by
-                 VatEnrichedFinancialOverviewService (decorator over FinancialOverviewService).
-                 Click → NavigateToVatReturnCommand → FinancialOverviewViewModel.NavigateToVatReturnRequested
-                 → OnNavigateToVatReturnRequested in code-behind (type-based NavigationItem lookup). -->
-            <vatTiles:VatPayableTile Grid.Column="7" Margin="0"/>
+                <!-- YTD Revenue -->
+                <Border Grid.Column="0" Style="{StaticResource TertiaryMetricStyle}" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="{Binding YearToDateRevenue, StringFormat='₱{0:N0}'}"
+                                   FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <TextBlock Text="YTD Revenue" Style="{StaticResource KpiLabel}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Inventory Value -->
+                <Border Grid.Column="1" Style="{StaticResource TertiaryMetricStyle}" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="{Binding InventoryValue, StringFormat='₱{0:N0}'}"
+                                   FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <TextBlock Text="Inventory Value" Style="{StaticResource KpiLabel}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- VAT Payable tile: DataContext inherited from parent; VAT data supplied by
+                     VatEnrichedFinancialOverviewService (decorator over FinancialOverviewService).
+                     Click → NavigateToVatReturnCommand → FinancialOverviewViewModel.NavigateToVatReturnRequested
+                     → OnNavigateToVatReturnRequested in code-behind (type-based NavigationItem lookup). -->
+                <vatTiles:VatPayableTile Grid.Column="2" Margin="0"/>
+            </Grid>
         </Grid>
 
         <!-- ═══════════════════════════════════════════════════════════
@@ -182,11 +203,11 @@
         </Border>
 
         <!-- ═══════════════════════════════════════════════════════════
-             ALERTS PANEL — bottom
+             ALERTS PANEL — top (UX-10)
              ═══════════════════════════════════════════════════════════ -->
-        <Border DockPanel.Dock="Bottom"
+        <Border DockPanel.Dock="Top"
                 Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
-                CornerRadius="{DynamicResource RadiusSmall}" Padding="14,10" Margin="0,8,0,0">
+                CornerRadius="{DynamicResource RadiusSmall}" Padding="14,10" Margin="0,0,0,8">
             <StackPanel>
                 <TextBlock Text="Alerts" Style="{StaticResource SectionHeaderStyle}" Margin="0,0,0,6"/>
                 <StackPanel Orientation="Horizontal">

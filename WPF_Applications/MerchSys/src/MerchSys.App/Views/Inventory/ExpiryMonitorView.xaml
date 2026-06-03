@@ -55,30 +55,33 @@
              ═══════════════════════════════════════════════════════════ -->
         <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="1.3*"/> <!-- Hero (Total Value at Risk) -->
+                <ColumnDefinition Width="*"/>     <!-- Near-Expiry Batches -->
+                <ColumnDefinition Width="*"/>     <!-- Expired Batches -->
             </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+            <!-- Hero: Total Value at Risk -->
+            <Border Grid.Column="0" Style="{StaticResource PrimaryMetricCardStyle}" Margin="0,0,8,0">
                 <StackPanel>
-                    <TextBlock Text="{Binding NearExpiryCount}" Style="{StaticResource MetricValueLargeStyle}" Foreground="{DynamicResource WarningBrush}"/>
+                    <TextBlock Text="{Binding TotalValueAtRisk, StringFormat='₱{0:N2}'}"
+                               Style="{StaticResource PrimaryMetricValueStyle}" Foreground="{DynamicResource DangerBrush}"/>
+                    <TextBlock Text="Total Value at Risk" Style="{StaticResource CaptionLabelStyle}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Near-Expiry Batches -->
+            <Border Grid.Column="1" Style="{StaticResource SecondaryMetricCardStyle}" Margin="0,0,8,0">
+                <StackPanel>
+                    <TextBlock Text="{Binding NearExpiryCount}" Style="{StaticResource SecondaryMetricValueStyle}" Foreground="{DynamicResource WarningBrush}"/>
                     <TextBlock Text="Near-Expiry Batches" Style="{StaticResource CaptionLabelStyle}"/>
                 </StackPanel>
             </Border>
 
-            <Border Grid.Column="1" Style="{StaticResource CardStyle}">
+            <!-- Expired Batches -->
+            <Border Grid.Column="2" Style="{StaticResource SecondaryMetricCardStyle}" Margin="0">
                 <StackPanel>
-                    <TextBlock Text="{Binding ExpiredCount}" Style="{StaticResource MetricValueLargeStyle}" Foreground="{DynamicResource DangerBrush}"/>
+                    <TextBlock Text="{Binding ExpiredCount}" Style="{StaticResource SecondaryMetricValueStyle}" Foreground="{DynamicResource DangerBrush}"/>
                     <TextBlock Text="Expired Batches" Style="{StaticResource CaptionLabelStyle}"/>
-                </StackPanel>
-            </Border>
-
-            <Border Grid.Column="2" Style="{StaticResource CardStyle}" Margin="0">
-                <StackPanel>
-                    <TextBlock Text="{Binding TotalValueAtRisk, StringFormat='₱{0:N2}'}"
-                               Style="{StaticResource MetricValueLargeStyle}" Foreground="{DynamicResource DangerBrush}"/>
-                    <TextBlock Text="Total Value at Risk" Style="{StaticResource CaptionLabelStyle}"/>
                 </StackPanel>
             </Border>
         </Grid>

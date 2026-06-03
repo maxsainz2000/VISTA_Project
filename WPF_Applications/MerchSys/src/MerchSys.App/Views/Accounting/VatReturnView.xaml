@@ -127,47 +127,17 @@
             <Border DockPanel.Dock="Top" Margin="0,0,0,8">
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="1.3*"/> <!-- Hero (VAT Payable) -->
+                        <ColumnDefinition Width="*"/>     <!-- VATable Sales -->
+                        <ColumnDefinition Width="*"/>     <!-- Output VAT -->
+                        <ColumnDefinition Width="*"/>     <!-- Input VAT -->
+                        <ColumnDefinition Width="*"/>     <!-- Filing Status -->
                     </Grid.ColumnDefinitions>
 
-                    <Border Grid.Column="0" Style="{StaticResource CardStyle}" CornerRadius="{DynamicResource RadiusSmall}" Padding="14,10" Margin="0,0,6,0">
-                        <StackPanel>
-                            <TextBlock Text="VATABLE SALES" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,0,3"/>
-                            <TextBlock Text="{Binding TotalVatableSales, StringFormat='₱{0:N2}'}" Style="{StaticResource SectionHeaderStyle}"/>
-                        </StackPanel>
-                    </Border>
-
-                    <Border Grid.Column="1" Style="{StaticResource CardStyle}" CornerRadius="{DynamicResource RadiusSmall}" Padding="14,10" Margin="0,0,6,0">
-                        <StackPanel>
-                            <TextBlock Text="OUTPUT VAT" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,0,3"/>
-                            <TextBlock Text="{Binding TotalOutputVat, StringFormat='₱{0:N2}'}" Style="{StaticResource SectionHeaderStyle}"/>
-                        </StackPanel>
-                    </Border>
-
-                    <Border Grid.Column="2" Style="{StaticResource CardStyle}" CornerRadius="{DynamicResource RadiusSmall}" Padding="14,10" Margin="0,0,6,0">
-                        <StackPanel>
-                            <TextBlock Text="INPUT VAT" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,0,3"/>
-                            <TextBlock Text="{Binding TotalInputVat, StringFormat='₱{0:N2}'}" Style="{StaticResource SectionHeaderStyle}"/>
-                        </StackPanel>
-                    </Border>
-
-                    <Border Grid.Column="3" Style="{StaticResource CardStyle}" CornerRadius="{DynamicResource RadiusSmall}" Padding="14,10" Margin="0,0,6,0">
-                        <StackPanel>
-                            <TextBlock Text="FILING STATUS" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,0,3"/>
-                            <TextBlock Text="{Binding FilingStatusDisplay}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap"/>
-                        </StackPanel>
-                    </Border>
-
-                    <Border Grid.Column="4">
+                    <!-- Hero: VAT Payable -->
+                    <Border Grid.Column="0" Margin="0,0,6,0">
                         <Border.Style>
-                            <Style TargetType="Border" BasedOn="{StaticResource CardStyle}">
-                                <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}"/>
-                                <Setter Property="Padding" Value="14,10"/>
-                                <Setter Property="Margin" Value="0"/>
+                            <Style TargetType="Border" BasedOn="{StaticResource PrimaryMetricCardStyle}">
                                 <Setter Property="Background" Value="{DynamicResource SidebarBackgroundBrush}"/>
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding VatPayable}" Value="0">
@@ -178,7 +148,39 @@
                         </Border.Style>
                         <StackPanel>
                             <TextBlock Text="VAT PAYABLE" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,0,3"/>
-                            <TextBlock Text="{Binding VatPayableDisplay}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding VatPayableDisplay}" Style="{StaticResource PrimaryMetricValueStyle}" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- VATable Sales -->
+                    <Border Grid.Column="1" Style="{StaticResource SecondaryMetricCardStyle}" Margin="0,0,6,0">
+                        <StackPanel>
+                            <TextBlock Text="VATABLE SALES" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,0,3"/>
+                            <TextBlock Text="{Binding TotalVatableSales, StringFormat='₱{0:N2}'}" Style="{StaticResource SecondaryMetricValueStyle}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Output VAT -->
+                    <Border Grid.Column="2" Style="{StaticResource SecondaryMetricCardStyle}" Margin="0,0,6,0">
+                        <StackPanel>
+                            <TextBlock Text="OUTPUT VAT" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,0,3"/>
+                            <TextBlock Text="{Binding TotalOutputVat, StringFormat='₱{0:N2}'}" Style="{StaticResource SecondaryMetricValueStyle}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Input VAT -->
+                    <Border Grid.Column="3" Style="{StaticResource SecondaryMetricCardStyle}" Margin="0,0,6,0">
+                        <StackPanel>
+                            <TextBlock Text="INPUT VAT" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,0,3"/>
+                            <TextBlock Text="{Binding TotalInputVat, StringFormat='₱{0:N2}'}" Style="{StaticResource SecondaryMetricValueStyle}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Filing Status -->
+                    <Border Grid.Column="4" Style="{StaticResource SecondaryMetricCardStyle}" Margin="0">
+                        <StackPanel>
+                            <TextBlock Text="FILING STATUS" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,0,3"/>
+                            <TextBlock Text="{Binding FilingStatusDisplay}" Style="{StaticResource SecondaryMetricValueStyle}" TextWrapping="Wrap"/>
                         </StackPanel>
                     </Border>
                 </Grid>

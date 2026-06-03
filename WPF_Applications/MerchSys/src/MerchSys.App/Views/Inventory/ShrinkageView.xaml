@@ -39,32 +39,25 @@
             <!-- ── Summary Cards ──────────────────────────────────── -->
             <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="1.3*"/> <!-- Hero (Period Total Value) -->
+                    <ColumnDefinition Width="*"/>     <!-- Records (Filtered) -->
                 </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                <!-- Hero: Period Shrinkage Value -->
+                <Border Grid.Column="0" Style="{StaticResource PrimaryMetricCardStyle}" Margin="0,0,8,0">
                     <StackPanel>
                         <TextBlock Text="{Binding PeriodTotalValue, StringFormat='₱{0:N2}'}"
-                                   Style="{StaticResource MetricValueLargeStyle}" Foreground="{DynamicResource DangerBrush}"/>
+                                   Style="{StaticResource PrimaryMetricValueStyle}" Foreground="{DynamicResource DangerBrush}"/>
                         <TextBlock Text="Period Shrinkage Value" Style="{StaticResource CaptionLabelStyle}"/>
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="1" Style="{StaticResource CardStyle}">
+                <!-- Records (Filtered) -->
+                <Border Grid.Column="1" Style="{StaticResource SecondaryMetricCardStyle}" Margin="0">
                     <StackPanel>
                         <TextBlock Text="{Binding FilteredCount}"
-                                   Style="{StaticResource MetricValueLargeStyle}" Foreground="{DynamicResource AccentBrush}"/>
+                                   Style="{StaticResource SecondaryMetricValueStyle}" Foreground="{DynamicResource AccentBrush}"/>
                         <TextBlock Text="Records (Filtered)" Style="{StaticResource CaptionLabelStyle}"/>
-                    </StackPanel>
-                </Border>
-
-                <Border Grid.Column="2" Style="{StaticResource CardStyle}" Margin="0">
-                    <StackPanel>
-                        <TextBlock Text="{Binding LastRefreshed}"
-                                   Style="{StaticResource MetricValueStyle}" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                        <TextBlock Text="Last Refreshed" Style="{StaticResource CaptionLabelStyle}"/>
                     </StackPanel>
                 </Border>
             </Grid>
@@ -81,6 +74,12 @@
                             Content="Refresh"
                             Command="{Binding LoadDataCommand}"
                             Style="{StaticResource PrimaryButtonStyle}"/>
+
+                    <TextBlock DockPanel.Dock="Right"
+                               Text="{Binding LastRefreshed}"
+                               Style="{StaticResource CaptionLabelStyle}"
+                               Margin="0,0,12,0"
+                               VerticalAlignment="Center"/>
 
                     <!-- Record button on left -->
                     <Button DockPanel.Dock="Left"

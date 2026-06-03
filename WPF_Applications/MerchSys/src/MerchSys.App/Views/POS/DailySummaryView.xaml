@@ -227,54 +227,38 @@
                 <WrapPanel Orientation="Horizontal" Margin="0,0,0,12">
 
                     <!-- Total Sales -->
-                    <Border Width="210" Margin="0,0,12,0"
-                            Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
-                            CornerRadius="{DynamicResource RadiusSmall}" Padding="16,12"
-                            Effect="{DynamicResource CardShadow}">
+                    <Border Width="210" Margin="0,0,12,0" Style="{StaticResource PrimaryMetricCardStyle}">
                         <StackPanel>
-                            <TextBlock Text="TOTAL SALES" FontSize="{DynamicResource FontSizeCaption}" FontWeight="Bold"
-                                       Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                            <TextBlock Text="TOTAL SALES" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,0,6"/>
                             <TextBlock Text="{Binding TotalSalesDisplay}"
-                                       FontSize="22" FontWeight="Bold" Foreground="{DynamicResource SuccessBrush}"/>
+                                       Style="{StaticResource PrimaryMetricValueStyle}" Foreground="{DynamicResource SuccessBrush}"/>
                         </StackPanel>
                     </Border>
 
                     <!-- TX Count -->
-                    <Border Width="165" Margin="0,0,12,0"
-                            Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
-                            CornerRadius="{DynamicResource RadiusSmall}" Padding="16,12"
-                            Effect="{DynamicResource CardShadow}">
+                    <Border Width="165" Margin="0,0,12,0" Style="{StaticResource SecondaryMetricCardStyle}">
                         <StackPanel>
-                            <TextBlock Text="TRANSACTIONS" FontSize="{DynamicResource FontSizeCaption}" FontWeight="Bold"
-                                       Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                            <TextBlock Text="TRANSACTIONS" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,0,6"/>
                             <TextBlock Text="{Binding TransactionCount}"
-                                       FontSize="22" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/>
+                                       Style="{StaticResource SecondaryMetricValueStyle}" Foreground="{DynamicResource AccentBrush}"/>
                         </StackPanel>
                     </Border>
 
                     <!-- Avg TX Value -->
-                    <Border Width="210" Margin="0,0,12,0"
-                            Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
-                            CornerRadius="{DynamicResource RadiusSmall}" Padding="16,12"
-                            Effect="{DynamicResource CardShadow}">
+                    <Border Width="210" Margin="0,0,12,0" Style="{StaticResource SecondaryMetricCardStyle}">
                         <StackPanel>
-                            <TextBlock Text="AVG TRANSACTION" FontSize="{DynamicResource FontSizeCaption}" FontWeight="Bold"
-                                       Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                            <TextBlock Text="AVG TRANSACTION" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,0,6"/>
                             <TextBlock Text="{Binding AvgTransactionDisplay}"
-                                       FontSize="22" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                       Style="{StaticResource SecondaryMetricValueStyle}"/>
                         </StackPanel>
                     </Border>
 
                     <!-- Returns -->
-                    <Border Width="230"
-                            Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
-                            CornerRadius="{DynamicResource RadiusSmall}" Padding="16,12"
-                            Effect="{DynamicResource CardShadow}">
+                    <Border Width="230" Style="{StaticResource SecondaryMetricCardStyle}">
                         <StackPanel>
-                            <TextBlock Text="RETURNS" FontSize="{DynamicResource FontSizeCaption}" FontWeight="Bold"
-                                       Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                            <TextBlock Text="RETURNS" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,0,6"/>
                             <TextBlock Text="{Binding ReturnsDisplay}"
-                                       FontSize="22" FontWeight="Bold" Foreground="{DynamicResource WarningBrush}"/>
+                                       Style="{StaticResource SecondaryMetricValueStyle}" Foreground="{DynamicResource WarningBrush}"/>
                         </StackPanel>
                     </Border>
 

@@ -50,9 +50,7 @@
                     </StackPanel>
                 </Grid>
             </Border>
-            <Border DockPanel.Dock="Top" Margin="0,0,0,8"
-                    Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
-                    CornerRadius="{DynamicResource RadiusSmall}" Padding="14,10">
+            <Border DockPanel.Dock="Top" Style="{StaticResource PrimaryMetricCardStyle}" Margin="0,0,0,8">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -62,10 +60,9 @@
 
                     <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,20,0">
                         <TextBlock Text="NET VAT PAYABLE" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,3"/>
-                        <TextBlock FontSize="22" FontWeight="Bold"
-                                   Text="{Binding NetVatPayable, StringFormat='₱{0:N2}'}">
+                        <TextBlock Text="{Binding NetVatPayable, StringFormat='₱{0:N2}'}">
                             <TextBlock.Style>
-                                <Style TargetType="TextBlock">
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource PrimaryMetricValueStyle}">
                                     <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding NetVatPayableColor}" Value="Red">

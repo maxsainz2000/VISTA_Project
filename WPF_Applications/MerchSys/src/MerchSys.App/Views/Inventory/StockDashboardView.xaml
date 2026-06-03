@@ -45,46 +45,51 @@
                  ═══════════════════════════════════════════════════════════ -->
             <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="1.3*"/> <!-- Hero (Critical Stockout Risk) -->
+                    <ColumnDefinition Width="*"/>     <!-- Total Products -->
+                    <ColumnDefinition Width="*"/>     <!-- Total Stock Value -->
+                    <ColumnDefinition Width="*"/>     <!-- Low / Out of Stock -->
+                    <ColumnDefinition Width="*"/>     <!-- Near-Expiry Batches -->
                 </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                <!-- Hero: Critical Stockout Risk -->
+                <Border Grid.Column="0" Style="{StaticResource PrimaryMetricCardStyle}" Margin="0,0,8,0">
                     <StackPanel>
-                        <TextBlock Text="{Binding TotalProducts}" Style="{StaticResource MetricValueLargeStyle}" Foreground="{DynamicResource AccentBrush}"/>
+                        <TextBlock Text="{Binding CriticalStockoutCount}" Style="{StaticResource PrimaryMetricValueStyle}" Foreground="{DynamicResource DangerBrush}"/>
+                        <TextBlock Text="Critical Stockout Risk" Style="{StaticResource CaptionLabelStyle}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Total Products -->
+                <Border Grid.Column="1" Style="{StaticResource SecondaryMetricCardStyle}" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="{Binding TotalProducts}" Style="{StaticResource SecondaryMetricValueStyle}" Foreground="{DynamicResource AccentBrush}"/>
                         <TextBlock Text="Total Products" Style="{StaticResource CaptionLabelStyle}"/>
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="1" Style="{StaticResource CardStyle}">
+                <!-- Total Stock Value -->
+                <Border Grid.Column="2" Style="{StaticResource SecondaryMetricCardStyle}" Margin="0,0,8,0">
                     <StackPanel>
                         <TextBlock Text="{Binding TotalStockValue, StringFormat='₱{0:N2}'}"
-                                   Style="{StaticResource MetricValueStyle}" Foreground="{DynamicResource SuccessBrush}"/>
+                                   Style="{StaticResource SecondaryMetricValueStyle}" Foreground="{DynamicResource SuccessBrush}"/>
                         <TextBlock Text="Total Stock Value" Style="{StaticResource CaptionLabelStyle}"/>
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="2" Style="{StaticResource CardStyle}">
+                <!-- Low / Out of Stock -->
+                <Border Grid.Column="3" Style="{StaticResource SecondaryMetricCardStyle}" Margin="0,0,8,0">
                     <StackPanel>
-                        <TextBlock Text="{Binding LowStockCount}" Style="{StaticResource MetricValueLargeStyle}" Foreground="{DynamicResource WarningBrush}"/>
+                        <TextBlock Text="{Binding LowStockCount}" Style="{StaticResource SecondaryMetricValueStyle}" Foreground="{DynamicResource WarningBrush}"/>
                         <TextBlock Text="Low / Out of Stock" Style="{StaticResource CaptionLabelStyle}"/>
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="3" Style="{StaticResource CardStyle}">
+                <!-- Near-Expiry Batches -->
+                <Border Grid.Column="4" Style="{StaticResource SecondaryMetricCardStyle}" Margin="0">
                     <StackPanel>
-                        <TextBlock Text="{Binding NearExpiryCount}" Style="{StaticResource MetricValueLargeStyle}" Foreground="{DynamicResource WarningBrush}"/>
+                        <TextBlock Text="{Binding NearExpiryCount}" Style="{StaticResource SecondaryMetricValueStyle}" Foreground="{DynamicResource WarningBrush}"/>
                         <TextBlock Text="Near-Expiry Batches" Style="{StaticResource CaptionLabelStyle}"/>
-                    </StackPanel>
-                </Border>
-
-                <Border Grid.Column="4" Style="{StaticResource CardStyle}" Margin="0">
-                    <StackPanel>
-                        <TextBlock Text="{Binding CriticalStockoutCount}" Style="{StaticResource MetricValueLargeStyle}" Foreground="{DynamicResource DangerBrush}"/>
-                        <TextBlock Text="Critical Stockout Risk" Style="{StaticResource CaptionLabelStyle}"/>
                     </StackPanel>
                 </Border>
             </Grid>
@@ -365,16 +370,13 @@
                                                         <Style.Triggers>
                                                             <DataTrigger Binding="{Binding HasExpiry}" Value="True">
                                                                 <Setter Property="Text" Value="OK"/>
-                                                                <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
                                                             </DataTrigger>
                                                             <DataTrigger Binding="{Binding ExpiryStatus}" Value="NearExpiry">
                                                                 <Setter Property="Text" Value="Near Expiry"/>
-                                                                <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
                                                                 <Setter Property="FontWeight" Value="SemiBold"/>
                                                             </DataTrigger>
                                                             <DataTrigger Binding="{Binding ExpiryStatus}" Value="HasExpired">
                                                                 <Setter Property="Text" Value="Expired!"/>
-                                                                <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
                                                                 <Setter Property="FontWeight" Value="Bold"/>
                                                             </DataTrigger>
                                                         </Style.Triggers>

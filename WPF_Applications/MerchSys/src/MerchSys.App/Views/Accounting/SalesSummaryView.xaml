@@ -189,38 +189,38 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- Total Sales -->
-                <Border Grid.Column="0" Style="{StaticResource CardStyle}" CornerRadius="{DynamicResource RadiusSmall}" Padding="16,12" Margin="0,0,8,0">
+                <Border Grid.Column="0" Style="{StaticResource PrimaryMetricCardStyle}" Margin="0,0,8,0">
                     <StackPanel>
                         <TextBlock Text="TOTAL SALES" Style="{StaticResource KpiLabel}"/>
                         <TextBlock Text="{Binding TotalSalesDisplay}"
-                                   Style="{StaticResource KpiValue}"/>
+                                   Style="{StaticResource PrimaryMetricValueStyle}"/>
                     </StackPanel>
                 </Border>
 
                 <!-- Transaction Count -->
-                <Border Grid.Column="1" Style="{StaticResource CardStyle}" CornerRadius="{DynamicResource RadiusSmall}" Padding="16,12" Margin="0,0,8,0">
+                <Border Grid.Column="1" Style="{StaticResource SecondaryMetricCardStyle}" Margin="0,0,8,0">
                     <StackPanel>
                         <TextBlock Text="TRANSACTIONS" Style="{StaticResource KpiLabel}"/>
                         <TextBlock Text="{Binding TransactionCount}"
-                                   Style="{StaticResource KpiValue}"/>
+                                   Style="{StaticResource SecondaryMetricValueStyle}"/>
                     </StackPanel>
                 </Border>
 
                 <!-- Avg Transaction Value -->
-                <Border Grid.Column="2" Style="{StaticResource CardStyle}" CornerRadius="{DynamicResource RadiusSmall}" Padding="16,12" Margin="0,0,8,0">
+                <Border Grid.Column="2" Style="{StaticResource SecondaryMetricCardStyle}" Margin="0,0,8,0">
                     <StackPanel>
                         <TextBlock Text="AVG. TRANSACTION VALUE" Style="{StaticResource KpiLabel}"/>
                         <TextBlock Text="{Binding AvgTransactionValueDisplay}"
-                                   Style="{StaticResource KpiValueSmall}"/>
+                                   Style="{StaticResource SecondaryMetricValueStyle}"/>
                     </StackPanel>
                 </Border>
 
                 <!-- Returns -->
-                <Border Grid.Column="3" Style="{StaticResource CardStyle}" CornerRadius="{DynamicResource RadiusSmall}" Padding="16,12" Margin="0">
+                <Border Grid.Column="3" Style="{StaticResource SecondaryMetricCardStyle}" Margin="0">
                     <StackPanel>
                         <TextBlock Text="RETURNS" Style="{StaticResource KpiLabel}"/>
                         <TextBlock Text="{Binding TotalReturnsDisplay}"
-                                   Style="{StaticResource KpiValueSmall}"
+                                   Style="{StaticResource SecondaryMetricValueStyle}"
                                    Foreground="{DynamicResource DangerBrush}"/>
                     </StackPanel>
                 </Border>

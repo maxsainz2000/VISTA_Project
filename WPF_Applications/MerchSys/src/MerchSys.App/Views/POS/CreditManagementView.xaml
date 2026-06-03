@@ -23,41 +23,48 @@
         </Grid.RowDefinitions>
 
         <!-- ═══ ROW 0: Summary Cards ═══════════════════════════════════════════ -->
-        <UniformGrid Grid.Row="0" Rows="1" Columns="3" Margin="0,0,0,10">
+        <Grid Grid.Row="0" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.3*"/> <!-- Hero (Total Outstanding AR) -->
+                <ColumnDefinition Width="*"/>     <!-- Blocked Accounts -->
+                <ColumnDefinition Width="*"/>     <!-- Overdue -->
+            </Grid.ColumnDefinitions>
 
-            <Border Style="{StaticResource CardStyle}" Margin="0,0,6,0" Padding="16,12">
+            <!-- Hero: Total Outstanding AR -->
+            <Border Grid.Column="0" Style="{StaticResource PrimaryMetricCardStyle}" Margin="0,0,8,0">
                 <StackPanel>
                     <TextBlock Text="Total Outstanding AR" Style="{StaticResource FieldLabelStyle}"/>
                     <TextBlock Text="{Binding TotalOutstanding, StringFormat='₱{0:N2}'}"
-                               Style="{StaticResource MetricValueLargeStyle}"/>
+                               Style="{StaticResource PrimaryMetricValueStyle}"/>
                 </StackPanel>
             </Border>
 
-            <Border Style="{StaticResource CardStyle}" Margin="0,0,6,0" Padding="16,12">
+            <!-- Blocked Accounts -->
+            <Border Grid.Column="1" Style="{StaticResource SecondaryMetricCardStyle}" Margin="0,0,8,0">
                 <StackPanel>
                     <TextBlock Text="Blocked Accounts" Style="{StaticResource FieldLabelStyle}"/>
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="{Binding BlockedCount}"
-                                   Style="{StaticResource MetricValueLargeStyle}" Foreground="{DynamicResource DangerBrush}"/>
+                                   Style="{StaticResource SecondaryMetricValueStyle}" Foreground="{DynamicResource DangerBrush}"/>
                         <TextBlock Text=" accounts" Style="{StaticResource CaptionLabelStyle}"
                                    VerticalAlignment="Bottom" Margin="4,0,0,3"/>
                     </StackPanel>
                 </StackPanel>
             </Border>
 
-            <Border Style="{StaticResource CardStyle}" Padding="16,12">
+            <!-- Overdue -->
+            <Border Grid.Column="2" Style="{StaticResource SecondaryMetricCardStyle}" Margin="0">
                 <StackPanel>
                     <TextBlock Text="Overdue (30+ days)" Style="{StaticResource FieldLabelStyle}"/>
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="{Binding OverdueCount}"
-                                   Style="{StaticResource MetricValueLargeStyle}" Foreground="{DynamicResource WarningBrush}"/>
+                                   Style="{StaticResource SecondaryMetricValueStyle}" Foreground="{DynamicResource WarningBrush}"/>
                         <TextBlock Text=" accounts" Style="{StaticResource CaptionLabelStyle}"
                                    VerticalAlignment="Bottom" Margin="4,0,0,3"/>
                     </StackPanel>
                 </StackPanel>
             </Border>
-
-        </UniformGrid>
+        </Grid>
 
         <!-- ═══ ROW 1: Action Bar ═══════════════════════════════════════════════ -->
         <Border Grid.Row="1" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"

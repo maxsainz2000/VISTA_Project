@@ -134,19 +134,39 @@
                        Foreground="{DynamicResource TextSecondaryBrush}"/>
         </Border>
 
-        <!-- ═══════ 2×2 KPI CARD GRID ════════════════════════════════════════════ -->
+        <!-- ═══════ HERO STRIP & KPI CARD GRID ════════════════════════════════ -->
         <Grid Grid.Row="1" Margin="10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
+            <!-- ── HERO: TODAY'S REVENUE ───────────────────────────────────────── -->
+            <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Style="{StaticResource PrimaryMetricCardStyle}" Margin="6">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                        <Path Style="{StaticResource IconBase}" Data="{StaticResource IconCashGeometry}"
+                              Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"
+                              Fill="{DynamicResource AccentBrush}"/>
+                        <TextBlock Style="{StaticResource CardTitle}" Text="TODAY'S REVENUE"/>
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource PrimaryMetricValueStyle}">
+                            <Run Text="₱"/>
+                            <Run Text="{Binding TodayRevenue, Mode=OneWay, StringFormat=N0}"/>
+                        </TextBlock>
+                        <TextBlock Text="Total sales revenue recorded today" Style="{StaticResource MetricCaptionStyle}"/>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+
             <!-- ── PURCHASING card ─────────────────────────────────────────────── -->
-            <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource KpiCard}">
+            <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource SecondaryMetricCardStyle}" Margin="6">
                 <DockPanel>
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
                         <Path Style="{StaticResource IconBase}" Data="{StaticResource IconBoxGeometry}"
@@ -163,27 +183,44 @@
                         </StackPanel>
                     </Border>
 
-                    <StackPanel>
-                        <TextBlock Text="Active Vendors" Style="{StaticResource KpiLabel}"/>
-                        <TextBlock Text="{Binding ActiveVendorCount}" Style="{StaticResource KpiValue}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
 
-                        <TextBlock Text="Open Purchase Orders" Style="{StaticResource KpiLabel}"/>
-                        <TextBlock Text="{Binding OpenPurchaseOrderCount}" Style="{StaticResource KpiValue}"/>
+                        <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,8">
+                            <TextBlock Text="Active Vendors" Style="{StaticResource CaptionLabelStyle}"/>
+                            <TextBlock Text="{Binding ActiveVendorCount}" Style="{StaticResource SecondaryMetricValueStyle}"/>
+                        </StackPanel>
 
-                        <TextBlock Text="Pending Deliveries" Style="{StaticResource KpiLabel}"/>
-                        <TextBlock Text="{Binding PendingDeliveryCount}" Style="{StaticResource KpiValue}"/>
+                        <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,0,8">
+                            <TextBlock Text="Open Purchase Orders" Style="{StaticResource CaptionLabelStyle}"/>
+                            <TextBlock Text="{Binding OpenPurchaseOrderCount}" Style="{StaticResource SecondaryMetricValueStyle}"/>
+                        </StackPanel>
 
-                        <TextBlock Text="Overdue Accounts Payable" Style="{StaticResource KpiLabel}"/>
-                        <TextBlock Style="{StaticResource AlertValue}">
-                            <Run Text="₱"/>
-                            <Run Text="{Binding OverdueApTotal, Mode=OneWay, StringFormat=N0}"/>
-                        </TextBlock>
-                    </StackPanel>
+                        <StackPanel Grid.Row="1" Grid.Column="0">
+                            <TextBlock Text="Pending Deliveries" Style="{StaticResource CaptionLabelStyle}"/>
+                            <TextBlock Text="{Binding PendingDeliveryCount}" Style="{StaticResource SecondaryMetricValueStyle}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="1" Grid.Column="1">
+                            <TextBlock Text="Overdue Accounts Payable" Style="{StaticResource CaptionLabelStyle}"/>
+                            <TextBlock Style="{StaticResource SecondaryMetricValueStyle}" Foreground="{DynamicResource DangerBrush}">
+                                <Run Text="₱"/>
+                                <Run Text="{Binding OverdueApTotal, Mode=OneWay, StringFormat=N0}"/>
+                            </TextBlock>
+                        </StackPanel>
+                    </Grid>
                 </DockPanel>
             </Border>
 
             <!-- ── INVENTORY card ──────────────────────────────────────────────── -->
-            <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource KpiCard}">
+            <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource SecondaryMetricCardStyle}" Margin="6">
                 <DockPanel>
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
                         <Path Style="{StaticResource IconBase}" Data="{StaticResource IconChartBarGeometry}"
@@ -200,27 +237,44 @@
                         </StackPanel>
                     </Border>
 
-                    <StackPanel>
-                        <TextBlock Text="Total SKUs" Style="{StaticResource KpiLabel}"/>
-                        <TextBlock Text="{Binding TotalSkuCount}" Style="{StaticResource KpiValue}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
 
-                        <TextBlock Text="Total Stock Value" Style="{StaticResource KpiLabel}"/>
-                        <TextBlock Style="{StaticResource KpiValue}">
-                            <Run Text="₱"/>
-                            <Run Text="{Binding TotalStockValue, Mode=OneWay, StringFormat=N0}"/>
-                        </TextBlock>
+                        <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,8">
+                            <TextBlock Text="Total SKUs" Style="{StaticResource CaptionLabelStyle}"/>
+                            <TextBlock Text="{Binding TotalSkuCount}" Style="{StaticResource SecondaryMetricValueStyle}"/>
+                        </StackPanel>
 
-                        <TextBlock Text="Low-Stock Items" Style="{StaticResource KpiLabel}"/>
-                        <TextBlock Text="{Binding LowStockItemCount}" Style="{StaticResource KpiValue}"/>
+                        <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,0,8">
+                            <TextBlock Text="Total Stock Value" Style="{StaticResource CaptionLabelStyle}"/>
+                            <TextBlock Style="{StaticResource SecondaryMetricValueStyle}">
+                                <Run Text="₱"/>
+                                <Run Text="{Binding TotalStockValue, Mode=OneWay, StringFormat=N0}"/>
+                            </TextBlock>
+                        </StackPanel>
 
-                        <TextBlock Text="Expiring Within 30 Days" Style="{StaticResource KpiLabel}"/>
-                        <TextBlock Text="{Binding ExpiringSoonCount}" Style="{StaticResource KpiValue}"/>
-                    </StackPanel>
+                        <StackPanel Grid.Row="1" Grid.Column="0">
+                            <TextBlock Text="Low-Stock Items" Style="{StaticResource CaptionLabelStyle}"/>
+                            <TextBlock Text="{Binding LowStockItemCount}" Style="{StaticResource SecondaryMetricValueStyle}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="1" Grid.Column="1">
+                            <TextBlock Text="Expiring Within 30 Days" Style="{StaticResource CaptionLabelStyle}"/>
+                            <TextBlock Text="{Binding ExpiringSoonCount}" Style="{StaticResource SecondaryMetricValueStyle}"/>
+                        </StackPanel>
+                    </Grid>
                 </DockPanel>
             </Border>
 
             <!-- ── SALES card ──────────────────────────────────────────────────── -->
-            <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource KpiCard}">
+            <Border Grid.Row="2" Grid.Column="0" Style="{StaticResource SecondaryMetricCardStyle}" Margin="6">
                 <DockPanel>
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
                         <Path Style="{StaticResource IconBase}" Data="{StaticResource IconCashGeometry}"
@@ -237,30 +291,39 @@
                         </StackPanel>
                     </Border>
 
-                    <StackPanel>
-                        <TextBlock Text="Today's Revenue" Style="{StaticResource KpiLabel}"/>
-                        <TextBlock Style="{StaticResource KpiValue}">
-                            <Run Text="₱"/>
-                            <Run Text="{Binding TodayRevenue, Mode=OneWay, StringFormat=N0}"/>
-                        </TextBlock>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
 
-                        <TextBlock Text="This Week's Revenue" Style="{StaticResource KpiLabel}"/>
-                        <TextBlock Style="{StaticResource KpiValue}">
-                            <Run Text="₱"/>
-                            <Run Text="{Binding WeekRevenue, Mode=OneWay, StringFormat=N0}"/>
-                        </TextBlock>
+                        <StackPanel Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" VerticalAlignment="Center">
+                            <TextBlock Text="This Week's Revenue" Style="{StaticResource CaptionLabelStyle}"/>
+                            <TextBlock Style="{StaticResource SecondaryMetricValueStyle}">
+                                <Run Text="₱"/>
+                                <Run Text="{Binding WeekRevenue, Mode=OneWay, StringFormat=N0}"/>
+                            </TextBlock>
+                        </StackPanel>
 
-                        <TextBlock Text="Transactions Today" Style="{StaticResource KpiLabel}"/>
-                        <TextBlock Text="{Binding TodayTransactionCount}" Style="{StaticResource KpiValue}"/>
+                        <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,0,8">
+                            <TextBlock Text="Transactions Today" Style="{StaticResource CaptionLabelStyle}"/>
+                            <TextBlock Text="{Binding TodayTransactionCount}" Style="{StaticResource SecondaryMetricValueStyle}"/>
+                        </StackPanel>
 
-                        <TextBlock Text="Top Product Today" Style="{StaticResource KpiLabel}"/>
-                        <TextBlock Text="{Binding TopSellingProduct}" Style="{StaticResource KpiValueSmall}"/>
-                    </StackPanel>
+                        <StackPanel Grid.Row="1" Grid.Column="1">
+                            <TextBlock Text="Top Product Today" Style="{StaticResource CaptionLabelStyle}"/>
+                            <TextBlock Text="{Binding TopSellingProduct}" Style="{StaticResource SecondaryMetricValueStyle}" FontSize="12"/>
+                        </StackPanel>
+                    </Grid>
                 </DockPanel>
             </Border>
 
             <!-- ── ACCOUNTING card ────────────────────────────────────────────── -->
-            <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource KpiCard}">
+            <Border Grid.Row="2" Grid.Column="1" Style="{StaticResource SecondaryMetricCardStyle}" Margin="6">
                 <DockPanel>
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
                         <Path Style="{StaticResource IconBase}" Data="{StaticResource IconChartLineGeometry}"
@@ -277,28 +340,42 @@
                         </StackPanel>
                     </Border>
 
-                    <StackPanel>
-                        <TextBlock Text="Current Period Net Income" Style="{StaticResource KpiLabel}"/>
-                        <TextBlock Style="{StaticResource KpiValue}">
-                            <Run Text="₱"/>
-                            <Run Text="{Binding CurrentPeriodNetIncome, Mode=OneWay, StringFormat=N0}"/>
-                        </TextBlock>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
 
-                        <TextBlock Text="Customer Credit Outstanding (AR)" Style="{StaticResource KpiLabel}"/>
-                        <TextBlock Style="{StaticResource KpiValue}">
-                            <Run Text="₱"/>
-                            <Run Text="{Binding TotalArOutstanding, Mode=OneWay, StringFormat=N0}"/>
-                        </TextBlock>
+                        <StackPanel Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" VerticalAlignment="Center">
+                            <TextBlock Text="Period Net Income" Style="{StaticResource CaptionLabelStyle}"/>
+                            <TextBlock Style="{StaticResource SecondaryMetricValueStyle}">
+                                <Run Text="₱"/>
+                                <Run Text="{Binding CurrentPeriodNetIncome, Mode=OneWay, StringFormat=N0}"/>
+                            </TextBlock>
+                        </StackPanel>
 
-                        <TextBlock Text="Accounts Payable Outstanding" Style="{StaticResource KpiLabel}"/>
-                        <TextBlock Style="{StaticResource KpiValue}">
-                            <Run Text="₱"/>
-                            <Run Text="{Binding TotalApOutstanding, Mode=OneWay, StringFormat=N0}"/>
-                        </TextBlock>
-                    </StackPanel>
+                        <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,0,8">
+                            <TextBlock Text="AR Outstanding" Style="{StaticResource CaptionLabelStyle}"/>
+                            <TextBlock Style="{StaticResource SecondaryMetricValueStyle}">
+                                <Run Text="₱"/>
+                                <Run Text="{Binding TotalArOutstanding, Mode=OneWay, StringFormat=N0}"/>
+                            </TextBlock>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="1" Grid.Column="1">
+                            <TextBlock Text="AP Outstanding" Style="{StaticResource CaptionLabelStyle}"/>
+                            <TextBlock Style="{StaticResource SecondaryMetricValueStyle}">
+                                <Run Text="₱"/>
+                                <Run Text="{Binding TotalApOutstanding, Mode=OneWay, StringFormat=N0}"/>
+                            </TextBlock>
+                        </StackPanel>
+                    </Grid>
                 </DockPanel>
             </Border>
-
         </Grid>
     </Grid>
 </UserControl>
