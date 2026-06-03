@@ -1,6 +1,6 @@
 ---
 type: schema-map
-last-updated: 2026-06-02
+last-updated: 2026-06-03
 ---
 
 # Dependency Injection Registry
@@ -70,6 +70,7 @@ This page documents the composition root in `MerchSys.App`.
 | (none) | `APLedgerViewModel` | Transient |
 | (none) | `ReorderSuggestionsViewModel` | Transient |
 | (none) | `VendorCatalogViewModel` | Transient |
+| (none) | `PurchasingDashboardViewModel` | Transient |
 
 ## Accounting Services
 | Interface | Implementation | Lifetime |
@@ -107,6 +108,7 @@ This page documents the composition root in `MerchSys.App`.
 | `VendorCatalogView` | Purchasing | Transient |
 | `APLedgerView` | Purchasing | Transient |
 | `ReorderSuggestionsView` | Purchasing | Transient |
+| `PurchasingDashboardView` | Purchasing | Transient |
 | `StockDashboardView` | Inventory | Transient |
 | `ProductManagementView` | Inventory | Transient |
 | `ProductPriceHistoryView` | Inventory | Transient |
