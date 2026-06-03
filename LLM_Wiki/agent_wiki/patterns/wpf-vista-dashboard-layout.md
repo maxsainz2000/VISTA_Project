@@ -89,10 +89,13 @@ Any view whose content height can exceed the viewport (e.g., dashboards, reports
 </ScrollViewer>
 ```
 
-### Persistent Chrome Placement
-- Navigation elements, main toolbars, and overlay screens (like `BusyOverlay` or loading spinners) must sit **outside** the `ScrollViewer` so they do not scroll away.
-- Grids or list views that support their own virtualized scrolling must **not** be double-wrapped.
+#### Persistent Chrome & Layout Guidelines
+- **Chrome Outside ScrollViewer:** Navigation elements, main toolbars, and overlay screens (like `BusyOverlay` or loading spinners) must sit **outside** the `ScrollViewer` so they do not scroll away.
+- **Chart Height Collapse Mitigation:** Placing dynamically-sized elements (such as charts or `Grid` columns/rows utilizing `*` or `Auto` sizing) inside a vertical `ScrollViewer` collapses their height to zero. This occurs because a vertical `ScrollViewer` measures its children with infinite height. To prevent collapse, give chart borders or their parent card containers an explicit `MinHeight` (typically `240`px).
+- **No Double-Wrapping Virtualizing DataGrids:** Grids or list views that support their own virtualized scrolling must **not** be wrapped inside a `ScrollViewer`. Double-wrapping disables XAML UI virtualization, leading to poor rendering performance and list clipping. Instead, wrap only the stacked card/section content above/around the grid, leaving the grid as a sibling in the root container.
+- **Scrollbar Padding Margin:** Always add a right margin (e.g., `Margin="0,0,10,0"` or `Margin="10,10,18,10"` on the child element of the `ScrollViewer`) to provide visual clearance for the vertical scrollbar when it appears.
 
 ## Related
 
 - `[[wpf-vista-iconography]]`
+- `[[wpf-vista-theming-conventions]]`

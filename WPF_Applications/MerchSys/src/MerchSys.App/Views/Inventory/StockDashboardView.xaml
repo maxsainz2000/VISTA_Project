@@ -97,55 +97,49 @@
             <!-- ═══════════════════════════════════════════════════════════
                  FILTER / TOOLBAR ROW
                  ═══════════════════════════════════════════════════════════ -->
-            <Border DockPanel.Dock="Top"
-                    Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
-                    CornerRadius="{DynamicResource RadiusSmall}" Padding="12,8" Margin="0,0,0,6"
-                    Effect="{DynamicResource CardShadow}">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="140"/>
-                        <ColumnDefinition Width="16"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="120"/>
-                        <ColumnDefinition Width="16"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="200"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
+            <Border DockPanel.Dock="Top" Style="{StaticResource FilterBarStyle}" Margin="0,0,0,6" Effect="{DynamicResource CardShadow}">
+                <WrapPanel Orientation="Horizontal">
+                    <!-- Category -->
+                    <StackPanel Style="{StaticResource FilterBarItemStyle}" Orientation="Horizontal">
+                        <TextBlock Text="Category:" Style="{StaticResource CaptionLabelStyle}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <ComboBox ItemsSource="{Binding Categories}"
+                                  SelectedItem="{Binding SelectedCategory}"
+                                  Width="140"
+                                  Padding="6,4" VerticalContentAlignment="Center"
+                                  BorderBrush="{DynamicResource SeparatorBrush}"/>
+                    </StackPanel>
 
-                    <TextBlock Grid.Column="0" Text="Category:" Style="{StaticResource CaptionLabelStyle}"/>
-                    <ComboBox Grid.Column="1"
-                              ItemsSource="{Binding Categories}"
-                              SelectedItem="{Binding SelectedCategory}"
-                              Padding="6,4" VerticalContentAlignment="Center"
-                              BorderBrush="{DynamicResource SeparatorBrush}"/>
+                    <!-- Status -->
+                    <StackPanel Style="{StaticResource FilterBarItemStyle}" Orientation="Horizontal">
+                        <TextBlock Text="Status:" Style="{StaticResource CaptionLabelStyle}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <ComboBox ItemsSource="{Binding StatusOptions}"
+                                  SelectedItem="{Binding SelectedStatus}"
+                                  Width="120"
+                                  Padding="6,4" VerticalContentAlignment="Center"
+                                  BorderBrush="{DynamicResource SeparatorBrush}"/>
+                    </StackPanel>
 
-                    <TextBlock Grid.Column="3" Text="Status:" Style="{StaticResource CaptionLabelStyle}"/>
-                    <ComboBox Grid.Column="4"
-                              ItemsSource="{Binding StatusOptions}"
-                              SelectedItem="{Binding SelectedStatus}"
-                              Padding="6,4" VerticalContentAlignment="Center"
-                              BorderBrush="{DynamicResource SeparatorBrush}"/>
+                    <!-- Search -->
+                    <StackPanel Style="{StaticResource FilterBarItemStyle}" Orientation="Horizontal">
+                        <TextBlock Text="Search:" Style="{StaticResource CaptionLabelStyle}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                 Width="200"
+                                 Padding="6,4" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                                 VerticalContentAlignment="Center"
+                                 x:Name="SearchBox"/>
+                    </StackPanel>
 
-                    <TextBlock Grid.Column="6" Text="Search:" Style="{StaticResource CaptionLabelStyle}"/>
-                    <TextBox Grid.Column="7"
-                              Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                              Padding="6,4" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
-                              VerticalContentAlignment="Center"
-                              x:Name="SearchBox"/>
+                    <!-- Last Refreshed -->
+                    <TextBlock Text="{Binding LastRefreshed}"
+                               Style="{StaticResource CaptionLabelStyle}"
+                               VerticalAlignment="Center" Margin="0,0,12,4"/>
 
-                    <TextBlock Grid.Column="9"
-                               Text="{Binding LastRefreshed}"
-                               Style="{StaticResource CaptionLabelStyle}" Margin="0,0,10,0"/>
-
-                    <Button Grid.Column="10"
-                            Content="Refresh"
+                    <!-- Refresh Button -->
+                    <Button Content="Refresh"
                             Command="{Binding RefreshCommand}"
-                            Style="{StaticResource PrimaryButtonStyle}"/>
-                </Grid>
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            VerticalAlignment="Center" Margin="0,0,12,4"/>
+                </WrapPanel>
             </Border>
 
             <!-- ═══════════════════════════════════════════════════════════

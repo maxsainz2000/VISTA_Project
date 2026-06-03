@@ -35,32 +35,48 @@
             </StackPanel>
 
             <!-- Date range filter bar -->
-            <Border Grid.Row="1" Style="{StaticResource CardStyle}" CornerRadius="{DynamicResource RadiusSmall}" Padding="14,12" Margin="0,0,0,12">
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="From:" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                    <DatePicker SelectedDate="{Binding DateFrom, Mode=TwoWay}"
-                                Width="130" VerticalAlignment="Center" Margin="0,0,16,0"/>
-                    <TextBlock Text="To:" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                    <DatePicker SelectedDate="{Binding DateTo, Mode=TwoWay}"
-                                Width="130" VerticalAlignment="Center" Margin="0,0,16,0"/>
+            <Border Grid.Row="1" Style="{StaticResource FilterBarStyle}" Margin="0,0,0,12">
+                <WrapPanel Orientation="Horizontal">
+                    <!-- From Date -->
+                    <StackPanel Style="{StaticResource FilterBarItemStyle}" Orientation="Horizontal">
+                        <TextBlock Text="From:" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <DatePicker SelectedDate="{Binding DateFrom, Mode=TwoWay}"
+                                    Width="130" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- To Date -->
+                    <StackPanel Style="{StaticResource FilterBarItemStyle}" Orientation="Horizontal">
+                        <TextBlock Text="To:" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <DatePicker SelectedDate="{Binding DateTo, Mode=TwoWay}"
+                                    Width="130" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Apply Filter Button -->
                     <Button Content="Apply Filter"
                             Style="{StaticResource PrimaryButtonStyle}" Padding="14,6" FontWeight="SemiBold"
-                            Command="{Binding LoadCommand}"/>
+                            Command="{Binding LoadCommand}"
+                            VerticalAlignment="Center" Margin="0,0,12,4"/>
+
+                    <!-- Export to CSV Button -->
                     <Button Content="Export to CSV"
                             Style="{StaticResource PrimaryButtonStyle}" Padding="14,6" FontWeight="SemiBold"
-                            Margin="16,0,0,0"
                             IsEnabled="{Binding HasEntries}"
-                            Click="ExportCsv_Click"/>
+                            Click="ExportCsv_Click"
+                            VerticalAlignment="Center" Margin="0,0,12,4"/>
+
+                    <!-- Export to PDF Button -->
                     <Button Content="Export to PDF"
                             Style="{StaticResource PrimaryButtonStyle}" Padding="14,6" FontWeight="SemiBold"
-                            Margin="8,0,0,0"
                             IsEnabled="{Binding HasEntries}"
-                            Click="ExportPdf_Click"/>
+                            Click="ExportPdf_Click"
+                            VerticalAlignment="Center" Margin="0,0,12,4"/>
+
+                    <!-- Loading indicator -->
                     <TextBlock Text="Loading…"
                                VerticalAlignment="Center" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
-                               Margin="16,0,0,0"
+                               Margin="0,0,12,4"
                                Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}"/>
-                </StackPanel>
+                </WrapPanel>
             </Border>
 
             <!-- Incident DataGrid — shown when entries exist -->

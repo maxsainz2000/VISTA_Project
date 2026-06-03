@@ -134,17 +134,18 @@
                        Foreground="{DynamicResource TextSecondaryBrush}"/>
         </Border>
 
-        <!-- ═══════ HERO STRIP & KPI CARD GRID ════════════════════════════════ -->
-        <Grid Grid.Row="1" Margin="10">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <!-- ═══════ HERO STRIP & KPI CARD GRID ════════════════════════════════ -->
+            <Grid Margin="10,10,18,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
             <!-- ── HERO: TODAY'S REVENUE ───────────────────────────────────────── -->
             <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Style="{StaticResource PrimaryMetricCardStyle}" Margin="6">
@@ -377,5 +378,6 @@
                 </DockPanel>
             </Border>
         </Grid>
+        </ScrollViewer>
     </Grid>
 </UserControl>

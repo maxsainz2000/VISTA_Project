@@ -50,7 +50,9 @@
                     </StackPanel>
                 </Grid>
             </Border>
-            <Border DockPanel.Dock="Top" Style="{StaticResource PrimaryMetricCardStyle}" Margin="0,0,0,8">
+            <ScrollViewer DockPanel.Dock="Top" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel Margin="0,0,8,0">
+                    <Border Style="{StaticResource PrimaryMetricCardStyle}" Margin="0,0,0,8">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -93,7 +95,7 @@
             </Border>
 
             <!-- ═══ SUMMARY CARDS (Sales + Purchases) ════════════════════════════════ -->
-            <Border DockPanel.Dock="Top" Margin="0,0,0,8">
+            <Border Margin="0,0,0,8">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -240,6 +242,8 @@
                     </Border>
                 </Grid>
             </Border>
+                </StackPanel>
+            </ScrollViewer>
 
             <!-- ═══ TRAILING 12 MONTHS GRID ══════════════════════════════════════════ -->
             <Border Style="{StaticResource CardStyle}" CornerRadius="{DynamicResource RadiusSmall}" Padding="14,12" Margin="0">

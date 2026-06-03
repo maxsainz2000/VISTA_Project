@@ -63,54 +63,44 @@
             </Grid>
 
             <!-- ── Toolbar ────────────────────────────────────────── -->
-            <Border DockPanel.Dock="Top"
-                    Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
-                    CornerRadius="{DynamicResource RadiusSmall}" Padding="12,8" Margin="0,0,0,6"
-                    Effect="{DynamicResource CardShadow}">
-                <DockPanel>
-
-                    <!-- Right side: status, loading, refresh -->
-                    <Button DockPanel.Dock="Right"
-                            Content="Refresh"
-                            Command="{Binding LoadDataCommand}"
-                            Style="{StaticResource PrimaryButtonStyle}"/>
-
-                    <TextBlock DockPanel.Dock="Right"
-                               Text="{Binding LastRefreshed}"
-                               Style="{StaticResource CaptionLabelStyle}"
-                               Margin="0,0,12,0"
-                               VerticalAlignment="Center"/>
-
-                    <!-- Record button on left -->
-                    <Button DockPanel.Dock="Left"
-                            Content="+ Record Shrinkage"
+            <Border DockPanel.Dock="Top" Style="{StaticResource FilterBarStyle}" Margin="0,0,0,6" Effect="{DynamicResource CardShadow}">
+                <WrapPanel Orientation="Horizontal">
+                    <!-- Record button -->
+                    <Button Content="+ Record Shrinkage"
                             Command="{Binding OpenDialogCommand}"
                             Style="{StaticResource DangerButtonStyle}"
-                            Margin="0,0,16,0"/>
+                            VerticalAlignment="Center" Margin="0,0,12,4"/>
 
-                    <!-- Filters in middle -->
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-
-                        <TextBlock Text="From:" Style="{StaticResource CaptionLabelStyle}"/>
+                    <!-- Date range From -->
+                    <StackPanel Style="{StaticResource FilterBarItemStyle}" Orientation="Horizontal">
+                        <TextBlock Text="From:" Style="{StaticResource CaptionLabelStyle}" VerticalAlignment="Center" Margin="0,0,6,0"/>
                         <DatePicker x:Name="StartDatePicker"
-                                    Width="115" Margin="0,0,10,0"
+                                    Width="115"
                                     SelectedDateChanged="StartDatePicker_SelectedDateChanged"/>
+                    </StackPanel>
 
-                        <TextBlock Text="To:" Style="{StaticResource CaptionLabelStyle}"/>
+                    <!-- Date range To -->
+                    <StackPanel Style="{StaticResource FilterBarItemStyle}" Orientation="Horizontal">
+                        <TextBlock Text="To:" Style="{StaticResource CaptionLabelStyle}" VerticalAlignment="Center" Margin="0,0,6,0"/>
                         <DatePicker x:Name="EndDatePicker"
-                                    Width="115" Margin="0,0,16,0"
+                                    Width="115"
                                     SelectedDateChanged="EndDatePicker_SelectedDateChanged"/>
+                    </StackPanel>
 
-                        <TextBlock Text="Product:" Style="{StaticResource CaptionLabelStyle}"/>
+                    <!-- Product filter -->
+                    <StackPanel Style="{StaticResource FilterBarItemStyle}" Orientation="Horizontal">
+                        <TextBlock Text="Product:" Style="{StaticResource CaptionLabelStyle}" VerticalAlignment="Center" Margin="0,0,6,0"/>
                         <ComboBox x:Name="FilterProductCombo"
                                   ItemsSource="{Binding FilterProducts}"
                                   SelectedItem="{Binding FilterSelectedProduct}"
-                                  Width="160" Margin="0,0,16,0"
-                                  VerticalAlignment="Center"/>
+                                  Width="160"/>
+                    </StackPanel>
 
-                        <TextBlock Text="Reason:" Style="{StaticResource CaptionLabelStyle}"/>
+                    <!-- Reason filter -->
+                    <StackPanel Style="{StaticResource FilterBarItemStyle}" Orientation="Horizontal">
+                        <TextBlock Text="Reason:" Style="{StaticResource CaptionLabelStyle}" VerticalAlignment="Center" Margin="0,0,6,0"/>
                         <ComboBox x:Name="ReasonFilterCombo"
-                                  Width="110" VerticalAlignment="Center"
+                                  Width="110"
                                   SelectionChanged="ReasonFilterCombo_SelectionChanged">
                             <ComboBoxItem Content="(All Reasons)" Tag="" IsSelected="True"/>
                             <ComboBoxItem Content="Damage" Tag="Damage"/>
@@ -118,28 +108,37 @@
                             <ComboBoxItem Content="Expiry" Tag="Expiry"/>
                             <ComboBoxItem Content="Admin Error" Tag="Admin Error"/>
                         </ComboBox>
-
-                        <!-- Status message -->
-                        <TextBlock Text="{Binding StatusMessage}"
-                                   FontSize="11" FontWeight="SemiBold"
-                                   VerticalAlignment="Center"
-                                   Margin="16,0,0,0"
-                                   TextTrimming="CharacterEllipsis">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsStatusError}" Value="True">
-                                            <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
-
                     </StackPanel>
 
-                </DockPanel>
+                    <!-- Refresh Button -->
+                    <Button Content="Refresh"
+                            Command="{Binding LoadDataCommand}"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            VerticalAlignment="Center" Margin="0,0,12,4"/>
+
+                    <!-- Last Refreshed -->
+                    <TextBlock Text="{Binding LastRefreshed}"
+                               Style="{StaticResource CaptionLabelStyle}"
+                               VerticalAlignment="Center" Margin="0,0,12,4"/>
+
+                    <!-- Status Message -->
+                    <TextBlock Text="{Binding StatusMessage}"
+                               FontSize="11" FontWeight="SemiBold"
+                               VerticalAlignment="Center"
+                               Margin="0,0,12,4"
+                               TextTrimming="CharacterEllipsis">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsStatusError}" Value="True">
+                                        <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </WrapPanel>
             </Border>
 
             <!-- ── History DataGrid Container ─────────────────────── -->

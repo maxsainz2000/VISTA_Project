@@ -17,54 +17,52 @@
         <!-- ═══════════════════════════════════════════════════════════
              FILTER / TOOLBAR ROW
              ═══════════════════════════════════════════════════════════ -->
-        <Border DockPanel.Dock="Top"
-                Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
-                CornerRadius="{DynamicResource RadiusSmall}" Padding="12,8" Margin="0,0,0,6">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="130"/>
-                    <ColumnDefinition Width="12"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="200"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+        <Border DockPanel.Dock="Top" Style="{StaticResource FilterBarStyle}" Margin="0,0,0,6">
+            <WrapPanel Orientation="Horizontal">
+                <!-- Status Filter -->
+                <StackPanel Style="{StaticResource FilterBarItemStyle}" Orientation="Horizontal">
+                    <TextBlock Text="Status:" Style="{StaticResource CaptionLabelStyle}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <ComboBox ItemsSource="{Binding StatusOptions}"
+                              SelectedItem="{Binding SelectedStatus}"
+                              Width="130"
+                              Padding="6,4" VerticalContentAlignment="Center"/>
+                </StackPanel>
 
-                <TextBlock Grid.Column="0" Text="Status:" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,4,0"/>
-                <ComboBox Grid.Column="1"
-                          ItemsSource="{Binding StatusOptions}"
-                          SelectedItem="{Binding SelectedStatus}"
-                          Padding="6,4" VerticalContentAlignment="Center"/>
-
-                <TextBlock Grid.Column="3" Text="Search:" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,4,0"/>
-                <TextBox Grid.Column="4"
-                          x:Name="SearchBox"
-                          Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                          Padding="6,4"
-                          VerticalContentAlignment="Center"/>
+                <!-- Search Filter -->
+                <StackPanel Style="{StaticResource FilterBarItemStyle}" Orientation="Horizontal">
+                    <TextBlock Text="Search:" Style="{StaticResource CaptionLabelStyle}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <TextBox x:Name="SearchBox"
+                             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                             Width="200"
+                             Padding="6,4"
+                             VerticalContentAlignment="Center"/>
+                </StackPanel>
 
                 <!-- Action buttons — hidden from Owner (IsManager = False) -->
-                <StackPanel Grid.Column="6" Orientation="Horizontal"
+                <StackPanel Style="{StaticResource FilterBarItemStyle}" Orientation="Horizontal"
                             Visibility="{Binding IsManager, Converter={StaticResource BoolToVis}}">
                     <Button Content="New PO"
                             Command="{Binding NewPOCommand}"
-                            Style="{StaticResource SuccessButtonStyle}"/>
+                            Style="{StaticResource SuccessButtonStyle}"
+                            Margin="0,0,6,0"/>
                     <Button Content="Edit"
                             Command="{Binding EditPOCommand}"
-                            Style="{StaticResource PrimaryButtonStyle}"/>
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            Margin="0,0,6,0"/>
                     <Button Content="Submit"
                             Command="{Binding SubmitPOCommand}"
-                            Style="{StaticResource PrimaryButtonStyle}"/>
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            Margin="0,0,6,0"/>
                     <Button Content="Delete"
                             Command="{Binding DeletePOCommand}"
-                            Style="{StaticResource DangerButtonStyle}"/>
+                            Style="{StaticResource DangerButtonStyle}"
+                            Margin="0,0,6,0"/>
                     <Button Content="Refresh"
                             Command="{Binding RefreshCommand}"
                             Style="{StaticResource SecondaryButtonStyle}"
                             Margin="0"/>
                 </StackPanel>
-            </Grid>
+            </WrapPanel>
         </Border>
 
         <!-- ═══════════════════════════════════════════════════════════

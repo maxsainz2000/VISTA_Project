@@ -89,54 +89,59 @@
         <!-- ═══════════════════════════════════════════════════════════
              TOOLBAR
              ═══════════════════════════════════════════════════════════ -->
-        <Border DockPanel.Dock="Top"
-                Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
-                CornerRadius="{DynamicResource RadiusSmall}" Padding="12,8" Margin="0,0,0,6"
-                Effect="{DynamicResource CardShadow}">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-
+        <Border DockPanel.Dock="Top" Style="{StaticResource FilterBarStyle}" Margin="0,0,0,6" Effect="{DynamicResource CardShadow}">
+            <WrapPanel Orientation="Horizontal">
                 <!-- Threshold spinner -->
-                <TextBlock Grid.Column="0" Text="Near-expiry threshold:" Style="{StaticResource CaptionLabelStyle}"/>
-                <Border Grid.Column="1" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1" CornerRadius="3" Margin="0,0,4,0">
-                    <Grid Width="78">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="18"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBox Grid.Column="0"
-                                 x:Name="ThresholdBox"
-                                 Text="{Binding DaysThreshold, UpdateSourceTrigger=LostFocus}"
-                                 BorderThickness="0" Padding="6,3"
-                                 VerticalContentAlignment="Center"
-                                 PreviewTextInput="ThresholdBox_PreviewTextInput"/>
-                        <StackPanel Grid.Column="1" VerticalAlignment="Stretch">
-                            <RepeatButton Content="▲" FontSize="8" BorderThickness="0"
-                                          Background="Transparent" Padding="0"
-                                          Height="12"
-                                          Click="ThresholdUp_Click"/>
-                            <RepeatButton Content="▼" FontSize="8" BorderThickness="0"
-                                          Background="Transparent" Padding="0"
-                                          Height="12"
-                                          Click="ThresholdDown_Click"/>
-                        </StackPanel>
-                    </Grid>
-                </Border>
-                <TextBlock Grid.Column="2" Text="days" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,12,0"/>
+                <StackPanel Style="{StaticResource FilterBarItemStyle}" Orientation="Horizontal">
+                    <TextBlock Text="Near-expiry threshold:" Style="{StaticResource CaptionLabelStyle}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <Border BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1" CornerRadius="3" Margin="0,0,6,0">
+                        <Grid Width="78">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="18"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0"
+                                     x:Name="ThresholdBox"
+                                     Text="{Binding DaysThreshold, UpdateSourceTrigger=LostFocus}"
+                                     BorderThickness="0" Padding="6,3"
+                                     VerticalContentAlignment="Center"
+                                     PreviewTextInput="ThresholdBox_PreviewTextInput"/>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Stretch">
+                                <RepeatButton Content="▲" FontSize="8" BorderThickness="0"
+                                              Background="Transparent" Padding="0"
+                                              Height="12"
+                                              Click="ThresholdUp_Click"/>
+                                <RepeatButton Content="▼" FontSize="8" BorderThickness="0"
+                                              Background="Transparent" Padding="0"
+                                              Height="12"
+                                              Click="ThresholdDown_Click"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                    <TextBlock Text="days" Style="{StaticResource CaptionLabelStyle}" VerticalAlignment="Center"/>
+                </StackPanel>
+ 
+                <!-- Refresh Button -->
+                <Button Content="Refresh"
+                        Command="{Binding RefreshCommand}"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        VerticalAlignment="Center" Margin="0,0,12,4"/>
+
+                <!-- Last Refreshed -->
+                <TextBlock Text="{Binding LastRefreshed}"
+                           Style="{StaticResource CaptionLabelStyle}"
+                           VerticalAlignment="Center" Margin="0,0,12,4"/>
+ 
+                <!-- Loading indicator -->
+                <TextBlock Text="Loading…"
+                           FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"
+                           VerticalAlignment="Center" Margin="0,0,12,4"
+                           Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
 
                 <!-- Status message -->
-                <TextBlock Grid.Column="3"
-                           Text="{Binding StatusMessage}"
+                <TextBlock Text="{Binding StatusMessage}"
                            FontSize="11" FontWeight="SemiBold"
-                           VerticalAlignment="Center"
+                           VerticalAlignment="Center" Margin="0,0,12,4"
                            TextTrimming="CharacterEllipsis">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
@@ -149,23 +154,7 @@
                         </Style>
                     </TextBlock.Style>
                 </TextBlock>
-
-                <TextBlock Grid.Column="4"
-                           Text="{Binding LastRefreshed}"
-                           FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"
-                           VerticalAlignment="Center" Margin="0,0,8,0"/>
-
-                <TextBlock Grid.Column="5"
-                           Text="Loading…"
-                           FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"
-                           VerticalAlignment="Center" Margin="0,0,8,0"
-                           Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
-
-                <Button Grid.Column="6"
-                        Content="Refresh"
-                        Command="{Binding RefreshCommand}"
-                        Style="{StaticResource PrimaryButtonStyle}"/>
-            </Grid>
+            </WrapPanel>
         </Border>
 
         <!-- ═══════════════════════════════════════════════════════════

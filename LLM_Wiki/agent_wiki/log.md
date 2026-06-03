@@ -4,6 +4,8 @@ Chronological record of all agent contributions to the Agent Wiki.
 
 <!-- Append new entries at the top. Format: ## [YYYY-MM-DD] agent | action | description -->
 
+## [2026-06-03] antigravity | updated pattern | UX-11 rollout of responsive filter toolbars and layout overflow safety ScrollViewers across 11 VISTA views in MerchSys.App. Documented layout safety guidelines on persistent chrome placement, ScrollViewer height collapse mitigation, and non-double-wrapping virtualizing grids. See patterns/wpf-vista-dashboard-layout.md.
+
 ## [2026-06-03] antigravity | updated pattern | UX-10 rollout of dashboard layout compositions to 10 views in MerchSys.App. Documented the "promote-don't-add" rule and mapped the canonical Hero metrics, VM bindings, and layout adaptations for all 10 dashboard/KPI-band views. See patterns/wpf-vista-dashboard-layout.md.
 
 ## [2026-06-03] antigravity | added pattern | UX-09 introduced the metric-hierarchy card family, the responsive FilterBar container, and overflow safety standards in the shared ResourceDictionary (Themes/Components.xaml). Added PrimaryMetricCardStyle (border-accented, large padding), SecondaryMetricCardStyle, and TertiaryMetricStyle (compact card). Also added PrimaryMetricValueStyle (based on large title), SecondaryMetricValueStyle (title-size double), and MetricCaptionStyle (reusing caption double). Established responsive FilterBarStyle and FilterBarItemStyle to support wrapping toolbars on smaller windows, and documented ScrollViewer vertical auto/horizontal disabled scroll rules. Verified styles via scratch view realization harness on OwnerDashboardView.xaml in both themes and reverted before commit. Clean build (0/0). See patterns/wpf-vista-dashboard-layout.md.
