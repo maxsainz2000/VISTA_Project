@@ -5,37 +5,32 @@ Imports MerchSys.SharedKernel.Interfaces
 Namespace Persistence
 
     ''' <summary>
-    ''' Reusable helpers for executing optimistic concurrency retry logic.
+    ''' Canonical primitive for the VISTA optimistic-concurrency conflict UX.
+    '''
+    ''' VISTA runs up to 4 client laptops against one centralized MariaDB instance, so a
+    ''' <see cref="DbUpdateConcurrencyException"/> on a guarded write is a *normal* runtime
+    ''' condition. The mandated handling (CLAUDE.md / centralized-database-architecture) is:
+    ''' surface "Data changed elsewhere — refresh and retry", offer Refresh/Cancel, and
+    ''' **never silently overwrite** another client's change.
+    '''
+    ''' This module exposes the single correct way to do that. UX-14 standardizes all
+    ''' write-path ViewModels onto it (today they inline an equivalent pattern).
     ''' </summary>
     Public Module ConcurrencyHelper
 
         ''' <summary>
-        ''' Executes a database-mutating operation inside a try-catch block. If a DbUpdateConcurrencyException
-        ''' is caught, it shows an error toast and executes the onRefresh callback to load fresh data.
-        ''' </summary>
-        Public Async Function ExecuteWithConcurrencyRetryAsync(Of T)(work As Func(Of Task(Of T)),
-                                                                     onRefresh As Func(Of Task),
-                                                                     notifications As INotificationService) As Task(Of T)
-            Dim concurrencyError = False
-            Dim result As T = Nothing
-            Try
-                result = Await work()
-            Catch ex As DbUpdateConcurrencyException
-                concurrencyError = True
-            End Try
-
-            If concurrencyError Then
-                notifications.ShowError("Data changed elsewhere — refreshing")
-                Await onRefresh()
-                Throw New DbUpdateConcurrencyException("Data changed elsewhere — refreshing")
-            End If
-
-            Return result
-        End Function
-
-        ''' <summary>
-        ''' Executes a database-mutating operation. If a DbUpdateConcurrencyException is caught,
-        ''' prompts the user via IConflictPresenter. If user confirms Refresh, runs onRefresh.
+        ''' Executes a database-mutating operation. On a <see cref="DbUpdateConcurrencyException"/>
+        ''' it prompts the operator via <see cref="IConflictPresenter"/>; if the operator chooses
+        ''' Refresh, <paramref name="onRefresh"/> reloads live values. The stale write is **never**
+        ''' re-applied — the conflict is surfaced, not swallowed.
+        '''
+        ''' VB.NET note: the prompt is awaited *after* the Try/Catch (a conflict flag is captured
+        ''' inside the Catch), because <c>Await</c> is illegal inside a Catch/Finally (BC36943).
+        '''
+        ''' Returns True when <paramref name="work"/> completed without a concurrency conflict;
+        ''' False when a conflict was caught and surfaced. Exceptions other than
+        ''' <see cref="DbUpdateConcurrencyException"/> propagate to the caller unchanged, so the
+        ''' caller keeps its own validation / domain-error handling.
         ''' </summary>
         Public Async Function ExecuteWithConflictPromptAsync(work As Func(Of Task),
                                                              onRefresh As Func(Of Task),
