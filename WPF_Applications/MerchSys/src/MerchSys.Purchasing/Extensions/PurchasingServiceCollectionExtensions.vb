@@ -20,6 +20,7 @@ Namespace Extensions
             services.AddTransient(Of ViewModels.APLedgerViewModel)()
             services.AddTransient(Of ViewModels.ReorderSuggestionsViewModel)()
             services.AddTransient(Of ViewModels.VendorCatalogViewModel)()
+            services.AddTransient(Of ViewModels.PurchasingDashboardViewModel)()
             Return services
         End Function
 

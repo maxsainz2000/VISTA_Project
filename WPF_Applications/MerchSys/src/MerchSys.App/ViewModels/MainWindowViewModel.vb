@@ -220,11 +220,13 @@ Namespace ViewModels
         Private Function BuildRoleAwarePurchasingItems() As List(Of NavigationItem)
             If _session.CurrentRole = UserRole.Owner Then
                 Return New List(Of NavigationItem) From {
+                    New NavigationItem With {.DisplayName = "Purchasing Dashboard", .ViewType = GetType(Views.Purchasing.PurchasingDashboardView)},
                     New NavigationItem With {.DisplayName = "Purchase Orders", .ViewType = GetType(Views.Purchasing.PurchaseOrderListView)},
                     New NavigationItem With {.DisplayName = "Accounts Payable", .ViewType = GetType(Views.Purchasing.APLedgerView)}
                 }
             End If
             Return New List(Of NavigationItem) From {
+                New NavigationItem With {.DisplayName = "Purchasing Dashboard", .ViewType = GetType(Views.Purchasing.PurchasingDashboardView)},
                 New NavigationItem With {.DisplayName = "Purchase Orders", .ViewType = GetType(Views.Purchasing.PurchaseOrderListView)},
                 New NavigationItem With {.DisplayName = "Goods Receiving", .ViewType = GetType(Views.Purchasing.GoodsReceivingView)},
                 New NavigationItem With {.DisplayName = "Vendor Directory", .ViewType = GetType(Views.Purchasing.VendorDirectoryView)},

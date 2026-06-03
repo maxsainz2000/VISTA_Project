@@ -4,6 +4,8 @@ Chronological record of all agent contributions to the Agent Wiki.
 
 <!-- Append new entries at the top. Format: ## [YYYY-MM-DD] agent | action | description -->
 
+## [2026-06-03] antigravity | added pattern | UX-13 implemented the missing PurchasingDashboardView and its associated PurchasingDashboardViewModel, resolving the module landing asymmetry. Configured read-only aggregated metrics (Total AP, Overdue AP, Pending Deliveries, Reorder suggestions, and Active Vendors), a 6-month spend trend bar chart, top 5 vendors by spend, and a detailed pending deliveries grid. Integrated with the shell application navigation in MainWindowViewModel.vb as the default view and registered in DI. See patterns/wpf-vista-purchasing-dashboard.md.
+
 ## [2026-06-03] antigravity | added pattern | UX-12 introduced reusable, theme-reactive DeltaIndicator and Sparkline controls to display period-over-period direction and trend sparklines. Exposed additive read-only properties in FinancialOverviewViewModel, OwnerDashboardViewModel, and DailySummaryViewModel, and wired them into Views. Documented best practices to avoid built-in keyword/function collisions (like loop variable 'val' clashing with Microsoft.VisualBasic.Conversion.Val) and namespace prefix syntax in WPF. See patterns/wpf-vista-trend-indicators.md.
 
 ## [2026-06-03] antigravity | updated pattern | UX-11 rollout of responsive filter toolbars and layout overflow safety ScrollViewers across 11 VISTA views in MerchSys.App. Documented layout safety guidelines on persistent chrome placement, ScrollViewer height collapse mitigation, and non-double-wrapping virtualizing grids. See patterns/wpf-vista-dashboard-layout.md.

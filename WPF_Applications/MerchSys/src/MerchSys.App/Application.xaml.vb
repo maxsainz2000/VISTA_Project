@@ -176,6 +176,7 @@ Class Application
                                       services.AddTransient(Of Views.POS.TransactionHistoryView)()
                                       services.AddTransient(Of Views.POS.DailySummaryView)()
                                       services.AddTransient(Of Views.POS.VatSettingsView)()
+                                      services.AddTransient(Of Views.Purchasing.PurchasingDashboardView)()
                                       services.AddTransient(Of Views.Purchasing.PurchaseOrderListView)()
                                       services.AddTransient(Of Views.Purchasing.GoodsReceivingView)()
                                       services.AddTransient(Of Views.Purchasing.VendorDirectoryView)()
