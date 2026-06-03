@@ -7,10 +7,10 @@
              d:DesignHeight="80" d:DesignWidth="180">
 
     <Border x:Name="TileBorder"
-            Background="White"
-            BorderBrush="#DFE6E9"
+            Background="{DynamicResource SurfaceBrush}"
+            BorderBrush="{DynamicResource SeparatorBrush}"
             BorderThickness="1"
-            CornerRadius="6"
+            CornerRadius="{DynamicResource RadiusSmall}"
             Padding="14,10"
             Margin="0,0,8,0"
             Cursor="Hand">
@@ -19,23 +19,22 @@
             <MouseBinding MouseAction="LeftClick" Command="{Binding NavigateToVatReturnCommand}"/>
         </Border.InputBindings>
 
-        <!-- Severity DataTriggers: override left border colour -->
         <Border.Style>
             <Style TargetType="Border">
-                <Setter Property="Background" Value="White"/>
-                <Setter Property="BorderBrush" Value="#DFE6E9"/>
+                <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
                 <Setter Property="BorderThickness" Value="1"/>
-                <Setter Property="CornerRadius" Value="6"/>
+                <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}"/>
                 <Setter Property="Padding" Value="14,10"/>
                 <Setter Property="Margin" Value="0,0,8,0"/>
                 <Setter Property="Cursor" Value="Hand"/>
                 <Style.Triggers>
                     <DataTrigger Binding="{Binding IsVatWarning}" Value="True">
-                        <Setter Property="BorderBrush" Value="#F39C12"/>
+                        <Setter Property="BorderBrush" Value="{DynamicResource WarningBrush}"/>
                         <Setter Property="BorderThickness" Value="3,1,1,1"/>
                     </DataTrigger>
                     <DataTrigger Binding="{Binding IsVatCritical}" Value="True">
-                        <Setter Property="BorderBrush" Value="#E74C3C"/>
+                        <Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}"/>
                         <Setter Property="BorderThickness" Value="3,1,1,1"/>
                     </DataTrigger>
                 </Style.Triggers>
@@ -47,20 +46,20 @@
             <!-- Tax type label (VAT Payable / Percentage Tax) -->
             <TextBlock Text="{Binding VatPayableLabel, FallbackValue='VAT Payable'}"
                        FontSize="10"
-                       Foreground="#7F8C8D"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
                        TextOptions.TextFormattingMode="Display"/>
 
             <!-- Amount row -->
             <TextBlock FontSize="20" FontWeight="Bold" Margin="0,2,0,0">
                 <TextBlock.Style>
                     <Style TargetType="TextBlock">
-                        <Setter Property="Foreground" Value="#2C3E50"/>
+                        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding IsVatWarning}" Value="True">
-                                <Setter Property="Foreground" Value="#D68910"/>
+                                <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
                             </DataTrigger>
                             <DataTrigger Binding="{Binding IsVatCritical}" Value="True">
-                                <Setter Property="Foreground" Value="#E74C3C"/>
+                                <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
                                 <Setter Property="FontWeight" Value="ExtraBold"/>
                             </DataTrigger>
                         </Style.Triggers>
@@ -73,7 +72,7 @@
             <!-- Filing due date -->
             <TextBlock Text="{Binding VatFilingDueDate, StringFormat='Due {0:MMM d}', TargetNullValue=''}"
                        FontSize="10"
-                       Foreground="#7F8C8D"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
                        Margin="0,2,0,0"/>
 
         </StackPanel>

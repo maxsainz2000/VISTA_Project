@@ -5,43 +5,43 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
              d:DesignHeight="700" d:DesignWidth="1200"
-             Background="#F5F6FA">
+             Background="{DynamicResource WindowBackgroundBrush}">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
         <Style x:Key="SectionHeader" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
             <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="#2C3E50"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
 
         <Style x:Key="FieldLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Foreground" Value="#7F8C8D"/>
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="Margin" Value="0,0,6,0"/>
         </Style>
 
         <!-- Tab buttons -->
         <Style x:Key="TabButton" TargetType="Button">
-            <Setter Property="Background" Value="#ECF0F1"/>
-            <Setter Property="Foreground" Value="#2C3E50"/>
+            <Setter Property="Background" Value="{DynamicResource SidebarBackgroundBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="20,7"/>
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#D5D8DC"/>
+                    <Setter Property="Background" Value="{DynamicResource HoverBackgroundBrush}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
 
         <!-- Filter buttons -->
         <Style x:Key="FilterButton" TargetType="Button">
-            <Setter Property="Background" Value="#ECF0F1"/>
-            <Setter Property="Foreground" Value="#2C3E50"/>
+            <Setter Property="Background" Value="{DynamicResource SidebarBackgroundBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="14,5"/>
             <Setter Property="FontSize" Value="12"/>
@@ -50,14 +50,14 @@
             <Setter Property="Margin" Value="0,0,4,0"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#D5D8DC"/>
+                    <Setter Property="Background" Value="{DynamicResource HoverBackgroundBrush}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
 
         <Style x:Key="ActionButton" TargetType="Button">
-            <Setter Property="Background" Value="#2980B9"/>
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="14,6"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
@@ -65,16 +65,19 @@
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}"/>
+                </Trigger>
                 <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="#BDC3C7"/>
-                    <Setter Property="Foreground" Value="#7F8C8D"/>
+                    <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
 
         <Style x:Key="AcceptRowButton" TargetType="Button">
-            <Setter Property="Background" Value="#27AE60"/>
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="10,3"/>
             <Setter Property="FontSize" Value="11"/>
@@ -83,15 +86,15 @@
             <Setter Property="Margin" Value="0,0,4,0"/>
             <Style.Triggers>
                 <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="#BDC3C7"/>
-                    <Setter Property="Foreground" Value="#7F8C8D"/>
+                    <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
 
         <Style x:Key="DismissRowButton" TargetType="Button">
-            <Setter Property="Background" Value="#E74C3C"/>
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="{DynamicResource DangerBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="10,3"/>
             <Setter Property="FontSize" Value="11"/>
@@ -99,63 +102,62 @@
             <Setter Property="Cursor" Value="Hand"/>
             <Style.Triggers>
                 <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="#BDC3C7"/>
-                    <Setter Property="Foreground" Value="#7F8C8D"/>
+                    <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
 
         <Style x:Key="SecondaryButton" TargetType="Button">
-            <Setter Property="Background" Value="#ECF0F1"/>
-            <Setter Property="Foreground" Value="#2C3E50"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="BorderBrush" Value="#BDC3C7"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
             <Setter Property="Padding" Value="14,6"/>
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#D5D8DC"/>
+                    <Setter Property="Background" Value="{DynamicResource SidebarBackgroundBrush}"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
 
         <Style x:Key="SaveButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
-            <Setter Property="Background" Value="#27AE60"/>
+            <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
             <Setter Property="Padding" Value="18,6"/>
             <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
+                    <Setter Property="Opacity" Value="0.9"/>
+                </Trigger>
                 <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="#BDC3C7"/>
-                    <Setter Property="Foreground" Value="#7F8C8D"/>
+                    <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
 
         <!-- Seasonal row highlight -->
         <Style x:Key="SuggestionRowStyle" TargetType="DataGridRow">
-            <Setter Property="Background" Value="White"/>
+            <Setter Property="Background" Value="Transparent"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsSeasonalAdjusted}" Value="True">
-                    <Setter Property="Background" Value="#FEF9E7"/>
+                    <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
                 </DataTrigger>
-                <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="#D6EAF8"/>
-                    <Setter Property="BorderBrush" Value="#2980B9"/>
-                </Trigger>
             </Style.Triggers>
         </Style>
 
         <Style x:Key="ConfigRowStyle" TargetType="DataGridRow">
-            <Setter Property="Background" Value="White"/>
+            <Setter Property="Background" Value="Transparent"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsActive}" Value="False">
-                    <Setter Property="Foreground" Value="#BDC3C7"/>
+                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                 </DataTrigger>
-                <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="#D6EAF8"/>
-                    <Setter Property="BorderBrush" Value="#2980B9"/>
-                </Trigger>
             </Style.Triggers>
         </Style>
     </UserControl.Resources>
@@ -170,8 +172,8 @@
 
             <!-- PAGE HEADER ──────────────────────────────────────────── -->
             <Border DockPanel.Dock="Top"
-                    Background="White" BorderBrush="#DFE6E9" BorderThickness="1"
-                    CornerRadius="4" Padding="16,12" Margin="0,0,0,6">
+                    Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                    CornerRadius="{DynamicResource RadiusSmall}" Padding="16,12" Margin="0,0,0,6">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -179,7 +181,7 @@
                     </Grid.ColumnDefinitions>
 
                     <TextBlock Grid.Column="0" Text="Reorder Suggestions"
-                               FontSize="16" FontWeight="Bold" Foreground="#2C3E50"
+                               FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"
                                VerticalAlignment="Center"/>
 
                     <StackPanel Grid.Column="1" Orientation="Horizontal">
@@ -196,16 +198,16 @@
 
             <!-- TAB SWITCHER ─────────────────────────────────────────── -->
             <Border DockPanel.Dock="Top"
-                    Background="White" BorderBrush="#DFE6E9" BorderThickness="1"
-                    CornerRadius="4" Padding="4,4" Margin="0,0,0,6">
+                    Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                    CornerRadius="{DynamicResource RadiusSmall}" Padding="4,4" Margin="0,0,0,6">
                 <StackPanel Orientation="Horizontal">
                     <Button Content="Suggestions" Command="{Binding SwitchTabCommand}" CommandParameter="Suggestions">
                         <Button.Style>
                             <Style TargetType="Button" BasedOn="{StaticResource TabButton}">
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding IsSuggestionsTabActive}" Value="True">
-                                        <Setter Property="Background" Value="#2980B9"/>
-                                        <Setter Property="Foreground" Value="White"/>
+                                        <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
                                         <Setter Property="FontWeight" Value="SemiBold"/>
                                     </DataTrigger>
                                 </Style.Triggers>
@@ -217,8 +219,8 @@
                             <Style TargetType="Button" BasedOn="{StaticResource TabButton}">
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding IsConfigTabActive}" Value="True">
-                                        <Setter Property="Background" Value="#2980B9"/>
-                                        <Setter Property="Foreground" Value="White"/>
+                                        <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
                                         <Setter Property="FontWeight" Value="SemiBold"/>
                                     </DataTrigger>
                                 </Style.Triggers>
@@ -232,9 +234,9 @@
             <Border DockPanel.Dock="Top" Padding="8,3" Margin="0,0,0,4">
                 <Grid>
                     <TextBlock Text="{Binding StatusMessage}"
-                               FontSize="11" Foreground="#7F8C8D" VerticalAlignment="Center"/>
+                               FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                     <TextBlock Text="Working…" HorizontalAlignment="Right"
-                               FontSize="11" Foreground="#7F8C8D" VerticalAlignment="Center"
+                               FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"
                                Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
                 </Grid>
             </Border>
@@ -247,8 +249,8 @@
 
                 <!-- Filter toolbar -->
                 <Border DockPanel.Dock="Top"
-                        Background="White" BorderBrush="#DFE6E9" BorderThickness="1"
-                        CornerRadius="4" Padding="12,8" Margin="0,0,0,6">
+                        Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                        CornerRadius="{DynamicResource RadiusSmall}" Padding="12,8" Margin="0,0,0,6">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <TextBlock Text="Filter:" Style="{StaticResource FieldLabel}" FontSize="12"/>
 
@@ -257,8 +259,8 @@
                                 <Style TargetType="Button" BasedOn="{StaticResource FilterButton}">
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding IsPendingFilterActive}" Value="True">
-                                            <Setter Property="Background" Value="#E67E22"/>
-                                            <Setter Property="Foreground" Value="White"/>
+                                            <Setter Property="Background" Value="{DynamicResource WarningBrush}"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
                                             <Setter Property="FontWeight" Value="SemiBold"/>
                                         </DataTrigger>
                                     </Style.Triggers>
@@ -271,8 +273,8 @@
                                 <Style TargetType="Button" BasedOn="{StaticResource FilterButton}">
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding IsAcceptedFilterActive}" Value="True">
-                                            <Setter Property="Background" Value="#27AE60"/>
-                                            <Setter Property="Foreground" Value="White"/>
+                                            <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
                                             <Setter Property="FontWeight" Value="SemiBold"/>
                                         </DataTrigger>
                                     </Style.Triggers>
@@ -285,8 +287,8 @@
                                 <Style TargetType="Button" BasedOn="{StaticResource FilterButton}">
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding IsDismissedFilterActive}" Value="True">
-                                            <Setter Property="Background" Value="#7F8C8D"/>
-                                            <Setter Property="Foreground" Value="White"/>
+                                            <Setter Property="Background" Value="{DynamicResource TextSecondaryBrush}"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
                                             <Setter Property="FontWeight" Value="SemiBold"/>
                                         </DataTrigger>
                                     </Style.Triggers>
@@ -295,29 +297,30 @@
                         </Button>
 
                         <!-- Seasonal legend -->
-                        <Border Width="14" Height="14" Background="#FEF9E7" BorderBrush="#F39C12"
+                        <Border Width="14" Height="14" Background="{DynamicResource SidebarBackgroundBrush}" BorderBrush="{DynamicResource WarningBrush}"
                                 BorderThickness="1" CornerRadius="2" Margin="24,0,4,0"
                                 VerticalAlignment="Center"/>
-                        <TextBlock Text="Seasonal adjustment" FontSize="10" Foreground="#7F8C8D"
+                        <TextBlock Text="Seasonal adjustment" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"
                                    VerticalAlignment="Center"/>
                     </StackPanel>
                 </Border>
 
                 <!-- Suggestions grid -->
-                <Border Background="White" BorderBrush="#DFE6E9" BorderThickness="1" CornerRadius="4">
+                <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1" CornerRadius="{DynamicResource RadiusSmall}">
                     <DataGrid x:Name="SuggestionsGrid"
-                              ItemsSource="{Binding Suggestions}"
-                              AutoGenerateColumns="False"
-                              CanUserAddRows="False" CanUserDeleteRows="False"
-                              CanUserReorderColumns="False" CanUserResizeRows="False"
-                              IsReadOnly="True"
-                              SelectionUnit="FullRow" SelectionMode="Single"
-                              GridLinesVisibility="Horizontal"
-                              BorderThickness="0"
-                              HeadersVisibility="Column"
-                              RowStyle="{StaticResource SuggestionRowStyle}"
-                              RowBackground="White" AlternatingRowBackground="#FAFBFC"
-                              FontSize="12" Margin="1">
+                               ItemsSource="{Binding Suggestions}"
+                               AutoGenerateColumns="False"
+                               CanUserAddRows="False" CanUserDeleteRows="False"
+                               CanUserReorderColumns="False" CanUserResizeRows="False"
+                               IsReadOnly="True"
+                               SelectionUnit="FullRow" SelectionMode="Single"
+                               GridLinesVisibility="Horizontal"
+                               BorderThickness="0"
+                               HeadersVisibility="Column"
+                               RowStyle="{StaticResource SuggestionRowStyle}"
+                               Background="{DynamicResource SurfaceBrush}"
+                               AlternatingRowBackground="{DynamicResource WindowBackgroundBrush}"
+                               FontSize="{DynamicResource FontSizeBody}" Margin="1">
 
                         <DataGrid.Columns>
 
@@ -326,7 +329,7 @@
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock">
                                         <Setter Property="FontWeight" Value="SemiBold"/>
-                                        <Setter Property="Foreground" Value="#2C3E50"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
                                         <Setter Property="VerticalAlignment" Value="Center"/>
                                         <Setter Property="Padding" Value="4,0"/>
                                     </Style>
@@ -339,7 +342,7 @@
                                     <Style TargetType="TextBlock">
                                         <Setter Property="HorizontalAlignment" Value="Center"/>
                                         <Setter Property="VerticalAlignment" Value="Center"/>
-                                        <Setter Property="Foreground" Value="#E74C3C"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
                                         <Setter Property="FontWeight" Value="SemiBold"/>
                                     </Style>
                                 </DataGridTextColumn.ElementStyle>
@@ -351,7 +354,7 @@
                                     <Style TargetType="TextBlock">
                                         <Setter Property="HorizontalAlignment" Value="Center"/>
                                         <Setter Property="VerticalAlignment" Value="Center"/>
-                                        <Setter Property="Foreground" Value="#7F8C8D"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                                     </Style>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
@@ -363,7 +366,7 @@
                                         <Setter Property="HorizontalAlignment" Value="Center"/>
                                         <Setter Property="VerticalAlignment" Value="Center"/>
                                         <Setter Property="FontWeight" Value="SemiBold"/>
-                                        <Setter Property="Foreground" Value="#2980B9"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
                                     </Style>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
@@ -384,7 +387,7 @@
                                     <Style TargetType="TextBlock">
                                         <Setter Property="HorizontalAlignment" Value="Center"/>
                                         <Setter Property="VerticalAlignment" Value="Center"/>
-                                        <Setter Property="Foreground" Value="#7F8C8D"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                                     </Style>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
@@ -402,7 +405,7 @@
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding IsSeasonalAdjusted}" Value="True">
                                                             <Setter Property="Text" Value="★"/>
-                                                            <Setter Property="Foreground" Value="#F39C12"/>
+                                                            <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
                                                             <Setter Property="ToolTip" Value="Seasonally adjusted reorder point"/>
                                                         </DataTrigger>
                                                     </Style.Triggers>
@@ -421,15 +424,15 @@
                                         <Setter Property="HorizontalAlignment" Value="Center"/>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding Status}" Value="Pending">
-                                                <Setter Property="Foreground" Value="#E67E22"/>
+                                                <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
                                                 <Setter Property="FontWeight" Value="SemiBold"/>
                                             </DataTrigger>
                                             <DataTrigger Binding="{Binding Status}" Value="Accepted">
-                                                <Setter Property="Foreground" Value="#27AE60"/>
+                                                <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
                                                 <Setter Property="FontWeight" Value="SemiBold"/>
                                             </DataTrigger>
                                             <DataTrigger Binding="{Binding Status}" Value="Dismissed">
-                                                <Setter Property="Foreground" Value="#BDC3C7"/>
+                                                <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
@@ -443,8 +446,8 @@
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
                                                     Margin="4,2">
                                             <Button Content="✓ Accept"
-                                                    Command="{Binding DataContext.AcceptCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                    CommandParameter="{Binding}">
+                                                     Command="{Binding DataContext.AcceptCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                     CommandParameter="{Binding}">
                                                 <Button.Style>
                                                     <Style TargetType="Button" BasedOn="{StaticResource AcceptRowButton}">
                                                         <Style.Triggers>
@@ -459,8 +462,8 @@
                                                 </Button.Style>
                                             </Button>
                                             <Button Content="✗ Dismiss"
-                                                    Command="{Binding DataContext.DismissCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                    CommandParameter="{Binding}">
+                                                     Command="{Binding DataContext.DismissCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                     CommandParameter="{Binding}">
                                                 <Button.Style>
                                                     <Style TargetType="Button" BasedOn="{StaticResource DismissRowButton}">
                                                         <Style.Triggers>
@@ -476,7 +479,7 @@
                                             </Button>
                                             <!-- Accepted / Dismissed label -->
                                             <TextBlock VerticalAlignment="Center" FontSize="11"
-                                                       Foreground="#BDC3C7" FontStyle="Italic">
+                                                       Foreground="{DynamicResource TextSecondaryBrush}" FontStyle="Italic">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
                                                         <Setter Property="Visibility" Value="Collapsed"/>
@@ -484,7 +487,7 @@
                                                             <DataTrigger Binding="{Binding Status}" Value="Accepted">
                                                                 <Setter Property="Visibility" Value="Visible"/>
                                                                 <Setter Property="Text" Value="Accepted"/>
-                                                                <Setter Property="Foreground" Value="#27AE60"/>
+                                                                <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
                                                             </DataTrigger>
                                                             <DataTrigger Binding="{Binding Status}" Value="Dismissed">
                                                                 <Setter Property="Visibility" Value="Visible"/>
@@ -513,27 +516,28 @@
 
                 <!-- Config toolbar -->
                 <Border DockPanel.Dock="Top"
-                        Background="White" BorderBrush="#DFE6E9" BorderThickness="1"
-                        CornerRadius="4" Padding="12,8" Margin="0,0,0,6">
+                        Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                        CornerRadius="{DynamicResource RadiusSmall}" Padding="12,8" Margin="0,0,0,6">
                     <TextBlock Text="Select a row and click Edit to update reorder parameters."
-                               FontSize="11" Foreground="#7F8C8D" VerticalAlignment="Center"/>
+                               FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                 </Border>
 
                 <!-- Config grid -->
-                <Border Background="White" BorderBrush="#DFE6E9" BorderThickness="1" CornerRadius="4">
+                <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1" CornerRadius="{DynamicResource RadiusSmall}">
                     <DataGrid x:Name="ConfigGrid"
-                              ItemsSource="{Binding Configs}"
-                              AutoGenerateColumns="False"
-                              CanUserAddRows="False" CanUserDeleteRows="False"
-                              CanUserReorderColumns="False" CanUserResizeRows="False"
-                              IsReadOnly="True"
-                              SelectionUnit="FullRow" SelectionMode="Single"
-                              GridLinesVisibility="Horizontal"
-                              BorderThickness="0"
-                              HeadersVisibility="Column"
-                              RowStyle="{StaticResource ConfigRowStyle}"
-                              RowBackground="White" AlternatingRowBackground="#FAFBFC"
-                              FontSize="12" Margin="1">
+                               ItemsSource="{Binding Configs}"
+                               AutoGenerateColumns="False"
+                               CanUserAddRows="False" CanUserDeleteRows="False"
+                               CanUserReorderColumns="False" CanUserResizeRows="False"
+                               IsReadOnly="True"
+                               SelectionUnit="FullRow" SelectionMode="Single"
+                               GridLinesVisibility="Horizontal"
+                               BorderThickness="0"
+                               HeadersVisibility="Column"
+                               RowStyle="{StaticResource ConfigRowStyle}"
+                               Background="{DynamicResource SurfaceBrush}"
+                               AlternatingRowBackground="{DynamicResource WindowBackgroundBrush}"
+                               FontSize="{DynamicResource FontSizeBody}" Margin="1">
 
                         <DataGrid.Columns>
 
@@ -542,7 +546,7 @@
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock">
                                         <Setter Property="FontWeight" Value="SemiBold"/>
-                                        <Setter Property="Foreground" Value="#2C3E50"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
                                         <Setter Property="VerticalAlignment" Value="Center"/>
                                         <Setter Property="Padding" Value="4,0"/>
                                     </Style>
@@ -576,7 +580,7 @@
                                         <Setter Property="HorizontalAlignment" Value="Center"/>
                                         <Setter Property="VerticalAlignment" Value="Center"/>
                                         <Setter Property="FontWeight" Value="SemiBold"/>
-                                        <Setter Property="Foreground" Value="#2980B9"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
                                     </Style>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
@@ -587,7 +591,7 @@
                                     <Style TargetType="TextBlock">
                                         <Setter Property="HorizontalAlignment" Value="Center"/>
                                         <Setter Property="VerticalAlignment" Value="Center"/>
-                                        <Setter Property="Foreground" Value="#7F8C8D"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                                     </Style>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
@@ -601,11 +605,11 @@
                                             <TextBlock.Style>
                                                 <Style TargetType="TextBlock">
                                                     <Setter Property="Text" Value="✗"/>
-                                                    <Setter Property="Foreground" Value="#BDC3C7"/>
+                                                    <Setter Property="Foreground" Value="{DynamicResource SeparatorBrush}"/>
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding IsSeasonalItem}" Value="True">
                                                             <Setter Property="Text" Value="★"/>
-                                                            <Setter Property="Foreground" Value="#F39C12"/>
+                                                            <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
                                                             <Setter Property="FontWeight" Value="Bold"/>
                                                         </DataTrigger>
                                                     </Style.Triggers>
@@ -622,7 +626,7 @@
                                     <Style TargetType="TextBlock">
                                         <Setter Property="HorizontalAlignment" Value="Center"/>
                                         <Setter Property="VerticalAlignment" Value="Center"/>
-                                        <Setter Property="Foreground" Value="#7F8C8D"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                                     </Style>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
@@ -636,11 +640,11 @@
                                             <TextBlock.Style>
                                                 <Style TargetType="TextBlock">
                                                     <Setter Property="Text" Value="Disabled"/>
-                                                    <Setter Property="Foreground" Value="#BDC3C7"/>
+                                                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding IsActive}" Value="True">
                                                             <Setter Property="Text" Value="Active"/>
-                                                            <Setter Property="Foreground" Value="#27AE60"/>
+                                                            <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
                                                             <Setter Property="FontWeight" Value="SemiBold"/>
                                                         </DataTrigger>
                                                     </Style.Triggers>
@@ -656,10 +660,10 @@
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <Button Content="Edit"
-                                                Style="{StaticResource ActionButton}"
-                                                Padding="10,3" FontSize="11"
-                                                Command="{Binding DataContext.OpenEditConfigCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                CommandParameter="{Binding}"/>
+                                                 Style="{StaticResource ActionButton}"
+                                                 Padding="10,3" FontSize="11"
+                                                 Command="{Binding DataContext.OpenEditConfigCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                 CommandParameter="{Binding}"/>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
@@ -679,16 +683,14 @@
               Panel.ZIndex="10">
 
             <!-- Semi-transparent backdrop -->
-            <Rectangle Fill="#000000" Opacity="0.45"/>
+            <Rectangle Fill="{DynamicResource OverlayBrush}"/>
 
             <!-- Dialog card -->
-            <Border Background="White" CornerRadius="6" Padding="28,24"
+            <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="{DynamicResource RadiusMedium}" Padding="28,24"
                     MaxWidth="460"
                     HorizontalAlignment="Center" VerticalAlignment="Center"
-                    BorderBrush="#DFE6E9" BorderThickness="1">
-                <Border.Effect>
-                    <DropShadowEffect BlurRadius="20" Opacity="0.25" ShadowDepth="4"/>
-                </Border.Effect>
+                    BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                    Effect="{DynamicResource CardShadow}">
 
                 <StackPanel MinWidth="380">
 
@@ -696,7 +698,7 @@
                                Style="{StaticResource SectionHeader}"
                                FontSize="16" Margin="0,0,0,4"/>
                     <TextBlock Text="{Binding EditProductName}"
-                               FontSize="13" Foreground="#7F8C8D" Margin="0,0,0,20"/>
+                               FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,20"/>
 
                     <!-- Fields -->
                     <Grid Margin="0,0,0,16">
@@ -724,25 +726,25 @@
                                    Style="{StaticResource FieldLabel}" FontSize="12"/>
                         <TextBox Grid.Row="0" Grid.Column="1"
                                  Text="{Binding EditMinThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 Padding="8,6" FontSize="13" BorderBrush="#BDC3C7" BorderThickness="1"/>
+                                 Padding="8,6" FontSize="13"/>
 
                         <TextBlock Grid.Row="2" Grid.Column="0" Text="Safety Stock:"
                                    Style="{StaticResource FieldLabel}" FontSize="12"/>
                         <TextBox Grid.Row="2" Grid.Column="1"
                                  Text="{Binding EditSafetyStock, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 Padding="8,6" FontSize="13" BorderBrush="#BDC3C7" BorderThickness="1"/>
+                                 Padding="8,6" FontSize="13"/>
 
                         <TextBlock Grid.Row="4" Grid.Column="0" Text="Default Order Qty:"
                                    Style="{StaticResource FieldLabel}" FontSize="12"/>
                         <TextBox Grid.Row="4" Grid.Column="1"
                                  Text="{Binding EditDefaultOrderQty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 Padding="8,6" FontSize="13" BorderBrush="#BDC3C7" BorderThickness="1"/>
+                                 Padding="8,6" FontSize="13"/>
 
                         <TextBlock Grid.Row="6" Grid.Column="0" Text="Lead Time (Days):"
                                    Style="{StaticResource FieldLabel}" FontSize="12"/>
                         <TextBox Grid.Row="6" Grid.Column="1"
                                  Text="{Binding EditLeadTimeDays, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 Padding="8,6" FontSize="13" BorderBrush="#BDC3C7" BorderThickness="1"/>
+                                 Padding="8,6" FontSize="13"/>
 
                         <TextBlock Grid.Row="8" Grid.Column="0" Text="Seasonal Item:"
                                    Style="{StaticResource FieldLabel}" FontSize="12"/>
@@ -754,7 +756,7 @@
                                    Style="{StaticResource FieldLabel}" FontSize="12"/>
                         <TextBox Grid.Row="10" Grid.Column="1"
                                  Text="{Binding EditSeasonalMultiplier, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 Padding="8,6" FontSize="13" BorderBrush="#BDC3C7" BorderThickness="1"/>
+                                 Padding="8,6" FontSize="13"/>
 
                         <TextBlock Grid.Row="12" Grid.Column="0" Text="Monitoring Active:"
                                    Style="{StaticResource FieldLabel}" FontSize="12"/>
@@ -764,14 +766,14 @@
                     </Grid>
 
                     <!-- Divider -->
-                    <Border Height="1" Background="#DFE6E9" Margin="0,0,0,12"/>
+                    <Border Height="1" Background="{DynamicResource SeparatorBrush}" Margin="0,0,0,12"/>
 
                     <!-- Error message -->
                     <Border Visibility="{Binding HasEditError, Converter={StaticResource BoolToVis}}"
-                            Background="#FDEDEC" BorderBrush="#E74C3C" BorderThickness="1"
+                            Background="{DynamicResource SidebarBackgroundBrush}" BorderBrush="{DynamicResource DangerBrush}" BorderThickness="1"
                             CornerRadius="3" Padding="10,6" Margin="0,0,0,12">
                         <TextBlock Text="{Binding EditError}"
-                                   Foreground="#C0392B" FontSize="11" TextWrapping="Wrap"/>
+                                   Foreground="{DynamicResource DangerBrush}" FontSize="11" TextWrapping="Wrap"/>
                     </Border>
 
                     <!-- Action buttons -->
@@ -790,5 +792,4 @@
         </Grid>
 
     </Grid>
-
 </UserControl>

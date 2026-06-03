@@ -6,29 +6,30 @@
              xmlns:vm="clr-namespace:MerchSys.POS.ViewModels;assembly=MerchSys.POS"
              mc:Ignorable="d"
              d:DesignHeight="768" d:DesignWidth="1200"
-             Background="#F5F6FA">
+             Background="{DynamicResource WindowBackgroundBrush}">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
         <Style x:Key="SectionHeader" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeSubhead}"/>
             <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="#2C3E50"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
             <Setter Property="Margin" Value="0,0,0,8"/>
         </Style>
 
         <Style x:Key="FieldLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Foreground" Value="#7F8C8D"/>
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
             <Setter Property="Margin" Value="0,4,0,2"/>
         </Style>
 
         <Style x:Key="CardPanel" TargetType="Border">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#DFE6E9"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource RadiusMedium}"/>
+            <Setter Property="Effect" Value="{DynamicResource CardShadow}"/>
             <Setter Property="Padding" Value="16,12"/>
         </Style>
 
@@ -37,10 +38,10 @@
             <Setter Property="Padding" Value="14,0"/>
             <Setter Property="Margin" Value="0,0,4,0"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="BorderBrush" Value="#BDC3C7"/>
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="Foreground" Value="#2C3E50"/>
-            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource ControlBackgroundBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
 
@@ -48,14 +49,14 @@
             <Setter Property="Height" Value="32"/>
             <Setter Property="Padding" Value="14,0"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Background" Value="#2980B9"/>
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Style.Triggers>
                 <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="#BDC3C7"/>
-                    <Setter Property="Foreground" Value="#7F8C8D"/>
+                    <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -64,9 +65,9 @@
             <Setter Property="Height" Value="28"/>
             <Setter Property="Padding" Value="10,0"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Background" Value="#E74C3C"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Background" Value="{DynamicResource DangerBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
 
@@ -74,14 +75,14 @@
             <Setter Property="Height" Value="32"/>
             <Setter Property="Padding" Value="14,0"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Background" Value="#27AE60"/>
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Style.Triggers>
                 <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="#BDC3C7"/>
-                    <Setter Property="Foreground" Value="#7F8C8D"/>
+                    <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -103,7 +104,7 @@
                 <StackPanel>
                     <TextBlock Text="Total Outstanding AR" Style="{StaticResource FieldLabel}"/>
                     <TextBlock Text="{Binding TotalOutstanding, StringFormat='₱{0:N2}'}"
-                               FontSize="22" FontWeight="Bold" Foreground="#2C3E50"/>
+                               FontSize="22" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                 </StackPanel>
             </Border>
 
@@ -112,8 +113,8 @@
                     <TextBlock Text="Blocked Accounts" Style="{StaticResource FieldLabel}"/>
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="{Binding BlockedCount}"
-                                   FontSize="22" FontWeight="Bold" Foreground="#E74C3C"/>
-                        <TextBlock Text=" accounts" FontSize="13" Foreground="#7F8C8D"
+                                   FontSize="22" FontWeight="Bold" Foreground="{DynamicResource DangerBrush}"/>
+                        <TextBlock Text=" accounts" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"
                                    VerticalAlignment="Bottom" Margin="4,0,0,3"/>
                     </StackPanel>
                 </StackPanel>
@@ -124,8 +125,8 @@
                     <TextBlock Text="Overdue (30+ days)" Style="{StaticResource FieldLabel}"/>
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="{Binding OverdueCount}"
-                                   FontSize="22" FontWeight="Bold" Foreground="#E67E22"/>
-                        <TextBlock Text=" accounts" FontSize="13" Foreground="#7F8C8D"
+                                   FontSize="22" FontWeight="Bold" Foreground="{DynamicResource WarningBrush}"/>
+                        <TextBlock Text=" accounts" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"
                                    VerticalAlignment="Bottom" Margin="4,0,0,3"/>
                     </StackPanel>
                 </StackPanel>
@@ -134,8 +135,8 @@
         </UniformGrid>
 
         <!-- ═══ ROW 1: Action Bar ═══════════════════════════════════════════════ -->
-        <Border Grid.Row="1" Background="White" BorderBrush="#DFE6E9" BorderThickness="1"
-                CornerRadius="4" Padding="10,8" Margin="0,0,0,6">
+        <Border Grid.Row="1" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                CornerRadius="{DynamicResource RadiusSmall}" Padding="10,8" Margin="0,0,0,6">
             <DockPanel LastChildFill="False">
 
                 <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
@@ -145,9 +146,9 @@
                             <Style TargetType="Button" BasedOn="{StaticResource FilterButton}">
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding IsFilterAll}" Value="True">
-                                        <Setter Property="Background" Value="#2C3E50"/>
-                                        <Setter Property="Foreground" Value="White"/>
-                                        <Setter Property="BorderBrush" Value="#2C3E50"/>
+                                        <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
+                                        <Setter Property="BorderBrush" Value="{DynamicResource AccentHoverBrush}"/>
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
@@ -159,9 +160,9 @@
                             <Style TargetType="Button" BasedOn="{StaticResource FilterButton}">
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding IsFilterBlocked}" Value="True">
-                                        <Setter Property="Background" Value="#E74C3C"/>
-                                        <Setter Property="Foreground" Value="White"/>
-                                        <Setter Property="BorderBrush" Value="#C0392B"/>
+                                        <Setter Property="Background" Value="{DynamicResource DangerBrush}"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
+                                        <Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}"/>
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
@@ -173,9 +174,9 @@
                             <Style TargetType="Button" BasedOn="{StaticResource FilterButton}">
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding IsFilterWithBalance}" Value="True">
-                                        <Setter Property="Background" Value="#E67E22"/>
-                                        <Setter Property="Foreground" Value="White"/>
-                                        <Setter Property="BorderBrush" Value="#CA6F1E"/>
+                                        <Setter Property="Background" Value="{DynamicResource WarningBrush}"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
+                                        <Setter Property="BorderBrush" Value="{DynamicResource WarningBrush}"/>
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
@@ -187,9 +188,9 @@
                             <Style TargetType="Button" BasedOn="{StaticResource FilterButton}">
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding IsFilterCleared}" Value="True">
-                                        <Setter Property="Background" Value="#27AE60"/>
-                                        <Setter Property="Foreground" Value="White"/>
-                                        <Setter Property="BorderBrush" Value="#1E8449"/>
+                                        <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
+                                        <Setter Property="BorderBrush" Value="{DynamicResource SuccessBrush}"/>
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
@@ -204,7 +205,7 @@
                              Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                              Width="180" Height="30" Padding="8,0"
                              VerticalContentAlignment="Center"
-                             BorderBrush="#BDC3C7" BorderThickness="1"/>
+                             BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"/>
                     <Button Content="Search"
                             Command="{Binding SearchCommand}"
                             Margin="4,0,12,0" Style="{StaticResource PrimaryButton}"
@@ -218,8 +219,8 @@
                     <Button Content="Refresh"
                             Command="{Binding LoadDataCommand}"
                             Margin="6,0,0,0" Height="30" Padding="12,0"
-                            BorderThickness="1" BorderBrush="#BDC3C7"
-                            Background="White" Foreground="#2C3E50"
+                            BorderThickness="1" BorderBrush="{DynamicResource SeparatorBrush}"
+                            Background="{DynamicResource ControlBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                             Cursor="Hand"/>
 
                 </StackPanel>
@@ -228,8 +229,8 @@
         </Border>
 
         <!-- ═══ ROW 2: Add Account Form ════════════════════════════════════════ -->
-        <Border Grid.Row="2" Background="White" BorderBrush="#A8D5A2" BorderThickness="1"
-                CornerRadius="4" Padding="12,10" Margin="0,0,0,6"
+        <Border Grid.Row="2" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SuccessBrush}" BorderThickness="1"
+                CornerRadius="{DynamicResource RadiusMedium}" Padding="12,10" Margin="0,0,0,6"
                 Visibility="{Binding IsAddAccountVisible, Converter={StaticResource BoolToVis}}">
             <StackPanel>
 
@@ -246,19 +247,19 @@
                     <StackPanel Grid.Column="0" Margin="0,0,8,0">
                         <TextBlock Text="Customer Name *" Style="{StaticResource FieldLabel}"/>
                         <TextBox Text="{Binding NewAccountName, UpdateSourceTrigger=PropertyChanged}"
-                                 Padding="6,4" BorderBrush="#BDC3C7" BorderThickness="1"/>
+                                 Padding="6,4" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"/>
                     </StackPanel>
 
                     <StackPanel Grid.Column="1" Margin="0,0,8,0">
                         <TextBlock Text="Phone *" Style="{StaticResource FieldLabel}"/>
                         <TextBox Text="{Binding NewAccountPhone, UpdateSourceTrigger=PropertyChanged}"
-                                 Padding="6,4" BorderBrush="#BDC3C7" BorderThickness="1"/>
+                                 Padding="6,4" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"/>
                     </StackPanel>
 
                     <StackPanel Grid.Column="2" Margin="0,0,8,0">
                         <TextBlock Text="Address" Style="{StaticResource FieldLabel}"/>
                         <TextBox Text="{Binding NewAccountAddress, UpdateSourceTrigger=PropertyChanged}"
-                                 Padding="6,4" BorderBrush="#BDC3C7" BorderThickness="1"/>
+                                 Padding="6,4" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"/>
                     </StackPanel>
 
                     <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Bottom">
@@ -269,8 +270,8 @@
                         <Button Content="Cancel"
                                 Command="{Binding CancelAddAccountCommand}"
                                 Height="32" Padding="12,0"
-                                BorderThickness="1" BorderBrush="#BDC3C7"
-                                Background="White" Foreground="#2C3E50"
+                                BorderThickness="1" BorderBrush="{DynamicResource SeparatorBrush}"
+                                Background="{DynamicResource ControlBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                                 Cursor="Hand"/>
                     </StackPanel>
 
@@ -282,34 +283,33 @@
         <!-- ═══ ROW 3: Busy / Status Banner ════════════════════════════════════ -->
         <StackPanel Grid.Row="3" Margin="0,0,0,6">
 
-            <Border Background="#EBF5FB" BorderBrush="#AED6F1" BorderThickness="1"
-                    CornerRadius="3" Padding="10,6" Margin="0,0,0,4"
+            <Border Background="{DynamicResource SidebarBackgroundBrush}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1"
+                    CornerRadius="{DynamicResource RadiusSmall}" Padding="10,6" Margin="0,0,0,4"
                     Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}">
-                <TextBlock Text="Loading…" Foreground="#2471A3" FontSize="12"/>
+                <TextBlock Text="Loading…" Foreground="{DynamicResource AccentBrush}" FontSize="{DynamicResource FontSizeCaption}"/>
             </Border>
 
-            <Border CornerRadius="3" Padding="10,6"
+            <Border CornerRadius="{DynamicResource RadiusSmall}" Padding="10,6"
                     Visibility="{Binding HasStatusMessage, Converter={StaticResource BoolToVis}}">
                 <Border.Style>
                     <Style TargetType="Border">
-                        <Setter Property="Background" Value="#FDEDEC"/>
-                        <Setter Property="BorderBrush" Value="#F1948A"/>
+                        <Setter Property="Background" Value="{DynamicResource SidebarBackgroundBrush}"/>
+                        <Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}"/>
                         <Setter Property="BorderThickness" Value="1"/>
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding IsStatusSuccess}" Value="True">
-                                <Setter Property="Background" Value="#EAFAF1"/>
-                                <Setter Property="BorderBrush" Value="#A9DFBF"/>
+                                <Setter Property="BorderBrush" Value="{DynamicResource SuccessBrush}"/>
                             </DataTrigger>
                         </Style.Triggers>
                     </Style>
                 </Border.Style>
-                <TextBlock Text="{Binding StatusMessage}" FontSize="12" TextWrapping="Wrap">
+                <TextBlock Text="{Binding StatusMessage}" FontSize="{DynamicResource FontSizeCaption}" TextWrapping="Wrap">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
-                            <Setter Property="Foreground" Value="#E74C3C"/>
+                            <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding IsStatusSuccess}" Value="True">
-                                    <Setter Property="Foreground" Value="#1E8449"/>
+                                    <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
@@ -327,8 +327,8 @@
             </Grid.ColumnDefinitions>
 
             <!-- ── Account DataGrid ──────────────────────────────────────────── -->
-            <Border Grid.Column="0" Background="White" BorderBrush="#DFE6E9"
-                    BorderThickness="1" CornerRadius="4" Margin="0,0,6,0">
+            <Border Grid.Column="0" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}"
+                    BorderThickness="1" CornerRadius="{DynamicResource RadiusMedium}" Effect="{DynamicResource CardShadow}" Margin="0,0,6,0">
                 <DockPanel Margin="12">
 
                     <TextBlock DockPanel.Dock="Top" Text="Credit Accounts"
@@ -344,9 +344,9 @@
                               CanUserResizeRows="False"
                               SelectionUnit="FullRow"
                               GridLinesVisibility="Horizontal"
-                              BorderBrush="#DFE6E9" BorderThickness="1"
-                              RowBackground="White"
-                              AlternatingRowBackground="#FAFBFC"
+                              BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                              RowBackground="{DynamicResource SurfaceBrush}"
+                              AlternatingRowBackground="{DynamicResource SidebarBackgroundBrush}"
                               HeadersVisibility="Column"
                               IsReadOnly="True">
 
@@ -354,7 +354,7 @@
                             <Style TargetType="DataGridRow">
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding IsBlocked}" Value="True">
-                                        <Setter Property="Background" Value="#FFF5F5"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
@@ -420,8 +420,8 @@
             </Border>
 
             <!-- ── History Panel ─────────────────────────────────────────────── -->
-            <Border Grid.Column="1" Background="White" BorderBrush="#DFE6E9"
-                    BorderThickness="1" CornerRadius="4">
+            <Border Grid.Column="1" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}"
+                    BorderThickness="1" CornerRadius="{DynamicResource RadiusMedium}" Effect="{DynamicResource CardShadow}">
                 <Grid>
 
                 <!-- Empty state (no account selected) -->
@@ -436,22 +436,22 @@
                             </Style.Triggers>
                         </Style>
                     </StackPanel.Style>
-                    <TextBlock Text="Select an account" Foreground="#BDC3C7"
-                               FontSize="13" HorizontalAlignment="Center"/>
-                    <TextBlock Text="to view history" Foreground="#BDC3C7"
-                               FontSize="13" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Select an account" Foreground="{DynamicResource TextSecondaryBrush}"
+                               FontSize="{DynamicResource FontSizeBody}" HorizontalAlignment="Center"/>
+                    <TextBlock Text="to view history" Foreground="{DynamicResource TextSecondaryBrush}"
+                               FontSize="{DynamicResource FontSizeBody}" HorizontalAlignment="Center"/>
                 </StackPanel>
 
                 <!-- History content (visible when account selected) -->
                 <ScrollViewer VerticalScrollBarVisibility="Auto"
                               Visibility="{Binding HasSelectedAccount, Converter={StaticResource BoolToVis}}">
-                    <StackPanel Margin="12">
+                    <StackPanel Margin="{DynamicResource SpacingM}">
 
                         <!-- Account info -->
                         <TextBlock Text="{Binding SelectedAccount.CustomerName}"
-                                   FontSize="14" FontWeight="Bold" Foreground="#2C3E50"/>
+                                   FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         <TextBlock Text="{Binding SelectedAccount.Phone}"
-                                   FontSize="11" Foreground="#7F8C8D" Margin="0,0,0,4"/>
+                                   FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
 
                         <Grid Margin="0,0,0,6">
                             <TextBlock Text="Current Balance" Style="{StaticResource FieldLabel}"
@@ -460,10 +460,10 @@
                                        HorizontalAlignment="Right" FontSize="14" FontWeight="Bold">
                                 <TextBlock.Style>
                                     <Style TargetType="TextBlock">
-                                        <Setter Property="Foreground" Value="#27AE60"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding SelectedAccount.IsBlocked}" Value="True">
-                                                <Setter Property="Foreground" Value="#E74C3C"/>
+                                                <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
@@ -471,21 +471,21 @@
                             </TextBlock>
                         </Grid>
 
-                        <Border Background="#FDEDEC" BorderBrush="#E74C3C" BorderThickness="1"
-                                CornerRadius="3" Padding="8,5" Margin="0,0,0,8"
+                        <Border Background="{DynamicResource SidebarBackgroundBrush}" BorderBrush="{DynamicResource DangerBrush}" BorderThickness="1"
+                                CornerRadius="{DynamicResource RadiusSmall}" Padding="8,5" Margin="0,0,0,8"
                                 Visibility="{Binding SelectedAccount.IsBlocked, Converter={StaticResource BoolToVis}}">
                             <TextBlock Text="🔴 Blocked — balance must be cleared"
-                                       Foreground="#E74C3C" FontSize="11" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource DangerBrush}" FontSize="11" FontWeight="SemiBold"
                                        TextWrapping="Wrap"/>
                         </Border>
 
-                        <Separator Margin="0,0,0,8"/>
+                        <Separator Margin="0,0,0,8" Background="{DynamicResource SeparatorBrush}"/>
 
                         <!-- Payments -->
                         <TextBlock Text="Payments" Style="{StaticResource SectionHeader}"/>
 
-                        <TextBlock Text="No payments recorded." FontSize="11"
-                                   Foreground="#BDC3C7" Margin="0,0,0,8">
+                        <TextBlock Text="No payments recorded." FontSize="{DynamicResource FontSizeCaption}"
+                                   Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,8">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="Visibility" Value="Collapsed"/>
@@ -501,7 +501,7 @@
                         <ItemsControl ItemsSource="{Binding PaymentHistory}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border BorderBrush="#EEE" BorderThickness="0,0,0,1" Padding="0,5">
+                                    <Border BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="0,0,0,1" Padding="0,5">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
@@ -514,13 +514,13 @@
 
                                             <TextBlock Grid.Row="0" Grid.Column="0"
                                                        Text="{Binding PaymentDate, StringFormat='MM/dd/yyyy'}"
-                                                       FontSize="11" Foreground="#2C3E50"/>
+                                                       FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                             <TextBlock Grid.Row="0" Grid.Column="1"
                                                        Text="{Binding PaymentAmount, StringFormat='₱{0:N2}'}"
-                                                       FontWeight="SemiBold" FontSize="12"
-                                                       Foreground="#27AE60"/>
+                                                       FontWeight="SemiBold" FontSize="{DynamicResource FontSizeBody}"
+                                                       Foreground="{DynamicResource SuccessBrush}"/>
                                             <TextBlock Grid.Row="1" Grid.Column="0"
-                                                       FontSize="10" Foreground="#7F8C8D">
+                                                       FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}">
                                                 <Run Text="{Binding PaymentMethod}"/>
                                                 <Run Text=" · "/>
                                                 <Run Text="{Binding ReceivedBy}"/>
@@ -531,13 +531,13 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
 
-                        <Separator Margin="0,8"/>
+                        <Separator Margin="0,8" Background="{DynamicResource SeparatorBrush}"/>
 
                         <!-- Credit Sales -->
                         <TextBlock Text="Credit Sales" Style="{StaticResource SectionHeader}"/>
 
-                        <TextBlock Text="No credit sales on record." FontSize="11"
-                                   Foreground="#BDC3C7" Margin="0,0,0,8">
+                        <TextBlock Text="No credit sales on record." FontSize="{DynamicResource FontSizeCaption}"
+                                   Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,8">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="Visibility" Value="Collapsed"/>
@@ -553,7 +553,7 @@
                         <ItemsControl ItemsSource="{Binding CreditTransactions}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border BorderBrush="#EEE" BorderThickness="0,0,0,1" Padding="0,5">
+                                    <Border BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="0,0,0,1" Padding="0,5">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
@@ -566,14 +566,14 @@
 
                                             <TextBlock Grid.Row="0" Grid.Column="0"
                                                        Text="{Binding TransactionDate, StringFormat='MM/dd/yyyy'}"
-                                                       FontSize="11" Foreground="#2C3E50"/>
+                                                       FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                             <TextBlock Grid.Row="0" Grid.Column="1"
                                                        Text="{Binding Amount, StringFormat='₱{0:N2}'}"
-                                                       FontWeight="SemiBold" FontSize="12"
-                                                       Foreground="#E74C3C"/>
+                                                       FontWeight="SemiBold" FontSize="{DynamicResource FontSizeBody}"
+                                                       Foreground="{DynamicResource DangerBrush}"/>
                                             <TextBlock Grid.Row="1" Grid.Column="0"
                                                        Text="{Binding TransactionNumber}"
-                                                       FontSize="10" Foreground="#7F8C8D"/>
+                                                       FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
@@ -592,20 +592,20 @@
         <Grid Grid.RowSpan="5" Panel.ZIndex="100"
               Visibility="{Binding IsPaymentDialogVisible, Converter={StaticResource BoolToVis}}">
 
-            <Rectangle Fill="#99000000"/>
+            <Rectangle Fill="{DynamicResource OverlayBrush}"/>
 
-            <Border Background="White" Width="400"
-                    BorderBrush="#DFE6E9" BorderThickness="1" CornerRadius="6"
+            <Border Background="{DynamicResource SurfaceBrush}" Width="400"
+                    BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1" CornerRadius="{DynamicResource RadiusLarge}"
                     HorizontalAlignment="Center" VerticalAlignment="Center"
-                    Padding="24">
+                    Padding="24" Effect="{DynamicResource CardShadow}">
                 <StackPanel>
 
-                    <TextBlock Text="Record Payment" FontSize="16" FontWeight="Bold"
-                               Foreground="#2C3E50" Margin="0,0,0,16"/>
+                    <TextBlock Text="Record Payment" FontSize="{DynamicResource FontSizeTitle}" FontWeight="Bold"
+                               Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,16"/>
 
                     <!-- Customer info (read-only) -->
-                    <Border Background="#F8F9FA" BorderBrush="#DFE6E9" BorderThickness="1"
-                            CornerRadius="3" Padding="12,8" Margin="0,0,0,14">
+                    <Border Background="{DynamicResource SidebarBackgroundBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                            CornerRadius="{DynamicResource RadiusSmall}" Padding="12,8" Margin="0,0,0,14">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="80"/>
@@ -621,35 +621,35 @@
                                        Style="{StaticResource FieldLabel}"/>
                             <TextBlock Grid.Row="0" Grid.Column="1"
                                        Text="{Binding PaymentTargetAccount.CustomerName}"
-                                       FontWeight="SemiBold" FontSize="13" Foreground="#2C3E50"
+                                       FontWeight="SemiBold" FontSize="{DynamicResource FontSizeBody}" Foreground="{DynamicResource TextPrimaryBrush}"
                                        VerticalAlignment="Center"/>
 
                             <TextBlock Grid.Row="1" Grid.Column="0" Text="Phone"
                                        Style="{StaticResource FieldLabel}"/>
                             <TextBlock Grid.Row="1" Grid.Column="1"
                                        Text="{Binding PaymentTargetAccount.Phone}"
-                                       FontSize="12" Foreground="#2C3E50"
+                                       FontSize="{DynamicResource FontSizeBody}" Foreground="{DynamicResource TextPrimaryBrush}"
                                        VerticalAlignment="Center"/>
 
                             <TextBlock Grid.Row="2" Grid.Column="0" Text="Balance"
                                        Style="{StaticResource FieldLabel}"/>
                             <TextBlock Grid.Row="2" Grid.Column="1"
                                        Text="{Binding PaymentTargetAccount.CurrentBalance, StringFormat='₱{0:N2}'}"
-                                       FontSize="13" FontWeight="Bold" Foreground="#E74C3C"
+                                       FontSize="{DynamicResource FontSizeBody}" FontWeight="Bold" Foreground="{DynamicResource DangerBrush}"
                                        VerticalAlignment="Center"/>
                         </Grid>
                     </Border>
 
                     <TextBlock Text="Payment Amount (₱)" Style="{StaticResource FieldLabel}"/>
                     <TextBox Text="{Binding PaymentAmount, UpdateSourceTrigger=PropertyChanged}"
-                             Padding="8,6" BorderBrush="#BDC3C7" BorderThickness="1"
-                             FontSize="16" HorizontalContentAlignment="Right"
+                             Padding="8,6" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                             FontSize="{DynamicResource FontSizeTitle}" HorizontalContentAlignment="Right"
                              Margin="0,0,0,12"/>
 
                     <TextBlock Text="Payment Method" Style="{StaticResource FieldLabel}"/>
                     <ComboBox ItemsSource="{Binding PaymentMethodOptions}"
                               SelectedIndex="{Binding SelectedPaymentMethodIndex}"
-                              Padding="8,6" BorderBrush="#BDC3C7" BorderThickness="1"
+                              Padding="8,6" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
                               Margin="0,0,0,16"/>
 
                     <Grid>
@@ -662,8 +662,8 @@
                         <Button Grid.Column="0" Content="Cancel"
                                 Command="{Binding CancelPaymentCommand}"
                                 Height="38" Padding="0"
-                                BorderThickness="1" BorderBrush="#BDC3C7"
-                                Background="White" Foreground="#2C3E50"
+                                BorderThickness="1" BorderBrush="{DynamicResource SeparatorBrush}"
+                                Background="{DynamicResource ControlBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                                 Cursor="Hand"/>
 
                         <Button Grid.Column="2" Content="Confirm Payment"

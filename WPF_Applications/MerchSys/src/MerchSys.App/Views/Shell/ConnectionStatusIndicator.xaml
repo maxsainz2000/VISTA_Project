@@ -11,14 +11,14 @@
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
         <!-- Subtle white hover background for the retry button (avoids hardcoded hex) -->
-        <SolidColorBrush x:Key="HoverBackgroundBrush" Color="White" Opacity="0.2"/>
+        <SolidColorBrush x:Key="PillHoverBrush" Color="White" Opacity="0.2"/>
 
         <!-- Retry button — stripped chrome, white text on transparent background -->
         <Style x:Key="RetryButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Padding" Value="4,0"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -31,7 +31,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="{StaticResource HoverBackgroundBrush}"/>
+                                <Setter Property="Background" Value="{StaticResource PillHoverBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -118,7 +118,7 @@
             <!-- State label -->
             <TextBlock Text="{Binding StatusText}"
                        Foreground="White"
-                       FontSize="11"
+                       FontSize="{DynamicResource FontSizeCaption}"
                        VerticalAlignment="Center"/>
 
             <!-- Retry button — shown only in Offline state -->

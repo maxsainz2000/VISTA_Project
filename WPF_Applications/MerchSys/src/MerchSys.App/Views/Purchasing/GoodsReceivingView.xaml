@@ -5,27 +5,27 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
              d:DesignHeight="620" d:DesignWidth="1100"
-             Background="#F5F6FA">
+             Background="{DynamicResource WindowBackgroundBrush}">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
         <Style x:Key="SectionHeader" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
             <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="#2C3E50"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
 
         <Style x:Key="FieldLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Foreground" Value="#7F8C8D"/>
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="Margin" Value="0,0,6,0"/>
         </Style>
 
         <Style x:Key="ActionButton" TargetType="Button">
-            <Setter Property="Background" Value="#2980B9"/>
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="14,6"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
@@ -34,312 +34,316 @@
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="Margin" Value="0,0,6,0"/>
             <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}"/>
+                </Trigger>
                 <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="#BDC3C7"/>
-                    <Setter Property="Foreground" Value="#7F8C8D"/>
+                    <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
 
         <Style x:Key="ConfirmButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
-            <Setter Property="Background" Value="#27AE60"/>
+            <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
             <Setter Property="Padding" Value="18,6"/>
             <Setter Property="Margin" Value="0"/>
             <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
+                    <Setter Property="Opacity" Value="0.9"/>
+                </Trigger>
                 <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="#BDC3C7"/>
-                    <Setter Property="Foreground" Value="#7F8C8D"/>
+                    <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
 
-        <!-- Row coloring: discrepancy rows turn amber -->
+        <!-- Row coloring: discrepancy rows turn warning color -->
         <Style x:Key="GRRowStyle" TargetType="DataGridRow">
-            <Setter Property="Background" Value="White"/>
+            <Setter Property="Background" Value="Transparent"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding HasDiscrepancy}" Value="True">
-                    <Setter Property="Background" Value="#FEFCE8"/>
-                    <Setter Property="BorderBrush" Value="#F39C12"/>
+                    <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
                 </DataTrigger>
-                <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="#D6EAF8"/>
-                    <Setter Property="BorderBrush" Value="#2980B9"/>
-                </Trigger>
             </Style.Triggers>
         </Style>
     </UserControl.Resources>
 
-    <DockPanel Margin="10">
+    <Grid>
+        <DockPanel Margin="10">
 
-        <!-- ═══════════════════════════════════════════════════════════
-             PO SELECTOR TOOLBAR
-             ═══════════════════════════════════════════════════════════ -->
-        <Border DockPanel.Dock="Top"
-                Background="White" BorderBrush="#DFE6E9" BorderThickness="1"
-                CornerRadius="4" Padding="12,10" Margin="0,0,0,6">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="380"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-
-                <TextBlock Grid.Column="0" Text="Select Submitted PO:" Style="{StaticResource FieldLabel}"
-                           FontSize="12"/>
-                <ComboBox Grid.Column="1"
-                          ItemsSource="{Binding SubmittedPOs}"
-                          SelectedItem="{Binding SelectedPO}"
-                          DisplayMemberPath="DisplayText"
-                          Padding="8,5" VerticalContentAlignment="Center"
-                          BorderBrush="#BDC3C7" FontSize="12"/>
-
-                <Button Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center"
-                        Content="↻" FontSize="14" Background="Transparent" BorderThickness="0"
-                        Foreground="#7F8C8D" Cursor="Hand" Padding="4,0"
-                        Command="{Binding LoadPOsCommand}"
-                        ToolTip="Reload submitted POs"
-                        Margin="0,0,-30,0"/>
-
-                <Button Grid.Column="3"
-                        Content="Confirm Receipt"
-                        Command="{Binding ConfirmReceiptCommand}"
-                        Style="{StaticResource ConfirmButton}"/>
-            </Grid>
-        </Border>
-
-        <!-- ═══════════════════════════════════════════════════════════
-             STATUS BAR
-             ═══════════════════════════════════════════════════════════ -->
-        <Border DockPanel.Dock="Top" Padding="8,3" Margin="0,0,0,4">
-            <Grid>
-                <TextBlock Text="{Binding StatusMessage}"
-                           FontSize="11" Foreground="#7F8C8D" VerticalAlignment="Center"/>
-                <TextBlock Text="Loading…" HorizontalAlignment="Right"
-                           FontSize="11" Foreground="#7F8C8D" VerticalAlignment="Center"
-                           Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
-            </Grid>
-        </Border>
-
-        <!-- ═══════════════════════════════════════════════════════════
-             PLACEHOLDER — shown when no PO is selected
-             ═══════════════════════════════════════════════════════════ -->
-        <Border DockPanel.Dock="Top"
-                Visibility="{Binding IsPOSelected, Converter={StaticResource BoolToVis},
-                             ConverterParameter=Inverse}"
-                Background="White" BorderBrush="#DFE6E9" BorderThickness="1"
-                CornerRadius="4" Padding="24" Margin="0,0,0,6"
-                Height="120">
-            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                <TextBlock Text="Select a submitted Purchase Order above to begin receiving goods."
-                           FontSize="13" Foreground="#95A5A6" HorizontalAlignment="Center"/>
-                <TextBlock Text="Only POs in Submitted status are available."
-                           FontSize="11" Foreground="#BDC3C7" HorizontalAlignment="Center"
-                           Margin="0,4,0,0"/>
-            </StackPanel>
-        </Border>
-
-        <!-- ═══════════════════════════════════════════════════════════
-             RECEIVING GRID — visible when a PO is selected
-             ═══════════════════════════════════════════════════════════ -->
-        <Border Visibility="{Binding IsPOSelected, Converter={StaticResource BoolToVis}}"
-                Background="White" BorderBrush="#DFE6E9" BorderThickness="1" CornerRadius="4">
-            <DockPanel Margin="12">
-
-                <Grid DockPanel.Dock="Top" Margin="0,0,0,6">
+            <!-- ═══════════════════════════════════════════════════════════
+                 PO SELECTOR TOOLBAR
+                 ═══════════════════════════════════════════════════════════ -->
+            <Border DockPanel.Dock="Top"
+                    Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                    CornerRadius="{DynamicResource RadiusSmall}" Padding="12,10" Margin="0,0,0,6">
+                <Grid>
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="380"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Receiving Lines" Style="{StaticResource SectionHeader}"
-                               VerticalAlignment="Center"/>
-                    <!-- Discrepancy legend -->
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                        <Border Width="14" Height="14" Background="#FEFCE8" BorderBrush="#F39C12"
-                                BorderThickness="1" CornerRadius="2" Margin="0,0,4,0"/>
-                        <TextBlock Text="Discrepancy detected" FontSize="10" Foreground="#7F8C8D"
-                                   VerticalAlignment="Center"/>
-                    </StackPanel>
+
+                    <TextBlock Grid.Column="0" Text="Select Submitted PO:" Style="{StaticResource FieldLabel}"
+                               FontSize="12"/>
+                    <ComboBox Grid.Column="1"
+                              ItemsSource="{Binding SubmittedPOs}"
+                              SelectedItem="{Binding SelectedPO}"
+                              DisplayMemberPath="DisplayText"
+                              Padding="8,5" VerticalContentAlignment="Center"
+                              FontSize="12"/>
+
+                    <Button Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center"
+                            Content="↻" FontSize="14" Background="Transparent" BorderThickness="0"
+                            Foreground="{DynamicResource TextSecondaryBrush}" Cursor="Hand" Padding="4,0"
+                            Command="{Binding LoadPOsCommand}"
+                            ToolTip="Reload submitted POs"
+                            Margin="0,0,-30,0"/>
+
+                    <Button Grid.Column="3"
+                            Content="Confirm Receipt"
+                            Command="{Binding ConfirmReceiptCommand}"
+                            Style="{StaticResource ConfirmButton}"/>
                 </Grid>
+            </Border>
 
-                <DataGrid x:Name="ReceivingGrid"
-                          ItemsSource="{Binding ReceivingLines}"
-                          AutoGenerateColumns="False"
-                          CanUserAddRows="False" CanUserDeleteRows="False"
-                          CanUserReorderColumns="False" CanUserResizeRows="False"
-                          IsReadOnly="False"
-                          SelectionUnit="FullRow" SelectionMode="Single"
-                          GridLinesVisibility="Horizontal"
-                          BorderBrush="#DFE6E9" BorderThickness="1"
-                          HeadersVisibility="Column"
-                          RowStyle="{StaticResource GRRowStyle}"
-                          RowBackground="White" AlternatingRowBackground="#FAFBFC"
-                          FontSize="12">
-                    <DataGrid.Columns>
+            <!-- ═══════════════════════════════════════════════════════════
+                 STATUS BAR
+                 ═══════════════════════════════════════════════════════════ -->
+            <Border DockPanel.Dock="Top" Padding="8,3" Margin="0,0,0,4">
+                <Grid>
+                    <TextBlock Text="{Binding StatusMessage}"
+                               FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Text="Loading…" HorizontalAlignment="Right"
+                               FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"
+                               Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
+                </Grid>
+            </Border>
 
-                        <!-- Read-only: Product -->
-                        <DataGridTextColumn Header="Product Name" Width="*" MinWidth="180"
-                                           IsReadOnly="True"
-                                           Binding="{Binding ProductName}">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="FontWeight" Value="SemiBold"/>
-                                    <Setter Property="Foreground" Value="#2C3E50"/>
-                                    <Setter Property="VerticalAlignment" Value="Center"/>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
+            <!-- ═══════════════════════════════════════════════════════════
+                 PLACEHOLDER — shown when no PO is selected
+                 ═══════════════════════════════════════════════════════════ -->
+            <Border DockPanel.Dock="Top"
+                    Visibility="{Binding IsPOSelected, Converter={StaticResource BoolToVis},
+                                 ConverterParameter=Inverse}"
+                    Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                    CornerRadius="{DynamicResource RadiusSmall}" Padding="24" Margin="0,0,0,6"
+                    Height="120">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <TextBlock Text="Select a submitted Purchase Order above to begin receiving goods."
+                               FontSize="{DynamicResource FontSizeBody}" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Only POs in Submitted status are available."
+                               FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource SeparatorBrush}" HorizontalAlignment="Center"
+                               Margin="0,4,0,0"/>
+                </StackPanel>
+            </Border>
 
-                        <!-- Read-only: Qty Ordered -->
-                        <DataGridTextColumn Header="Qty Ordered" Width="95"
-                                           IsReadOnly="True"
-                                           Binding="{Binding QtyOrdered}">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="HorizontalAlignment" Value="Center"/>
-                                    <Setter Property="Foreground" Value="#7F8C8D"/>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
+            <!-- ═══════════════════════════════════════════════════════════
+                 RECEIVING GRID — visible when a PO is selected
+                 ═══════════════════════════════════════════════════════════ -->
+            <Border Visibility="{Binding IsPOSelected, Converter={StaticResource BoolToVis}}"
+                    Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1" CornerRadius="{DynamicResource RadiusSmall}">
+                <DockPanel Margin="12">
 
-                        <!-- Editable: Qty Received -->
-                        <DataGridTextColumn Header="Qty Received" Width="100"
-                                           Binding="{Binding QtyReceived, Mode=TwoWay, UpdateSourceTrigger=LostFocus}">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="HorizontalAlignment" Value="Center"/>
-                                    <Setter Property="FontWeight" Value="SemiBold"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding HasDiscrepancy}" Value="True">
-                                            <Setter Property="Foreground" Value="#D35400"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
+                    <Grid DockPanel.Dock="Top" Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Receiving Lines" Style="{StaticResource SectionHeader}"
+                                   VerticalAlignment="Center"/>
+                        <!-- Discrepancy legend -->
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Width="14" Height="14" Background="{DynamicResource SidebarBackgroundBrush}" BorderBrush="{DynamicResource WarningBrush}"
+                                    BorderThickness="1" CornerRadius="2" Margin="0,0,4,0"/>
+                            <TextBlock Text="Discrepancy detected" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Grid>
 
-                        <!-- Editable: Unit Cost -->
-                        <DataGridTextColumn Header="Unit Cost" Width="100"
-                                           Binding="{Binding UnitCost, Mode=TwoWay, UpdateSourceTrigger=LostFocus, StringFormat='N2'}">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="HorizontalAlignment" Value="Right"/>
-                                    <Setter Property="Padding" Value="0,0,4,0"/>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
+                    <DataGrid x:Name="ReceivingGrid"
+                              ItemsSource="{Binding ReceivingLines}"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False" CanUserDeleteRows="False"
+                              CanUserReorderColumns="False" CanUserResizeRows="False"
+                              IsReadOnly="False"
+                              SelectionUnit="FullRow" SelectionMode="Single"
+                              GridLinesVisibility="Horizontal"
+                              BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                              HeadersVisibility="Column"
+                              RowStyle="{StaticResource GRRowStyle}"
+                              Background="{DynamicResource SurfaceBrush}"
+                              AlternatingRowBackground="{DynamicResource WindowBackgroundBrush}"
+                              FontSize="{DynamicResource FontSizeBody}">
+                        <DataGrid.Columns>
 
-                        <!-- Editable: Expiry Date (template column for DatePicker) -->
-                        <DataGridTemplateColumn Header="Expiry Date" Width="130" IsReadOnly="False">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding ExpiryDate, StringFormat='MM/dd/yyyy'}"
-                                               FontSize="12" VerticalAlignment="Center" Padding="4,0"
-                                               Foreground="{Binding ExpiryDate, Converter={x:Null}}"/>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                            <DataGridTemplateColumn.CellEditingTemplate>
-                                <DataTemplate>
-                                    <DatePicker SelectedDate="{Binding ExpiryDate, Mode=TwoWay}"
-                                                BorderThickness="0" FontSize="12"/>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellEditingTemplate>
-                        </DataGridTemplateColumn>
+                            <!-- Read-only: Product -->
+                            <DataGridTextColumn Header="Product Name" Width="*" MinWidth="180"
+                                               IsReadOnly="True"
+                                               Binding="{Binding ProductName}">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
 
-                        <!-- Editable: VAT Classification -->
-                        <DataGridTemplateColumn Header="VAT Class" Width="105" IsReadOnly="False">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding VatClassification}"
-                                               FontSize="12" VerticalAlignment="Center" Padding="4,0"
-                                               Foreground="#2C3E50"/>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                            <DataGridTemplateColumn.CellEditingTemplate>
-                                <DataTemplate>
-                                    <ComboBox SelectedItem="{Binding VatClassification, Mode=TwoWay}"
-                                              ItemsSource="{Binding DataContext.VatTreatmentValues,
-                                                            RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
-                                              BorderThickness="0" FontSize="12"/>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellEditingTemplate>
-                        </DataGridTemplateColumn>
+                            <!-- Read-only: Qty Ordered -->
+                            <DataGridTextColumn Header="Qty Ordered" Width="95"
+                                               IsReadOnly="True"
+                                               Binding="{Binding QtyOrdered}">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
 
-                        <!-- Read-only: VAT Amount (auto-computed) -->
-                        <DataGridTextColumn Header="VAT Amt" Width="80"
-                                           IsReadOnly="True"
-                                           Binding="{Binding VatAmount, StringFormat='N2'}">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="HorizontalAlignment" Value="Right"/>
-                                    <Setter Property="Padding" Value="0,0,4,0"/>
-                                    <Setter Property="Foreground" Value="#27AE60"/>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
+                            <!-- Editable: Qty Received -->
+                            <DataGridTextColumn Header="Qty Received" Width="100"
+                                               Binding="{Binding QtyReceived, Mode=TwoWay, UpdateSourceTrigger=LostFocus}">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding HasDiscrepancy}" Value="True">
+                                                <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
 
-                        <!-- Editable: Discrepancy Notes — styled red when discrepancy exists and notes empty -->
-                        <DataGridTemplateColumn Header="Discrepancy Notes" Width="*" MinWidth="160" IsReadOnly="False">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Border>
-                                        <Border.Style>
-                                            <Style TargetType="Border">
-                                                <Setter Property="Background" Value="Transparent"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding HasDiscrepancy}" Value="True">
-                                                        <Setter Property="Background" Value="#FEF9E7"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Border.Style>
-                                        <TextBlock Text="{Binding DiscrepancyNotes}"
-                                                   FontSize="12" VerticalAlignment="Center" Padding="4,0">
-                                            <TextBlock.Style>
-                                                <Style TargetType="TextBlock">
-                                                    <Setter Property="Foreground" Value="#2C3E50"/>
+                            <!-- Editable: Unit Cost -->
+                            <DataGridTextColumn Header="Unit Cost" Width="100"
+                                               Binding="{Binding UnitCost, Mode=TwoWay, UpdateSourceTrigger=LostFocus, StringFormat='N2'}">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="HorizontalAlignment" Value="Right"/>
+                                        <Setter Property="Padding" Value="0,0,4,0"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+
+                            <!-- Editable: Expiry Date (template column for DatePicker) -->
+                            <DataGridTemplateColumn Header="Expiry Date" Width="130" IsReadOnly="False">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding ExpiryDate, StringFormat='MM/dd/yyyy'}"
+                                                   FontSize="12" VerticalAlignment="Center" Padding="4,0"
+                                                   Foreground="{Binding ExpiryDate, Converter={x:Null}}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                                <DataGridTemplateColumn.CellEditingTemplate>
+                                    <DataTemplate>
+                                        <DatePicker SelectedDate="{Binding ExpiryDate, Mode=TwoWay}"
+                                                    BorderThickness="0" FontSize="12"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellEditingTemplate>
+                            </DataGridTemplateColumn>
+
+                            <!-- Editable: VAT Classification -->
+                            <DataGridTemplateColumn Header="VAT Class" Width="105" IsReadOnly="False">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding VatClassification}"
+                                                   FontSize="12" VerticalAlignment="Center" Padding="4,0"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                                <DataGridTemplateColumn.CellEditingTemplate>
+                                    <DataTemplate>
+                                        <ComboBox SelectedItem="{Binding VatClassification, Mode=TwoWay}"
+                                                  ItemsSource="{Binding DataContext.VatTreatmentValues,
+                                                                RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
+                                                  BorderThickness="0" FontSize="12"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellEditingTemplate>
+                            </DataGridTemplateColumn>
+
+                            <!-- Read-only: VAT Amount (auto-computed) -->
+                            <DataGridTextColumn Header="VAT Amt" Width="80"
+                                               IsReadOnly="True"
+                                               Binding="{Binding VatAmount, StringFormat='N2'}">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="HorizontalAlignment" Value="Right"/>
+                                        <Setter Property="Padding" Value="0,0,4,0"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+
+                            <!-- Editable: Discrepancy Notes — styled red when discrepancy exists and notes empty -->
+                            <DataGridTemplateColumn Header="Discrepancy Notes" Width="*" MinWidth="160" IsReadOnly="False">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Border>
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Background" Value="Transparent"/>
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding HasDiscrepancy}" Value="True">
-                                                            <Setter Property="Foreground" Value="#922B21"/>
-                                                            <Setter Property="FontStyle" Value="Italic"/>
+                                                            <Setter Property="Background" Value="{DynamicResource SidebarBackgroundBrush}"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <TextBlock Text="{Binding DiscrepancyNotes}"
+                                                       FontSize="12" VerticalAlignment="Center" Padding="4,0">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding HasDiscrepancy}" Value="True">
+                                                                <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
+                                                                <Setter Property="FontStyle" Value="Italic"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                                <DataGridTemplateColumn.CellEditingTemplate>
+                                    <DataTemplate>
+                                        <TextBox Text="{Binding DiscrepancyNotes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                 BorderThickness="0" FontSize="12" Padding="4,2"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellEditingTemplate>
+                            </DataGridTemplateColumn>
+
+                            <!-- Discrepancy indicator badge -->
+                            <DataGridTemplateColumn Header="" Width="36" IsReadOnly="True">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock FontSize="14" HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Text" Value=""/>
+                                                    <Setter Property="Foreground" Value="Transparent"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding HasDiscrepancy}" Value="True">
+                                                            <Setter Property="Text" Value="⚠"/>
+                                                            <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
                                             </TextBlock.Style>
                                         </TextBlock>
-                                    </Border>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                            <DataGridTemplateColumn.CellEditingTemplate>
-                                <DataTemplate>
-                                    <TextBox Text="{Binding DiscrepancyNotes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                             BorderThickness="0" FontSize="12" Padding="4,2"/>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellEditingTemplate>
-                        </DataGridTemplateColumn>
-
-                        <!-- Discrepancy indicator badge -->
-                        <DataGridTemplateColumn Header="" Width="36" IsReadOnly="True">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <TextBlock FontSize="14" HorizontalAlignment="Center"
-                                               VerticalAlignment="Center">
-                                        <TextBlock.Style>
-                                            <Style TargetType="TextBlock">
-                                                <Setter Property="Text" Value=""/>
-                                                <Setter Property="Foreground" Value="Transparent"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding HasDiscrepancy}" Value="True">
-                                                        <Setter Property="Text" Value="⚠"/>
-                                                        <Setter Property="Foreground" Value="#E67E22"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </TextBlock.Style>
-                                    </TextBlock>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
 
                     </DataGrid.Columns>
                 </DataGrid>
@@ -348,5 +352,5 @@
         </Border>
 
     </DockPanel>
-
+    </Grid>
 </UserControl>

@@ -5,60 +5,49 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
              d:DesignHeight="768" d:DesignWidth="1280"
-             Background="#F5F6FA">
+             Background="{DynamicResource WindowBackgroundBrush}">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
         <Style x:Key="SectionCard" TargetType="Border">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#DFE6E9"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}"/>
             <Setter Property="Padding" Value="14,12"/>
         </Style>
 
         <Style x:Key="KpiCard" TargetType="Border">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#DFE6E9"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}"/>
             <Setter Property="Padding" Value="16,12"/>
             <Setter Property="Margin" Value="0,0,8,0"/>
         </Style>
 
         <Style x:Key="KpiLabel" TargetType="TextBlock">
             <Setter Property="FontSize" Value="10"/>
-            <Setter Property="Foreground" Value="#7F8C8D"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
             <Setter Property="Margin" Value="0,0,0,4"/>
         </Style>
 
         <Style x:Key="KpiValue" TargetType="TextBlock">
             <Setter Property="FontSize" Value="20"/>
             <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="#2C3E50"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
 
         <Style x:Key="KpiValueSmall" TargetType="TextBlock">
             <Setter Property="FontSize" Value="16"/>
             <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="#2C3E50"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
 
-        <Style x:Key="RefreshButton" TargetType="Button">
-            <Setter Property="Background" Value="#2980B9"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/>
+        <Style x:Key="RefreshButton" TargetType="Button" BasedOn="{StaticResource AccentButtonStyle}">
             <Setter Property="Padding" Value="14,6"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Style.Triggers>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="#BDC3C7"/>
-                    <Setter Property="Foreground" Value="#7F8C8D"/>
-                </Trigger>
-            </Style.Triggers>
         </Style>
 
         <Style x:Key="PeriodToggle" TargetType="RadioButton">
@@ -71,13 +60,13 @@
         <Style x:Key="TableHeader" TargetType="TextBlock">
             <Setter Property="FontSize" Value="11"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="#636E72"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
             <Setter Property="Padding" Value="6,5"/>
         </Style>
 
         <Style x:Key="TableCell" TargetType="TextBlock">
             <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Foreground" Value="#2C3E50"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
             <Setter Property="Padding" Value="6,5"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
@@ -106,20 +95,20 @@
              TOOLBAR ROW
              ═══════════════════════════════════════════════════════════ -->
         <Border DockPanel.Dock="Top"
-                Background="White" BorderBrush="#DFE6E9" BorderThickness="1"
-                CornerRadius="4" Padding="12,7" Margin="0,0,0,8">
+                Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                CornerRadius="{DynamicResource RadiusSmall}" Padding="12,7" Margin="0,0,0,8">
             <Grid>
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock Text="Sales Summary" FontSize="14" FontWeight="Bold"
-                               Foreground="#2C3E50" VerticalAlignment="Center"/>
-                    <TextBlock Text=" — by Payment Method" FontSize="13" Foreground="#7F8C8D"
+                               Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Text=" — by Payment Method" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"
                                VerticalAlignment="Center"/>
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
 
                     <!-- Period Type Toggles -->
-                    <TextBlock Text="View:" FontSize="11" Foreground="#7F8C8D"
+                    <TextBlock Text="View:" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
                                VerticalAlignment="Center" Margin="0,0,8,0"/>
                     <RadioButton Content="Daily" IsChecked="{Binding IsDaily, Mode=TwoWay}"
                                  Style="{StaticResource PeriodToggle}"/>
@@ -129,7 +118,7 @@
                                  Style="{StaticResource PeriodToggle}" Margin="0,0,14,0"/>
 
                     <!-- Date Picker — Daily and Weekly -->
-                    <TextBlock Text="Date:" FontSize="11" Foreground="#7F8C8D"
+                    <TextBlock Text="Date:" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
                                VerticalAlignment="Center" Margin="0,0,4,0"
                                Visibility="{Binding ShowDatePicker, Converter={StaticResource BoolToVis}}"/>
                     <DatePicker SelectedDate="{Binding SelectedDate, Mode=TwoWay}"
@@ -147,7 +136,7 @@
                               Width="64" Margin="0,0,12,0" FontSize="11" VerticalAlignment="Center"
                               Visibility="{Binding ShowMonthSelectors, Converter={StaticResource BoolToVis}}"/>
 
-                    <TextBlock Text="Loading…" FontSize="10" Foreground="#7F8C8D"
+                    <TextBlock Text="Loading…" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"
                                VerticalAlignment="Center" Margin="0,0,10,0"
                                Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
                     <Button Content="Refresh" Command="{Binding LoadCommand}"
@@ -161,15 +150,14 @@
              WHAT THIS MEANS BOX — mandatory, always visible
              ═══════════════════════════════════════════════════════════ -->
         <Border DockPanel.Dock="Top"
-                BorderThickness="1" CornerRadius="6" Padding="14,10" Margin="0,0,0,8">
+                BorderThickness="1" CornerRadius="{DynamicResource RadiusSmall}" Padding="14,10" Margin="0,0,0,8">
             <Border.Style>
                 <Style TargetType="Border">
-                    <Setter Property="Background" Value="#EBF5FB"/>
-                    <Setter Property="BorderBrush" Value="#AED6F1"/>
+                    <Setter Property="Background" Value="{DynamicResource SidebarBackgroundBrush}"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding HasCreditWarning}" Value="True">
-                            <Setter Property="Background" Value="#FEF9E7"/>
-                            <Setter Property="BorderBrush" Value="#F39C12"/>
+                            <Setter Property="BorderBrush" Value="{DynamicResource WarningBrush}"/>
                         </DataTrigger>
                     </Style.Triggers>
                 </Style>
@@ -185,15 +173,24 @@
                            VerticalAlignment="Top" Margin="0,0,12,0"/>
 
                 <StackPanel Grid.Column="1">
-                    <TextBlock Text="What This Means"
-                               FontSize="12" FontWeight="Bold" Foreground="#1A5276"
-                               Margin="0,0,0,2"/>
+                    <TextBlock Text="What This Means" FontSize="12" FontWeight="Bold" Margin="0,0,0,2">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasCreditWarning}" Value="True">
+                                        <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
                     <TextBlock Text="⚠ Credit Alert — High AR Exposure"
-                               FontSize="11" FontWeight="Bold" Foreground="#E67E22"
+                               FontSize="11" FontWeight="Bold" Foreground="{DynamicResource WarningBrush}"
                                Margin="0,0,0,4"
                                Visibility="{Binding HasCreditWarning, Converter={StaticResource BoolToVis}}"/>
                     <TextBlock Text="{Binding WhatThisMeansText}"
-                               FontSize="12" Foreground="#1F618D"
+                               FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"
                                TextWrapping="Wrap" LineHeight="18"/>
                 </StackPanel>
             </Grid>
@@ -211,14 +208,12 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Total Net Sales -->
+                <!-- Total Sales -->
                 <Border Grid.Column="0" Style="{StaticResource KpiCard}">
                     <StackPanel>
-                        <TextBlock Text="TOTAL NET SALES" Style="{StaticResource KpiLabel}"/>
-                        <TextBlock Text="{Binding TotalNetSalesDisplay}"
+                        <TextBlock Text="TOTAL SALES" Style="{StaticResource KpiLabel}"/>
+                        <TextBlock Text="{Binding TotalSalesDisplay}"
                                    Style="{StaticResource KpiValue}"/>
-                        <TextBlock Text="{Binding PeriodDescription}"
-                                   FontSize="10" Foreground="#95A5A6" Margin="0,4,0,0"/>
                     </StackPanel>
                 </Border>
 
@@ -251,10 +246,9 @@
                         <TextBlock Text="RETURNS" Style="{StaticResource KpiLabel}"/>
                         <TextBlock Text="{Binding TotalReturnsDisplay}"
                                    Style="{StaticResource KpiValueSmall}"
-                                   Foreground="#E74C3C"/>
+                                   Foreground="{DynamicResource DangerBrush}"/>
                     </StackPanel>
                 </Border>
-
             </Grid>
         </Border>
 
@@ -268,12 +262,12 @@
                 <Border Style="{StaticResource SectionCard}" Margin="0,0,0,8">
                     <StackPanel>
                         <TextBlock Text="Payment Method Breakdown"
-                                   FontSize="13" FontWeight="Bold" Foreground="#2C3E50"
+                                   FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"
                                    Margin="0,0,0,10"/>
 
                         <!-- Header Row -->
-                        <Border Background="#F8F9FA" BorderBrush="#DFE6E9" BorderThickness="1,1,1,0"
-                                CornerRadius="4,4,0,0">
+                        <Border Background="{DynamicResource SidebarBackgroundBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1,1,1,0"
+                                CornerRadius="6,6,0,0">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -296,16 +290,16 @@
 
                         <!-- Data Rows -->
                         <ItemsControl ItemsSource="{Binding PaymentBreakdown}"
-                                      BorderBrush="#DFE6E9" BorderThickness="1,0,1,0">
+                                      BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1,0,1,0">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border BorderBrush="#DFE6E9" BorderThickness="0,0,0,1">
+                                    <Border BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="0,0,0,1">
                                         <Border.Style>
                                             <Style TargetType="Border">
-                                                <Setter Property="Background" Value="White"/>
+                                                <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding PaymentMethod}" Value="Credit">
-                                                        <Setter Property="Background" Value="#FFFDF0"/>
+                                                        <Setter Property="Background" Value="{DynamicResource SidebarBackgroundBrush}"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
@@ -340,8 +334,8 @@
                         </ItemsControl>
 
                         <!-- Total Footer Row -->
-                        <Border Background="#F0F3F4" BorderBrush="#DFE6E9" BorderThickness="1,1,1,1"
-                                CornerRadius="0,0,4,4">
+                        <Border Background="{DynamicResource SidebarBackgroundBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1,1,1,1"
+                                CornerRadius="0,0,6,6">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -375,21 +369,15 @@
                     <DockPanel>
                         <TextBlock DockPanel.Dock="Top"
                                    Text="Daily Breakdown"
-                                   FontSize="13" FontWeight="Bold" Foreground="#2C3E50"
+                                   FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"
                                    Margin="0,0,0,10"/>
                         <TextBlock DockPanel.Dock="Top"
                                    Text="Per-day net sales totals for the selected period."
-                                   FontSize="11" Foreground="#7F8C8D" Margin="0,0,0,10"/>
+                                   FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10"/>
 
                         <DataGrid ItemsSource="{Binding DailyBreakdown}"
-                                  AutoGenerateColumns="False"
-                                  CanUserAddRows="False" CanUserDeleteRows="False"
-                                  IsReadOnly="True" CanUserReorderColumns="False" CanUserResizeRows="False"
-                                  HeadersVisibility="Column" GridLinesVisibility="Horizontal"
-                                  BorderBrush="#DFE6E9" BorderThickness="1"
-                                  RowBackground="White" AlternatingRowBackground="#FAFBFC"
-                                  FontSize="11" CanUserSortColumns="False"
-                                  SelectionMode="Single">
+                                  IsReadOnly="True" CanUserReorderColumns="False" CanUserSortColumns="False"
+                                  FontSize="{DynamicResource FontSizeCaption}">
 
                             <DataGrid.Columns>
 

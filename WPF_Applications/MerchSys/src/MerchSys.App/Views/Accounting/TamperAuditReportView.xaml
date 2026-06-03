@@ -5,44 +5,33 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
              d:DesignHeight="768" d:DesignWidth="1280"
-             Background="#F5F6FA">
+             Background="{DynamicResource WindowBackgroundBrush}">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
         <Style x:Key="SectionCard" TargetType="Border">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#DFE6E9"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}"/>
             <Setter Property="Padding" Value="14,12"/>
         </Style>
 
         <Style x:Key="FilterLabel" TargetType="TextBlock">
             <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Foreground" Value="#7F8C8D"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="Margin" Value="0,0,6,0"/>
         </Style>
 
-        <Style x:Key="ApplyButton" TargetType="Button">
-            <Setter Property="Background" Value="#2980B9"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/>
+        <Style x:Key="ApplyButton" TargetType="Button" BasedOn="{StaticResource AccentButtonStyle}">
             <Setter Property="Padding" Value="14,6"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Style.Triggers>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="#BDC3C7"/>
-                    <Setter Property="Foreground" Value="#7F8C8D"/>
-                </Trigger>
-            </Style.Triggers>
         </Style>
 
         <Style x:Key="SeverityCritical" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="#C0392B"/>
+            <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
         </Style>
 
@@ -53,10 +42,10 @@
             <Setter Property="CanUserDeleteRows" Value="False"/>
             <Setter Property="CanUserReorderColumns" Value="False"/>
             <Setter Property="GridLinesVisibility" Value="Horizontal"/>
-            <Setter Property="HorizontalGridLinesBrush" Value="#F0F0F0"/>
-            <Setter Property="RowBackground" Value="White"/>
-            <Setter Property="AlternatingRowBackground" Value="#FAFBFD"/>
-            <Setter Property="BorderBrush" Value="#DFE6E9"/>
+            <Setter Property="HorizontalGridLinesBrush" Value="{DynamicResource SeparatorBrush}"/>
+            <Setter Property="RowBackground" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="AlternatingRowBackground" Value="{DynamicResource SidebarBackgroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="SelectionMode" Value="Single"/>
             <Setter Property="HeadersVisibility" Value="Column"/>
@@ -76,9 +65,9 @@
         <!-- Page header -->
         <StackPanel Grid.Row="0" Margin="0,0,0,16">
             <TextBlock Text="Tamper Audit Report"
-                       FontSize="22" FontWeight="Bold" Foreground="#2C3E50"/>
+                        FontSize="22" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
             <TextBlock Text="Review receipt integrity violations detected by the POS tamper audit system."
-                       FontSize="12" Foreground="#7F8C8D" Margin="0,4,0,0"/>
+                        FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,0"/>
         </StackPanel>
 
         <!-- Date range filter bar -->
@@ -104,7 +93,7 @@
                         IsEnabled="{Binding HasEntries}"
                         Click="ExportPdf_Click"/>
                 <TextBlock Text="Loading…"
-                           VerticalAlignment="Center" FontSize="12" Foreground="#7F8C8D"
+                           VerticalAlignment="Center" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
                            Margin="16,0,0,0"
                            Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}"/>
             </StackPanel>
@@ -113,10 +102,10 @@
         <!-- Empty state banner — shown when loaded and no incidents found -->
         <Border Grid.Row="2"
                 Visibility="{Binding HasNoEntries, Converter={StaticResource BoolToVis}}"
-                Background="#EAF4FB" BorderBrush="#AED6F1" BorderThickness="1"
-                CornerRadius="6" Padding="16,12" Margin="0,0,0,12">
+                Background="{DynamicResource SidebarBackgroundBrush}" BorderBrush="{DynamicResource SuccessBrush}" BorderThickness="1"
+                CornerRadius="{DynamicResource RadiusSmall}" Padding="16,12" Margin="0,0,0,12">
             <TextBlock Text="No tamper incidents detected in the selected period."
-                       FontSize="13" Foreground="#1A5276" VerticalAlignment="Center"/>
+                       FontSize="13" Foreground="{DynamicResource SuccessBrush}" VerticalAlignment="Center"/>
         </Border>
 
         <!-- Incident DataGrid — shown when entries exist -->

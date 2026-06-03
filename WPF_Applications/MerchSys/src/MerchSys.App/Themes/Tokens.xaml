@@ -36,4 +36,7 @@
                       Opacity="0.12"
                       Color="{DynamicResource ShadowColor}"/>
 
+    <!-- Overlay Dimming Brush -->
+    <SolidColorBrush x:Key="OverlayBrush" Color="#000000" Opacity="0.4"/>
+
 </ResourceDictionary>

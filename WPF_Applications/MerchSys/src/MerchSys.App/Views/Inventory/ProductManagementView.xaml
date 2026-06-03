@@ -5,57 +5,57 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
              d:DesignHeight="768" d:DesignWidth="1280"
-             Background="#F5F6FA">
+             Background="{DynamicResource WindowBackgroundBrush}">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
         <Style x:Key="PageTitle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeTitle}"/>
             <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="#2C3E50"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
 
         <Style x:Key="SectionHeader" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
             <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="#2C3E50"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
 
         <Style x:Key="FilterLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Foreground" Value="#7F8C8D"/>
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="Margin" Value="0,0,4,0"/>
         </Style>
 
         <Style x:Key="FormLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Foreground" Value="#2C3E50"/>
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="Margin" Value="0,0,0,2"/>
         </Style>
 
-        <Style x:Key="FormInput" TargetType="TextBox">
+        <Style x:Key="FormInput" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
             <Setter Property="Padding" Value="6,4"/>
-            <Setter Property="BorderBrush" Value="#BDC3C7"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
             <Setter Property="Margin" Value="0,0,0,10"/>
         </Style>
 
-        <Style x:Key="FormCombo" TargetType="ComboBox">
+        <Style x:Key="FormCombo" TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
             <Setter Property="Padding" Value="6,4"/>
-            <Setter Property="BorderBrush" Value="#BDC3C7"/>
-            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
             <Setter Property="Margin" Value="0,0,0,10"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
         </Style>
 
         <Style x:Key="PrimaryButton" TargetType="Button">
-            <Setter Property="Background" Value="#2980B9"/>
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="14,6"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
@@ -64,19 +64,19 @@
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Style.Triggers>
                 <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="#BDC3C7"/>
-                    <Setter Property="Foreground" Value="#7F8C8D"/>
+                    <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                 </Trigger>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#2471A3"/>
+                    <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
 
         <Style x:Key="SecondaryButton" TargetType="Button">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="Foreground" Value="#2C3E50"/>
-            <Setter Property="BorderBrush" Value="#BDC3C7"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="12,6"/>
             <Setter Property="FontSize" Value="12"/>
@@ -84,17 +84,17 @@
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Style.Triggers>
                 <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Foreground" Value="#BDC3C7"/>
+                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                 </Trigger>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#EBF5FB"/>
+                    <Setter Property="Background" Value="{DynamicResource SidebarBackgroundBrush}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
 
         <Style x:Key="DangerButton" TargetType="Button">
-            <Setter Property="Background" Value="#E74C3C"/>
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="{DynamicResource DangerBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="12,6"/>
             <Setter Property="FontSize" Value="12"/>
@@ -102,18 +102,15 @@
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Style.Triggers>
                 <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="#BDC3C7"/>
-                    <Setter Property="Foreground" Value="#7F8C8D"/>
-                </Trigger>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#C0392B"/>
+                    <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
 
         <Style x:Key="WarningButton" TargetType="Button">
-            <Setter Property="Background" Value="#E67E22"/>
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="{DynamicResource WarningBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="12,6"/>
             <Setter Property="FontSize" Value="12"/>
@@ -121,55 +118,43 @@
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Style.Triggers>
                 <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="#BDC3C7"/>
-                    <Setter Property="Foreground" Value="#7F8C8D"/>
-                </Trigger>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#CA6F1E"/>
+                    <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
 
-        <Style x:Key="ProductRowStyle" TargetType="DataGridRow">
-            <Setter Property="Background" Value="White"/>
+        <Style x:Key="ProductRowStyle" TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsActive}" Value="False">
-                    <Setter Property="Background" Value="#F2F3F4"/>
-                    <Setter Property="Foreground" Value="#95A5A6"/>
+                    <Setter Property="Background" Value="{DynamicResource SidebarBackgroundBrush}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                 </DataTrigger>
-                <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="#D6EAF8"/>
-                    <Setter Property="BorderBrush" Value="#2980B9"/>
-                </Trigger>
             </Style.Triggers>
         </Style>
 
         <Style x:Key="ErrorText" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="#E74C3C"/>
-            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
             <Setter Property="Margin" Value="0,0,0,8"/>
         </Style>
 
         <Style x:Key="OverlayBackground" TargetType="Grid">
-            <Setter Property="Background" Value="#66000000"/>
+            <Setter Property="Background" Value="{DynamicResource OverlayBrush}"/>
         </Style>
 
         <Style x:Key="DialogCard" TargetType="Border">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#DFE6E9"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource RadiusMedium}"/>
             <Setter Property="Padding" Value="24,20"/>
             <Setter Property="HorizontalAlignment" Value="Center"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="MinWidth" Value="480"/>
             <Setter Property="MaxWidth" Value="560"/>
-            <Setter Property="Effect">
-                <Setter.Value>
-                    <DropShadowEffect BlurRadius="20" ShadowDepth="4" Opacity="0.2"/>
-                </Setter.Value>
-            </Setter>
+            <Setter Property="Effect" Value="{DynamicResource CardShadow}"/>
         </Style>
     </UserControl.Resources>
 
@@ -185,16 +170,16 @@
             <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="Product Management" Style="{StaticResource PageTitle}"/>
-                    <TextBlock Text="  (Manager Only)" FontSize="11" Foreground="#95A5A6" VerticalAlignment="Center"/>
+                    <TextBlock Text="  (Manager Only)" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                 </StackPanel>
                 <TextBlock Text="Loading…" HorizontalAlignment="Right" FontSize="11"
-                           Foreground="#7F8C8D" VerticalAlignment="Center"
+                           Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"
                            Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
             </Grid>
 
             <!-- Tab Control -->
-            <TabControl DockPanel.Dock="Top" Background="White"
-                        BorderBrush="#DFE6E9" BorderThickness="1">
+            <TabControl DockPanel.Dock="Top" Background="{DynamicResource SurfaceBrush}"
+                        BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1">
 
                 <!-- ═══════════════ TAB 1: PRODUCTS ═══════════════ -->
                 <TabItem Header="Products">
@@ -202,7 +187,7 @@
 
                         <!-- Toolbar -->
                         <Border DockPanel.Dock="Top"
-                                Background="#FAFBFC" BorderBrush="#DFE6E9" BorderThickness="0,0,0,1"
+                                Background="{DynamicResource WindowBackgroundBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="0,0,0,1"
                                 Padding="0,8,0,8" Margin="0,0,0,8">
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -228,12 +213,12 @@
                                           ItemsSource="{Binding CategoryFilters}"
                                           SelectedItem="{Binding SelectedCategoryFilter}"
                                           Padding="6,4" VerticalContentAlignment="Center"
-                                          BorderBrush="#BDC3C7"/>
+                                          BorderBrush="{DynamicResource SeparatorBrush}"/>
 
                                 <TextBlock Grid.Column="3" Text="Search:" Style="{StaticResource FilterLabel}"/>
                                 <TextBox Grid.Column="4"
                                          Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                                         Padding="6,4" BorderBrush="#BDC3C7" BorderThickness="1"
+                                         Padding="6,4" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
                                          VerticalContentAlignment="Center"
                                          x:Name="SearchBox"/>
 
@@ -260,7 +245,7 @@
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding SelectedProductIsActive}" Value="False">
                                                     <Setter Property="Content" Value="Reactivate"/>
-                                                    <Setter Property="Background" Value="#27AE60"/>
+                                                    <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
@@ -290,11 +275,9 @@
                                   IsReadOnly="True"
                                   SelectionUnit="FullRow" SelectionMode="Single"
                                   GridLinesVisibility="Horizontal"
-                                  BorderBrush="#DFE6E9" BorderThickness="1"
                                   HeadersVisibility="Column"
                                   RowStyle="{StaticResource ProductRowStyle}"
-                                  CanUserSortColumns="True"
-                                  AlternatingRowBackground="#FAFBFC">
+                                  CanUserSortColumns="True">
 
                             <DataGrid.Columns>
 
@@ -328,11 +311,11 @@
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
                                                         <Setter Property="Text" Value="No"/>
-                                                        <Setter Property="Foreground" Value="#7F8C8D"/>
+                                                        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                                                         <Style.Triggers>
                                                             <DataTrigger Binding="{Binding HasExpiry}" Value="True">
                                                                 <Setter Property="Text" Value="Yes"/>
-                                                                <Setter Property="Foreground" Value="#E67E22"/>
+                                                                <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
                                                                 <Setter Property="FontWeight" Value="SemiBold"/>
                                                             </DataTrigger>
                                                         </Style.Triggers>
@@ -360,10 +343,12 @@
                                             <Border CornerRadius="3" Margin="4,2" Padding="5,2" HorizontalAlignment="Center">
                                                 <Border.Style>
                                                     <Style TargetType="Border">
-                                                        <Setter Property="Background" Value="#D5F5E3"/>
+                                                        <Setter Property="Background" Value="{DynamicResource SidebarBackgroundBrush}"/>
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource SuccessBrush}"/>
+                                                        <Setter Property="BorderThickness" Value="1"/>
                                                         <Style.Triggers>
                                                             <DataTrigger Binding="{Binding IsActive}" Value="False">
-                                                                <Setter Property="Background" Value="#EAECEE"/>
+                                                                <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
                                                             </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
@@ -372,11 +357,11 @@
                                                     <TextBlock.Style>
                                                         <Style TargetType="TextBlock">
                                                             <Setter Property="Text" Value="Active"/>
-                                                            <Setter Property="Foreground" Value="#1E8449"/>
+                                                            <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
                                                             <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding IsActive}" Value="False">
+                                                                 <DataTrigger Binding="{Binding IsActive}" Value="False">
                                                                     <Setter Property="Text" Value="Inactive"/>
-                                                                    <Setter Property="Foreground" Value="#7F8C8D"/>
+                                                                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                                                                 </DataTrigger>
                                                             </Style.Triggers>
                                                         </Style>
@@ -399,7 +384,7 @@
 
                         <!-- Category Toolbar -->
                         <Border DockPanel.Dock="Top"
-                                Background="#FAFBFC" BorderBrush="#DFE6E9" BorderThickness="0,0,0,1"
+                                Background="{DynamicResource WindowBackgroundBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="0,0,0,1"
                                 Padding="0,8,0,8" Margin="0,0,0,8">
                             <StackPanel Orientation="Horizontal">
                                 <Button Content="+ Add Category"
@@ -411,7 +396,7 @@
 
                         <TextBlock DockPanel.Dock="Top"
                                    Text="Note: Categories with products cannot be deleted."
-                                   FontSize="11" Foreground="#7F8C8D" Margin="0,0,0,8"/>
+                                   FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,8"/>
 
                         <!-- Category DataGrid -->
                         <DataGrid ItemsSource="{Binding Categories}"
@@ -421,9 +406,7 @@
                                   IsReadOnly="True"
                                   SelectionUnit="FullRow" SelectionMode="Single"
                                   GridLinesVisibility="Horizontal"
-                                  BorderBrush="#DFE6E9" BorderThickness="1"
                                   HeadersVisibility="Column"
-                                  RowBackground="White" AlternatingRowBackground="#FAFBFC"
                                   CanUserSortColumns="True">
 
                             <DataGrid.Columns>
@@ -454,7 +437,7 @@
                                                                   RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                         CommandParameter="{Binding}"
                                                         Padding="10,3" FontSize="11"
-                                                        Background="#2980B9" Foreground="White"
+                                                        Background="{DynamicResource AccentBrush}" Foreground="{DynamicResource TextOnAccentBrush}"
                                                         BorderThickness="0" Cursor="Hand"
                                                         Margin="0,0,6,0"/>
                                                 <Button Content="Delete"
@@ -465,15 +448,15 @@
                                                         BorderThickness="0" Cursor="Hand">
                                                     <Button.Style>
                                                         <Style TargetType="Button">
-                                                            <Setter Property="Background" Value="#E74C3C"/>
-                                                            <Setter Property="Foreground" Value="White"/>
+                                                            <Setter Property="Background" Value="{DynamicResource DangerBrush}"/>
+                                                            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
                                                             <Style.Triggers>
                                                                 <DataTrigger Binding="{Binding ProductCount}" Value="0">
                                                                     <Setter Property="IsEnabled" Value="True"/>
                                                                 </DataTrigger>
                                                                 <Trigger Property="IsEnabled" Value="False">
-                                                                    <Setter Property="Background" Value="#BDC3C7"/>
-                                                                    <Setter Property="Foreground" Value="#7F8C8D"/>
+                                                                    <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
+                                                                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                                                                 </Trigger>
                                                             </Style.Triggers>
                                                         </Style>
@@ -504,7 +487,7 @@
 
                     <!-- Dialog Header -->
                     <TextBlock Text="{Binding EditorTitle}"
-                               FontSize="15" FontWeight="Bold" Foreground="#2C3E50"
+                               FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"
                                Margin="0,0,0,16"/>
 
                     <Grid>
@@ -540,7 +523,7 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="Current FIFO Cost: " Style="{StaticResource FilterLabel}"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding EditorFifoCost, StringFormat='₱{0:N2}'}" FontWeight="Bold" VerticalAlignment="Center" FontSize="11" Foreground="#2C3E50"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding EditorFifoCost, StringFormat='₱{0:N2}'}" FontWeight="Bold" VerticalAlignment="Center" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                 </Grid>
                                 <Grid Margin="0,4,0,0">
                                     <Grid.ColumnDefinitions>
@@ -548,7 +531,7 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="Suggested Price (20%): " Style="{StaticResource FilterLabel}"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding EditorSuggestedPrice, StringFormat='₱{0:N2}'}" FontWeight="Bold" Foreground="#27AE60" VerticalAlignment="Center" FontSize="11"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding EditorSuggestedPrice, StringFormat='₱{0:N2}'}" FontWeight="Bold" Foreground="{DynamicResource SuccessBrush}" VerticalAlignment="Center" FontSize="11"/>
                                 </Grid>
                                 <Grid Margin="0,4,0,0">
                                     <Grid.ColumnDefinitions>
@@ -557,8 +540,8 @@
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="Current Margin: " Style="{StaticResource FilterLabel}"/>
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding EditorMargin, StringFormat='₱{0:N2}'}" FontWeight="Bold" FontSize="11" Foreground="#27AE60"/>
-                                        <TextBlock Text="{Binding EditorMarginPercent, StringFormat=' ({0}%)'}" FontSize="11" Foreground="#7F8C8D"/>
+                                        <TextBlock Text="{Binding EditorMargin, StringFormat='₱{0:N2}'}" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource SuccessBrush}"/>
+                                        <TextBlock Text="{Binding EditorMarginPercent, StringFormat=' ({0}%)'}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                     </StackPanel>
                                 </Grid>
                             </StackPanel>
@@ -592,7 +575,7 @@
                             <TextBox Text="{Binding EditorDescription, UpdateSourceTrigger=PropertyChanged}"
                                      Height="60" TextWrapping="Wrap" AcceptsReturn="True"
                                      VerticalScrollBarVisibility="Auto"
-                                     Padding="6,4" BorderBrush="#BDC3C7" BorderThickness="1"
+                                     Padding="6,4" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
                                      FontSize="12" Margin="0,0,0,10"/>
                         </StackPanel>
                     </Grid>
@@ -627,7 +610,7 @@
                 <StackPanel>
 
                     <TextBlock Text="{Binding CategoryEditorTitle}"
-                               FontSize="15" FontWeight="Bold" Foreground="#2C3E50"
+                               FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"
                                Margin="0,0,0,16"/>
 
                     <TextBlock Text="Category Name *" Style="{StaticResource FormLabel}"/>
@@ -638,7 +621,7 @@
                     <TextBox Text="{Binding CategoryEditorDescription, UpdateSourceTrigger=PropertyChanged}"
                              Height="70" TextWrapping="Wrap" AcceptsReturn="True"
                              VerticalScrollBarVisibility="Auto"
-                             Padding="6,4" BorderBrush="#BDC3C7" BorderThickness="1"
+                             Padding="6,4" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
                              FontSize="12" Margin="0,0,0,12"/>
 
                     <!-- Validation Error -->

@@ -5,39 +5,40 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
              d:DesignHeight="620" d:DesignWidth="800"
-             Background="#F5F6FA">
+             Background="{DynamicResource WindowBackgroundBrush}">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
         <Style x:Key="SectionCard" TargetType="Border">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#DFE6E9"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}"/>
             <Setter Property="Padding" Value="20,16"/>
             <Setter Property="Margin" Value="0,0,0,10"/>
+            <Setter Property="Effect" Value="{DynamicResource CardShadow}"/>
         </Style>
 
         <Style x:Key="FieldLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="#636E72"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
             <Setter Property="Margin" Value="0,0,0,4"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
 
-        <Style x:Key="FieldInput" TargetType="TextBox">
-            <Setter Property="FontSize" Value="12"/>
+        <Style x:Key="FieldInput" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
             <Setter Property="Padding" Value="8,6"/>
-            <Setter Property="BorderBrush" Value="#DFE6E9"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Background" Value="White"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
         </Style>
 
         <Style x:Key="ActionButton" TargetType="Button">
-            <Setter Property="Background" Value="#2980B9"/>
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="16,7"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
@@ -46,19 +47,33 @@
             <Setter Property="Margin" Value="0,0,8,0"/>
             <Style.Triggers>
                 <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="#BDC3C7"/>
-                    <Setter Property="Foreground" Value="#7F8C8D"/>
+                    <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
 
-        <Style x:Key="ReloadButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
-            <Setter Property="Background" Value="#7F8C8D"/>
+        <Style x:Key="ReloadButton" TargetType="Button">
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="16,7"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
 
         <Style x:Key="ErrorText" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="#C0392B"/>
-            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
             <Setter Property="Margin" Value="0,1"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
         </Style>
@@ -70,18 +85,19 @@
              TOOLBAR
              ═══════════════════════════════════════════════════════════ -->
         <Border DockPanel.Dock="Top"
-                Background="White" BorderBrush="#DFE6E9" BorderThickness="1"
-                CornerRadius="4" Padding="14,8" Margin="0,0,0,10">
+                Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                CornerRadius="{DynamicResource RadiusSmall}" Padding="14,8" Margin="0,0,0,10"
+                Effect="{DynamicResource CardShadow}">
             <Grid>
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="VAT Settings" FontSize="14" FontWeight="Bold"
-                               Foreground="#2C3E50" VerticalAlignment="Center"/>
-                    <TextBlock Text=" — BIR Registration &amp; Tax Rates" FontSize="12"
-                               Foreground="#7F8C8D" VerticalAlignment="Center"/>
+                    <TextBlock Text="VAT Settings" FontSize="{DynamicResource FontSizeSubhead}" FontWeight="Bold"
+                               Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Text=" — BIR Registration &amp; Tax Rates" FontSize="{DynamicResource FontSizeBody}"
+                               Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <TextBlock Text="Saving…" FontSize="10" Foreground="#7F8C8D"
+                    <TextBlock Text="Saving…" FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}"
                                VerticalAlignment="Center" Margin="0,0,10,0"
                                Visibility="{Binding IsSaving, Converter={StaticResource BoolToVis}}"/>
                     <Button Content="Reload" Command="{Binding ReloadCommand}"
@@ -96,8 +112,8 @@
              VALIDATION ERRORS
              ═══════════════════════════════════════════════════════════ -->
         <Border DockPanel.Dock="Top"
-                Background="#FDEDEC" BorderBrush="#E74C3C" BorderThickness="1"
-                CornerRadius="4" Padding="12,8" Margin="0,0,0,10">
+                Background="{DynamicResource SidebarBackgroundBrush}" BorderBrush="{DynamicResource DangerBrush}" BorderThickness="1"
+                CornerRadius="{DynamicResource RadiusSmall}" Padding="12,8" Margin="0,0,0,10">
             <Border.Style>
                 <Style TargetType="Border">
                     <Setter Property="Visibility" Value="Visible"/>
@@ -122,15 +138,15 @@
              ═══════════════════════════════════════════════════════════ -->
         <Border DockPanel.Dock="Top" Style="{StaticResource SectionCard}">
             <StackPanel>
-                <TextBlock Text="Registration Status" FontSize="13" FontWeight="Bold"
-                           Foreground="#2C3E50" Margin="0,0,0,12"/>
+                <TextBlock Text="Registration Status" FontSize="{DynamicResource FontSizeBody}" FontWeight="Bold"
+                           Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
 
                 <CheckBox IsChecked="{Binding IsVatRegistered, Mode=TwoWay}"
-                          FontSize="12" Foreground="#2C3E50" Cursor="Hand">
+                          FontSize="{DynamicResource FontSizeBody}" Foreground="{DynamicResource TextPrimaryBrush}" Cursor="Hand">
                     <TextBlock TextWrapping="Wrap">
                         <Run Text="Business is VAT-registered with BIR"/>
                         <LineBreak/>
-                        <Run Text="(Applies when annual gross sales exceed ₱3M)" FontSize="10" Foreground="#7F8C8D"/>
+                        <Run Text="(Applies when annual gross sales exceed ₱3M)" FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}"/>
                     </TextBlock>
                 </CheckBox>
             </StackPanel>
@@ -141,8 +157,8 @@
              ═══════════════════════════════════════════════════════════ -->
         <Border DockPanel.Dock="Top" Style="{StaticResource SectionCard}">
             <StackPanel>
-                <TextBlock Text="Tax Rates" FontSize="13" FontWeight="Bold"
-                           Foreground="#2C3E50" Margin="0,0,0,12"/>
+                <TextBlock Text="Tax Rates" FontSize="{DynamicResource FontSizeBody}" FontWeight="Bold"
+                           Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
 
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -196,8 +212,8 @@
              ═══════════════════════════════════════════════════════════ -->
         <Border DockPanel.Dock="Top" Style="{StaticResource SectionCard}">
             <StackPanel>
-                <TextBlock Text="Business Information" FontSize="13" FontWeight="Bold"
-                           Foreground="#2C3E50" Margin="0,0,0,12"/>
+                <TextBlock Text="Business Information" FontSize="{DynamicResource FontSizeBody}" FontWeight="Bold"
+                           Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
 
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -235,7 +251,7 @@
              ═══════════════════════════════════════════════════════════ -->
         <TextBlock DockPanel.Dock="Top"
                    Text="{Binding StatusMessage}"
-                   FontSize="11" Foreground="#636E72"
+                   FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}"
                    Margin="2,0,0,0" TextWrapping="Wrap"/>
 
     </DockPanel>

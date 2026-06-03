@@ -6,7 +6,7 @@
              xmlns:vm="clr-namespace:MerchSys.POS.ViewModels;assembly=MerchSys.POS"
              mc:Ignorable="d"
              d:DesignHeight="768" d:DesignWidth="1080"
-             Background="#F5F6FA">
+             Background="{DynamicResource WindowBackgroundBrush}">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
@@ -16,56 +16,56 @@
             <Setter Property="Height" Value="40"/>
             <Setter Property="Margin" Value="2"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="BorderBrush" Value="#BDC3C7"/>
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="Foreground" Value="#2C3E50"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource ControlBackgroundBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
 
         <!-- Active payment method button -->
         <Style x:Key="PayMethodButtonActive" TargetType="Button" BasedOn="{StaticResource PayMethodButton}">
-            <Setter Property="Background" Value="#2980B9"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderBrush" Value="#2471A3"/>
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentHoverBrush}"/>
         </Style>
 
         <!-- Section header -->
         <Style x:Key="SectionHeader" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeSubhead}"/>
             <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="#2C3E50"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
             <Setter Property="Margin" Value="0,0,0,8"/>
         </Style>
 
         <!-- Label -->
         <Style x:Key="FieldLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Foreground" Value="#7F8C8D"/>
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
             <Setter Property="Margin" Value="0,4,0,2"/>
         </Style>
 
         <!-- Total row value -->
         <Style x:Key="TotalValue" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
             <Setter Property="HorizontalAlignment" Value="Right"/>
-            <Setter Property="Foreground" Value="#2C3E50"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
 
         <!-- Grand total value -->
         <Style x:Key="GrandTotalValue" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeTitle}"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="HorizontalAlignment" Value="Right"/>
-            <Setter Property="Foreground" Value="#27AE60"/>
+            <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
         </Style>
 
         <!-- Remove button inside DataGrid -->
         <Style x:Key="RemoveButton" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Foreground" Value="#E74C3C"/>
-            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeSubhead}"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Width" Value="28"/>
             <Setter Property="Height" Value="28"/>
@@ -85,9 +85,9 @@
         <!-- ═══════════════════════════════════════════════════════════
              LEFT PANEL — Product Search
              ═══════════════════════════════════════════════════════════ -->
-        <Border Grid.Column="0" Background="White" Margin="0,0,6,0"
-                BorderBrush="#DFE6E9" BorderThickness="1" CornerRadius="4">
-            <DockPanel Margin="12">
+        <Border Grid.Column="0" Background="{DynamicResource SurfaceBrush}" Margin="0,0,8,0"
+                CornerRadius="{DynamicResource RadiusMedium}" Effect="{DynamicResource CardShadow}">
+            <DockPanel Margin="{DynamicResource SpacingM}">
 
                 <!-- Header -->
                 <TextBlock DockPanel.Dock="Top" Text="Product Search"
@@ -102,30 +102,29 @@
                     <TextBox Grid.Column="0"
                              Text="{Binding ProductSearchText, UpdateSourceTrigger=PropertyChanged}"
                              Padding="6,4"
-                             BorderBrush="#BDC3C7" BorderThickness="1"
+                             BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
                              VerticalContentAlignment="Center"
                              x:Name="ProductSearchBox"/>
                     <Button Grid.Column="1" Content="Search"
                             Command="{Binding SearchProductCommand}"
-                            Margin="4,0,0,0" Padding="8,4"
-                            Background="#2980B9" Foreground="White"
-                            BorderThickness="0" Cursor="Hand"/>
+                            Style="{StaticResource AccentButtonStyle}"
+                            Margin="4,0,0,0" Padding="12,4" Cursor="Hand"/>
                 </Grid>
 
                 <!-- Tip -->
                 <TextBlock DockPanel.Dock="Top"
                            Text="Double-click a product to add it to the cart."
-                           FontSize="10" Foreground="#95A5A6" Margin="0,0,0,6"/>
+                           FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
 
                 <!-- Product list -->
                 <ListBox x:Name="ProductList"
                          ItemsSource="{Binding ProductSearchResults}"
                          SelectedItem="{Binding SelectedProduct}"
-                         BorderBrush="#DFE6E9" BorderThickness="1"
+                         BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
                          ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
-                            <Border Padding="6,4" BorderBrush="#EEE" BorderThickness="0,0,0,1">
+                            <Border Padding="6,4" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="0,0,0,1">
                                 <Grid>
                                     <Grid.RowDefinitions>
                                         <RowDefinition/>
@@ -139,28 +138,29 @@
                                     <!-- Product name -->
                                     <TextBlock Grid.Row="0" Grid.Column="0"
                                                Text="{Binding ProductName}"
-                                               FontWeight="SemiBold" FontSize="12"
-                                               TextTrimming="CharacterEllipsis"/>
+                                               FontWeight="SemiBold" FontSize="{DynamicResource FontSizeBody}"
+                                               TextTrimming="CharacterEllipsis"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"/>
 
                                     <!-- Price -->
                                     <TextBlock Grid.Row="0" Grid.Column="1"
                                                Text="{Binding UnitPrice, StringFormat='₱{0:N2}'}"
-                                               FontWeight="Bold" Foreground="#27AE60" FontSize="12"/>
+                                               FontWeight="Bold" Foreground="{DynamicResource SuccessBrush}" FontSize="{DynamicResource FontSizeBody}"/>
 
                                     <!-- SKU + Stock -->
                                     <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal">
-                                        <TextBlock Text="{Binding Sku}" FontSize="10" Foreground="#7F8C8D"/>
-                                        <TextBlock Text=" · " FontSize="10" Foreground="#BDC3C7"/>
-                                        <TextBlock FontSize="10">
+                                        <TextBlock Text="{Binding Sku}" FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                        <TextBlock Text=" · " FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource SeparatorBrush}"/>
+                                        <TextBlock FontSize="{DynamicResource FontSizeCaption}">
                                             <TextBlock.Style>
                                                 <Style TargetType="TextBlock">
-                                                    <Setter Property="Foreground" Value="#27AE60"/>
+                                                    <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding AvailableStock}" Value="0">
-                                                            <Setter Property="Foreground" Value="#E74C3C"/>
+                                                            <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
                                                         </DataTrigger>
                                                         <DataTrigger Binding="{Binding IsLowStock}" Value="True">
-                                                            <Setter Property="Foreground" Value="#E67E22"/>
+                                                            <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
@@ -181,9 +181,9 @@
         <!-- ═══════════════════════════════════════════════════════════
              CENTER PANEL — Cart
              ═══════════════════════════════════════════════════════════ -->
-        <Border Grid.Column="1" Background="White" Margin="0,0,6,0"
-                BorderBrush="#DFE6E9" BorderThickness="1" CornerRadius="4">
-            <DockPanel Margin="12">
+        <Border Grid.Column="1" Background="{DynamicResource SurfaceBrush}" Margin="0,0,8,0"
+                CornerRadius="{DynamicResource RadiusMedium}" Effect="{DynamicResource CardShadow}">
+            <DockPanel Margin="{DynamicResource SpacingM}">
 
                 <!-- Header row -->
                 <Grid DockPanel.Dock="Top" Margin="0,0,0,8">
@@ -192,13 +192,12 @@
                     <Button Content="New Transaction"
                             Command="{Binding NewTransactionCommand}"
                             HorizontalAlignment="Right"
-                            Padding="10,4" Background="#ECF0F1"
-                            BorderThickness="1" BorderBrush="#BDC3C7"
+                            Padding="12,4"
                             Cursor="Hand"/>
                 </Grid>
 
                 <!-- Totals (dock bottom) -->
-                <Border DockPanel.Dock="Bottom" BorderBrush="#DFE6E9" BorderThickness="0,1,0,0"
+                <Border DockPanel.Dock="Bottom" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="0,1,0,0"
                         Padding="0,8,0,0" Margin="0,8,0,0">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -221,7 +220,7 @@
                         <TextBlock Grid.Row="1" Grid.Column="0" Text="Discount" Style="{StaticResource FieldLabel}"/>
                         <TextBlock Grid.Row="1" Grid.Column="1"
                                    Text="{Binding DiscountTotal, StringFormat='− ₱{0:N2}'}"
-                                   Style="{StaticResource TotalValue}" Foreground="#E74C3C"/>
+                                   Style="{StaticResource TotalValue}" Foreground="{DynamicResource DangerBrush}"/>
 
                         <TextBlock Grid.Row="2" Grid.Column="0" Text="VAT (12%)" Style="{StaticResource FieldLabel}"/>
                         <TextBlock Grid.Row="2" Grid.Column="1"
@@ -229,7 +228,7 @@
                                    Style="{StaticResource TotalValue}"/>
 
                         <TextBlock Grid.Row="4" Grid.Column="0" Text="GRAND TOTAL"
-                                   FontSize="14" FontWeight="Bold" Foreground="#2C3E50"
+                                   FontSize="{DynamicResource FontSizeSubhead}" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"
                                    VerticalAlignment="Center"/>
                         <TextBlock Grid.Row="4" Grid.Column="1"
                                    Text="{Binding GrandTotal, StringFormat='₱{0:N2}'}"
@@ -240,7 +239,7 @@
                 <!-- Status message -->
                 <TextBlock DockPanel.Dock="Bottom"
                            Text="{Binding StatusMessage}"
-                           Foreground="#E74C3C" FontSize="11"
+                           Foreground="{DynamicResource DangerBrush}" FontSize="{DynamicResource FontSizeCaption}"
                            TextWrapping="Wrap" Margin="0,4,0,0"
                            Visibility="{Binding StatusMessage, Converter={StaticResource BoolToVis}}"/>
 
@@ -254,9 +253,7 @@
                           CanUserResizeRows="False"
                           SelectionUnit="FullRow"
                           GridLinesVisibility="Horizontal"
-                          BorderBrush="#DFE6E9" BorderThickness="1"
-                          RowBackground="White"
-                          AlternatingRowBackground="#FAFBFC"
+                          BorderThickness="1"
                           HeadersVisibility="Column">
 
                     <DataGrid.Columns>
@@ -305,10 +302,10 @@
         <!-- ═══════════════════════════════════════════════════════════
              RIGHT PANEL — Payment + Receipt
              ═══════════════════════════════════════════════════════════ -->
-        <Border Grid.Column="2" Background="White"
-                BorderBrush="#DFE6E9" BorderThickness="1" CornerRadius="4">
+        <Border Grid.Column="2" Background="{DynamicResource SurfaceBrush}"
+                CornerRadius="{DynamicResource RadiusMedium}" Effect="{DynamicResource CardShadow}">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <StackPanel Margin="12">
+                <StackPanel Margin="{DynamicResource SpacingM}">
 
                     <!-- Payment header -->
                     <TextBlock Text="Payment" Style="{StaticResource SectionHeader}"/>
@@ -331,9 +328,9 @@
                                 <Style TargetType="Button" BasedOn="{StaticResource PayMethodButton}">
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding IsCashSelected}" Value="True">
-                                            <Setter Property="Background" Value="#2980B9"/>
-                                            <Setter Property="Foreground" Value="White"/>
-                                            <Setter Property="BorderBrush" Value="#2471A3"/>
+                                            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
+                                            <Setter Property="BorderBrush" Value="{DynamicResource AccentHoverBrush}"/>
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
@@ -347,9 +344,9 @@
                                 <Style TargetType="Button" BasedOn="{StaticResource PayMethodButton}">
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding IsGCashSelected}" Value="True">
-                                            <Setter Property="Background" Value="#2980B9"/>
-                                            <Setter Property="Foreground" Value="White"/>
-                                            <Setter Property="BorderBrush" Value="#2471A3"/>
+                                            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
+                                            <Setter Property="BorderBrush" Value="{DynamicResource AccentHoverBrush}"/>
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
@@ -363,9 +360,9 @@
                                 <Style TargetType="Button" BasedOn="{StaticResource PayMethodButton}">
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding IsBankSelected}" Value="True">
-                                            <Setter Property="Background" Value="#2980B9"/>
-                                            <Setter Property="Foreground" Value="White"/>
-                                            <Setter Property="BorderBrush" Value="#2471A3"/>
+                                            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
+                                            <Setter Property="BorderBrush" Value="{DynamicResource AccentHoverBrush}"/>
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
@@ -379,9 +376,9 @@
                                 <Style TargetType="Button" BasedOn="{StaticResource PayMethodButton}">
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding IsCreditSelected}" Value="True">
-                                            <Setter Property="Background" Value="#8E44AD"/>
-                                            <Setter Property="Foreground" Value="White"/>
-                                            <Setter Property="BorderBrush" Value="#7D3C98"/>
+                                            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
+                                            <Setter Property="BorderBrush" Value="{DynamicResource AccentHoverBrush}"/>
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
@@ -393,12 +390,12 @@
                     <StackPanel Visibility="{Binding IsCash, Converter={StaticResource BoolToVis}}">
                         <TextBlock Text="Amount Tendered (₱)" Style="{StaticResource FieldLabel}"/>
                         <TextBox Text="{Binding AmountTendered, UpdateSourceTrigger=PropertyChanged, StringFormat='N2'}"
-                                 Padding="6,4" BorderBrush="#BDC3C7" BorderThickness="1"
-                                 HorizontalContentAlignment="Right" FontSize="14"/>
+                                 Padding="6,4" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                                 HorizontalContentAlignment="Right" FontSize="{DynamicResource FontSizeSubhead}"/>
 
                         <TextBlock Text="Change" Style="{StaticResource FieldLabel}" Margin="0,8,0,2"/>
                         <TextBlock Text="{Binding ChangeAmount, StringFormat='₱{0:N2}'}"
-                                   FontSize="16" FontWeight="Bold" Foreground="#27AE60"
+                                   FontSize="{DynamicResource FontSizeSubhead}" FontWeight="Bold" Foreground="{DynamicResource SuccessBrush}"
                                    HorizontalAlignment="Right"/>
                     </StackPanel>
 
@@ -413,25 +410,24 @@
                             </Grid.ColumnDefinitions>
                             <TextBox Grid.Column="0"
                                      Text="{Binding CreditCustomerSearch, UpdateSourceTrigger=PropertyChanged}"
-                                     Padding="6,4" BorderBrush="#BDC3C7" BorderThickness="1"
+                                     Padding="6,4" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
                                      VerticalContentAlignment="Center"/>
                             <Button Grid.Column="1" Content="Find"
                                     Command="{Binding SearchCreditCustomerCommand}"
-                                    Margin="4,0,0,0" Padding="8,4"
-                                    Background="#8E44AD" Foreground="White"
-                                    BorderThickness="0" Cursor="Hand"/>
+                                    Style="{StaticResource AccentButtonStyle}"
+                                    Margin="4,0,0,0" Padding="12,4" Cursor="Hand"/>
                         </Grid>
 
                         <ListBox ItemsSource="{Binding CreditCustomers}"
                                  SelectedItem="{Binding SelectedCreditCustomer}"
                                  MaxHeight="120"
-                                 BorderBrush="#DFE6E9" BorderThickness="1">
+                                 BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
                                     <Border Padding="4,2">
                                         <StackPanel>
-                                            <TextBlock Text="{Binding CustomerName}" FontWeight="SemiBold" FontSize="12"/>
-                                            <TextBlock FontSize="10" Foreground="#7F8C8D">
+                                            <TextBlock Text="{Binding CustomerName}" FontWeight="SemiBold" FontSize="{DynamicResource FontSizeBody}"/>
+                                            <TextBlock FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}">
                                                 <Run Text="Balance: ₱"/>
                                                 <Run Text="{Binding CurrentBalance, StringFormat='N2'}"/>
                                             </TextBlock>
@@ -442,12 +438,12 @@
                         </ListBox>
 
                         <!-- Blocked indicator — NON-NEGOTIABLE: must be visible and Pay must be disabled -->
-                        <Border Background="#FDEDEC" BorderBrush="#E74C3C" BorderThickness="1"
-                                CornerRadius="3" Padding="8,6" Margin="0,6,0,0"
+                        <Border Background="{DynamicResource SidebarBackgroundBrush}" BorderBrush="{DynamicResource DangerBrush}" BorderThickness="1"
+                                CornerRadius="{DynamicResource RadiusSmall}" Padding="8,6" Margin="0,6,0,0"
                                 Visibility="{Binding IsCustomerBlocked, Converter={StaticResource BoolToVis}}">
                             <TextBlock Text="{Binding BlockedCustomerMessage}"
-                                       Foreground="#E74C3C" FontWeight="Bold"
-                                       TextWrapping="Wrap" FontSize="12"/>
+                                       Foreground="{DynamicResource DangerBrush}" FontWeight="Bold"
+                                       TextWrapping="Wrap" FontSize="{DynamicResource FontSizeBody}"/>
                         </Border>
                     </StackPanel>
 
@@ -457,17 +453,20 @@
                     <!-- PAY button -->
                     <Button Content="PAY"
                             Command="{Binding PayCommand}"
-                            Height="48" FontSize="16" FontWeight="Bold"
+                            Height="48" FontSize="{DynamicResource FontSizeSubhead}" FontWeight="Bold"
                             Cursor="Hand">
                         <Button.Style>
-                            <Style TargetType="Button">
-                                <Setter Property="Background" Value="#27AE60"/>
-                                <Setter Property="Foreground" Value="White"/>
-                                <Setter Property="BorderThickness" Value="0"/>
+                            <Style TargetType="Button" BasedOn="{StaticResource AccentButtonStyle}">
+                                <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
+                                <Setter Property="BorderBrush" Value="{DynamicResource SuccessBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
                                 <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
+                                        <Setter Property="Opacity" Value="0.9"/>
+                                    </Trigger>
                                     <Trigger Property="IsEnabled" Value="False">
-                                        <Setter Property="Background" Value="#BDC3C7"/>
-                                        <Setter Property="Foreground" Value="#7F8C8D"/>
+                                        <Setter Property="Opacity" Value="0.5"/>
                                     </Trigger>
                                 </Style.Triggers>
                             </Style>
@@ -475,49 +474,49 @@
                     </Button>
 
                     <!-- Busy indicator -->
-                    <TextBlock Text="Processing…" FontSize="11" Foreground="#7F8C8D"
+                    <TextBlock Text="Processing…" FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}"
                                HorizontalAlignment="Center" Margin="0,4,0,0"
                                Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
 
                     <!-- ═══ Receipt Preview ═══ -->
                     <Border Visibility="{Binding IsReceiptVisible, Converter={StaticResource BoolToVis}}"
-                            BorderBrush="#DFE6E9" BorderThickness="1" CornerRadius="4"
-                            Background="#FDFEFE" Margin="0,12,0,0" Padding="10">
+                            BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1" CornerRadius="{DynamicResource RadiusSmall}"
+                            Background="{DynamicResource SidebarBackgroundBrush}" Margin="0,12,0,0" Padding="10">
                         <StackPanel>
-                            <TextBlock Text="Official Receipt" FontWeight="Bold" FontSize="13"
-                                       HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                            <TextBlock Text="Official Receipt" FontWeight="Bold" FontSize="{DynamicResource FontSizeBody}"
+                                       HorizontalAlignment="Center" Margin="0,0,0,4" Foreground="{DynamicResource TextPrimaryBrush}"/>
                             <Separator/>
                             <TextBlock Text="{Binding CurrentReceipt.BusinessName}"
-                                       HorizontalAlignment="Center" FontSize="11" Margin="0,4,0,0"/>
+                                       HorizontalAlignment="Center" FontSize="{DynamicResource FontSizeCaption}" Margin="0,4,0,0" Foreground="{DynamicResource TextPrimaryBrush}"/>
                             <TextBlock Text="{Binding CurrentReceipt.BusinessAddress}"
-                                       HorizontalAlignment="Center" FontSize="10"
-                                       Foreground="#7F8C8D" TextWrapping="Wrap"/>
+                                       HorizontalAlignment="Center" FontSize="{DynamicResource FontSizeCaption}"
+                                       Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                             <TextBlock Text="{Binding CurrentReceipt.BusinessTIN, StringFormat='TIN: {0}'}"
-                                       HorizontalAlignment="Center" FontSize="10" Foreground="#7F8C8D"/>
+                                       HorizontalAlignment="Center" FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}"/>
                             <Separator Margin="0,6"/>
                             <Grid>
-                                <TextBlock Text="Receipt No." FontSize="11" Foreground="#7F8C8D"/>
+                                <TextBlock Text="Receipt No." FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                 <TextBlock Text="{Binding CurrentReceipt.ReceiptNumber}"
-                                           HorizontalAlignment="Right" FontWeight="Bold" FontSize="11"/>
+                                           HorizontalAlignment="Right" FontWeight="Bold" FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextPrimaryBrush}"/>
                             </Grid>
                             <Grid Margin="0,2,0,0">
-                                <TextBlock Text="Date" FontSize="11" Foreground="#7F8C8D"/>
+                                <TextBlock Text="Date" FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                 <TextBlock Text="{Binding CurrentReceipt.IssueDate, StringFormat='MM/dd/yyyy HH:mm'}"
-                                           HorizontalAlignment="Right" FontSize="11"/>
+                                           HorizontalAlignment="Right" FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextPrimaryBrush}"/>
                             </Grid>
                             <Separator Margin="0,6"/>
                             <Grid>
-                                <TextBlock Text="TOTAL" FontWeight="Bold" FontSize="13"/>
+                                <TextBlock Text="TOTAL" FontWeight="Bold" FontSize="{DynamicResource FontSizeBody}" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                 <TextBlock Text="{Binding CurrentReceipt.TotalAmount, StringFormat='₱{0:N2}'}"
                                            HorizontalAlignment="Right" FontWeight="Bold"
-                                           FontSize="13" Foreground="#27AE60"/>
+                                           FontSize="{DynamicResource FontSizeBody}" Foreground="{DynamicResource SuccessBrush}"/>
                             </Grid>
                             <TextBlock Text="{Binding CurrentReceipt.VatAmount, StringFormat='VAT: ₱{0:N2}'}"
-                                       FontSize="10" Foreground="#7F8C8D" HorizontalAlignment="Right"/>
+                                       FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Right"/>
                             <Separator Margin="0,6"/>
                             <TextBlock Text="Thank you!"
-                                       HorizontalAlignment="Center" FontSize="11"
-                                       Foreground="#7F8C8D" FontStyle="Italic"/>
+                                       HorizontalAlignment="Center" FontSize="{DynamicResource FontSizeCaption}"
+                                       Foreground="{DynamicResource TextSecondaryBrush}" FontStyle="Italic"/>
                         </StackPanel>
                     </Border>
 

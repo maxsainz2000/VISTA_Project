@@ -9,194 +9,162 @@
         Width="420" SizeToContent="Height"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterScreen"
-        Background="#1A252F">
+        Background="{DynamicResource WindowBackgroundBrush}">
 
     <Window.Resources>
 
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
         <Style x:Key="FieldLabel" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="#BDC3C7"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Margin" Value="0,0,0,4"/>
-        </Style>
-
-        <Style x:Key="InputBox" TargetType="TextBox">
-            <Setter Property="Background" Value="#2C3E50"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderBrush" Value="#34495E"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="10,8"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="CaretBrush" Value="White"/>
-        </Style>
-
-        <Style x:Key="PasswordInput" TargetType="PasswordBox">
-            <Setter Property="Background" Value="#2C3E50"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderBrush" Value="#34495E"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="10,8"/>
-            <Setter Property="FontSize" Value="14"/>
-        </Style>
-
-        <Style x:Key="PrimaryButton" TargetType="Button">
-            <Setter Property="Background" Value="#2980B9"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="FontFamily" Value="{DynamicResource AppFontFamily}"/>
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Padding" Value="0,12"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
+        </Style>
+
+        <Style x:Key="EyeButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="6,0"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="FontSize" Value="14"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}"
-                                CornerRadius="3"
-                                Padding="{TemplateBinding Padding}">
+                        <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#3498DB"/>
-                </Trigger>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="#34495E"/>
-                    <Setter Property="Foreground" Value="#7F8C8D"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style x:Key="EyeButton" TargetType="Button">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Padding" Value="6,0"/>
-            <Setter Property="Foreground" Value="#7F8C8D"/>
-            <Setter Property="FontSize" Value="14"/>
         </Style>
 
     </Window.Resources>
 
-    <Border Padding="40,36">
-        <StackPanel>
-
-            <!-- ── Branding ──────────────────────────────────────── -->
-            <TextBlock Text="VISTA"
-                       Foreground="White"
-                       FontSize="32"
-                       FontWeight="Bold"
-                       HorizontalAlignment="Center"/>
-            <TextBlock Text="Villon Integrated Supply and Trade Application"
-                       Foreground="#7F8C8D"
-                       FontSize="11"
-                       TextAlignment="Center"
-                       HorizontalAlignment="Center"
-                       Margin="0,4,0,28"
-                       TextWrapping="Wrap"/>
-
-            <!-- ── Credentials panel ──────────────────────────────── -->
+    <Grid Margin="24">
+        <Border Background="{DynamicResource SurfaceBrush}"
+                BorderBrush="{DynamicResource SeparatorBrush}"
+                BorderThickness="1"
+                CornerRadius="{DynamicResource RadiusMedium}"
+                Effect="{DynamicResource CardShadow}"
+                Padding="32,28">
             <StackPanel>
 
-                <!-- Username -->
-                <TextBlock Text="Username" Style="{StaticResource FieldLabel}"/>
-                <TextBox Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
-                         Style="{StaticResource InputBox}"
-                         Margin="0,0,0,14"/>
+                <!-- ── Branding ──────────────────────────────────────── -->
+                <TextBlock Text="VISTA"
+                           Foreground="{DynamicResource TextPrimaryBrush}"
+                           FontFamily="{DynamicResource AppFontFamily}"
+                           FontSize="{DynamicResource FontSizeLargeTitle}"
+                           FontWeight="Bold"
+                           HorizontalAlignment="Center"/>
+                <TextBlock Text="Villon Integrated Supply and Trade Application"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
+                           FontFamily="{DynamicResource AppFontFamily}"
+                           FontSize="{DynamicResource FontSizeCaption}"
+                           TextAlignment="Center"
+                           HorizontalAlignment="Center"
+                           Margin="0,4,0,28"
+                           TextWrapping="Wrap"/>
 
-                <!-- Password with eye toggle -->
-                <!-- HidePassword=True  → PasswordBox visible, TextBox hidden (normal) -->
-                <!-- HidePassword=False → TextBox visible, PasswordBox hidden (reveal)  -->
-                <TextBlock Text="Password" Style="{StaticResource FieldLabel}"/>
-                <Grid Margin="0,0,0,14">
+                <!-- ── Credentials panel ──────────────────────────────── -->
+                <StackPanel>
+
+                    <!-- Username -->
+                    <TextBlock Text="Username" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
+                             Margin="0,0,0,14"/>
+
+                    <!-- Password with eye toggle -->
+                    <!-- HidePassword=True  → PasswordBox visible, TextBox hidden (normal) -->
+                    <!-- HidePassword=False → TextBox visible, PasswordBox hidden (reveal)  -->
+                    <TextBlock Text="Password" Style="{StaticResource FieldLabel}"/>
+                    <Grid Margin="0,0,0,14">
+                        <PasswordBox helpers:PasswordBoxHelper.IsMonitoring="True"
+                                     helpers:PasswordBoxHelper.BoundPassword="{Binding Password, Mode=TwoWay}"
+                                     Visibility="{Binding HidePassword, Converter={StaticResource BoolToVis}}">
+                            <PasswordBox.InputBindings>
+                                <KeyBinding Key="Return" Command="{Binding LoginCommand}"/>
+                            </PasswordBox.InputBindings>
+                        </PasswordBox>
+                        <TextBox Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}"
+                                 Visibility="{Binding ShowPassword, Converter={StaticResource BoolToVis}}">
+                            <TextBox.InputBindings>
+                                <KeyBinding Key="Return" Command="{Binding LoginCommand}"/>
+                            </TextBox.InputBindings>
+                        </TextBox>
+                        <Button Content="&#128065;"
+                                Style="{StaticResource EyeButton}"
+                                Command="{Binding ToggleShowPasswordCommand}"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                Margin="0,0,4,0"/>
+                    </Grid>
+
+                    <!-- Error message -->
+                    <TextBlock Text="{Binding ErrorMessage}"
+                               Foreground="{DynamicResource DangerBrush}"
+                               FontSize="{DynamicResource FontSizeCaption}"
+                               TextWrapping="Wrap"
+                               Margin="0,0,0,12"
+                               Visibility="{Binding HasError, Converter={StaticResource BoolToVis}}"/>
+
+                    <!-- Log In button (hidden when password-change panel is shown) -->
+                    <Button Content="LOG IN"
+                            Command="{Binding LoginCommand}"
+                            Style="{StaticResource AccentButtonStyle}"
+                            Height="38"
+                            IsEnabled="{Binding IsNotLoggingIn}"
+                            Visibility="{Binding HidePasswordChange, Converter={StaticResource BoolToVis}}"/>
+
+                </StackPanel>
+
+                <!-- ── First-login password change panel (DA6) ──────── -->
+                <StackPanel Margin="0,20,0,0"
+                            Visibility="{Binding ShowPasswordChange, Converter={StaticResource BoolToVis}}">
+
+                    <Border Height="1" Background="{DynamicResource SeparatorBrush}" Margin="0,0,0,16"/>
+
+                    <TextBlock Text="Set a new password to continue"
+                               Foreground="{DynamicResource WarningBrush}"
+                               FontSize="{DynamicResource FontSizeCaption}"
+                               FontWeight="SemiBold"
+                               Margin="0,0,0,14"/>
+
+                    <!-- New Password -->
+                    <TextBlock Text="New Password" Style="{StaticResource FieldLabel}"/>
+                    <Grid Margin="0,0,0,14">
+                        <PasswordBox helpers:PasswordBoxHelper.IsMonitoring="True"
+                                     helpers:PasswordBoxHelper.BoundPassword="{Binding NewPassword, Mode=TwoWay}"
+                                     Visibility="{Binding HideNewPassword, Converter={StaticResource BoolToVis}}"/>
+                        <TextBox Text="{Binding NewPassword, UpdateSourceTrigger=PropertyChanged}"
+                                 Visibility="{Binding ShowNewPassword, Converter={StaticResource BoolToVis}}"/>
+                        <Button Content="&#128065;"
+                                Style="{StaticResource EyeButton}"
+                                Command="{Binding ToggleShowNewPasswordCommand}"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                Margin="0,0,4,0"/>
+                    </Grid>
+
+                    <!-- Confirm New Password -->
+                    <TextBlock Text="Confirm New Password" Style="{StaticResource FieldLabel}"/>
                     <PasswordBox helpers:PasswordBoxHelper.IsMonitoring="True"
-                                 helpers:PasswordBoxHelper.BoundPassword="{Binding Password, Mode=TwoWay}"
-                                 Style="{StaticResource PasswordInput}"
-                                 Visibility="{Binding HidePassword, Converter={StaticResource BoolToVis}}">
-                        <PasswordBox.InputBindings>
-                            <KeyBinding Key="Return" Command="{Binding LoginCommand}"/>
-                        </PasswordBox.InputBindings>
-                    </PasswordBox>
-                    <TextBox Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}"
-                             Style="{StaticResource InputBox}"
-                             Visibility="{Binding ShowPassword, Converter={StaticResource BoolToVis}}">
-                        <TextBox.InputBindings>
-                            <KeyBinding Key="Return" Command="{Binding LoginCommand}"/>
-                        </TextBox.InputBindings>
-                    </TextBox>
-                    <Button Content="&#128065;"
-                            Style="{StaticResource EyeButton}"
-                            Command="{Binding ToggleShowPasswordCommand}"
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Center"
-                            Margin="0,0,4,0"/>
-                </Grid>
+                                 helpers:PasswordBoxHelper.BoundPassword="{Binding ConfirmNewPassword, Mode=TwoWay}"
+                                 Margin="0,0,0,20"/>
 
-                <!-- Error message -->
-                <TextBlock Text="{Binding ErrorMessage}"
-                           Foreground="#E74C3C"
-                           FontSize="12"
-                           TextWrapping="Wrap"
-                           Margin="0,0,0,12"
-                           Visibility="{Binding HasError, Converter={StaticResource BoolToVis}}"/>
+                    <Button Content="SET PASSWORD AND CONTINUE"
+                            Command="{Binding ChangePasswordCommand}"
+                            Style="{StaticResource AccentButtonStyle}"
+                            Height="38"
+                            IsEnabled="{Binding IsNotLoggingIn}"/>
 
-                <!-- Log In button (hidden when password-change panel is shown) -->
-                <Button Content="LOG IN"
-                        Command="{Binding LoginCommand}"
-                        Style="{StaticResource PrimaryButton}"
-                        IsEnabled="{Binding IsNotLoggingIn}"
-                        Visibility="{Binding HidePasswordChange, Converter={StaticResource BoolToVis}}"/>
+                </StackPanel>
 
             </StackPanel>
-
-            <!-- ── First-login password change panel (DA6) ──────── -->
-            <StackPanel Margin="0,20,0,0"
-                        Visibility="{Binding ShowPasswordChange, Converter={StaticResource BoolToVis}}">
-
-                <Border Height="1" Background="#34495E" Margin="0,0,0,16"/>
-
-                <TextBlock Text="Set a new password to continue"
-                           Foreground="#F39C12"
-                           FontSize="12"
-                           FontWeight="SemiBold"
-                           Margin="0,0,0,14"/>
-
-                <!-- New Password -->
-                <TextBlock Text="New Password" Style="{StaticResource FieldLabel}"/>
-                <Grid Margin="0,0,0,14">
-                    <PasswordBox helpers:PasswordBoxHelper.IsMonitoring="True"
-                                 helpers:PasswordBoxHelper.BoundPassword="{Binding NewPassword, Mode=TwoWay}"
-                                 Style="{StaticResource PasswordInput}"
-                                 Visibility="{Binding HideNewPassword, Converter={StaticResource BoolToVis}}"/>
-                    <TextBox Text="{Binding NewPassword, UpdateSourceTrigger=PropertyChanged}"
-                             Style="{StaticResource InputBox}"
-                             Visibility="{Binding ShowNewPassword, Converter={StaticResource BoolToVis}}"/>
-                    <Button Content="&#128065;"
-                            Style="{StaticResource EyeButton}"
-                            Command="{Binding ToggleShowNewPasswordCommand}"
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Center"
-                            Margin="0,0,4,0"/>
-                </Grid>
-
-                <!-- Confirm New Password -->
-                <TextBlock Text="Confirm New Password" Style="{StaticResource FieldLabel}"/>
-                <PasswordBox helpers:PasswordBoxHelper.IsMonitoring="True"
-                             helpers:PasswordBoxHelper.BoundPassword="{Binding ConfirmNewPassword, Mode=TwoWay}"
-                             Style="{StaticResource PasswordInput}"
-                             Margin="0,0,0,20"/>
-
-                <Button Content="SET PASSWORD AND CONTINUE"
-                        Command="{Binding ChangePasswordCommand}"
-                        Style="{StaticResource PrimaryButton}"
-                        IsEnabled="{Binding IsNotLoggingIn}"/>
-
-            </StackPanel>
-
-        </StackPanel>
-    </Border>
-
+        </Border>
+    </Grid>
 </Window>
+

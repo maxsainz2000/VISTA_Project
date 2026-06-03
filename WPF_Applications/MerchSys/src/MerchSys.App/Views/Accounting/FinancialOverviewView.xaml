@@ -6,16 +6,16 @@
              xmlns:vatTiles="clr-namespace:MerchSys.App.Views.Accounting.Components"
              mc:Ignorable="d"
              d:DesignHeight="768" d:DesignWidth="1280"
-             Background="#F5F6FA">
+             Background="{DynamicResource WindowBackgroundBrush}">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
         <Style x:Key="KpiCard" TargetType="Border">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#DFE6E9"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}"/>
             <Setter Property="Padding" Value="14,10"/>
             <Setter Property="Margin" Value="0,0,8,0"/>
         </Style>
@@ -23,64 +23,53 @@
         <Style x:Key="KpiValue" TargetType="TextBlock">
             <Setter Property="FontSize" Value="20"/>
             <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="#2C3E50"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
 
         <Style x:Key="KpiLabel" TargetType="TextBlock">
             <Setter Property="FontSize" Value="10"/>
-            <Setter Property="Foreground" Value="#7F8C8D"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
             <Setter Property="Margin" Value="0,2,0,0"/>
         </Style>
 
         <Style x:Key="SectionHeader" TargetType="TextBlock">
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="#2C3E50"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
             <Setter Property="Margin" Value="0,0,0,6"/>
         </Style>
 
         <Style x:Key="SectionCard" TargetType="Border">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#DFE6E9"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}"/>
             <Setter Property="Padding" Value="14,12"/>
         </Style>
 
-        <Style x:Key="RefreshButton" TargetType="Button">
-            <Setter Property="Background" Value="#2980B9"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/>
+        <Style x:Key="RefreshButton" TargetType="Button" BasedOn="{StaticResource AccentButtonStyle}">
             <Setter Property="Padding" Value="14,6"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Style.Triggers>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="#BDC3C7"/>
-                    <Setter Property="Foreground" Value="#7F8C8D"/>
-                </Trigger>
-            </Style.Triggers>
         </Style>
 
         <Style x:Key="AlertCard" TargetType="Border">
-            <Setter Property="CornerRadius" Value="5"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}"/>
             <Setter Property="Padding" Value="12,8"/>
             <Setter Property="Margin" Value="0,0,8,0"/>
-            <Setter Property="Background" Value="#EBF5EE"/>
-            <Setter Property="BorderBrush" Value="#27AE60"/>
+            <Setter Property="Background" Value="{DynamicResource SidebarBackgroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SuccessBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
         </Style>
 
         <Style x:Key="AlertValue" TargetType="TextBlock">
             <Setter Property="FontSize" Value="22"/>
             <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="#1E8449"/>
+            <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
         </Style>
 
         <Style x:Key="AlertLabel" TargetType="TextBlock">
             <Setter Property="FontSize" Value="10"/>
-            <Setter Property="Foreground" Value="#7F8C8D"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
         </Style>
     </UserControl.Resources>
 
@@ -90,20 +79,20 @@
              TOOLBAR ROW
              ═══════════════════════════════════════════════════════════ -->
         <Border DockPanel.Dock="Top"
-                Background="White" BorderBrush="#DFE6E9" BorderThickness="1"
-                CornerRadius="4" Padding="12,7" Margin="0,0,0,8">
+                Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                CornerRadius="{DynamicResource RadiusSmall}" Padding="12,7" Margin="0,0,0,8">
             <Grid>
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock Text="Financial Overview" FontSize="14" FontWeight="Bold"
-                               Foreground="#2C3E50" VerticalAlignment="Center"/>
-                    <TextBlock Text=" — Dashboard" FontSize="13" Foreground="#7F8C8D"
+                               Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Text=" — Dashboard" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"
                                VerticalAlignment="Center"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                     <TextBlock Text="{Binding LastRefreshed}"
-                               FontSize="10" Foreground="#95A5A6"
+                               FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"
                                VerticalAlignment="Center" Margin="0,0,10,0"/>
-                    <TextBlock Text="Loading…" FontSize="10" Foreground="#7F8C8D"
+                    <TextBlock Text="Loading…" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"
                                VerticalAlignment="Center" Margin="0,0,10,0"
                                Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
                     <Button Content="Refresh" Command="{Binding RefreshCommand}"
@@ -130,7 +119,7 @@
             <Border Grid.Column="0" Style="{StaticResource KpiCard}">
                 <StackPanel>
                     <TextBlock Text="{Binding TodayRevenue, StringFormat='₱{0:N0}'}"
-                               Style="{StaticResource KpiValue}" Foreground="#2980B9"/>
+                               Style="{StaticResource KpiValue}" Foreground="{DynamicResource AccentBrush}"/>
                     <TextBlock Text="Today Revenue" Style="{StaticResource KpiLabel}"/>
                 </StackPanel>
             </Border>
@@ -138,7 +127,7 @@
             <Border Grid.Column="1" Style="{StaticResource KpiCard}">
                 <StackPanel>
                     <TextBlock Text="{Binding MonthToDateRevenue, StringFormat='₱{0:N0}'}"
-                               Style="{StaticResource KpiValue}" Foreground="#2980B9"/>
+                               Style="{StaticResource KpiValue}" Foreground="{DynamicResource AccentBrush}"/>
                     <TextBlock Text="MTD Revenue" Style="{StaticResource KpiLabel}"/>
                 </StackPanel>
             </Border>
@@ -146,7 +135,7 @@
             <Border Grid.Column="2" Style="{StaticResource KpiCard}">
                 <StackPanel>
                     <TextBlock Text="{Binding YearToDateRevenue, StringFormat='₱{0:N0}'}"
-                               Style="{StaticResource KpiValue}" Foreground="#2C3E50"/>
+                               Style="{StaticResource KpiValue}" Foreground="{DynamicResource TextPrimaryBrush}"/>
                     <TextBlock Text="YTD Revenue" Style="{StaticResource KpiLabel}"/>
                 </StackPanel>
             </Border>
@@ -154,7 +143,7 @@
             <Border Grid.Column="3" Style="{StaticResource KpiCard}">
                 <StackPanel>
                     <TextBlock Text="{Binding CurrentGrossMargin, StringFormat='{}{0:N1}%'}"
-                               Style="{StaticResource KpiValue}" Foreground="#27AE60"/>
+                               Style="{StaticResource KpiValue}" Foreground="{DynamicResource SuccessBrush}"/>
                     <TextBlock Text="Gross Margin %" Style="{StaticResource KpiLabel}"/>
                 </StackPanel>
             </Border>
@@ -162,7 +151,7 @@
             <Border Grid.Column="4" Style="{StaticResource KpiCard}">
                 <StackPanel>
                     <TextBlock Text="{Binding TotalAR, StringFormat='₱{0:N0}'}"
-                               Style="{StaticResource KpiValue}" Foreground="#E67E22"/>
+                               Style="{StaticResource KpiValue}" Foreground="{DynamicResource WarningBrush}"/>
                     <TextBlock Text="AR Outstanding" Style="{StaticResource KpiLabel}"/>
                 </StackPanel>
             </Border>
@@ -170,7 +159,7 @@
             <Border Grid.Column="5" Style="{StaticResource KpiCard}">
                 <StackPanel>
                     <TextBlock Text="{Binding TotalAP, StringFormat='₱{0:N0}'}"
-                               Style="{StaticResource KpiValue}" Foreground="#E74C3C"/>
+                               Style="{StaticResource KpiValue}" Foreground="{DynamicResource DangerBrush}"/>
                     <TextBlock Text="AP Outstanding" Style="{StaticResource KpiLabel}"/>
                 </StackPanel>
             </Border>
@@ -178,7 +167,7 @@
             <Border Grid.Column="6" Style="{StaticResource KpiCard}">
                 <StackPanel>
                     <TextBlock Text="{Binding InventoryValue, StringFormat='₱{0:N0}'}"
-                               Style="{StaticResource KpiValue}" Foreground="#8E44AD"/>
+                               Style="{StaticResource KpiValue}" Foreground="{DynamicResource TextPrimaryBrush}"/>
                     <TextBlock Text="Inventory Value" Style="{StaticResource KpiLabel}"/>
                 </StackPanel>
             </Border>
@@ -194,8 +183,8 @@
              WHAT THIS MEANS BOX — mandatory, always visible
              ═══════════════════════════════════════════════════════════ -->
         <Border DockPanel.Dock="Top"
-                Background="#EBF5FB" BorderBrush="#AED6F1" BorderThickness="1"
-                CornerRadius="6" Padding="14,10" Margin="0,0,0,8">
+                Background="{DynamicResource SidebarBackgroundBrush}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1"
+                CornerRadius="{DynamicResource RadiusSmall}" Padding="14,10" Margin="0,0,0,8">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -208,10 +197,10 @@
 
                 <StackPanel Grid.Column="1">
                     <TextBlock Text="What This Means"
-                               FontSize="12" FontWeight="Bold" Foreground="#1A5276"
+                               FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"
                                Margin="0,0,0,4"/>
                     <TextBlock Text="{Binding WhatThisMeansText}"
-                               FontSize="12" Foreground="#1F618D"
+                               FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"
                                TextWrapping="Wrap" LineHeight="18"/>
                 </StackPanel>
             </Grid>
@@ -221,8 +210,8 @@
              ALERTS PANEL — bottom
              ═══════════════════════════════════════════════════════════ -->
         <Border DockPanel.Dock="Bottom"
-                Background="White" BorderBrush="#DFE6E9" BorderThickness="1"
-                CornerRadius="6" Padding="14,10" Margin="0,8,0,0">
+                Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                CornerRadius="{DynamicResource RadiusSmall}" Padding="14,10" Margin="0,8,0,0">
             <StackPanel>
                 <TextBlock Text="Alerts" Style="{StaticResource SectionHeader}"/>
                 <StackPanel Orientation="Horizontal">
@@ -233,8 +222,7 @@
                             <Style TargetType="Border" BasedOn="{StaticResource AlertCard}">
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding HasOverdueAR}" Value="True">
-                                        <Setter Property="Background" Value="#FDEDEC"/>
-                                        <Setter Property="BorderBrush" Value="#E74C3C"/>
+                                        <Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}"/>
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
@@ -245,7 +233,7 @@
                                     <Style TargetType="TextBlock" BasedOn="{StaticResource AlertValue}">
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding HasOverdueAR}" Value="True">
-                                                <Setter Property="Foreground" Value="#922B21"/>
+                                                <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
@@ -261,8 +249,7 @@
                             <Style TargetType="Border" BasedOn="{StaticResource AlertCard}">
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding HasOverdueAP}" Value="True">
-                                        <Setter Property="Background" Value="#FDF2E9"/>
-                                        <Setter Property="BorderBrush" Value="#E67E22"/>
+                                        <Setter Property="BorderBrush" Value="{DynamicResource WarningBrush}"/>
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
@@ -273,7 +260,7 @@
                                     <Style TargetType="TextBlock" BasedOn="{StaticResource AlertValue}">
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding HasOverdueAP}" Value="True">
-                                                <Setter Property="Foreground" Value="#A04000"/>
+                                                <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
@@ -290,8 +277,7 @@
                                 <Setter Property="Margin" Value="0"/>
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding HasLowStock}" Value="True">
-                                        <Setter Property="Background" Value="#FEFCE8"/>
-                                        <Setter Property="BorderBrush" Value="#F39C12"/>
+                                        <Setter Property="BorderBrush" Value="{DynamicResource WarningBrush}"/>
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
@@ -302,7 +288,7 @@
                                     <Style TargetType="TextBlock" BasedOn="{StaticResource AlertValue}">
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding HasLowStock}" Value="True">
-                                                <Setter Property="Foreground" Value="#B7950B"/>
+                                                <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
@@ -334,17 +320,17 @@
 
                     <!-- Legend -->
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
-                        <Rectangle Width="12" Height="12" Fill="#2980B9" Margin="0,0,4,0" RadiusX="2" RadiusY="2"/>
-                        <TextBlock Text="Revenue" FontSize="10" Foreground="#7F8C8D" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                        <Rectangle Width="12" Height="12" Fill="#E74C3C" Margin="0,0,4,0" RadiusX="2" RadiusY="2"/>
-                        <TextBlock Text="COGS" FontSize="10" Foreground="#7F8C8D" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                        <Rectangle Width="12" Height="12" Fill="#27AE60" Margin="0,0,4,0" RadiusX="2" RadiusY="2"/>
-                        <TextBlock Text="Gross Profit" FontSize="10" Foreground="#7F8C8D" VerticalAlignment="Center"/>
+                        <Rectangle Width="12" Height="12" Fill="{DynamicResource AccentBrush}" Margin="0,0,4,0" RadiusX="2" RadiusY="2"/>
+                        <TextBlock Text="Revenue" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                        <Rectangle Width="12" Height="12" Fill="{DynamicResource DangerBrush}" Margin="0,0,4,0" RadiusX="2" RadiusY="2"/>
+                        <TextBlock Text="COGS" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                        <Rectangle Width="12" Height="12" Fill="{DynamicResource SuccessBrush}" Margin="0,0,4,0" RadiusX="2" RadiusY="2"/>
+                        <TextBlock Text="Gross Profit" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                     </StackPanel>
 
                     <!-- Axis label -->
                     <TextBlock DockPanel.Dock="Bottom" Text="← Last 6 Months"
-                               FontSize="9" Foreground="#BDC3C7"
+                               FontSize="9" Foreground="{DynamicResource TextSecondaryBrush}"
                                HorizontalAlignment="Center" Margin="0,4,0,0"/>
 
                     <!-- Bar chart area -->
@@ -371,7 +357,7 @@
                                         <Rectangle Grid.Column="0"
                                                    Height="{Binding RevenueBarHeight}"
                                                    VerticalAlignment="Bottom"
-                                                   Fill="#2980B9" RadiusX="2" RadiusY="2">
+                                                   Fill="{DynamicResource AccentBrush}" RadiusX="2" RadiusY="2">
                                             <Rectangle.ToolTip>
                                                 <TextBlock Text="{Binding Revenue, StringFormat='Revenue: ₱{0:N2}'}"/>
                                             </Rectangle.ToolTip>
@@ -380,7 +366,7 @@
                                         <Rectangle Grid.Column="2"
                                                    Height="{Binding COGSBarHeight}"
                                                    VerticalAlignment="Bottom"
-                                                   Fill="#E74C3C" RadiusX="2" RadiusY="2">
+                                                   Fill="{DynamicResource DangerBrush}" RadiusX="2" RadiusY="2">
                                             <Rectangle.ToolTip>
                                                 <TextBlock Text="{Binding COGS, StringFormat='COGS: ₱{0:N2}'}"/>
                                             </Rectangle.ToolTip>
@@ -389,7 +375,7 @@
                                         <Rectangle Grid.Column="4"
                                                    Height="{Binding GrossProfitBarHeight}"
                                                    VerticalAlignment="Bottom"
-                                                   Fill="#27AE60" RadiusX="2" RadiusY="2">
+                                                   Fill="{DynamicResource SuccessBrush}" RadiusX="2" RadiusY="2">
                                             <Rectangle.ToolTip>
                                                 <StackPanel>
                                                     <TextBlock Text="{Binding GrossProfit, StringFormat='Gross Profit: ₱{0:N2}'}"/>
@@ -401,7 +387,7 @@
 
                                     <!-- Month label -->
                                     <TextBlock Text="{Binding Month}"
-                                               FontSize="9" Foreground="#7F8C8D"
+                                               FontSize="9" Foreground="{DynamicResource TextSecondaryBrush}"
                                                HorizontalAlignment="Center"
                                                Margin="0,3,0,0"/>
                                 </StackPanel>
@@ -422,8 +408,8 @@
                               CanUserAddRows="False" CanUserDeleteRows="False"
                               IsReadOnly="True" CanUserReorderColumns="False" CanUserResizeRows="False"
                               HeadersVisibility="Column" GridLinesVisibility="Horizontal"
-                              BorderBrush="#DFE6E9" BorderThickness="1"
-                              RowBackground="White" AlternatingRowBackground="#FAFBFC"
+                              BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                              RowBackground="{DynamicResource SurfaceBrush}" AlternatingRowBackground="{DynamicResource SidebarBackgroundBrush}"
                               FontSize="11" CanUserSortColumns="False"
                               SelectionMode="Single">
 
