@@ -176,9 +176,11 @@
                     </StackPanel>
 
                     <TextBlock Grid.Column="2"
-                               Text="{Binding Editor.TotalAmount, StringFormat='Running Total: ₱{0:N2}'}"
                                FontSize="{DynamicResource FontSizeBody}" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"
-                               VerticalAlignment="Center"/>
+                               VerticalAlignment="Center">
+                        <Run Text="Running Total: "/>
+                        <Run Text="{Binding Editor.TotalAmount, Converter={StaticResource PesoConverter}, Mode=OneWay}"/>
+                    </TextBlock>
                 </Grid>
 
                 <!-- Line Items DataGrid -->
@@ -221,14 +223,16 @@
                         </DataGridTemplateColumn>
 
                         <DataGridTextColumn Header="Qty" Width="70"
-                                            Binding="{Binding QuantityOrdered, Mode=TwoWay, UpdateSourceTrigger=LostFocus}">
+                                            HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                            Binding="{Binding QuantityOrdered, Mode=TwoWay, UpdateSourceTrigger=LostFocus, StringFormat={StaticResource FormatQuantity}}">
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}"/>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
 
                         <DataGridTextColumn Header="Unit Cost" Width="100"
-                                            Binding="{Binding UnitCost, Mode=TwoWay, UpdateSourceTrigger=LostFocus, StringFormat='N2'}">
+                                            HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                            Binding="{Binding UnitCost, Mode=TwoWay, UpdateSourceTrigger=LostFocus, StringFormat={StaticResource FormatQuantity}}">
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}"/>
                             </DataGridTextColumn.ElementStyle>
@@ -236,7 +240,8 @@
 
                         <DataGridTextColumn Header="Line Total" Width="110"
                                             IsReadOnly="True"
-                                            Binding="{Binding LineTotal, StringFormat='₱{0:N2}'}">
+                                            HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                            Binding="{Binding LineTotal, StringFormat={StaticResource FormatCurrency}}">
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}">
                                     <Setter Property="FontWeight" Value="SemiBold"/>
@@ -377,15 +382,16 @@
 
                             <DataGridTextColumn Header="Order Date" Width="105"
                                                 SortMemberPath="OrderDate"
-                                                Binding="{Binding OrderDate, StringFormat='MM/dd/yyyy'}"/>
+                                                Binding="{Binding OrderDate, StringFormat={StaticResource FormatDate}}"/>
 
                             <DataGridTextColumn Header="Expected Delivery" Width="120"
                                                 SortMemberPath="ExpectedDeliveryDate"
-                                                Binding="{Binding ExpectedDeliveryDate, StringFormat='MM/dd/yyyy'}"/>
+                                                Binding="{Binding ExpectedDeliveryDate, StringFormat={StaticResource FormatDate}}"/>
 
                             <DataGridTextColumn Header="Total Amount" Width="110"
                                                 SortMemberPath="TotalAmount"
-                                                Binding="{Binding TotalAmount, StringFormat='₱{0:N2}'}">
+                                                HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                Binding="{Binding TotalAmount, StringFormat={StaticResource FormatCurrency}}">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}">
                                         <Setter Property="FontWeight" Value="SemiBold"/>

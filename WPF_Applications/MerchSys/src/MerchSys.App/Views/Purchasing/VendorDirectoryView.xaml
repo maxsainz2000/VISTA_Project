@@ -319,13 +319,13 @@
                             </StackPanel>
 
                             <StackPanel Grid.Column="1" HorizontalAlignment="Center">
-                                <TextBlock Text="{Binding VendorDetail.TotalSpent, StringFormat='₱{0:N0}'}"
+                                <TextBlock Text="{Binding VendorDetail.TotalSpent, StringFormat={StaticResource FormatCurrencyNoDecimal}}"
                                            Style="{StaticResource MetricValueStyle}" FontSize="13"/>
                                 <TextBlock Text="Total Spent" Style="{StaticResource CaptionLabelStyle}" TextAlignment="Center"/>
                             </StackPanel>
 
                             <StackPanel Grid.Column="2" HorizontalAlignment="Center">
-                                <TextBlock Text="{Binding VendorDetail.LastOrderDate, StringFormat='MM/dd/yy'}"
+                                <TextBlock Text="{Binding VendorDetail.LastOrderDate, StringFormat={StaticResource FormatDateShort}}"
                                            Style="{StaticResource MetricValueStyle}" FontSize="12"/>
                                 <TextBlock Text="Last Order" Style="{StaticResource CaptionLabelStyle}" TextAlignment="Center"/>
                             </StackPanel>
@@ -371,13 +371,14 @@
                             </DataGridTextColumn>
 
                             <DataGridTextColumn Header="Date" Width="70"
-                                               Binding="{Binding OrderDate, StringFormat='MM/dd/yy'}"/>
+                                               Binding="{Binding OrderDate, StringFormat={StaticResource FormatDateShort}}"/>
 
                             <DataGridTextColumn Header="Status" Width="70"
                                                Binding="{Binding Status}"/>
 
                             <DataGridTextColumn Header="Total" Width="80"
-                                               Binding="{Binding Total, StringFormat='₱{0:N0}'}">
+                                               HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                               Binding="{Binding Total, StringFormat={StaticResource FormatCurrencyNoDecimal}}">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}">
                                         <Setter Property="FontWeight" Value="SemiBold"/>

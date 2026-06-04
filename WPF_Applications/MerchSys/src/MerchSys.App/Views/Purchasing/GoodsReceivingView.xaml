@@ -153,10 +153,10 @@
                             <!-- Read-only: Qty Ordered -->
                             <DataGridTextColumn Header="Qty Ordered" Width="95"
                                                IsReadOnly="True"
-                                               Binding="{Binding QtyOrdered}">
+                                               HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                               Binding="{Binding QtyOrdered, StringFormat={StaticResource FormatQuantity}}">
                                 <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}">
                                         <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                                     </Style>
                                 </DataGridTextColumn.ElementStyle>
@@ -164,10 +164,10 @@
 
                             <!-- Editable: Qty Received -->
                             <DataGridTextColumn Header="Qty Received" Width="100"
-                                               Binding="{Binding QtyReceived, Mode=TwoWay, UpdateSourceTrigger=LostFocus}">
+                                               HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                               Binding="{Binding QtyReceived, Mode=TwoWay, UpdateSourceTrigger=LostFocus, StringFormat={StaticResource FormatQuantity}}">
                                 <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}">
                                         <Setter Property="FontWeight" Value="SemiBold"/>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding HasDiscrepancy}" Value="True">
@@ -180,7 +180,8 @@
 
                             <!-- Editable: Unit Cost -->
                             <DataGridTextColumn Header="Unit Cost" Width="100"
-                                               Binding="{Binding UnitCost, Mode=TwoWay, UpdateSourceTrigger=LostFocus, StringFormat='N2'}">
+                                               HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                               Binding="{Binding UnitCost, Mode=TwoWay, UpdateSourceTrigger=LostFocus, StringFormat={StaticResource FormatQuantity}}">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}"/>
                                 </DataGridTextColumn.ElementStyle>
@@ -190,7 +191,7 @@
                             <DataGridTemplateColumn Header="Expiry Date" Width="130" IsReadOnly="False">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding ExpiryDate, StringFormat='MM/dd/yyyy'}"
+                                        <TextBlock Text="{Binding ExpiryDate, StringFormat={StaticResource FormatDate}}"
                                                    FontSize="12" VerticalAlignment="Center" Padding="4,0"
                                                    Foreground="{Binding ExpiryDate, Converter={x:Null}}"/>
                                     </DataTemplate>
@@ -225,7 +226,8 @@
                             <!-- Read-only: VAT Amount (auto-computed) -->
                             <DataGridTextColumn Header="VAT Amt" Width="80"
                                                IsReadOnly="True"
-                                               Binding="{Binding VatAmount, StringFormat='N2'}">
+                                               HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                               Binding="{Binding VatAmount, StringFormat={StaticResource FormatCurrency}}">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}">
                                         <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>

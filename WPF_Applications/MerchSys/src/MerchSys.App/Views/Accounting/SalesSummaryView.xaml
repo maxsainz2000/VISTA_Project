@@ -294,13 +294,13 @@
                                                        Text="{Binding TransactionCount}"
                                                        Style="{StaticResource TableCellRight}"/>
                                             <TextBlock Grid.Column="2"
-                                                       Text="{Binding GrossAmount, StringFormat='₱{0:N2}'}"
+                                                       Text="{Binding GrossAmount, StringFormat={StaticResource FormatCurrency}}"
                                                        Style="{StaticResource TableCellRight}"/>
                                             <TextBlock Grid.Column="3"
-                                                       Text="{Binding NetAmount, StringFormat='₱{0:N2}'}"
+                                                       Text="{Binding NetAmount, StringFormat={StaticResource FormatCurrency}}"
                                                        Style="{StaticResource TableCellRight}"/>
                                             <TextBlock Grid.Column="4"
-                                                       Text="{Binding Percentage, StringFormat='{}{0:N1}%'}"
+                                                       Text="{Binding Percentage, StringFormat={StaticResource FormatPercent}}"
                                                        Style="{StaticResource TableCellRight}"/>
                                         </Grid>
                                     </Border>
@@ -361,23 +361,28 @@
                                                        Binding="{Binding SalesDate, StringFormat='MMM d, yyyy'}"/>
 
                                     <DataGridTextColumn Header="Gross Sales" Width="120"
-                                                       Binding="{Binding GrossSales, StringFormat='₱{0:N2}'}"
+                                                       HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                       Binding="{Binding GrossSales, StringFormat={StaticResource FormatCurrency}}"
                                                        ElementStyle="{StaticResource NumericCellStyle}"/>
 
                                     <DataGridTextColumn Header="Discounts" Width="110"
-                                                       Binding="{Binding Discounts, StringFormat='₱{0:N2}'}"
+                                                       HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                       Binding="{Binding Discounts, StringFormat={StaticResource FormatCurrency}}"
                                                        ElementStyle="{StaticResource NumericCellStyle}"/>
 
                                     <DataGridTextColumn Header="Returns" Width="110"
-                                                       Binding="{Binding Returns, StringFormat='₱{0:N2}'}"
+                                                       HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                       Binding="{Binding Returns, StringFormat={StaticResource FormatCurrency}}"
                                                        ElementStyle="{StaticResource NumericCellStyle}"/>
 
                                     <DataGridTextColumn Header="Net Sales" Width="120"
-                                                       Binding="{Binding NetSales, StringFormat='₱{0:N2}'}"
+                                                       HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                       Binding="{Binding NetSales, StringFormat={StaticResource FormatCurrency}}"
                                                        ElementStyle="{StaticResource NumericCellStyle}"/>
 
                                     <DataGridTextColumn Header="Transactions" Width="100"
-                                                       Binding="{Binding TransactionCount}"
+                                                       HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                       Binding="{Binding TransactionCount, StringFormat={StaticResource FormatQuantityInt}}"
                                                        ElementStyle="{StaticResource NumericCellStyle}"/>
 
                                 </DataGrid.Columns>

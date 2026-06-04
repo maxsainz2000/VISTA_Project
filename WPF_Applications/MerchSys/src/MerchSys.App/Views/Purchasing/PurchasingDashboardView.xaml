@@ -77,7 +77,7 @@
                                 Style="{StaticResource CleanButtonStyle}" Margin="0,0,8,0">
                             <Border Style="{StaticResource PrimaryMetricCardStyle}">
                                 <StackPanel>
-                                    <TextBlock Text="{Binding TotalOutstandingAP, StringFormat='₱{0:N2}'}"
+                                    <TextBlock Text="{Binding TotalOutstandingAP, StringFormat={StaticResource FormatCurrency}}"
                                                Style="{StaticResource PrimaryMetricValueStyle}" Foreground="{DynamicResource AccentBrush}"/>
                                     <TextBlock Text="Outstanding AP" Style="{StaticResource KpiLabel}"/>
                                 </StackPanel>
@@ -99,7 +99,7 @@
                                     </Style>
                                 </Border.Style>
                                 <StackPanel>
-                                    <TextBlock Text="{Binding OverdueAPAmount, StringFormat='₱{0:N2}'}">
+                                    <TextBlock Text="{Binding OverdueAPAmount, StringFormat={StaticResource FormatCurrency}}">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock" BasedOn="{StaticResource SecondaryMetricValueStyle}">
                                                 <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
@@ -226,7 +226,7 @@
                                                                VerticalAlignment="Bottom"
                                                                Fill="{DynamicResource AccentBrush}" RadiusX="2" RadiusY="2" Width="28">
                                                         <Rectangle.ToolTip>
-                                                            <TextBlock Text="{Binding Spend, StringFormat='Spend: ₱{0:N2}'}"/>
+                                                            <TextBlock Text="{Binding Spend, Converter={StaticResource PesoConverter}, StringFormat='Spend: \{0\}'}"/>
                                                         </Rectangle.ToolTip>
                                                     </Rectangle>
                                                 </Grid>
@@ -261,10 +261,12 @@
                                                             Binding="{Binding VendorName}"/>
                                         <DataGridTextColumn Header="Purchase Orders" Width="100"
                                                             Binding="{Binding POCount}"
-                                                            ElementStyle="{StaticResource NumericCellStyle}"/>
+                                                            ElementStyle="{StaticResource NumericCellStyle}"
+                                                            HeaderStyle="{StaticResource RightAlignedHeaderStyle}"/>
                                         <DataGridTextColumn Header="Total Spend" Width="120"
-                                                            Binding="{Binding TotalSpend, StringFormat='₱{0:N2}'}"
-                                                            ElementStyle="{StaticResource NumericCellStyle}"/>
+                                                            Binding="{Binding TotalSpend, StringFormat={StaticResource FormatCurrency}}"
+                                                            ElementStyle="{StaticResource NumericCellStyle}"
+                                                            HeaderStyle="{StaticResource RightAlignedHeaderStyle}"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
                             </DockPanel>
@@ -304,9 +306,9 @@
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="PO Number" Width="100" Binding="{Binding OrderNumber}"/>
                                         <DataGridTextColumn Header="Vendor" Width="*" MinWidth="180" Binding="{Binding VendorName}"/>
-                                        <DataGridTextColumn Header="Order Date" Width="120" Binding="{Binding OrderDate, StringFormat='MM/dd/yyyy HH:mm'}"/>
-                                        <DataGridTextColumn Header="Expected Delivery" Width="130" Binding="{Binding ExpectedDeliveryDate, StringFormat='MM/dd/yyyy'}"/>
-                                        <DataGridTextColumn Header="Amount" Width="100" Binding="{Binding TotalAmount, StringFormat='₱{0:N2}'}" ElementStyle="{StaticResource NumericCellStyle}"/>
+                                        <DataGridTextColumn Header="Order Date" Width="120" Binding="{Binding OrderDate, StringFormat={StaticResource FormatDateTime}}"/>
+                                        <DataGridTextColumn Header="Expected Delivery" Width="130" Binding="{Binding ExpectedDeliveryDate, StringFormat={StaticResource FormatDate}}"/>
+                                        <DataGridTextColumn Header="Amount" Width="100" Binding="{Binding TotalAmount, StringFormat={StaticResource FormatCurrency}}" ElementStyle="{StaticResource NumericCellStyle}" HeaderStyle="{StaticResource RightAlignedHeaderStyle}"/>
                                         <DataGridTextColumn Header="Status" Width="90" Binding="{Binding Status}"/>
                                     </DataGrid.Columns>
                                 </DataGrid>

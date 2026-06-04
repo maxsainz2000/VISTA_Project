@@ -63,7 +63,7 @@
             <!-- Hero: Total Value at Risk -->
             <Border Grid.Column="0" Style="{StaticResource PrimaryMetricCardStyle}" Margin="0,0,8,0">
                 <StackPanel>
-                    <TextBlock Text="{Binding TotalValueAtRisk, StringFormat='₱{0:N2}'}"
+                    <TextBlock Text="{Binding TotalValueAtRisk, StringFormat={StaticResource FormatCurrency}}"
                                Style="{StaticResource PrimaryMetricValueStyle}" Foreground="{DynamicResource DangerBrush}"/>
                     <TextBlock Text="Total Value at Risk" Style="{StaticResource CaptionLabelStyle}"/>
                 </StackPanel>
@@ -199,6 +199,7 @@
                                                Binding="{Binding ProductName}"/>
 
                             <DataGridTextColumn Header="Batch #" Width="68"
+                                               HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
                                                Binding="{Binding BatchId}">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}"/>
@@ -206,6 +207,7 @@
                             </DataGridTextColumn>
 
                             <DataGridTextColumn Header="Qty Remaining" Width="100"
+                                               HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
                                                SortMemberPath="QtyRemaining"
                                                Binding="{Binding QtyRemaining}">
                                 <DataGridTextColumn.ElementStyle>
@@ -214,16 +216,18 @@
                             </DataGridTextColumn>
 
                             <DataGridTextColumn Header="Unit Cost" Width="90"
+                                               HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
                                                SortMemberPath="UnitCost"
-                                               Binding="{Binding UnitCost, StringFormat='₱{0:N2}'}">
+                                               Binding="{Binding UnitCost, StringFormat={StaticResource FormatCurrency}}">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}"/>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
 
                             <DataGridTextColumn Header="Value" Width="95"
+                                               HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
                                                SortMemberPath="Value"
-                                               Binding="{Binding Value, StringFormat='₱{0:N2}'}">
+                                               Binding="{Binding Value, StringFormat={StaticResource FormatCurrency}}">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}"/>
                                 </DataGridTextColumn.ElementStyle>
@@ -231,7 +235,7 @@
 
                             <DataGridTextColumn Header="Expiry Date" Width="100"
                                                SortMemberPath="ExpiryDate"
-                                               Binding="{Binding ExpiryDate, StringFormat='MM/dd/yyyy'}"/>
+                                               Binding="{Binding ExpiryDate, StringFormat={StaticResource FormatDate}}"/>
 
                             <DataGridTemplateColumn Header="Days Remaining" Width="105"
                                                    SortMemberPath="DaysRemaining" IsReadOnly="True">
@@ -316,6 +320,7 @@
 
                             <DataGridTextColumn Header="Batch #" Width="68"
                                                IsReadOnly="True"
+                                               HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
                                                Binding="{Binding BatchId}">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}"/>
@@ -324,6 +329,7 @@
 
                             <DataGridTextColumn Header="Qty Remaining" Width="100"
                                                IsReadOnly="True"
+                                               HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
                                                SortMemberPath="QtyRemaining"
                                                Binding="{Binding QtyRemaining}">
                                 <DataGridTextColumn.ElementStyle>
@@ -333,8 +339,9 @@
 
                             <DataGridTextColumn Header="Unit Cost" Width="90"
                                                IsReadOnly="True"
+                                               HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
                                                SortMemberPath="UnitCost"
-                                               Binding="{Binding UnitCost, StringFormat='₱{0:N2}'}">
+                                               Binding="{Binding UnitCost, StringFormat={StaticResource FormatCurrency}}">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}"/>
                                 </DataGridTextColumn.ElementStyle>
@@ -342,8 +349,9 @@
 
                             <DataGridTextColumn Header="Value" Width="95"
                                                IsReadOnly="True"
+                                               HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
                                                SortMemberPath="Value"
-                                               Binding="{Binding Value, StringFormat='₱{0:N2}'}">
+                                               Binding="{Binding Value, StringFormat={StaticResource FormatCurrency}}">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}"/>
                                 </DataGridTextColumn.ElementStyle>
@@ -352,15 +360,17 @@
                             <DataGridTextColumn Header="Expiry Date" Width="100"
                                                IsReadOnly="True"
                                                SortMemberPath="ExpiryDate"
-                                               Binding="{Binding ExpiryDate, StringFormat='MM/dd/yyyy'}"/>
+                                               Binding="{Binding ExpiryDate, StringFormat={StaticResource FormatDate}}"/>
 
                             <DataGridTextColumn Header="Days Overdue" Width="100"
                                                IsReadOnly="True"
+                                               HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
                                                SortMemberPath="DaysRemaining"
                                                Binding="{Binding DaysRemaining}">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock">
-                                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                                        <Setter Property="HorizontalAlignment" Value="Right"/>
+                                        <Setter Property="Padding" Value="0,0,8,0"/>
                                         <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
                                         <Setter Property="FontWeight" Value="Bold"/>
                                     </Style>

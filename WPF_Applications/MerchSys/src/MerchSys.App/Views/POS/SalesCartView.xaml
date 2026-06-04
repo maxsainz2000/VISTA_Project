@@ -136,7 +136,7 @@
 
                                     <!-- Price -->
                                     <TextBlock Grid.Row="0" Grid.Column="1"
-                                               Text="{Binding UnitPrice, StringFormat='₱{0:N2}'}"
+                                               Text="{Binding UnitPrice, StringFormat={StaticResource FormatCurrency}}"
                                                FontWeight="Bold" Foreground="{DynamicResource SuccessBrush}" FontSize="{DynamicResource FontSizeBody}"/>
 
                                     <!-- SKU + Stock -->
@@ -207,24 +207,24 @@
 
                         <TextBlock Grid.Row="0" Grid.Column="0" Text="Subtotal" Style="{StaticResource CaptionLabelStyle}"/>
                         <TextBlock Grid.Row="0" Grid.Column="1"
-                                   Text="{Binding SubTotal, StringFormat='₱{0:N2}'}"
+                                   Text="{Binding SubTotal, StringFormat={StaticResource FormatCurrency}}"
                                    Style="{StaticResource TotalValue}"/>
 
                         <TextBlock Grid.Row="1" Grid.Column="0" Text="Discount" Style="{StaticResource CaptionLabelStyle}"/>
                         <TextBlock Grid.Row="1" Grid.Column="1"
-                                   Text="{Binding DiscountTotal, StringFormat='− ₱{0:N2}'}"
+                                   Text="{Binding DiscountTotal, Converter={StaticResource SignedPesoConverter}}"
                                    Style="{StaticResource TotalValue}" Foreground="{DynamicResource DangerBrush}"/>
 
                         <TextBlock Grid.Row="2" Grid.Column="0" Text="VAT (12%)" Style="{StaticResource CaptionLabelStyle}"/>
                         <TextBlock Grid.Row="2" Grid.Column="1"
-                                   Text="{Binding VatAmount, StringFormat='₱{0:N2}'}"
+                                   Text="{Binding VatAmount, StringFormat={StaticResource FormatCurrency}}"
                                    Style="{StaticResource TotalValue}"/>
 
                         <TextBlock Grid.Row="4" Grid.Column="0" Text="GRAND TOTAL"
                                    FontSize="{DynamicResource FontSizeSubhead}" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"
                                    VerticalAlignment="Center"/>
                         <TextBlock Grid.Row="4" Grid.Column="1"
-                                   Text="{Binding GrandTotal, StringFormat='₱{0:N2}'}"
+                                   Text="{Binding GrandTotal, StringFormat={StaticResource FormatCurrency}}"
                                    Style="{StaticResource GrandTotalValue}"/>
                     </Grid>
                 </Border>
@@ -259,21 +259,29 @@
 
                             <!-- Qty (editable) -->
                             <DataGridTextColumn Header="Qty" Width="60"
-                                                Binding="{Binding Quantity, UpdateSourceTrigger=LostFocus}"/>
+                                                Binding="{Binding Quantity, UpdateSourceTrigger=LostFocus}"
+                                                ElementStyle="{StaticResource NumericCellStyle}"
+                                                HeaderStyle="{StaticResource RightAlignedHeaderStyle}"/>
 
                             <!-- Unit Price -->
                             <DataGridTextColumn Header="Unit Price" Width="90"
-                                                Binding="{Binding UnitPrice, StringFormat='₱{0:N2}'}"
-                                                IsReadOnly="True"/>
+                                                Binding="{Binding UnitPrice, StringFormat={StaticResource FormatCurrency}}"
+                                                IsReadOnly="True"
+                                                ElementStyle="{StaticResource NumericCellStyle}"
+                                                HeaderStyle="{StaticResource RightAlignedHeaderStyle}"/>
 
                             <!-- Discount -->
                             <DataGridTextColumn Header="Discount" Width="80"
-                                                Binding="{Binding DiscountAmount, UpdateSourceTrigger=LostFocus}"/>
+                                                Binding="{Binding DiscountAmount, UpdateSourceTrigger=LostFocus}"
+                                                ElementStyle="{StaticResource NumericCellStyle}"
+                                                HeaderStyle="{StaticResource RightAlignedHeaderStyle}"/>
 
                             <!-- Line Total -->
                             <DataGridTextColumn Header="Total" Width="90"
-                                                Binding="{Binding LineTotal, StringFormat='₱{0:N2}'}"
-                                                IsReadOnly="True"/>
+                                                Binding="{Binding LineTotal, StringFormat={StaticResource FormatCurrency}}"
+                                                IsReadOnly="True"
+                                                ElementStyle="{StaticResource NumericCellStyle}"
+                                                HeaderStyle="{StaticResource RightAlignedHeaderStyle}"/>
 
                             <!-- Remove -->
                             <DataGridTemplateColumn Header="" Width="36" IsReadOnly="True">
@@ -431,13 +439,13 @@
                     <!-- Cash section -->
                     <StackPanel Visibility="{Binding IsCash, Converter={StaticResource BoolToVis}}">
                         <TextBlock Text="Amount Tendered (₱)" Style="{StaticResource CaptionLabelStyle}"/>
-                        <TextBox Text="{Binding AmountTendered, UpdateSourceTrigger=PropertyChanged, StringFormat='N2'}"
+                        <TextBox Text="{Binding AmountTendered, UpdateSourceTrigger=PropertyChanged, StringFormat={StaticResource FormatQuantity}}"
                                  Padding="6,4" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
                                  HorizontalContentAlignment="Right" FontSize="{DynamicResource FontSizeSubhead}"
                                  TabIndex="10"/>
 
                         <TextBlock Text="Change" Style="{StaticResource CaptionLabelStyle}" Margin="0,8,0,2"/>
-                        <TextBlock Text="{Binding ChangeAmount, StringFormat='₱{0:N2}'}"
+                        <TextBlock Text="{Binding ChangeAmount, StringFormat={StaticResource FormatCurrency}}"
                                    FontSize="{DynamicResource FontSizeSubhead}" FontWeight="Bold" Foreground="{DynamicResource SuccessBrush}"
                                    HorizontalAlignment="Right"/>
                     </StackPanel>
@@ -474,8 +482,8 @@
                                         <StackPanel>
                                             <TextBlock Text="{Binding CustomerName}" FontWeight="SemiBold" FontSize="{DynamicResource FontSizeBody}"/>
                                             <TextBlock FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}">
-                                                <Run Text="Balance: ₱"/>
-                                                <Run Text="{Binding CurrentBalance, StringFormat='N2'}"/>
+                                                <Run Text="Balance: "/>
+                                                <Run Text="{Binding CurrentBalance, Converter={StaticResource PesoConverter}}"/>
                                             </TextBlock>
                                         </StackPanel>
                                     </Border>
@@ -548,17 +556,17 @@
                             </Grid>
                             <Grid Margin="0,2,0,0">
                                 <TextBlock Text="Date" FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                <TextBlock Text="{Binding CurrentReceipt.IssueDate, StringFormat='MM/dd/yyyy HH:mm'}"
+                                <TextBlock Text="{Binding CurrentReceipt.IssueDate, StringFormat={StaticResource FormatDateTime}}"
                                            HorizontalAlignment="Right" FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextPrimaryBrush}"/>
                             </Grid>
                             <Separator Margin="0,6"/>
                             <Grid>
                                 <TextBlock Text="TOTAL" FontWeight="Bold" FontSize="{DynamicResource FontSizeBody}" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                <TextBlock Text="{Binding CurrentReceipt.TotalAmount, StringFormat='₱{0:N2}'}"
+                                <TextBlock Text="{Binding CurrentReceipt.TotalAmount, StringFormat={StaticResource FormatCurrency}}"
                                            HorizontalAlignment="Right" FontWeight="Bold"
                                            FontSize="{DynamicResource FontSizeBody}" Foreground="{DynamicResource SuccessBrush}"/>
                             </Grid>
-                            <TextBlock Text="{Binding CurrentReceipt.VatAmount, StringFormat='VAT: ₱{0:N2}'}"
+                            <TextBlock Text="{Binding CurrentReceipt.VatAmount, Converter={StaticResource PesoConverter}, StringFormat='VAT: \{0\}'}"
                                        FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Right"/>
                             <Separator Margin="0,6"/>
                             <TextBlock Text="Thank you!"

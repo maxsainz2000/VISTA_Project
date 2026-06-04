@@ -48,7 +48,7 @@
                 <!-- Hero: Period Shrinkage Value -->
                 <Border Grid.Column="0" Style="{StaticResource PrimaryMetricCardStyle}" Margin="0,0,8,0">
                     <StackPanel>
-                        <TextBlock Text="{Binding PeriodTotalValue, StringFormat='₱{0:N2}'}"
+                        <TextBlock Text="{Binding PeriodTotalValue, StringFormat={StaticResource FormatCurrency}}"
                                    Style="{StaticResource PrimaryMetricValueStyle}" Foreground="{DynamicResource DangerBrush}"/>
                         <TextBlock Text="Period Shrinkage Value" Style="{StaticResource CaptionLabelStyle}"/>
                     </StackPanel>
@@ -165,24 +165,27 @@
 
                         <DataGridTextColumn Header="Date" Width="130"
                                            SortMemberPath="RecordedDate"
-                                           Binding="{Binding RecordedDate, StringFormat='MM/dd/yyyy HH:mm'}"/>
+                                           Binding="{Binding RecordedDate, StringFormat={StaticResource FormatDateTime}}"/>
 
                         <DataGridTextColumn Header="Product" Width="*" MinWidth="140"
                                            Binding="{Binding ProductName}"/>
 
                         <DataGridTextColumn Header="Qty" Width="55"
+                                           HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
                                            SortMemberPath="QuantityLost"
                                            Binding="{Binding QuantityLost}"
                                            ElementStyle="{StaticResource NumericCellStyle}"/>
 
                         <DataGridTextColumn Header="Unit Cost" Width="90"
+                                           HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
                                            SortMemberPath="UnitCost"
-                                           Binding="{Binding UnitCost, StringFormat='₱{0:N2}'}"
+                                           Binding="{Binding UnitCost, StringFormat={StaticResource FormatCurrency}}"
                                            ElementStyle="{StaticResource NumericCellStyle}"/>
 
                         <DataGridTextColumn Header="Total Value" Width="100"
+                                           HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
                                            SortMemberPath="TotalValue"
-                                           Binding="{Binding TotalValue, StringFormat='₱{0:N2}'}"
+                                           Binding="{Binding TotalValue, StringFormat={StaticResource FormatCurrency}}"
                                            ElementStyle="{StaticResource NumericCellStyle}"/>
 
                         <!-- Reason column with color coding -->

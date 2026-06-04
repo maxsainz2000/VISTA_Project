@@ -46,6 +46,11 @@
             </Setter.Value>
         </Setter>
     </Style>
+    
+    <!-- Right-aligned header style for numeric columns -->
+    <Style x:Key="RightAlignedHeaderStyle" TargetType="{x:Type DataGridColumnHeader}" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+        <Setter Property="HorizontalContentAlignment" Value="Right"/>
+    </Style>
 
     <!-- ========================================== -->
     <!-- DATAGRID ROW                               -->

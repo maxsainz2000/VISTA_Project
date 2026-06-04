@@ -35,7 +35,7 @@
             <Border Grid.Column="0" Style="{StaticResource PrimaryMetricCardStyle}" Margin="0,0,8,0">
                 <StackPanel>
                     <TextBlock Text="Total Outstanding AR" Style="{StaticResource FieldLabelStyle}"/>
-                    <TextBlock Text="{Binding TotalOutstanding, StringFormat='₱{0:N2}'}"
+                    <TextBlock Text="{Binding TotalOutstanding, StringFormat={StaticResource FormatCurrency}}"
                                Style="{StaticResource PrimaryMetricValueStyle}"/>
                 </StackPanel>
             </Border>
@@ -314,7 +314,8 @@
                                                     Binding="{Binding Phone}"/>
 
                                 <DataGridTextColumn Header="Balance" Width="100"
-                                                    Binding="{Binding CurrentBalance, StringFormat='₱{0:N2}'}">
+                                                    Binding="{Binding CurrentBalance, StringFormat={StaticResource FormatCurrency}}"
+                                                    HeaderStyle="{StaticResource RightAlignedHeaderStyle}">
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}"/>
                                     </DataGridTextColumn.ElementStyle>
@@ -343,21 +344,23 @@
                                 </DataGridTemplateColumn>
 
                                 <DataGridTextColumn Header="Total Credit" Width="100"
-                                                    Binding="{Binding TotalCreditExtended, StringFormat='₱{0:N2}'}">
+                                                    Binding="{Binding TotalCreditExtended, StringFormat={StaticResource FormatCurrency}}"
+                                                    HeaderStyle="{StaticResource RightAlignedHeaderStyle}">
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}"/>
                                     </DataGridTextColumn.ElementStyle>
                                 </DataGridTextColumn>
 
                                 <DataGridTextColumn Header="Total Paid" Width="100"
-                                                    Binding="{Binding TotalPaymentsReceived, StringFormat='₱{0:N2}'}">
+                                                    Binding="{Binding TotalPaymentsReceived, StringFormat={StaticResource FormatCurrency}}"
+                                                    HeaderStyle="{StaticResource RightAlignedHeaderStyle}">
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}"/>
                                     </DataGridTextColumn.ElementStyle>
                                 </DataGridTextColumn>
 
                                 <DataGridTextColumn Header="Last Transaction" Width="120"
-                                                    Binding="{Binding LastTransactionDate, StringFormat='MM/dd/yyyy'}"/>
+                                                    Binding="{Binding LastTransactionDate, StringFormat={StaticResource FormatDate}}"/>
 
                                 <DataGridTemplateColumn Header="" Width="80" IsReadOnly="True">
                                     <DataGridTemplateColumn.CellTemplate>
@@ -414,7 +417,7 @@
                                 <Grid Margin="0,0,0,6">
                                     <TextBlock Text="Current Balance" Style="{StaticResource FieldLabelStyle}"
                                                VerticalAlignment="Center"/>
-                                    <TextBlock Text="{Binding SelectedAccount.CurrentBalance, StringFormat='₱{0:N2}'}"
+                                    <TextBlock Text="{Binding SelectedAccount.CurrentBalance, StringFormat={StaticResource FormatCurrency}}"
                                                HorizontalAlignment="Right" FontSize="14" FontWeight="Bold">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock">
@@ -476,10 +479,10 @@
                                                     </Grid.RowDefinitions>
 
                                                     <TextBlock Grid.Row="0" Grid.Column="0"
-                                                               Text="{Binding PaymentDate, StringFormat='MM/dd/yyyy'}"
+                                                               Text="{Binding PaymentDate, StringFormat={StaticResource FormatDate}}"
                                                                FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                                     <TextBlock Grid.Row="0" Grid.Column="1"
-                                                               Text="{Binding PaymentAmount, StringFormat='₱{0:N2}'}"
+                                                               Text="{Binding PaymentAmount, StringFormat={StaticResource FormatCurrency}}"
                                                                FontWeight="SemiBold" FontSize="{DynamicResource FontSizeBody}"
                                                                Foreground="{DynamicResource SuccessBrush}"/>
                                                     <TextBlock Grid.Row="1" Grid.Column="0"
@@ -528,10 +531,10 @@
                                                     </Grid.RowDefinitions>
 
                                                     <TextBlock Grid.Row="0" Grid.Column="0"
-                                                               Text="{Binding TransactionDate, StringFormat='MM/dd/yyyy'}"
+                                                               Text="{Binding TransactionDate, StringFormat={StaticResource FormatDate}}"
                                                                FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                                     <TextBlock Grid.Row="0" Grid.Column="1"
-                                                               Text="{Binding Amount, StringFormat='₱{0:N2}'}"
+                                                               Text="{Binding Amount, StringFormat={StaticResource FormatCurrency}}"
                                                                FontWeight="SemiBold" FontSize="{DynamicResource FontSizeBody}"
                                                                Foreground="{DynamicResource DangerBrush}"/>
                                                     <TextBlock Grid.Row="1" Grid.Column="0"
@@ -609,7 +612,7 @@
                             <TextBlock Grid.Row="2" Grid.Column="0" Text="Balance"
                                        Style="{StaticResource FieldLabelStyle}" Margin="0,0,6,0"/>
                             <TextBlock Grid.Row="2" Grid.Column="1"
-                                       Text="{Binding PaymentTargetAccount.CurrentBalance, StringFormat='₱{0:N2}'}"
+                                       Text="{Binding PaymentTargetAccount.CurrentBalance, StringFormat={StaticResource FormatCurrency}}"
                                        FontSize="{DynamicResource FontSizeBody}" FontWeight="Bold" Foreground="{DynamicResource DangerBrush}"
                                        VerticalAlignment="Center"/>
                         </Grid>

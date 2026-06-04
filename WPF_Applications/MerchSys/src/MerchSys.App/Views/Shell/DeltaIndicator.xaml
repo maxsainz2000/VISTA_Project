@@ -122,6 +122,6 @@
     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
         <Path Style="{StaticResource IndicatorPathStyle}"/>
         <TextBlock Style="{StaticResource IndicatorTextStyle}"
-                   Text="{Binding Percent, RelativeSource={RelativeSource AncestorType=UserControl}, StringFormat='{}{0:+0.0;-0.0;0.0}%'}"/>
+                   Text="{Binding Percent, RelativeSource={RelativeSource AncestorType=UserControl}, StringFormat={StaticResource FormatPercentSigned}}"/>
     </StackPanel>
 </UserControl>

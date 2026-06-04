@@ -50,5 +50,6 @@ All engineering learnings from debugging and error-fixing sessions. Check this i
 | [wpf-vista-command-palette](patterns/wpf-vista-command-palette.md) | pattern | MerchSys.App | wpf, xaml, mvvm, command-palette, navigation, search, debouncing | antigravity | 2026-06-03 | active |
 | [wpf-vista-keyboard-focus](patterns/wpf-vista-keyboard-focus.md) | pattern | Infrastructure | wpf, xaml, vb-net, keyboard-focus, accessibility | antigravity | 2026-06-04 | active |
 | [wpf-vista-confirmation-presenter](patterns/wpf-vista-confirmation-presenter.md) | pattern | MerchSys.App | wpf, xaml, mvvm, confirmation, dialogs, danger-styling | antigravity | 2026-06-04 | active |
+| [wpf-vista-formatting](patterns/wpf-vista-formatting.md) | pattern | MerchSys.App | wpf, xaml, vb-net, mvvm, formatting | antigravity | 2026-06-04 | active |
 
 

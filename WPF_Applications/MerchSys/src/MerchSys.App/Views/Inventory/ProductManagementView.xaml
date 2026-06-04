@@ -168,8 +168,9 @@
                                                        Binding="{Binding CategoryName}"/>
 
                                     <DataGridTextColumn Header="Retail Price" Width="95"
+                                                       HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
                                                        SortMemberPath="RetailPrice"
-                                                       Binding="{Binding RetailPrice, StringFormat='₱{0:N2}'}"
+                                                       Binding="{Binding RetailPrice, StringFormat={StaticResource FormatCurrency}}"
                                                        ElementStyle="{StaticResource NumericCellStyle}"/>
 
                                     <DataGridTextColumn Header="Unit" Width="60"
@@ -198,6 +199,7 @@
                                     </DataGridTemplateColumn>
 
                                     <DataGridTextColumn Header="Min Threshold" Width="95"
+                                                       HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
                                                        SortMemberPath="MinThreshold"
                                                        Binding="{Binding MinThreshold}"
                                                        ElementStyle="{StaticResource NumericCellStyle}"/>
@@ -295,6 +297,7 @@
                                                        Binding="{Binding Description}"/>
 
                                     <DataGridTextColumn Header="Products" Width="80"
+                                                       HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
                                                        SortMemberPath="ProductCount"
                                                        Binding="{Binding ProductCount}"
                                                        ElementStyle="{StaticResource NumericCellStyle}"/>
@@ -429,7 +432,7 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="Current FIFO Cost: " Style="{StaticResource CaptionLabelStyle}"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding EditorFifoCost, StringFormat='₱{0:N2}'}" FontWeight="Bold" VerticalAlignment="Center" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding EditorFifoCost, StringFormat={StaticResource FormatCurrency}}" FontWeight="Bold" VerticalAlignment="Center" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                 </Grid>
                                 <Grid Margin="0,4,0,0">
                                     <Grid.ColumnDefinitions>
@@ -437,7 +440,7 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="Suggested Price (20%): " Style="{StaticResource CaptionLabelStyle}"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding EditorSuggestedPrice, StringFormat='₱{0:N2}'}" FontWeight="Bold" Foreground="{DynamicResource SuccessBrush}" VerticalAlignment="Center" FontSize="11"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding EditorSuggestedPrice, StringFormat={StaticResource FormatCurrency}}" FontWeight="Bold" Foreground="{DynamicResource SuccessBrush}" VerticalAlignment="Center" FontSize="11"/>
                                 </Grid>
                                 <Grid Margin="0,4,0,0">
                                     <Grid.ColumnDefinitions>
@@ -446,7 +449,7 @@
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="Current Margin: " Style="{StaticResource CaptionLabelStyle}"/>
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding EditorMargin, StringFormat='₱{0:N2}'}" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource SuccessBrush}"/>
+                                        <TextBlock Text="{Binding EditorMargin, StringFormat={StaticResource FormatCurrency}}" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource SuccessBrush}"/>
                                         <TextBlock Text="{Binding EditorMarginPercent, StringFormat=' ({0}%)'}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                     </StackPanel>
                                 </Grid>

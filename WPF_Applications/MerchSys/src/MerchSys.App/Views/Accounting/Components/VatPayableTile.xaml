@@ -62,15 +62,16 @@
                         </Style.Triggers>
                     </Style>
                 </TextBlock.Style>
-                <Run Text="₱"/>
-                <Run Text="{Binding VatPayable, StringFormat=N2, FallbackValue='0.00'}"/>
+                <Run Text="{Binding VatPayable, Converter={StaticResource PesoConverter}, FallbackValue='₱0.00'}"/>
             </TextBlock>
 
             <!-- Filing due date -->
-            <TextBlock Text="{Binding VatFilingDueDate, StringFormat='Due {0:MMM d}', TargetNullValue=''}"
-                       FontSize="10"
+            <TextBlock FontSize="10"
                        Foreground="{DynamicResource TextSecondaryBrush}"
-                       Margin="0,2,0,0"/>
+                       Margin="0,2,0,0">
+                <Run Text="Due "/>
+                <Run Text="{Binding VatFilingDueDate, Converter={StaticResource DateFormatter}, ConverterParameter='MMM d', TargetNullValue=''}"/>
+            </TextBlock>
 
         </StackPanel>
     </Border>

@@ -231,7 +231,7 @@
                                            Text="{Binding GrossProfitDisplay}"
                                            Style="{StaticResource LineBoldAmount}"/>
                                 <TextBlock Grid.Row="5" Grid.Column="2"
-                                           Text="{Binding GrossMarginPercent, StringFormat='{}{0:N1}%'}"
+                                           Text="{Binding GrossMarginPercent, StringFormat={StaticResource FormatPercent}}"
                                            Style="{StaticResource LineBoldPercent}"/>
 
                                 <!-- Row 7: Less Operating Expenses -->
@@ -262,7 +262,7 @@
                                            Text="{Binding NetIncomeDisplay}"
                                            Style="{StaticResource LineBoldAmount}"/>
                                 <TextBlock Grid.Row="12" Grid.Column="2"
-                                           Text="{Binding NetMarginPercent, StringFormat='{}{0:N1}%'}"
+                                           Text="{Binding NetMarginPercent, StringFormat={StaticResource FormatPercent}}"
                                            Style="{StaticResource LineBoldPercent}"/>
 
                             </Grid>
@@ -297,23 +297,28 @@
                                                        Binding="{Binding ProductName}"/>
 
                                     <DataGridTextColumn Header="Revenue" Width="110"
-                                                       Binding="{Binding Revenue, StringFormat='₱{0:N2}'}"
+                                                       HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                       Binding="{Binding Revenue, StringFormat={StaticResource FormatCurrency}}"
                                                        ElementStyle="{StaticResource NumericCellStyle}"/>
 
                                     <DataGridTextColumn Header="COGS" Width="110"
-                                                       Binding="{Binding COGS, StringFormat='₱{0:N2}'}"
+                                                       HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                       Binding="{Binding COGS, StringFormat={StaticResource FormatCurrency}}"
                                                        ElementStyle="{StaticResource NumericCellStyle}"/>
 
                                     <DataGridTextColumn Header="Gross Profit" Width="110"
-                                                       Binding="{Binding GrossProfit, StringFormat='₱{0:N2}'}"
+                                                       HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                       Binding="{Binding GrossProfit, StringFormat={StaticResource FormatCurrency}}"
                                                        ElementStyle="{StaticResource NumericCellStyle}"/>
 
                                     <DataGridTextColumn Header="Margin %" Width="80"
-                                                       Binding="{Binding GrossMarginPercent, StringFormat='{}{0:N1}%'}"
+                                                       HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                       Binding="{Binding GrossMarginPercent, StringFormat={StaticResource FormatPercent}}"
                                                        ElementStyle="{StaticResource NumericCellStyle}"/>
 
                                     <DataGridTextColumn Header="Units Sold" Width="84"
-                                                       Binding="{Binding UnitsSold}"
+                                                       HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                       Binding="{Binding UnitsSold, StringFormat={StaticResource FormatQuantityInt}}"
                                                        ElementStyle="{StaticResource NumericCellStyle}"/>
 
                                 </DataGrid.Columns>

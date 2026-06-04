@@ -62,7 +62,7 @@
 
                     <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,20,0">
                         <TextBlock Text="NET VAT PAYABLE" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,3"/>
-                        <TextBlock Text="{Binding NetVatPayable, StringFormat='₱{0:N2}'}">
+                        <TextBlock Text="{Binding NetVatPayable, StringFormat={StaticResource FormatCurrency}}">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock" BasedOn="{StaticResource PrimaryMetricValueStyle}">
                                     <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
@@ -85,10 +85,10 @@
 
                     <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="20,0,0,0">
                         <TextBlock Text="OUTPUT VAT" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,2"/>
-                        <TextBlock Text="{Binding Summary.OutputVat, StringFormat='₱{0:N2}'}"
+                        <TextBlock Text="{Binding Summary.OutputVat, StringFormat={StaticResource FormatCurrency}}"
                                    FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         <TextBlock Text="INPUT VAT" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,6,0,2"/>
-                        <TextBlock Text="{Binding Summary.InputVat, StringFormat='₱{0:N2}'}"
+                        <TextBlock Text="{Binding Summary.InputVat, StringFormat={StaticResource FormatCurrency}}"
                                    FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                     </StackPanel>
                 </Grid>
@@ -114,7 +114,7 @@
                                     <ColumnDefinition Width="120"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="Vatable Sales" Style="{StaticResource CaptionLabelStyle}"/>
-                                <TextBlock Grid.Column="1" Text="{Binding Summary.VatableSales, StringFormat='₱{0:N2}'}"
+                                <TextBlock Grid.Column="1" Text="{Binding Summary.VatableSales, StringFormat={StaticResource FormatCurrency}}"
                                            FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                             </Grid>
 
@@ -124,7 +124,7 @@
                                     <ColumnDefinition Width="120"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="VAT-Exempt Sales" Style="{StaticResource CaptionLabelStyle}"/>
-                                <TextBlock Grid.Column="1" Text="{Binding Summary.VatExemptSales, StringFormat='₱{0:N2}'}"
+                                <TextBlock Grid.Column="1" Text="{Binding Summary.VatExemptSales, StringFormat={StaticResource FormatCurrency}}"
                                            FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                             </Grid>
 
@@ -134,7 +134,7 @@
                                     <ColumnDefinition Width="120"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="Zero-Rated Sales" Style="{StaticResource CaptionLabelStyle}"/>
-                                <TextBlock Grid.Column="1" Text="{Binding Summary.ZeroRatedSales, StringFormat='₱{0:N2}'}"
+                                <TextBlock Grid.Column="1" Text="{Binding Summary.ZeroRatedSales, StringFormat={StaticResource FormatCurrency}}"
                                            FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                             </Grid>
 
@@ -146,7 +146,7 @@
                                     <ColumnDefinition Width="120"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="Output VAT" Style="{StaticResource CaptionLabelStyle}" FontWeight="SemiBold"/>
-                                <TextBlock Grid.Column="1" Text="{Binding Summary.OutputVat, StringFormat='₱{0:N2}'}"
+                                <TextBlock Grid.Column="1" Text="{Binding Summary.OutputVat, StringFormat={StaticResource FormatCurrency}}"
                                            FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Right" VerticalAlignment="Center" FontWeight="SemiBold"/>
                             </Grid>
 
@@ -156,7 +156,7 @@
                                     <ColumnDefinition Width="120"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="Total Gross Sales" Style="{StaticResource CaptionLabelStyle}" FontWeight="Bold"/>
-                                <TextBlock Grid.Column="1" Text="{Binding Summary.TotalGrossSales, StringFormat='₱{0:N2}'}"
+                                <TextBlock Grid.Column="1" Text="{Binding Summary.TotalGrossSales, StringFormat={StaticResource FormatCurrency}}"
                                            FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Right" VerticalAlignment="Center" FontWeight="Bold"/>
                             </Grid>
 
@@ -183,7 +183,7 @@
                                     <ColumnDefinition Width="120"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="Vatable Purchases" Style="{StaticResource CaptionLabelStyle}"/>
-                                <TextBlock Grid.Column="1" Text="{Binding Summary.VatablePurchases, StringFormat='₱{0:N2}'}"
+                                <TextBlock Grid.Column="1" Text="{Binding Summary.VatablePurchases, StringFormat={StaticResource FormatCurrency}}"
                                            FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                             </Grid>
 
@@ -193,7 +193,7 @@
                                     <ColumnDefinition Width="120"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="VAT-Exempt Purchases" Style="{StaticResource CaptionLabelStyle}"/>
-                                <TextBlock Grid.Column="1" Text="{Binding Summary.VatExemptPurchases, StringFormat='₱{0:N2}'}"
+                                <TextBlock Grid.Column="1" Text="{Binding Summary.VatExemptPurchases, StringFormat={StaticResource FormatCurrency}}"
                                            FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                             </Grid>
 
@@ -203,7 +203,7 @@
                                     <ColumnDefinition Width="120"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="Zero-Rated Purchases" Style="{StaticResource CaptionLabelStyle}"/>
-                                <TextBlock Grid.Column="1" Text="{Binding Summary.ZeroRatedPurchases, StringFormat='₱{0:N2}'}"
+                                <TextBlock Grid.Column="1" Text="{Binding Summary.ZeroRatedPurchases, StringFormat={StaticResource FormatCurrency}}"
                                            FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                             </Grid>
 
@@ -215,7 +215,7 @@
                                     <ColumnDefinition Width="120"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="Input VAT" Style="{StaticResource CaptionLabelStyle}" FontWeight="SemiBold"/>
-                                <TextBlock Grid.Column="1" Text="{Binding Summary.InputVat, StringFormat='₱{0:N2}'}"
+                                <TextBlock Grid.Column="1" Text="{Binding Summary.InputVat, StringFormat={StaticResource FormatCurrency}}"
                                            FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Right" VerticalAlignment="Center" FontWeight="SemiBold"/>
                             </Grid>
 
@@ -225,7 +225,7 @@
                                     <ColumnDefinition Width="120"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="Total Gross Purchases" Style="{StaticResource CaptionLabelStyle}" FontWeight="Bold"/>
-                                <TextBlock Grid.Column="1" Text="{Binding Summary.TotalGrossPurchases, StringFormat='₱{0:N2}'}"
+                                <TextBlock Grid.Column="1" Text="{Binding Summary.TotalGrossPurchases, StringFormat={StaticResource FormatCurrency}}"
                                            FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Right" VerticalAlignment="Center" FontWeight="Bold"/>
                             </Grid>
 
@@ -273,27 +273,33 @@
                                                     Binding="{Binding Month}"/>
 
                                 <DataGridTextColumn Header="Vatable Sales" Width="110"
-                                                    Binding="{Binding VatableSales, StringFormat='₱{0:N2}'}"
+                                                    HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                    Binding="{Binding VatableSales, StringFormat={StaticResource FormatCurrency}}"
                                                     ElementStyle="{StaticResource NumericCellStyle}"/>
 
                                 <DataGridTextColumn Header="Exempt Sales" Width="105"
-                                                    Binding="{Binding VatExemptSales, StringFormat='₱{0:N2}'}"
+                                                    HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                    Binding="{Binding VatExemptSales, StringFormat={StaticResource FormatCurrency}}"
                                                     ElementStyle="{StaticResource NumericCellStyle}"/>
 
                                 <DataGridTextColumn Header="Zero-Rated Sales" Width="120"
-                                                    Binding="{Binding ZeroRatedSales, StringFormat='₱{0:N2}'}"
+                                                    HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                    Binding="{Binding ZeroRatedSales, StringFormat={StaticResource FormatCurrency}}"
                                                     ElementStyle="{StaticResource NumericCellStyle}"/>
 
                                 <DataGridTextColumn Header="Output VAT" Width="100"
-                                                    Binding="{Binding OutputVat, StringFormat='₱{0:N2}'}"
+                                                    HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                    Binding="{Binding OutputVat, StringFormat={StaticResource FormatCurrency}}"
                                                     ElementStyle="{StaticResource NumericCellStyle}"/>
 
                                 <DataGridTextColumn Header="Input VAT" Width="100"
-                                                    Binding="{Binding InputVat, StringFormat='₱{0:N2}'}"
+                                                    HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                    Binding="{Binding InputVat, StringFormat={StaticResource FormatCurrency}}"
                                                     ElementStyle="{StaticResource NumericCellStyle}"/>
 
                                 <DataGridTextColumn Header="Net VAT Payable" Width="*"
-                                                    Binding="{Binding NetVatPayable, StringFormat='₱{0:N2}'}"
+                                                    HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                    Binding="{Binding NetVatPayable, StringFormat={StaticResource FormatCurrency}}"
                                                     ElementStyle="{StaticResource NumericCellStyle}"/>
 
                             </DataGrid.Columns>

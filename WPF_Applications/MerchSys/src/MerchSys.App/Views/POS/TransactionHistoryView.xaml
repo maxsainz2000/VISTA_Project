@@ -152,7 +152,7 @@
                                                     Binding="{Binding TransactionNumber}"
                                                     Width="110"/>
                                 <DataGridTextColumn Header="Date"
-                                                    Binding="{Binding TransactionDate, StringFormat='{}{0:MM/dd/yy HH:mm}'}"
+                                                    Binding="{Binding TransactionDate, StringFormat={StaticResource FormatDateTimeShort}}"
                                                     Width="120"/>
                                 <DataGridTextColumn Header="Customer"
                                                     Binding="{Binding CustomerName}"
@@ -161,24 +161,15 @@
                                                     Binding="{Binding PaymentMethod}"
                                                     Width="80"/>
                                 <DataGridTextColumn Header="Total"
-                                                    Binding="{Binding TotalAmount, StringFormat='₱{0:N2}'}"
-                                                    Width="90">
-                                    <DataGridTextColumn.ElementStyle>
-                                        <Style TargetType="TextBlock">
-                                            <Setter Property="HorizontalAlignment" Value="Right"/>
-                                            <Setter Property="Padding" Value="0,0,8,0"/>
-                                        </Style>
-                                    </DataGridTextColumn.ElementStyle>
-                                </DataGridTextColumn>
+                                                    Binding="{Binding TotalAmount, StringFormat={StaticResource FormatCurrency}}"
+                                                    Width="90"
+                                                    ElementStyle="{StaticResource NumericCellStyle}"
+                                                    HeaderStyle="{StaticResource RightAlignedHeaderStyle}"/>
                                 <DataGridTextColumn Header="Items"
                                                     Binding="{Binding ItemCount}"
-                                                    Width="50">
-                                    <DataGridTextColumn.ElementStyle>
-                                        <Style TargetType="TextBlock">
-                                            <Setter Property="HorizontalAlignment" Value="Center"/>
-                                        </Style>
-                                    </DataGridTextColumn.ElementStyle>
-                                </DataGridTextColumn>
+                                                    Width="50"
+                                                    ElementStyle="{StaticResource NumericCellStyle}"
+                                                    HeaderStyle="{StaticResource RightAlignedHeaderStyle}"/>
                                 <DataGridTextColumn Header="Returns"
                                                     Binding="{Binding HasReturnsText}"
                                                     Width="65">
@@ -289,33 +280,19 @@
                                                                 Width="*"/>
                                             <DataGridTextColumn Header="Qty"
                                                                 Binding="{Binding Quantity}"
-                                                                Width="40">
-                                                <DataGridTextColumn.ElementStyle>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="HorizontalAlignment" Value="Center"/>
-                                                    </Style>
-                                                </DataGridTextColumn.ElementStyle>
-                                            </DataGridTextColumn>
+                                                                Width="40"
+                                                                ElementStyle="{StaticResource NumericCellStyle}"
+                                                                HeaderStyle="{StaticResource RightAlignedHeaderStyle}"/>
                                             <DataGridTextColumn Header="Price"
-                                                                Binding="{Binding UnitPrice, StringFormat='₱{0:N2}'}"
-                                                                Width="70">
-                                                <DataGridTextColumn.ElementStyle>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="HorizontalAlignment" Value="Right"/>
-                                                        <Setter Property="Padding" Value="0,0,4,0"/>
-                                                    </Style>
-                                                </DataGridTextColumn.ElementStyle>
-                                            </DataGridTextColumn>
+                                                                Binding="{Binding UnitPrice, StringFormat={StaticResource FormatCurrency}}"
+                                                                Width="70"
+                                                                ElementStyle="{StaticResource NumericCellStyle}"
+                                                                HeaderStyle="{StaticResource RightAlignedHeaderStyle}"/>
                                             <DataGridTextColumn Header="Total"
-                                                                Binding="{Binding LineTotal, StringFormat='₱{0:N2}'}"
-                                                                Width="70">
-                                                <DataGridTextColumn.ElementStyle>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="HorizontalAlignment" Value="Right"/>
-                                                        <Setter Property="Padding" Value="0,0,4,0"/>
-                                                    </Style>
-                                                </DataGridTextColumn.ElementStyle>
-                                            </DataGridTextColumn>
+                                                                Binding="{Binding LineTotal, StringFormat={StaticResource FormatCurrency}}"
+                                                                Width="70"
+                                                                ElementStyle="{StaticResource NumericCellStyle}"
+                                                                HeaderStyle="{StaticResource RightAlignedHeaderStyle}"/>
                                         </DataGrid.Columns>
                                     </DataGrid>
 
@@ -372,30 +349,21 @@
                                               SelectionMode="Single">
                                         <DataGrid.Columns>
                                             <DataGridTextColumn Header="Date"
-                                                                Binding="{Binding ReturnDate, StringFormat='{}{0:MM/dd/yy}'}"
+                                                                Binding="{Binding ReturnDate, StringFormat={StaticResource FormatDateShort}}"
                                                                 Width="65"/>
                                             <DataGridTextColumn Header="Product"
                                                                 Binding="{Binding ProductName}"
                                                                 Width="*"/>
                                             <DataGridTextColumn Header="Qty"
                                                                 Binding="{Binding QuantityReturned}"
-                                                                Width="38">
-                                                <DataGridTextColumn.ElementStyle>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="HorizontalAlignment" Value="Center"/>
-                                                    </Style>
-                                                </DataGridTextColumn.ElementStyle>
-                                            </DataGridTextColumn>
+                                                                Width="38"
+                                                                ElementStyle="{StaticResource NumericCellStyle}"
+                                                                HeaderStyle="{StaticResource RightAlignedHeaderStyle}"/>
                                             <DataGridTextColumn Header="Refund"
-                                                                Binding="{Binding RefundAmount, StringFormat='₱{0:N2}'}"
-                                                                Width="70">
-                                                <DataGridTextColumn.ElementStyle>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="HorizontalAlignment" Value="Right"/>
-                                                        <Setter Property="Padding" Value="0,0,4,0"/>
-                                                    </Style>
-                                                </DataGridTextColumn.ElementStyle>
-                                            </DataGridTextColumn>
+                                                                Binding="{Binding RefundAmount, StringFormat={StaticResource FormatCurrency}}"
+                                                                Width="70"
+                                                                ElementStyle="{StaticResource NumericCellStyle}"
+                                                                HeaderStyle="{StaticResource RightAlignedHeaderStyle}"/>
                                             <DataGridTextColumn Header="Restocked"
                                                                 Binding="{Binding RestockedText}"
                                                                 Width="68">

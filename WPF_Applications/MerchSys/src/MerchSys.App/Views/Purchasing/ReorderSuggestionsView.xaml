@@ -251,10 +251,10 @@
                             </DataGridTextColumn>
 
                             <DataGridTextColumn Header="Stock" Width="65"
-                                                Binding="{Binding CurrentStock}">
+                                                HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                Binding="{Binding CurrentStock, StringFormat={StaticResource FormatQuantity}}">
                                 <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}">
                                         <Setter Property="VerticalAlignment" Value="Center"/>
                                         <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
                                         <Setter Property="FontWeight" Value="SemiBold"/>
@@ -263,10 +263,10 @@
                             </DataGridTextColumn>
 
                             <DataGridTextColumn Header="Reorder Pt." Width="80"
-                                                Binding="{Binding ReorderPoint}">
+                                                HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                Binding="{Binding ReorderPoint, StringFormat={StaticResource FormatQuantity}}">
                                 <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}">
                                         <Setter Property="VerticalAlignment" Value="Center"/>
                                         <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                                     </Style>
@@ -274,10 +274,10 @@
                             </DataGridTextColumn>
 
                             <DataGridTextColumn Header="Sugg. Qty" Width="80"
-                                                Binding="{Binding SuggestedQty}">
+                                                HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                Binding="{Binding SuggestedQty, StringFormat={StaticResource FormatQuantity}}">
                                 <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}">
                                         <Setter Property="VerticalAlignment" Value="Center"/>
                                         <Setter Property="FontWeight" Value="SemiBold"/>
                                         <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
@@ -296,10 +296,10 @@
                             </DataGridTextColumn>
 
                             <DataGridTextColumn Header="Lead Days" Width="75"
-                                                Binding="{Binding EstLeadTimeDays}">
+                                                HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                Binding="{Binding EstLeadTimeDays, StringFormat={StaticResource FormatQuantityInt}}">
                                 <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}">
                                         <Setter Property="VerticalAlignment" Value="Center"/>
                                         <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                                     </Style>
@@ -498,30 +498,30 @@
                             </DataGridTextColumn>
 
                             <DataGridTextColumn Header="Min Threshold" Width="100"
-                                                Binding="{Binding MinimumThreshold}">
+                                                HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                Binding="{Binding MinimumThreshold, StringFormat={StaticResource FormatQuantity}}">
                                 <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}">
                                         <Setter Property="VerticalAlignment" Value="Center"/>
                                     </Style>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
 
                             <DataGridTextColumn Header="Safety Stock" Width="90"
-                                                Binding="{Binding SafetyStock}">
+                                                HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                Binding="{Binding SafetyStock, StringFormat={StaticResource FormatQuantity}}">
                                 <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}">
                                         <Setter Property="VerticalAlignment" Value="Center"/>
                                     </Style>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
 
                             <DataGridTextColumn Header="Default Qty" Width="85"
-                                                Binding="{Binding DefaultOrderQuantity}">
+                                                HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                Binding="{Binding DefaultOrderQuantity, StringFormat={StaticResource FormatQuantity}}">
                                 <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}">
                                         <Setter Property="VerticalAlignment" Value="Center"/>
                                         <Setter Property="FontWeight" Value="SemiBold"/>
                                         <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
@@ -530,10 +530,10 @@
                             </DataGridTextColumn>
 
                             <DataGridTextColumn Header="Lead Days" Width="80"
-                                                Binding="{Binding LeadTimeDays}">
+                                                HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                Binding="{Binding LeadTimeDays, StringFormat={StaticResource FormatQuantityInt}}">
                                 <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}">
                                         <Setter Property="VerticalAlignment" Value="Center"/>
                                         <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                                     </Style>
@@ -564,10 +564,10 @@
                             </DataGridTemplateColumn>
 
                             <DataGridTextColumn Header="Season ×" Width="75"
-                                                Binding="{Binding SeasonalMultiplier, StringFormat='N2'}">
+                                                 HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                 Binding="{Binding SeasonalMultiplier, StringFormat={StaticResource FormatQuantity}}">
                                 <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}">
                                         <Setter Property="VerticalAlignment" Value="Center"/>
                                         <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                                     </Style>

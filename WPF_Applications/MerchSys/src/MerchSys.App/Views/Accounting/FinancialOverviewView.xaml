@@ -106,7 +106,7 @@
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Grid.Column="0">
                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding MonthToDateRevenue, StringFormat='₱{0:N0}'}"
+                                                <TextBlock Text="{Binding MonthToDateRevenue, StringFormat={StaticResource FormatCurrencyNoDecimal}}"
                                                            Style="{StaticResource PrimaryMetricValueStyle}" Foreground="{DynamicResource AccentBrush}"
                                                            VerticalAlignment="Center"/>
                                                 <views:DeltaIndicator Percent="{Binding RevenueDeltaPercent}" Margin="8,0,0,0" VerticalAlignment="Center"/>
@@ -121,7 +121,7 @@
                             <!-- Today Revenue -->
                             <Border Grid.Column="1" Style="{StaticResource SecondaryMetricCardStyle}" Margin="0,0,8,0">
                                 <StackPanel>
-                                    <TextBlock Text="{Binding TodayRevenue, StringFormat='₱{0:N0}'}"
+                                    <TextBlock Text="{Binding TodayRevenue, StringFormat={StaticResource FormatCurrencyNoDecimal}}"
                                                Style="{StaticResource SecondaryMetricValueStyle}" Foreground="{DynamicResource AccentBrush}"/>
                                     <TextBlock Text="Today Revenue" Style="{StaticResource KpiLabel}"/>
                                 </StackPanel>
@@ -130,7 +130,7 @@
                             <!-- Gross Margin % -->
                             <Border Grid.Column="2" Style="{StaticResource SecondaryMetricCardStyle}" Margin="0,0,8,0">
                                 <StackPanel>
-                                    <TextBlock Text="{Binding CurrentGrossMargin, StringFormat='{}{0:N1}%'}"
+                                    <TextBlock Text="{Binding CurrentGrossMargin, StringFormat={StaticResource FormatPercent}}"
                                                Style="{StaticResource SecondaryMetricValueStyle}" Foreground="{DynamicResource SuccessBrush}"/>
                                     <TextBlock Text="Gross Margin %" Style="{StaticResource KpiLabel}"/>
                                 </StackPanel>
@@ -139,7 +139,7 @@
                             <!-- AR Outstanding -->
                             <Border Grid.Column="3" Style="{StaticResource SecondaryMetricCardStyle}" Margin="0,0,8,0">
                                 <StackPanel>
-                                    <TextBlock Text="{Binding TotalAR, StringFormat='₱{0:N0}'}"
+                                    <TextBlock Text="{Binding TotalAR, StringFormat={StaticResource FormatCurrencyNoDecimal}}"
                                                Style="{StaticResource SecondaryMetricValueStyle}" Foreground="{DynamicResource WarningBrush}"/>
                                     <TextBlock Text="AR Outstanding" Style="{StaticResource KpiLabel}"/>
                                 </StackPanel>
@@ -148,7 +148,7 @@
                             <!-- AP Outstanding -->
                             <Border Grid.Column="4" Style="{StaticResource SecondaryMetricCardStyle}" Margin="0">
                                 <StackPanel>
-                                    <TextBlock Text="{Binding TotalAP, StringFormat='₱{0:N0}'}"
+                                    <TextBlock Text="{Binding TotalAP, StringFormat={StaticResource FormatCurrencyNoDecimal}}"
                                                Style="{StaticResource SecondaryMetricValueStyle}" Foreground="{DynamicResource DangerBrush}"/>
                                     <TextBlock Text="AP Outstanding" Style="{StaticResource KpiLabel}"/>
                                 </StackPanel>
@@ -166,7 +166,7 @@
                             <!-- YTD Revenue -->
                             <Border Grid.Column="0" Style="{StaticResource TertiaryMetricStyle}" Margin="0,0,8,0">
                                 <StackPanel>
-                                    <TextBlock Text="{Binding YearToDateRevenue, StringFormat='₱{0:N0}'}"
+                                    <TextBlock Text="{Binding YearToDateRevenue, StringFormat={StaticResource FormatCurrencyNoDecimal}}"
                                                FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                     <TextBlock Text="YTD Revenue" Style="{StaticResource KpiLabel}"/>
                                 </StackPanel>
@@ -175,7 +175,7 @@
                             <!-- Inventory Value -->
                             <Border Grid.Column="1" Style="{StaticResource TertiaryMetricStyle}" Margin="0,0,8,0">
                                 <StackPanel>
-                                    <TextBlock Text="{Binding InventoryValue, StringFormat='₱{0:N0}'}"
+                                    <TextBlock Text="{Binding InventoryValue, StringFormat={StaticResource FormatCurrencyNoDecimal}}"
                                                FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                     <TextBlock Text="Inventory Value" Style="{StaticResource KpiLabel}"/>
                                 </StackPanel>
@@ -369,7 +369,10 @@
                                                                VerticalAlignment="Bottom"
                                                                Fill="{DynamicResource AccentBrush}" RadiusX="2" RadiusY="2">
                                                         <Rectangle.ToolTip>
-                                                            <TextBlock Text="{Binding Revenue, StringFormat='Revenue: ₱{0:N2}'}"/>
+                                                            <TextBlock>
+                                                                <Run Text="Revenue: "/>
+                                                                <Run Text="{Binding Revenue, Converter={StaticResource PesoConverter}}"/>
+                                                            </TextBlock>
                                                         </Rectangle.ToolTip>
                                                     </Rectangle>
 
@@ -378,7 +381,10 @@
                                                                VerticalAlignment="Bottom"
                                                                Fill="{DynamicResource DangerBrush}" RadiusX="2" RadiusY="2">
                                                         <Rectangle.ToolTip>
-                                                            <TextBlock Text="{Binding COGS, StringFormat='COGS: ₱{0:N2}'}"/>
+                                                            <TextBlock>
+                                                                <Run Text="COGS: "/>
+                                                                <Run Text="{Binding COGS, Converter={StaticResource PesoConverter}}"/>
+                                                            </TextBlock>
                                                         </Rectangle.ToolTip>
                                                     </Rectangle>
 
@@ -388,8 +394,14 @@
                                                                Fill="{DynamicResource SuccessBrush}" RadiusX="2" RadiusY="2">
                                                         <Rectangle.ToolTip>
                                                             <StackPanel>
-                                                                <TextBlock Text="{Binding GrossProfit, StringFormat='Gross Profit: ₱{0:N2}'}"/>
-                                                                <TextBlock Text="{Binding GrossMarginPercent, StringFormat='Margin: {0:N1}%'}"/>
+                                                                <TextBlock>
+                                                                    <Run Text="Gross Profit: "/>
+                                                                    <Run Text="{Binding GrossProfit, Converter={StaticResource PesoConverter}}"/>
+                                                                </TextBlock>
+                                                                <TextBlock>
+                                                                    <Run Text="Margin: "/>
+                                                                    <Run Text="{Binding GrossMarginPercent, StringFormat={StaticResource FormatPercent}}"/>
+                                                                </TextBlock>
                                                             </StackPanel>
                                                         </Rectangle.ToolTip>
                                                     </Rectangle>
@@ -430,20 +442,24 @@
                                                            Binding="{Binding ProductName}"/>
 
                                         <DataGridTextColumn Header="Units Sold" Width="72"
-                                                           Binding="{Binding QuantitySold}"
+                                                           HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                           Binding="{Binding QuantitySold, StringFormat={StaticResource FormatQuantityInt}}"
                                                            ElementStyle="{StaticResource NumericCellStyle}"/>
 
                                         <DataGridTextColumn Header="Revenue" Width="88"
-                                                           Binding="{Binding Revenue, StringFormat='₱{0:N0}'}"
+                                                           HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                           Binding="{Binding Revenue, StringFormat={StaticResource FormatCurrencyNoDecimal}}"
                                                            ElementStyle="{StaticResource NumericCellStyle}"/>
 
                                         <DataGridTextColumn Header="COGS" Width="80"
-                                                           Binding="{Binding COGS, StringFormat='₱{0:N0}'}"
+                                                           HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                           Binding="{Binding COGS, StringFormat={StaticResource FormatCurrencyNoDecimal}}"
                                                            ElementStyle="{StaticResource NumericCellStyle}"/>
 
                                         <DataGridTextColumn Header="Margin %" Width="70"
-                                                           Binding="{Binding GrossMarginPercent, StringFormat='{}{0:N1}%'}"
-                                                           ElementStyle="{StaticResource NumericCellStyle}"/>
+                                                            HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                            Binding="{Binding GrossMarginPercent, StringFormat={StaticResource FormatPercent}}"
+                                                            ElementStyle="{StaticResource NumericCellStyle}"/>
 
                                     </DataGrid.Columns>
                                 </DataGrid>

@@ -68,7 +68,7 @@
 
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                         <TextBlock Text="Total Outstanding:" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,8,0"/>
-                        <TextBlock Text="{Binding TotalOutstanding, StringFormat='₱{0:N2}'}"
+                        <TextBlock Text="{Binding TotalOutstanding, StringFormat={StaticResource FormatCurrency}}"
                                    FontSize="18" FontWeight="Bold" Foreground="{DynamicResource DangerBrush}"
                                    VerticalAlignment="Center"/>
                     </StackPanel>
@@ -264,13 +264,14 @@
                             </DataGridTextColumn>
 
                             <DataGridTextColumn Header="Invoice Date" Width="105"
-                                                Binding="{Binding InvoiceDate, StringFormat='MM/dd/yyyy'}"/>
+                                                Binding="{Binding InvoiceDate, StringFormat={StaticResource FormatDate}}"/>
 
                             <DataGridTextColumn Header="Due Date" Width="105"
-                                                Binding="{Binding DueDate, StringFormat='MM/dd/yyyy'}"/>
+                                                Binding="{Binding DueDate, StringFormat={StaticResource FormatDate}}"/>
 
                             <DataGridTextColumn Header="Total Amt" Width="110"
-                                                Binding="{Binding TotalAmount, StringFormat='₱{0:N2}'}">
+                                                Binding="{Binding TotalAmount, StringFormat={StaticResource FormatCurrency}}"
+                                                HeaderStyle="{StaticResource RightAlignedHeaderStyle}">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}">
                                         <Setter Property="FontWeight" Value="SemiBold"/>
@@ -279,7 +280,8 @@
                             </DataGridTextColumn>
 
                             <DataGridTextColumn Header="Outstanding" Width="110"
-                                                Binding="{Binding OutstandingBalance, StringFormat='₱{0:N2}'}">
+                                                Binding="{Binding OutstandingBalance, StringFormat={StaticResource FormatCurrency}}"
+                                                HeaderStyle="{StaticResource RightAlignedHeaderStyle}">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}">
                                         <Setter Property="FontWeight" Value="Bold"/>
@@ -361,7 +363,7 @@
                         <TextBlock Grid.Row="4" Grid.Column="0" Text="Balance:"
                                    Style="{StaticResource FieldLabelStyle}" Margin="0,0,6,0"/>
                         <TextBlock Grid.Row="4" Grid.Column="1"
-                                   Text="{Binding PaymentDialogBalance, StringFormat='₱{0:N2}'}"
+                                   Text="{Binding PaymentDialogBalance, StringFormat={StaticResource FormatCurrency}}"
                                    FontWeight="Bold" FontSize="15" Foreground="{DynamicResource DangerBrush}"/>
                     </Grid>
 

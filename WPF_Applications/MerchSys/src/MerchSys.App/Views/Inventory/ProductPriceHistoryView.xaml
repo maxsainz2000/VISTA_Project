@@ -53,17 +53,20 @@
                     <DataGrid.Columns>
                         
                         <DataGridTextColumn Header="Date &amp; Time" Width="135"
-                                           Binding="{Binding ChangedAt, StringFormat='yyyy-MM-dd HH:mm:ss UTC'}"/>
+                                           Binding="{Binding ChangedAt, StringFormat={StaticResource FormatDateTime}}"/>
 
                         <DataGridTextColumn Header="Old Price" Width="95"
-                                           Binding="{Binding OldPrice, StringFormat='₱{0:N2}'}"
-                                           ElementStyle="{StaticResource NumericCellStyle}"/>
+                                            HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                            Binding="{Binding OldPrice, StringFormat={StaticResource FormatCurrency}}"
+                                            ElementStyle="{StaticResource NumericCellStyle}"/>
 
                         <DataGridTextColumn Header="New Price" Width="95"
-                                           Binding="{Binding NewPrice, StringFormat='₱{0:N2}'}"
-                                           ElementStyle="{StaticResource NumericCellStyle}"/>
+                                            HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                            Binding="{Binding NewPrice, StringFormat={StaticResource FormatCurrency}}"
+                                            ElementStyle="{StaticResource NumericCellStyle}"/>
 
-                        <DataGridTemplateColumn Header="Delta" Width="95">
+                        <DataGridTemplateColumn Header="Delta" Width="95"
+                                                HeaderStyle="{StaticResource RightAlignedHeaderStyle}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock FontWeight="SemiBold" HorizontalAlignment="Right" Padding="0,0,8,0">
@@ -73,11 +76,11 @@
                                                 <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding IsIncrease}" Value="True">
-                                                        <Setter Property="Text" Value="{Binding Delta, StringFormat='+₱{0:N2}'}"/>
+                                                        <Setter Property="Text" Value="{Binding Delta, StringFormat={StaticResource FormatCurrencySignedPositive}}"/>
                                                         <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding IsDecrease}" Value="True">
-                                                        <Setter Property="Text" Value="{Binding Delta, StringFormat='₱{0:N2}'}"/>
+                                                        <Setter Property="Text" Value="{Binding Delta, StringFormat={StaticResource FormatCurrency}}"/>
                                                         <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>

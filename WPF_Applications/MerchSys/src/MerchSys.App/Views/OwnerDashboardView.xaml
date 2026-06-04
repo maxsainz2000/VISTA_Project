@@ -160,8 +160,7 @@
                     <StackPanel>
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <TextBlock Style="{StaticResource PrimaryMetricValueStyle}" VerticalAlignment="Center">
-                                <Run Text="₱"/>
-                                <Run Text="{Binding TodayRevenue, Mode=OneWay, StringFormat=N0}"/>
+                                <Run Text="{Binding TodayRevenue, Mode=OneWay, Converter={StaticResource PesoNoDecimalConverter}}"/>
                             </TextBlock>
                             <views:DeltaIndicator Percent="{Binding TodayRevenueDelta}" Margin="8,0,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
@@ -216,8 +215,7 @@
                         <StackPanel Grid.Row="1" Grid.Column="1">
                             <TextBlock Text="Overdue Accounts Payable" Style="{StaticResource CaptionLabelStyle}"/>
                             <TextBlock Style="{StaticResource SecondaryMetricValueStyle}" Foreground="{DynamicResource DangerBrush}">
-                                <Run Text="₱"/>
-                                <Run Text="{Binding OverdueApTotal, Mode=OneWay, StringFormat=N0}"/>
+                                <Run Text="{Binding OverdueApTotal, Mode=OneWay, Converter={StaticResource PesoNoDecimalConverter}}"/>
                             </TextBlock>
                         </StackPanel>
                     </Grid>
@@ -260,8 +258,7 @@
                         <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,0,8">
                             <TextBlock Text="Total Stock Value" Style="{StaticResource CaptionLabelStyle}"/>
                             <TextBlock Style="{StaticResource SecondaryMetricValueStyle}">
-                                <Run Text="₱"/>
-                                <Run Text="{Binding TotalStockValue, Mode=OneWay, StringFormat=N0}"/>
+                                <Run Text="{Binding TotalStockValue, Mode=OneWay, Converter={StaticResource PesoNoDecimalConverter}}"/>
                             </TextBlock>
                         </StackPanel>
 
@@ -310,8 +307,7 @@
                             <TextBlock Text="This Week's Revenue" Style="{StaticResource CaptionLabelStyle}"/>
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <TextBlock Style="{StaticResource SecondaryMetricValueStyle}" VerticalAlignment="Center">
-                                    <Run Text="₱"/>
-                                    <Run Text="{Binding WeekRevenue, Mode=OneWay, StringFormat=N0}"/>
+                                    <Run Text="{Binding WeekRevenue, Mode=OneWay, Converter={StaticResource PesoNoDecimalConverter}}"/>
                                 </TextBlock>
                                 <views:DeltaIndicator Percent="{Binding WeekRevenueDelta}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                             </StackPanel>
@@ -361,24 +357,21 @@
                         <StackPanel Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" VerticalAlignment="Center">
                             <TextBlock Text="Period Net Income" Style="{StaticResource CaptionLabelStyle}"/>
                             <TextBlock Style="{StaticResource SecondaryMetricValueStyle}">
-                                <Run Text="₱"/>
-                                <Run Text="{Binding CurrentPeriodNetIncome, Mode=OneWay, StringFormat=N0}"/>
+                                <Run Text="{Binding CurrentPeriodNetIncome, Mode=OneWay, Converter={StaticResource PesoNoDecimalConverter}}"/>
                             </TextBlock>
                         </StackPanel>
 
                         <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,0,8">
                             <TextBlock Text="AR Outstanding" Style="{StaticResource CaptionLabelStyle}"/>
                             <TextBlock Style="{StaticResource SecondaryMetricValueStyle}">
-                                <Run Text="₱"/>
-                                <Run Text="{Binding TotalArOutstanding, Mode=OneWay, StringFormat=N0}"/>
+                                <Run Text="{Binding TotalArOutstanding, Mode=OneWay, Converter={StaticResource PesoNoDecimalConverter}}"/>
                             </TextBlock>
                         </StackPanel>
 
                         <StackPanel Grid.Row="1" Grid.Column="1">
                             <TextBlock Text="AP Outstanding" Style="{StaticResource CaptionLabelStyle}"/>
                             <TextBlock Style="{StaticResource SecondaryMetricValueStyle}">
-                                <Run Text="₱"/>
-                                <Run Text="{Binding TotalApOutstanding, Mode=OneWay, StringFormat=N0}"/>
+                                <Run Text="{Binding TotalApOutstanding, Mode=OneWay, Converter={StaticResource PesoNoDecimalConverter}}"/>
                             </TextBlock>
                         </StackPanel>
                     </Grid>

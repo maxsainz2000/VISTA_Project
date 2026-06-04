@@ -19,7 +19,7 @@
                                Fill="{DynamicResource AccentBrush}"
                                RadiusX="0.5" RadiusY="0.5">
                         <Rectangle.ToolTip>
-                            <TextBlock Text="{Binding Value, StringFormat='₱{0:N0}'}"/>
+                            <TextBlock Text="{Binding Value, StringFormat={StaticResource FormatCurrencyNoDecimal}}"/>
                         </Rectangle.ToolTip>
                     </Rectangle>
                 </Border>

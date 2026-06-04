@@ -112,8 +112,9 @@
                                                 <DataGridTextColumn Header="Product Name" Binding="{Binding ProductName}" Width="*" IsReadOnly="True"/>
                                                 
                                                 <!-- Read-Only LastUnitCost -->
-                                                <DataGridTextColumn Header="Last Unit Cost (₱)" Width="130" IsReadOnly="True"
-                                                                   Binding="{Binding LastUnitCost, StringFormat='N2'}">
+                                                <DataGridTextColumn Header="Last Unit Cost" Width="130" IsReadOnly="True"
+                                                                    HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                                    Binding="{Binding LastUnitCost, StringFormat={StaticResource FormatCurrency}}">
                                                     <DataGridTextColumn.ElementStyle>
                                                         <Style TargetType="TextBlock" BasedOn="{StaticResource NumericCellStyle}"/>
                                                     </DataGridTextColumn.ElementStyle>

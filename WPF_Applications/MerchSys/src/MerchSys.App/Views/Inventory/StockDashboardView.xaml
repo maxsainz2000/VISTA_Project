@@ -71,7 +71,7 @@
                 <!-- Total Stock Value -->
                 <Border Grid.Column="2" Style="{StaticResource SecondaryMetricCardStyle}" Margin="0,0,8,0">
                     <StackPanel>
-                        <TextBlock Text="{Binding TotalStockValue, StringFormat='₱{0:N2}'}"
+                        <TextBlock Text="{Binding TotalStockValue, StringFormat={StaticResource FormatCurrency}}"
                                    Style="{StaticResource SecondaryMetricValueStyle}" Foreground="{DynamicResource SuccessBrush}"/>
                         <TextBlock Text="Total Stock Value" Style="{StaticResource CaptionLabelStyle}"/>
                     </StackPanel>
@@ -181,15 +181,21 @@
                                    FontSize="11">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Receipt Date" Width="90"
-                                                   Binding="{Binding ReceiptDate, StringFormat='MM/dd/yyyy'}"/>
+                                                   Binding="{Binding ReceiptDate, StringFormat={StaticResource FormatDate}}"/>
                                 <DataGridTextColumn Header="Received"   Width="68"
-                                                   Binding="{Binding QuantityReceived}"/>
+                                                   HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                   Binding="{Binding QuantityReceived}"
+                                                   ElementStyle="{StaticResource NumericCellStyle}"/>
                                 <DataGridTextColumn Header="Remaining"  Width="68"
-                                                   Binding="{Binding QuantityRemaining}"/>
+                                                   HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                   Binding="{Binding QuantityRemaining}"
+                                                   ElementStyle="{StaticResource NumericCellStyle}"/>
                                 <DataGridTextColumn Header="Unit Cost"  Width="78"
-                                                   Binding="{Binding UnitCost, StringFormat='₱{0:N2}'}"/>
+                                                   HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                   Binding="{Binding UnitCost, StringFormat={StaticResource FormatCurrency}}"
+                                                   ElementStyle="{StaticResource NumericCellStyle}"/>
                                 <DataGridTextColumn Header="Expiry Date" Width="90"
-                                                   Binding="{Binding ExpiryDate, StringFormat='MM/dd/yyyy'}"/>
+                                                   Binding="{Binding ExpiryDate, StringFormat={StaticResource FormatDate}}"/>
                                 <DataGridTextColumn Header="Expired?" Width="56"
                                                    Binding="{Binding IsExpired}"/>
                             </DataGrid.Columns>
@@ -209,11 +215,15 @@
                                 <DataGridTextColumn Header="Type"      Width="72"
                                                    Binding="{Binding MovementType}"/>
                                 <DataGridTextColumn Header="Date"      Width="90"
-                                                   Binding="{Binding MovementDate, StringFormat='MM/dd/yyyy'}"/>
+                                                   Binding="{Binding MovementDate, StringFormat={StaticResource FormatDate}}"/>
                                 <DataGridTextColumn Header="Qty"       Width="48"
-                                                   Binding="{Binding Quantity}"/>
+                                                   HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                   Binding="{Binding Quantity}"
+                                                   ElementStyle="{StaticResource NumericCellStyle}"/>
                                 <DataGridTextColumn Header="Unit Cost" Width="78"
-                                                   Binding="{Binding UnitCost, StringFormat='₱{0:N2}'}"/>
+                                                   HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                   Binding="{Binding UnitCost, StringFormat={StaticResource FormatCurrency}}"
+                                                   ElementStyle="{StaticResource NumericCellStyle}"/>
                                 <DataGridTextColumn Header="Notes"     Width="*"
                                                    Binding="{Binding Notes}"/>
                             </DataGrid.Columns>
@@ -269,6 +279,7 @@
                                                    Binding="{Binding Category}"/>
 
                                 <DataGridTextColumn Header="Stock" Width="70"
+                                                   HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
                                                    SortMemberPath="CurrentStock"
                                                    Binding="{Binding CurrentStock}"
                                                    ElementStyle="{StaticResource NumericCellStyle}"/>
@@ -277,8 +288,9 @@
                                                    Binding="{Binding Unit}"/>
 
                                 <DataGridTextColumn Width="85"
+                                                    HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
                                                     SortMemberPath="RetailPrice"
-                                                    Binding="{Binding RetailPrice, StringFormat='₱{0:N2}'}"
+                                                    Binding="{Binding RetailPrice, StringFormat={StaticResource FormatCurrency}}"
                                                     ElementStyle="{StaticResource NumericCellStyle}">
                                     <DataGridTextColumn.Header>
                                         <TextBlock Text="Retail Price" ToolTip="Selling price set in Product Management." />
@@ -286,8 +298,9 @@
                                 </DataGridTextColumn>
 
                                 <DataGridTextColumn Width="80"
+                                                    HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
                                                     SortMemberPath="AverageUnitCost"
-                                                    Binding="{Binding AverageUnitCost, StringFormat='₱{0:N2}'}"
+                                                    Binding="{Binding AverageUnitCost, StringFormat={StaticResource FormatCurrency}}"
                                                     ElementStyle="{StaticResource NumericCellStyle}">
                                     <DataGridTextColumn.Header>
                                         <TextBlock Text="Avg Cost" ToolTip="Weighted-average purchase cost across remaining non-expired batches." />
@@ -295,19 +308,19 @@
                                 </DataGridTextColumn>
 
                                 <DataGridTextColumn Width="80"
+                                                    HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
                                                     SortMemberPath="FifoOldestUnitCost"
-                                                    Binding="{Binding Content, RelativeSource={RelativeSource Self}}"
+                                                    Binding="{Binding FifoOldestUnitCost, StringFormat={StaticResource FormatCurrency}}"
                                                     ElementStyle="{StaticResource NumericCellStyle}">
-                                    <!-- Note: Binding is set in the column definition but we override header/styling -->
-                                    <!-- Let's fix the binding to match original: Binding="{Binding FifoOldestUnitCost, StringFormat='₱{0:N2}'}" -->
                                     <DataGridTextColumn.Header>
                                         <TextBlock Text="FIFO Cost" ToolTip="Unit cost of the oldest batch — the cost the next sale will draw from." />
                                     </DataGridTextColumn.Header>
                                 </DataGridTextColumn>
 
                                 <DataGridTextColumn Header="Stock Value" Width="95"
+                                                   HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
                                                    SortMemberPath="StockValue"
-                                                   Binding="{Binding StockValue, StringFormat='₱{0:N2}'}"
+                                                   Binding="{Binding StockValue, StringFormat={StaticResource FormatCurrency}}"
                                                    ElementStyle="{StaticResource NumericCellStyle}"/>
 
                                 <!-- Stock Status badge -->
@@ -383,11 +396,13 @@
 
                                 <!-- Days Until Stockout -->
                                 <DataGridTextColumn Header="Days to Stockout" Width="110"
+                                                   HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
                                                    SortMemberPath="DaysUntilStockout"
                                                    Binding="{Binding DaysUntilStockoutDisplay}">
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
-                                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                                            <Setter Property="Padding" Value="0,0,8,0"/>
                                             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding RiskLevel}" Value="Critical">

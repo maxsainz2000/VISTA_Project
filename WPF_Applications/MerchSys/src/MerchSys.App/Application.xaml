@@ -10,6 +10,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <!-- [0] structure tokens -->
                 <ResourceDictionary Source="pack://application:,,,/Themes/Tokens.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/Themes/Formats.xaml"/>
                 <!-- [1] active palette — replaced at runtime by ThemeService -->
                 <ResourceDictionary Source="pack://application:,,,/Themes/Light.xaml"/>
                 <!-- [2] implicit control styles -->
