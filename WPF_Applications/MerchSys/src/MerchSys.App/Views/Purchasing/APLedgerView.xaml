@@ -6,7 +6,8 @@
              xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
              mc:Ignorable="d"
              d:DesignHeight="680" d:DesignWidth="1200"
-             Background="{DynamicResource WindowBackgroundBrush}">
+             Background="{DynamicResource WindowBackgroundBrush}"
+             PreviewKeyDown="UserControl_PreviewKeyDown">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
@@ -89,7 +90,7 @@
                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                         <TextBlock Text="Filter:" Style="{StaticResource FieldLabelStyle}" Margin="0,0,6,0"/>
 
-                        <Button Content="All"
+                        <Button Content="All" IsTabStop="False"
                                 Command="{Binding SetFilterCommand}" CommandParameter="All">
                             <Button.Style>
                                 <Style TargetType="Button" BasedOn="{StaticResource FilterButton}">
@@ -104,7 +105,7 @@
                             </Button.Style>
                         </Button>
 
-                        <Button Content="Outstanding"
+                        <Button Content="Outstanding" IsTabStop="False"
                                 Command="{Binding SetFilterCommand}" CommandParameter="Outstanding">
                             <Button.Style>
                                 <Style TargetType="Button" BasedOn="{StaticResource FilterButton}">
@@ -119,7 +120,7 @@
                             </Button.Style>
                         </Button>
 
-                        <Button Content="Overdue"
+                        <Button Content="Overdue" IsTabStop="False"
                                 Command="{Binding SetFilterCommand}" CommandParameter="Overdue">
                             <Button.Style>
                                 <Style TargetType="Button" BasedOn="{StaticResource FilterButton}">
@@ -134,7 +135,7 @@
                             </Button.Style>
                         </Button>
 
-                        <Button Content="Paid"
+                        <Button Content="Paid" IsTabStop="False"
                                 Command="{Binding SetFilterCommand}" CommandParameter="Paid">
                             <Button.Style>
                                 <Style TargetType="Button" BasedOn="{StaticResource FilterButton}">
@@ -159,23 +160,26 @@
                                   DisplayMemberPath="DisplayName"
                                   Width="200" Padding="8,5"
                                   VerticalContentAlignment="Center"
-                                  FontSize="12"/>
+                                  FontSize="12"
+                                  IsTabStop="False"/>
                     </StackPanel>
 
                     <!-- Record Payment + Refresh -->
                     <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
-                        <Button Content="Record Payment"
+                        <Button Content="_Record Payment"
                                 Command="{Binding OpenPaymentDialogCommand}"
                                 Style="{StaticResource PrimaryButtonStyle}"
                                 IsEnabled="{Binding CanEdit}"
-                                Margin="0,0,8,0"/>
+                                Margin="0,0,8,0"
+                                TabIndex="1"/>
                         <Button Command="{Binding RefreshCommand}"
-                                Style="{StaticResource SecondaryButtonStyle}">
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                TabIndex="2">
                             <StackPanel Orientation="Horizontal">
                                 <Path Style="{StaticResource IconBase}" Data="{StaticResource IconRefreshGeometry}"
                                       Width="13" Height="13" Margin="0,0,6,0"
                                       Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
-                                <TextBlock Text="Refresh" VerticalAlignment="Center"/>
+                                <AccessText Text="Re_fresh" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                     </StackPanel>
@@ -208,6 +212,7 @@
             <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1" CornerRadius="{DynamicResource RadiusSmall}">
                 <Grid>
                     <DataGrid x:Name="APGrid"
+                              TabIndex="3"
                               ItemsSource="{Binding Entries}"
                               SelectedItem="{Binding SelectedEntry}"
                               AutoGenerateColumns="False"
@@ -307,8 +312,10 @@
         <!-- ═══════════════════════════════════════════════════════════
              PAYMENT DIALOG OVERLAY
              ═══════════════════════════════════════════════════════════ -->
-        <Grid Visibility="{Binding IsPaymentDialogOpen, Converter={StaticResource BoolToVis}}"
-              Panel.ZIndex="10">
+        <Grid x:Name="PaymentDialogOverlay"
+              Visibility="{Binding IsPaymentDialogOpen, Converter={StaticResource BoolToVis}}"
+              Panel.ZIndex="10"
+              IsVisibleChanged="PaymentDialogOverlay_IsVisibleChanged">
 
             <!-- Semi-transparent backdrop -->
             <Rectangle Fill="{DynamicResource OverlayBrush}"/>
@@ -361,9 +368,10 @@
                     <Border Height="1" Background="{DynamicResource SeparatorBrush}" Margin="0,0,0,16"/>
 
                     <!-- Payment amount input -->
-                    <TextBlock Text="Payment Amount:" Style="{StaticResource FieldLabelStyle}" Margin="0,0,0,6"/>
-                    <TextBox Text="{Binding PaymentAmountText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                              Padding="10,8" FontSize="14"/>
+                    <TextBox x:Name="PaymentAmountInputTextBox"
+                             Text="{Binding PaymentAmountText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             Padding="10,8" FontSize="14"
+                             TabIndex="4"/>
 
                     <!-- Error message -->
                     <Border Visibility="{Binding HasPaymentError, Converter={StaticResource BoolToVis}}"
@@ -376,13 +384,15 @@
                     <!-- Action buttons -->
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
                                 Margin="0,20,0,0">
-                        <Button Content="Cancel"
+                        <Button Content="_Cancel"
                                 Command="{Binding CancelPaymentCommand}"
                                 Style="{StaticResource SecondaryButtonStyle}"
-                                Margin="0,0,10,0"/>
-                        <Button Content="Confirm Payment"
+                                Margin="0,0,10,0"
+                                TabIndex="5"/>
+                        <Button Content="_Confirm Payment"
                                 Command="{Binding ConfirmPaymentCommand}"
-                                Style="{StaticResource SuccessButtonStyle}"/>
+                                Style="{StaticResource SuccessButtonStyle}"
+                                TabIndex="6"/>
                     </StackPanel>
 
                 </StackPanel>

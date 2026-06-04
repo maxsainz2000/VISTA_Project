@@ -7,7 +7,8 @@
              xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
              mc:Ignorable="d"
              d:DesignHeight="768" d:DesignWidth="1280"
-             Background="{DynamicResource WindowBackgroundBrush}">
+             Background="{DynamicResource WindowBackgroundBrush}"
+             PreviewKeyDown="UserControl_PreviewKeyDown">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
@@ -58,7 +59,8 @@
                         <TextBlock Text="From:" Style="{StaticResource CaptionLabelStyle}"/>
                         <DatePicker x:Name="DateFromPicker"
                                     SelectedDate="{Binding DateFrom, Mode=TwoWay}"
-                                    Width="120" Height="30" FontSize="12"/>
+                                    Width="120" Height="30" FontSize="12"
+                                    TabIndex="1"/>
                     </StackPanel>
 
                     <!-- Date To -->
@@ -66,7 +68,8 @@
                         <TextBlock Text="To:" Style="{StaticResource CaptionLabelStyle}"/>
                         <DatePicker x:Name="DateToPicker"
                                     SelectedDate="{Binding DateTo, Mode=TwoWay}"
-                                    Width="120" Height="30" FontSize="12"/>
+                                    Width="120" Height="30" FontSize="12"
+                                    TabIndex="2"/>
                     </StackPanel>
 
                     <!-- TX Number -->
@@ -76,7 +79,8 @@
                                  Text="{Binding TxNumberFilter, UpdateSourceTrigger=PropertyChanged}"
                                  Width="130" Height="30" Padding="8,0"
                                  FontSize="12" VerticalContentAlignment="Center"
-                                 BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"/>
+                                 BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                                 TabIndex="3"/>
                     </StackPanel>
 
                     <!-- Payment Method -->
@@ -84,20 +88,23 @@
                         <TextBlock Text="Payment:" Style="{StaticResource CaptionLabelStyle}"/>
                         <ComboBox ItemsSource="{Binding PaymentMethodFilters}"
                                   SelectedItem="{Binding SelectedPaymentMethodFilter}"
-                                  Width="110" Height="30" FontSize="12"/>
+                                  Width="110" Height="30" FontSize="12"
+                                  TabIndex="4"/>
                     </StackPanel>
 
                     <!-- Search button -->
-                    <Button Content="Search"
+                    <Button Content="_Search"
                              Style="{StaticResource PrimaryButtonStyle}"
                              Command="{Binding SearchCommand}"
-                             Margin="0,0,6,4"/>
+                             Margin="0,0,6,4"
+                             TabIndex="5"/>
 
                     <!-- Clear button -->
-                    <Button Content="Clear Filters"
+                    <Button Content="_Clear Filters"
                              Style="{StaticResource SecondaryButtonStyle}"
                              Command="{Binding ClearFiltersCommand}"
-                             Margin="0,0,0,4"/>
+                             Margin="0,0,0,4"
+                             TabIndex="6"/>
 
                     <!-- Busy indicator -->
                     <ProgressBar IsIndeterminate="True"
@@ -126,7 +133,8 @@
                         <DataGrid x:Name="TransactionGrid"
                                   Style="{StaticResource ReadOnlyGrid}"
                                   ItemsSource="{Binding Transactions}"
-                                  BorderThickness="0">
+                                  BorderThickness="0"
+                                  TabIndex="7">
 
                             <DataGrid.RowStyle>
                                 <Style TargetType="DataGridRow" BasedOn="{StaticResource SemanticRowStyle}">
@@ -273,7 +281,8 @@
                                     <DataGrid Style="{StaticResource ReadOnlyGrid}"
                                               ItemsSource="{Binding DetailLines}"
                                               Height="140"
-                                              SelectionMode="Single">
+                                              SelectionMode="Single"
+                                              TabIndex="8">
                                         <DataGrid.Columns>
                                             <DataGridTextColumn Header="Product"
                                                                 Binding="{Binding ProductName}"
@@ -420,14 +429,16 @@
                         <!-- Action buttons -->
                         <Border Grid.Row="1" Padding="0,8,0,0">
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                <Button Content="View Receipt"
+                                <Button Content="_View Receipt"
                                         Style="{StaticResource PrimaryButtonStyle}"
                                         Command="{Binding ViewReceiptCommand}"
-                                        Margin="0,0,6,0"/>
-                                <Button Content="Process Return"
+                                        Margin="0,0,6,0"
+                                        TabIndex="9"/>
+                                <Button Content="_Process Return"
                                         Style="{StaticResource SuccessButtonStyle}"
                                         Command="{Binding OpenReturnDialogCommand}"
-                                        IsEnabled="{Binding CanEdit}"/>
+                                        IsEnabled="{Binding CanEdit}"
+                                        TabIndex="10"/>
                             </StackPanel>
                         </Border>
                     </Grid>
@@ -459,8 +470,10 @@
         <!-- ═══════════════════════════════════════════════════════════════════════ -->
         <!-- RETURN DIALOG OVERLAY                                                   -->
         <!-- ═══════════════════════════════════════════════════════════════════════ -->
-        <Grid Background="{DynamicResource OverlayBrush}"
-              Visibility="{Binding IsReturnDialogVisible, Converter={StaticResource BoolToVis}}">
+        <Grid x:Name="ReturnDialogOverlay"
+              Background="{DynamicResource OverlayBrush}"
+              Visibility="{Binding IsReturnDialogVisible, Converter={StaticResource BoolToVis}}"
+              IsVisibleChanged="ReturnDialogOverlay_IsVisibleChanged">
 
             <Border Background="{DynamicResource SurfaceBrush}"
                     Width="460"
@@ -484,11 +497,13 @@
                     <!-- Product selection -->
                     <TextBlock Text="Product to Return" Style="{StaticResource CaptionLabelStyle}"
                                Margin="0,0,0,4"/>
-                    <ComboBox ItemsSource="{Binding ReturnableLines}"
+                    <ComboBox x:Name="ReturnLineComboBox"
+                              ItemsSource="{Binding ReturnableLines}"
                               SelectedItem="{Binding SelectedReturnLine}"
                               DisplayMemberPath="DisplayText"
                               Height="32" FontSize="12"
-                              Margin="0,0,0,14"/>
+                              Margin="0,0,0,14"
+                              TabIndex="11"/>
 
                     <!-- Quantity -->
                     <Grid Margin="0,0,0,14">
@@ -505,7 +520,8 @@
                                      Text="{Binding ReturnQuantity, UpdateSourceTrigger=PropertyChanged}"
                                      Height="32" Padding="10,0"
                                      FontSize="12" VerticalContentAlignment="Center"
-                                     BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"/>
+                                     BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                                     TabIndex="12"/>
                         </StackPanel>
 
                         <StackPanel Grid.Column="2">
@@ -535,26 +551,30 @@
                              AcceptsReturn="True"
                              VerticalContentAlignment="Top"
                              BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
-                             Margin="0,0,0,14"/>
+                             Margin="0,0,0,14"
+                             TabIndex="13"/>
 
                     <!-- Restock checkbox -->
                     <CheckBox IsChecked="{Binding ShouldRestock}"
                               Content="Restock items back to inventory"
                               FontSize="{DynamicResource FontSizeBody}" Foreground="{DynamicResource TextPrimaryBrush}"
-                              Margin="0,0,0,20"/>
+                              Margin="0,0,0,20"
+                              TabIndex="14"/>
 
                     <Separator Margin="0,0,0,16" Background="{DynamicResource SeparatorBrush}"/>
 
                     <!-- Buttons -->
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button Content="Cancel"
+                        <Button Content="_Cancel"
                                 Style="{StaticResource SecondaryButtonStyle}"
                                 Command="{Binding CancelReturnCommand}"
-                                Width="90" Margin="0,0,10,0"/>
-                        <Button Content="Confirm Return"
+                                Width="90" Margin="0,0,10,0"
+                                TabIndex="15"/>
+                        <Button Content="_Confirm Return"
                                 Style="{StaticResource DangerButtonStyle}"
                                 Command="{Binding ProcessReturnCommand}"
-                                Width="130"/>
+                                Width="130"
+                                TabIndex="16"/>
                     </StackPanel>
                 </StackPanel>
             </Border>

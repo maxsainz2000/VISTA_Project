@@ -43,6 +43,53 @@ Namespace Views.Inventory
             End If
         End Sub
 
+        Private Sub ProductEditorOverlay_IsVisibleChanged(sender As Object, e As DependencyPropertyChangedEventArgs)
+            If CType(e.NewValue, Boolean) Then
+                Dispatcher.BeginInvoke(Sub()
+                                           EditorNameTextBox.Focus()
+                                       End Sub, System.Windows.Threading.DispatcherPriority.Input)
+            End If
+        End Sub
+
+        Private Sub CategoryEditorOverlay_IsVisibleChanged(sender As Object, e As DependencyPropertyChangedEventArgs)
+            If CType(e.NewValue, Boolean) Then
+                Dispatcher.BeginInvoke(Sub()
+                                           CategoryEditorNameTextBox.Focus()
+                                       End Sub, System.Windows.Threading.DispatcherPriority.Input)
+            End If
+        End Sub
+
+        Private Sub UserControl_PreviewKeyDown(sender As Object, e As System.Windows.Input.KeyEventArgs)
+            Dim vm = TryCast(DataContext, ProductManagementViewModel)
+            If vm IsNot Nothing Then
+                If vm.IsEditorOpen Then
+                    If e.Key = System.Windows.Input.Key.Escape Then
+                        If vm.CancelEditorCommand.CanExecute(Nothing) Then
+                            vm.CancelEditorCommand.Execute(Nothing)
+                        End If
+                        e.Handled = True
+                    ElseIf e.Key = System.Windows.Input.Key.Enter Then
+                        If vm.SaveProductCommand.CanExecute(Nothing) Then
+                            vm.SaveProductCommand.Execute(Nothing)
+                        End If
+                        e.Handled = True
+                    End If
+                ElseIf vm.IsCategoryEditorOpen Then
+                    If e.Key = System.Windows.Input.Key.Escape Then
+                        If vm.CancelCategoryEditorCommand.CanExecute(Nothing) Then
+                            vm.CancelCategoryEditorCommand.Execute(Nothing)
+                        End If
+                        e.Handled = True
+                    ElseIf e.Key = System.Windows.Input.Key.Enter Then
+                        If vm.SaveCategoryCommand.CanExecute(Nothing) Then
+                            vm.SaveCategoryCommand.Execute(Nothing)
+                        End If
+                        e.Handled = True
+                    End If
+                End If
+            End If
+        End Sub
+
     End Class
 
 End Namespace

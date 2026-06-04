@@ -91,6 +91,29 @@ Namespace Views.Inventory
             e.Handled = Not Regex.IsMatch(e.Text, "^\d$")
         End Sub
 
+        Private Sub RecordShrinkageDialogOverlay_IsVisibleChanged(sender As Object, e As DependencyPropertyChangedEventArgs)
+            If CType(e.NewValue, Boolean) Then
+                Dispatcher.BeginInvoke(Sub()
+                                           DialogProductComboBox.Focus()
+                                       End Sub, System.Windows.Threading.DispatcherPriority.Input)
+            End If
+        End Sub
+
+        Private Sub UserControl_PreviewKeyDown(sender As Object, e As System.Windows.Input.KeyEventArgs)
+            Dim vm = TryCast(DataContext, ShrinkageViewModel)
+            If vm IsNot Nothing Then
+                If vm.IsDialogOpen Then
+                    If e.Key = System.Windows.Input.Key.Escape Then
+                        CancelDialogButton_Click(Nothing, Nothing)
+                        e.Handled = True
+                    ElseIf e.Key = System.Windows.Input.Key.Enter Then
+                        ConfirmRecordButton_Click(Nothing, Nothing)
+                        e.Handled = True
+                    End If
+                End If
+            End If
+        End Sub
+
     End Class
 
 End Namespace

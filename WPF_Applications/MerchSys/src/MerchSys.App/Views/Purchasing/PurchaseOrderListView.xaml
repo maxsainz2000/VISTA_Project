@@ -6,7 +6,8 @@
              xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
              mc:Ignorable="d"
              d:DesignHeight="768" d:DesignWidth="1280"
-             Background="{DynamicResource WindowBackgroundBrush}">
+             Background="{DynamicResource WindowBackgroundBrush}"
+             PreviewKeyDown="UserControl_PreviewKeyDown">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
@@ -41,26 +42,31 @@
                 <!-- Action buttons — hidden from Owner (IsManager = False) -->
                 <StackPanel Style="{StaticResource FilterBarItemStyle}" Orientation="Horizontal"
                             Visibility="{Binding IsManager, Converter={StaticResource BoolToVis}}">
-                    <Button Content="New PO"
+                    <Button Content="_New PO"
                             Command="{Binding NewPOCommand}"
                             Style="{StaticResource SuccessButtonStyle}"
-                            Margin="0,0,6,0"/>
-                    <Button Content="Edit"
+                            Margin="0,0,6,0"
+                            TabIndex="1"/>
+                    <Button Content="_Edit"
                             Command="{Binding EditPOCommand}"
                             Style="{StaticResource PrimaryButtonStyle}"
-                            Margin="0,0,6,0"/>
-                    <Button Content="Submit"
+                            Margin="0,0,6,0"
+                            TabIndex="2"/>
+                    <Button Content="_Submit"
                             Command="{Binding SubmitPOCommand}"
                             Style="{StaticResource PrimaryButtonStyle}"
-                            Margin="0,0,6,0"/>
-                    <Button Content="Delete"
+                            Margin="0,0,6,0"
+                            TabIndex="3"/>
+                    <Button Content="_Delete"
                             Command="{Binding DeletePOCommand}"
                             Style="{StaticResource DangerButtonStyle}"
-                            Margin="0,0,6,0"/>
-                    <Button Content="Refresh"
+                            Margin="0,0,6,0"
+                            TabIndex="4"/>
+                    <Button Content="Re_fresh"
                             Command="{Binding RefreshCommand}"
                             Style="{StaticResource SecondaryButtonStyle}"
-                            Margin="0"/>
+                            Margin="0"
+                            TabIndex="5"/>
                 </StackPanel>
             </WrapPanel>
         </Border>
@@ -79,10 +85,12 @@
         <!-- ═══════════════════════════════════════════════════════════
              EDITOR PANEL — visible when IsEditorOpen = True
              ═══════════════════════════════════════════════════════════ -->
-        <Border DockPanel.Dock="Bottom"
+        <Border x:Name="EditorPanelOverlay"
+                DockPanel.Dock="Bottom"
                 Visibility="{Binding IsEditorOpen, Converter={StaticResource BoolToVis}}"
                 Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1"
-                CornerRadius="{DynamicResource RadiusSmall}" Margin="0,6,0,0" MinHeight="280">
+                CornerRadius="{DynamicResource RadiusSmall}" Margin="0,6,0,0" MinHeight="280"
+                IsVisibleChanged="EditorPanelOverlay_IsVisibleChanged">
             <DockPanel Margin="12,10">
 
                 <!-- Editor Header -->
@@ -102,23 +110,28 @@
                                Margin="0,0,16,0"/>
 
                     <TextBlock Grid.Column="2" Text="Vendor:" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,6,0"/>
-                    <ComboBox Grid.Column="3"
+                    <ComboBox x:Name="VendorComboBox"
+                               Grid.Column="3"
                                ItemsSource="{Binding Editor.Vendors}"
                                SelectedItem="{Binding Editor.SelectedVendor}"
                                DisplayMemberPath="Name"
-                               Padding="6,4" VerticalContentAlignment="Center"/>
+                               Padding="6,4" VerticalContentAlignment="Center"
+                               TabIndex="7"/>
 
                     <StackPanel Grid.Column="4" Orientation="Horizontal" Margin="12,0,0,0">
-                        <Button Content="Save Draft"
+                        <Button Content="_Save Draft"
                                 Command="{Binding SaveDraftCommand}"
-                                Style="{StaticResource PrimaryButtonStyle}"/>
-                        <Button Content="Submit PO"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                TabIndex="15"/>
+                        <Button Content="Su_bmit PO"
                                 Command="{Binding SubmitEditorCommand}"
-                                Style="{StaticResource SuccessButtonStyle}"/>
-                        <Button Content="Cancel"
+                                Style="{StaticResource SuccessButtonStyle}"
+                                TabIndex="16"/>
+                        <Button Content="_Cancel"
                                 Command="{Binding CancelEditorCommand}"
                                 Style="{StaticResource SecondaryButtonStyle}"
-                                Margin="0"/>
+                                Margin="0"
+                                TabIndex="17"/>
                     </StackPanel>
                 </Grid>
 
@@ -134,13 +147,15 @@
 
                     <TextBlock Grid.Column="0" Text="Expected Delivery:" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,6,0"/>
                     <DatePicker Grid.Column="1"
-                                SelectedDate="{Binding Editor.ExpectedDeliveryDate}"/>
-
+                                SelectedDate="{Binding Editor.ExpectedDeliveryDate}"
+                                TabIndex="8"/>
+ 
                     <TextBlock Grid.Column="3" Text="Notes:" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,6,0"/>
                     <TextBox Grid.Column="4"
                              Text="{Binding Editor.Notes, UpdateSourceTrigger=PropertyChanged}"
                              Padding="6,3"
-                             VerticalContentAlignment="Center"/>
+                             VerticalContentAlignment="Center"
+                             TabIndex="9"/>
                 </Grid>
 
                 <!-- Line Items toolbar -->
@@ -157,7 +172,8 @@
                         <Button Content="+ Add Line"
                                 Command="{Binding Editor.AddLineCommand}"
                                 Style="{StaticResource SecondaryButtonStyle}"
-                                Padding="8,3" FontSize="11" Margin="0,0,3,0"/>
+                                Padding="8,3" FontSize="11" Margin="0,0,3,0"
+                                TabIndex="10"/>
                     </StackPanel>
 
                     <TextBlock Grid.Column="2"
@@ -168,6 +184,7 @@
 
                 <!-- Line Items DataGrid -->
                 <DataGrid x:Name="LineItemsGrid"
+                          TabIndex="11"
                           ItemsSource="{Binding Editor.LineItems}"
                           AutoGenerateColumns="False"
                           CanUserAddRows="False" CanUserDeleteRows="False"
@@ -275,6 +292,7 @@
 
                 <Grid>
                     <DataGrid x:Name="POGrid"
+                              TabIndex="6"
                               ItemsSource="{Binding Orders}"
                               AutoGenerateColumns="False"
                               CanUserAddRows="False" CanUserDeleteRows="False"

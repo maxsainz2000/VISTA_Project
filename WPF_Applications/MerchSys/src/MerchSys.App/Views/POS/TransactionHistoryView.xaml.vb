@@ -53,6 +53,33 @@ Namespace Views.POS
             e.Handled = Not e.Text.All(Function(c) Char.IsDigit(c))
         End Sub
 
+        Private Sub ReturnDialogOverlay_IsVisibleChanged(sender As Object, e As DependencyPropertyChangedEventArgs)
+            If CType(e.NewValue, Boolean) Then
+                Dispatcher.BeginInvoke(Sub()
+                                           ReturnLineComboBox.Focus()
+                                       End Sub, System.Windows.Threading.DispatcherPriority.Input)
+            End If
+        End Sub
+
+        Private Sub UserControl_PreviewKeyDown(sender As Object, e As System.Windows.Input.KeyEventArgs)
+            Dim vm = TryCast(DataContext, TransactionHistoryViewModel)
+            If vm IsNot Nothing Then
+                If vm.IsReturnDialogVisible Then
+                    If e.Key = System.Windows.Input.Key.Escape Then
+                        If vm.CancelReturnCommand.CanExecute(Nothing) Then
+                            vm.CancelReturnCommand.Execute(Nothing)
+                        End If
+                        e.Handled = True
+                    ElseIf e.Key = System.Windows.Input.Key.Enter Then
+                        If vm.ProcessReturnCommand.CanExecute(Nothing) Then
+                            vm.ProcessReturnCommand.Execute(Nothing)
+                        End If
+                        e.Handled = True
+                    End If
+                End If
+            End If
+        End Sub
+
     End Class
 
 End Namespace

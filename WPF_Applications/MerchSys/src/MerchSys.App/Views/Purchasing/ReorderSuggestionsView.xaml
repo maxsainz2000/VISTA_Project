@@ -6,7 +6,8 @@
              xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
              mc:Ignorable="d"
              d:DesignHeight="700" d:DesignWidth="1200"
-             Background="{DynamicResource WindowBackgroundBrush}">
+             Background="{DynamicResource WindowBackgroundBrush}"
+             PreviewKeyDown="UserControl_PreviewKeyDown">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
@@ -88,21 +89,23 @@
                     <StackPanel Grid.Column="1" Orientation="Horizontal">
                         <Button Command="{Binding GenerateCommand}"
                                 Style="{StaticResource PrimaryButtonStyle}"
-                                Margin="0,0,8,0">
+                                Margin="0,0,8,0"
+                                TabIndex="1">
                             <StackPanel Orientation="Horizontal">
                                 <Path Style="{StaticResource IconBase}" Data="{StaticResource IconBoltGeometry}"
                                       Width="13" Height="13" Margin="0,0,6,0"
                                       Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
-                                <TextBlock Text="Generate Suggestions" VerticalAlignment="Center"/>
+                                <AccessText Text="_Generate Suggestions" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                         <Button Command="{Binding RefreshCommand}"
-                                Style="{StaticResource SecondaryButtonStyle}">
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                TabIndex="2">
                             <StackPanel Orientation="Horizontal">
                                 <Path Style="{StaticResource IconBase}" Data="{StaticResource IconRefreshGeometry}"
                                       Width="13" Height="13" Margin="0,0,6,0"
                                       Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
-                                <TextBlock Text="Refresh" VerticalAlignment="Center"/>
+                                <AccessText Text="Re_fresh" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                     </StackPanel>
@@ -651,8 +654,10 @@
         <!-- ═══════════════════════════════════════════════════════════
              CONFIG EDIT DIALOG OVERLAY
              ═══════════════════════════════════════════════════════════ -->
-        <Grid Visibility="{Binding IsEditDialogOpen, Converter={StaticResource BoolToVis}}"
-              Panel.ZIndex="10">
+        <Grid x:Name="EditConfigDialogOverlay"
+              Visibility="{Binding IsEditDialogOpen, Converter={StaticResource BoolToVis}}"
+              Panel.ZIndex="10"
+              IsVisibleChanged="EditConfigDialogOverlay_IsVisibleChanged">
 
             <!-- Semi-transparent backdrop -->
             <Rectangle Fill="{DynamicResource OverlayBrush}"/>
@@ -695,33 +700,39 @@
 
                         <TextBlock Grid.Row="0" Grid.Column="0" Text="Minimum Threshold:"
                                    Style="{StaticResource FieldLabelStyle}" Margin="0,0,6,0"/>
-                        <TextBox Grid.Row="0" Grid.Column="1"
+                        <TextBox x:Name="MinThresholdTextBox"
+                                 Grid.Row="0" Grid.Column="1"
                                  Text="{Binding EditMinThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 Padding="8,6" FontSize="13"/>
+                                 Padding="8,6" FontSize="13"
+                                 TabIndex="3"/>
 
                         <TextBlock Grid.Row="2" Grid.Column="0" Text="Safety Stock:"
                                    Style="{StaticResource FieldLabelStyle}" Margin="0,0,6,0"/>
                         <TextBox Grid.Row="2" Grid.Column="1"
                                  Text="{Binding EditSafetyStock, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 Padding="8,6" FontSize="13"/>
+                                 Padding="8,6" FontSize="13"
+                                 TabIndex="4"/>
 
                         <TextBlock Grid.Row="4" Grid.Column="0" Text="Default Order Qty:"
                                    Style="{StaticResource FieldLabelStyle}" Margin="0,0,6,0"/>
                         <TextBox Grid.Row="4" Grid.Column="1"
                                  Text="{Binding EditDefaultOrderQty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 Padding="8,6" FontSize="13"/>
+                                 Padding="8,6" FontSize="13"
+                                 TabIndex="5"/>
 
                         <TextBlock Grid.Row="6" Grid.Column="0" Text="Lead Time (Days):"
                                    Style="{StaticResource FieldLabelStyle}" Margin="0,0,6,0"/>
                         <TextBox Grid.Row="6" Grid.Column="1"
                                  Text="{Binding EditLeadTimeDays, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 Padding="8,6" FontSize="13"/>
+                                 Padding="8,6" FontSize="13"
+                                 TabIndex="6"/>
 
                         <TextBlock Grid.Row="8" Grid.Column="0" Text="Seasonal Item:"
                                    Style="{StaticResource FieldLabelStyle}" Margin="0,0,6,0"/>
                         <CheckBox Grid.Row="8" Grid.Column="1"
                                   IsChecked="{Binding EditIsSeasonalItem, Mode=TwoWay}"
-                                  VerticalAlignment="Center"/>
+                                  VerticalAlignment="Center"
+                                  TabIndex="7"/>
 
                         <TextBlock Grid.Row="10" Grid.Column="0" Text="Seasonal Multiplier:"
                                    Style="{StaticResource FieldLabelStyle}" Margin="0,0,6,0"/>
@@ -749,13 +760,15 @@
 
                     <!-- Action buttons -->
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button Content="Cancel"
+                        <Button Content="_Cancel"
                                 Command="{Binding CancelEditCommand}"
                                 Style="{StaticResource SecondaryButtonStyle}"
-                                Margin="0,0,10,0"/>
-                        <Button Content="Save Changes"
+                                Margin="0,0,10,0"
+                                TabIndex="10"/>
+                        <Button Content="_Save Changes"
                                 Command="{Binding SaveConfigCommand}"
-                                Style="{StaticResource PrimaryButtonStyle}"/>
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                TabIndex="11"/>
                     </StackPanel>
 
                 </StackPanel>

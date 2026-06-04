@@ -10,6 +10,23 @@
                     xmlns:sys="clr-namespace:System;assembly=mscorlib">
 
     <!-- ========================================== -->
+    <!-- CUSTOM FOCUS VISUAL STYLE                  -->
+    <!-- ========================================== -->
+    <Style x:Key="AppFocusVisual">
+        <Setter Property="Control.Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Border BorderBrush="{DynamicResource AccentBrush}"
+                            BorderThickness="1.5"
+                            CornerRadius="{DynamicResource RadiusSmall}"
+                            Margin="1"
+                            SnapsToDevicePixels="True"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ========================================== -->
     <!-- SCROLLBAR STYLES                          -->
     <!-- ========================================== -->
 
@@ -117,6 +134,7 @@
 
     <!-- Button (Implicit) -->
     <Style TargetType="{x:Type Button}">
+        <Setter Property="FocusVisualStyle" Value="{StaticResource AppFocusVisual}"/>
         <Setter Property="Background" Value="{DynamicResource ControlBackgroundBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
@@ -222,6 +240,7 @@
 
     <!-- LinkButtonStyle (Keyed) -->
     <Style x:Key="LinkButtonStyle" TargetType="{x:Type Button}">
+        <Setter Property="FocusVisualStyle" Value="{StaticResource AppFocusVisual}"/>
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="BorderBrush" Value="Transparent"/>
         <Setter Property="BorderThickness" Value="0"/>
@@ -264,6 +283,7 @@
 
     <!-- TextBox (Implicit) -->
     <Style TargetType="{x:Type TextBox}">
+        <Setter Property="FocusVisualStyle" Value="{StaticResource AppFocusVisual}"/>
         <Setter Property="Background" Value="{DynamicResource ControlBackgroundBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
@@ -308,6 +328,7 @@
 
     <!-- PasswordBox (Implicit) -->
     <Style TargetType="{x:Type PasswordBox}">
+        <Setter Property="FocusVisualStyle" Value="{StaticResource AppFocusVisual}"/>
         <Setter Property="Background" Value="{DynamicResource ControlBackgroundBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
@@ -356,6 +377,7 @@
 
     <!-- CheckBox (Implicit) -->
     <Style TargetType="{x:Type CheckBox}">
+        <Setter Property="FocusVisualStyle" Value="{StaticResource AppFocusVisual}"/>
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         <Setter Property="FontFamily" Value="{DynamicResource AppFontFamily}"/>
         <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
@@ -407,6 +429,7 @@
 
     <!-- RadioButton (Implicit) -->
     <Style TargetType="{x:Type RadioButton}">
+        <Setter Property="FocusVisualStyle" Value="{StaticResource AppFocusVisual}"/>
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         <Setter Property="FontFamily" Value="{DynamicResource AppFontFamily}"/>
         <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
@@ -463,6 +486,7 @@
 
     <!-- ListBoxItem (Implicit) -->
     <Style TargetType="{x:Type ListBoxItem}">
+        <Setter Property="FocusVisualStyle" Value="{StaticResource AppFocusVisual}"/>
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="BorderBrush" Value="Transparent"/>
         <Setter Property="BorderThickness" Value="0"/>
@@ -621,6 +645,7 @@
 
     <!-- ComboBox (Implicit) -->
     <Style TargetType="{x:Type ComboBox}">
+        <Setter Property="FocusVisualStyle" Value="{StaticResource AppFocusVisual}"/>
         <Setter Property="Background" Value="{DynamicResource ControlBackgroundBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
@@ -709,6 +734,7 @@
 
     <!-- TabItem Style (Implicit) -->
     <Style TargetType="{x:Type TabItem}">
+        <Setter Property="FocusVisualStyle" Value="{StaticResource AppFocusVisual}"/>
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
         <Setter Property="Padding" Value="16,8,16,8"/>

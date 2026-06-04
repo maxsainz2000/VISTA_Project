@@ -45,24 +45,27 @@
                               SelectedItem="{Binding SelectedPO}"
                               DisplayMemberPath="DisplayText"
                               Padding="8,5" VerticalContentAlignment="Center"
-                              FontSize="12"/>
+                              FontSize="12"
+                              TabIndex="1"/>
 
                     <Button Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center"
                             Background="Transparent" BorderThickness="0"
                             Foreground="{DynamicResource TextSecondaryBrush}" Cursor="Hand" Padding="4,0"
                             Command="{Binding LoadPOsCommand}"
                             ToolTip="Reload submitted POs"
-                            Margin="0,0,-30,0">
+                            Margin="0,0,-30,0"
+                            TabIndex="2">
                         <Path Style="{StaticResource IconBase}" Data="{StaticResource IconRefreshGeometry}"
                               Width="14" Height="14"
                               Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
                     </Button>
 
                     <Button Grid.Column="3"
-                            Content="Confirm Receipt"
+                            Content="_Confirm Receipt"
                             Command="{Binding ConfirmReceiptCommand}"
                             Style="{StaticResource SuccessButtonStyle}"
-                            Padding="18,6"/>
+                            Padding="18,6"
+                            TabIndex="3"/>
                 </Grid>
             </Border>
 
@@ -118,6 +121,7 @@
                     </Grid>
 
                     <DataGrid x:Name="ReceivingGrid"
+                               TabIndex="4"
                                ItemsSource="{Binding ReceivingLines}"
                                AutoGenerateColumns="False"
                                CanUserAddRows="False" CanUserDeleteRows="False"

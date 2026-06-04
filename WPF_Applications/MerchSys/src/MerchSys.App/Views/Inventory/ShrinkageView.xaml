@@ -6,7 +6,8 @@
              xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
              mc:Ignorable="d"
              d:DesignHeight="768" d:DesignWidth="1280"
-             Background="{DynamicResource WindowBackgroundBrush}">
+             Background="{DynamicResource WindowBackgroundBrush}"
+             PreviewKeyDown="UserControl_PreviewKeyDown">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
@@ -66,17 +67,19 @@
             <Border DockPanel.Dock="Top" Style="{StaticResource FilterBarStyle}" Margin="0,0,0,6" Effect="{DynamicResource CardShadow}">
                 <WrapPanel Orientation="Horizontal">
                     <!-- Record button -->
-                    <Button Content="+ Record Shrinkage"
+                    <Button Content="_Record Shrinkage"
                             Command="{Binding OpenDialogCommand}"
                             Style="{StaticResource DangerButtonStyle}"
-                            VerticalAlignment="Center" Margin="0,0,12,4"/>
+                            VerticalAlignment="Center" Margin="0,0,12,4"
+                            TabIndex="1"/>
 
                     <!-- Date range From -->
                     <StackPanel Style="{StaticResource FilterBarItemStyle}" Orientation="Horizontal">
                         <TextBlock Text="From:" Style="{StaticResource CaptionLabelStyle}" VerticalAlignment="Center" Margin="0,0,6,0"/>
                         <DatePicker x:Name="StartDatePicker"
                                     Width="115"
-                                    SelectedDateChanged="StartDatePicker_SelectedDateChanged"/>
+                                    SelectedDateChanged="StartDatePicker_SelectedDateChanged"
+                                    TabIndex="2"/>
                     </StackPanel>
 
                     <!-- Date range To -->
@@ -84,7 +87,8 @@
                         <TextBlock Text="To:" Style="{StaticResource CaptionLabelStyle}" VerticalAlignment="Center" Margin="0,0,6,0"/>
                         <DatePicker x:Name="EndDatePicker"
                                     Width="115"
-                                    SelectedDateChanged="EndDatePicker_SelectedDateChanged"/>
+                                    SelectedDateChanged="EndDatePicker_SelectedDateChanged"
+                                    TabIndex="3"/>
                     </StackPanel>
 
                     <!-- Product filter -->
@@ -93,7 +97,8 @@
                         <ComboBox x:Name="FilterProductCombo"
                                   ItemsSource="{Binding FilterProducts}"
                                   SelectedItem="{Binding FilterSelectedProduct}"
-                                  Width="160"/>
+                                  Width="160"
+                                  TabIndex="4"/>
                     </StackPanel>
 
                     <!-- Reason filter -->
@@ -101,7 +106,8 @@
                         <TextBlock Text="Reason:" Style="{StaticResource CaptionLabelStyle}" VerticalAlignment="Center" Margin="0,0,6,0"/>
                         <ComboBox x:Name="ReasonFilterCombo"
                                   Width="110"
-                                  SelectionChanged="ReasonFilterCombo_SelectionChanged">
+                                  SelectionChanged="ReasonFilterCombo_SelectionChanged"
+                                  TabIndex="5">
                             <ComboBoxItem Content="(All Reasons)" Tag="" IsSelected="True"/>
                             <ComboBoxItem Content="Damage" Tag="Damage"/>
                             <ComboBoxItem Content="Spoilage" Tag="Spoilage"/>
@@ -111,10 +117,11 @@
                     </StackPanel>
 
                     <!-- Refresh Button -->
-                    <Button Content="Refresh"
+                    <Button Content="Re_fresh"
                             Command="{Binding LoadDataCommand}"
                             Style="{StaticResource PrimaryButtonStyle}"
-                            VerticalAlignment="Center" Margin="0,0,12,4"/>
+                            VerticalAlignment="Center" Margin="0,0,12,4"
+                            TabIndex="6"/>
 
                     <!-- Last Refreshed -->
                     <TextBlock Text="{Binding LastRefreshed}"
@@ -151,7 +158,8 @@
                           SelectionUnit="FullRow" SelectionMode="Single"
                           HeadersVisibility="Column" GridLinesVisibility="Horizontal"
                           CanUserSortColumns="True"
-                          FontSize="12">
+                          FontSize="12"
+                          TabIndex="7">
                     <DataGrid.Columns>
 
                         <DataGridTextColumn Header="Date" Width="130"
@@ -238,9 +246,11 @@
         <!-- ═══════════════════════════════════════════════════════════
              RECORD SHRINKAGE DIALOG OVERLAY
              ═══════════════════════════════════════════════════════════ -->
-        <Grid Visibility="{Binding IsDialogOpen, Converter={StaticResource BoolToVis}}"
+        <Grid x:Name="RecordShrinkageDialogOverlay"
+              Visibility="{Binding IsDialogOpen, Converter={StaticResource BoolToVis}}"
               Background="{DynamicResource OverlayBrush}"
-              Panel.ZIndex="100">
+              Panel.ZIndex="100"
+              IsVisibleChanged="RecordShrinkageDialogOverlay_IsVisibleChanged">
 
             <Border Style="{StaticResource CardStyle}"
                     Width="480"
@@ -256,10 +266,12 @@
 
                     <!-- Product -->
                     <TextBlock Text="Product *" Style="{StaticResource FieldLabelStyle}"/>
-                    <ComboBox ItemsSource="{Binding DialogProducts}"
+                    <ComboBox x:Name="DialogProductComboBox"
+                               ItemsSource="{Binding DialogProducts}"
                                SelectedItem="{Binding DialogSelectedProduct}"
                                Style="{StaticResource FormCombo}"
-                               Margin="0,0,0,4"/>
+                               Margin="0,0,0,4"
+                               TabIndex="8"/>
                     <TextBlock FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,12">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
@@ -282,18 +294,20 @@
                               Text="{Binding DialogQuantity, UpdateSourceTrigger=LostFocus}"
                               Style="{StaticResource FormInput}"
                               Margin="0,0,0,12"
-                              PreviewTextInput="QuantityBox_PreviewTextInput"/>
+                              PreviewTextInput="QuantityBox_PreviewTextInput"
+                              TabIndex="9"/>
 
                     <!-- Reason -->
                     <TextBlock Text="Reason *" Style="{StaticResource FieldLabelStyle}"/>
                     <ComboBox ItemsSource="{Binding ReasonOptions}"
                                SelectedItem="{Binding DialogReason}"
                                Style="{StaticResource FormCombo}"
-                               Margin="0,0,0,12"/>
+                               Margin="0,0,0,12"
+                               TabIndex="10"/>
 
                     <!-- Notes -->
                     <TextBlock Text="Notes (optional)" Style="{StaticResource FieldLabelStyle}"/>
-                    <TextBox Text="{Binding DialogNotes, UpdateSourceTrigger=PropertyChanged}"
+                    <TextBox Text="{Binding DialogNotes, UpdateSourceTrigger=PropertyChanged}" TabIndex="11"
                               Style="{StaticResource FormInput}"
                               Height="64" TextWrapping="Wrap" AcceptsReturn="True"
                               VerticalScrollBarVisibility="Auto"
@@ -304,17 +318,20 @@
                     <ComboBox ItemsSource="{Binding DialogBatches}"
                                SelectedItem="{Binding DialogSelectedBatch}"
                                Style="{StaticResource FormCombo}"
-                               Margin="0,0,0,20"/>
+                               Margin="0,0,0,20"
+                               TabIndex="12"/>
 
                     <!-- Action buttons -->
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button Content="Cancel"
+                        <Button Content="_Cancel"
                                 Style="{StaticResource SecondaryButtonStyle}"
                                 Margin="0,0,8,0"
-                                Click="CancelDialogButton_Click"/>
-                        <Button Content="Confirm"
+                                Click="CancelDialogButton_Click"
+                                TabIndex="13"/>
+                        <Button Content="_Confirm"
                                 Style="{StaticResource DangerButtonStyle}"
-                                Click="ConfirmRecordButton_Click"/>
+                                Click="ConfirmRecordButton_Click"
+                                TabIndex="14"/>
                     </StackPanel>
 
                 </StackPanel>

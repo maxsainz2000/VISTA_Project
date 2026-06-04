@@ -9,7 +9,8 @@
         Width="420" SizeToContent="Height"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterScreen"
-        Background="{DynamicResource WindowBackgroundBrush}">
+        Background="{DynamicResource WindowBackgroundBrush}"
+        FocusManager.FocusedElement="{Binding ElementName=UsernameTextBox}">
 
     <Window.Resources>
 
@@ -58,7 +59,9 @@
 
                     <!-- Username -->
                     <TextBlock Text="Username" Style="{StaticResource FieldLabelStyle}"/>
-                    <TextBox Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
+                    <TextBox x:Name="UsernameTextBox"
+                             Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
+                             TabIndex="1"
                              Margin="0,0,0,14"/>
 
                     <!-- Password with eye toggle -->
@@ -68,19 +71,22 @@
                     <Grid Margin="0,0,0,14">
                         <PasswordBox helpers:PasswordBoxHelper.IsMonitoring="True"
                                      helpers:PasswordBoxHelper.BoundPassword="{Binding Password, Mode=TwoWay}"
-                                     Visibility="{Binding HidePassword, Converter={StaticResource BoolToVis}}">
+                                     Visibility="{Binding HidePassword, Converter={StaticResource BoolToVis}}"
+                                     TabIndex="2">
                             <PasswordBox.InputBindings>
                                 <KeyBinding Key="Return" Command="{Binding LoginCommand}"/>
                             </PasswordBox.InputBindings>
                         </PasswordBox>
                         <TextBox Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}"
-                                 Visibility="{Binding ShowPassword, Converter={StaticResource BoolToVis}}">
+                                 Visibility="{Binding ShowPassword, Converter={StaticResource BoolToVis}}"
+                                 TabIndex="2">
                             <TextBox.InputBindings>
                                 <KeyBinding Key="Return" Command="{Binding LoginCommand}"/>
                             </TextBox.InputBindings>
                         </TextBox>
                         <Button Style="{StaticResource EyeButton}"
                                 Command="{Binding ToggleShowPasswordCommand}"
+                                IsTabStop="False"
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Center"
                                 Margin="0,0,4,0">
@@ -98,12 +104,14 @@
                                Visibility="{Binding HasError, Converter={StaticResource BoolToVis}}"/>
 
                     <!-- Log In button (hidden when password-change panel is shown) -->
-                    <Button Content="LOG IN"
+                    <Button Content="_LOG IN"
                             Command="{Binding LoginCommand}"
                             Style="{StaticResource PrimaryButtonStyle}"
                             Height="38"
                             IsEnabled="{Binding IsNotLoggingIn}"
-                            Visibility="{Binding HidePasswordChange, Converter={StaticResource BoolToVis}}"/>
+                            Visibility="{Binding HidePasswordChange, Converter={StaticResource BoolToVis}}"
+                            TabIndex="3"
+                            IsDefault="True"/>
 
                 </StackPanel>
 
@@ -124,11 +132,14 @@
                     <Grid Margin="0,0,0,14">
                         <PasswordBox helpers:PasswordBoxHelper.IsMonitoring="True"
                                      helpers:PasswordBoxHelper.BoundPassword="{Binding NewPassword, Mode=TwoWay}"
-                                     Visibility="{Binding HideNewPassword, Converter={StaticResource BoolToVis}}"/>
+                                     Visibility="{Binding HideNewPassword, Converter={StaticResource BoolToVis}}"
+                                     TabIndex="4"/>
                         <TextBox Text="{Binding NewPassword, UpdateSourceTrigger=PropertyChanged}"
-                                 Visibility="{Binding ShowNewPassword, Converter={StaticResource BoolToVis}}"/>
+                                 Visibility="{Binding ShowNewPassword, Converter={StaticResource BoolToVis}}"
+                                 TabIndex="4"/>
                         <Button Style="{StaticResource EyeButton}"
                                 Command="{Binding ToggleShowNewPasswordCommand}"
+                                IsTabStop="False"
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Center"
                                 Margin="0,0,4,0">
@@ -141,13 +152,16 @@
                     <TextBlock Text="Confirm New Password" Style="{StaticResource FieldLabelStyle}"/>
                     <PasswordBox helpers:PasswordBoxHelper.IsMonitoring="True"
                                  helpers:PasswordBoxHelper.BoundPassword="{Binding ConfirmNewPassword, Mode=TwoWay}"
-                                 Margin="0,0,0,20"/>
+                                 Margin="0,0,0,20"
+                                 TabIndex="5"/>
 
-                    <Button Content="SET PASSWORD AND CONTINUE"
+                    <Button Content="_SET PASSWORD AND CONTINUE"
                             Command="{Binding ChangePasswordCommand}"
                             Style="{StaticResource PrimaryButtonStyle}"
                             Height="38"
-                            IsEnabled="{Binding IsNotLoggingIn}"/>
+                            IsEnabled="{Binding IsNotLoggingIn}"
+                            TabIndex="6"
+                            IsDefault="True"/>
 
                 </StackPanel>
 

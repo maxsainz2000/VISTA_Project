@@ -23,8 +23,8 @@
 
             <!-- Buttons -->
             <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="Cancel" Style="{StaticResource SecondaryButtonStyle}" Click="CancelButton_Click" IsCancel="True" Margin="0,0,10,0"/>
-                <Button Content="Refresh" Style="{StaticResource PrimaryButtonStyle}" Click="RefreshButton_Click" IsDefault="True"/>
+                <Button Content="_Cancel" TabIndex="1" Style="{StaticResource SecondaryButtonStyle}" Click="CancelButton_Click" IsCancel="True" Margin="0,0,10,0"/>
+                <Button Content="_Refresh" TabIndex="2" Style="{StaticResource PrimaryButtonStyle}" Click="RefreshButton_Click" IsDefault="True"/>
             </StackPanel>
         </DockPanel>
     </Grid>

@@ -6,7 +6,8 @@
              xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
              mc:Ignorable="d"
              d:DesignHeight="768" d:DesignWidth="1280"
-             Background="{DynamicResource WindowBackgroundBrush}">
+             Background="{DynamicResource WindowBackgroundBrush}"
+             PreviewKeyDown="UserControl_PreviewKeyDown">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
@@ -33,23 +34,28 @@
                          x:Name="SearchBox"
                          Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                          Padding="6,4" BorderThickness="1"
-                         VerticalContentAlignment="Center"/>
+                         VerticalContentAlignment="Center"
+                         TabIndex="5"/>
 
                 <StackPanel Grid.Column="3" Orientation="Horizontal"
                             Visibility="{Binding IsManager, Converter={StaticResource BoolToVis}}">
-                    <Button Content="Add Vendor"
+                    <Button Content="_Add Vendor"
                             Command="{Binding AddVendorCommand}"
-                            Style="{StaticResource SuccessButtonStyle}"/>
-                    <Button Content="Edit"
+                            Style="{StaticResource SuccessButtonStyle}"
+                            TabIndex="1"/>
+                    <Button Content="_Edit"
                             Command="{Binding EditVendorCommand}"
-                            Style="{StaticResource PrimaryButtonStyle}"/>
-                    <Button Content="Delete"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            TabIndex="2"/>
+                    <Button Content="_Delete"
                             Command="{Binding DeleteVendorCommand}"
-                            Style="{StaticResource DangerButtonStyle}"/>
-                    <Button Content="Refresh"
+                            Style="{StaticResource DangerButtonStyle}"
+                            TabIndex="3"/>
+                    <Button Content="Re_fresh"
                             Command="{Binding RefreshCommand}"
                             Style="{StaticResource SecondaryButtonStyle}"
-                            Margin="0"/>
+                            Margin="0"
+                            TabIndex="4"/>
                 </StackPanel>
             </Grid>
         </Border>
@@ -67,10 +73,12 @@
         <!-- ═══════════════════════════════════════════════════════════
              EDITOR PANEL
              ═══════════════════════════════════════════════════════════ -->
-        <Border DockPanel.Dock="Bottom"
+        <Border x:Name="EditorPanelOverlay"
+                DockPanel.Dock="Bottom"
                 Visibility="{Binding IsEditorOpen, Converter={StaticResource BoolToVis}}"
                 Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1"
-                CornerRadius="{DynamicResource RadiusSmall}" Margin="0,6,0,0" Padding="16,12">
+                CornerRadius="{DynamicResource RadiusSmall}" Margin="0,6,0,0" Padding="16,12"
+                IsVisibleChanged="EditorPanelOverlay_IsVisibleChanged">
             <DockPanel>
 
                 <!-- Editor header + action buttons -->
@@ -85,13 +93,15 @@
                                Style="{StaticResource SectionHeaderStyle}"
                                Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
                     <StackPanel Grid.Column="2" Orientation="Horizontal">
-                        <Button Content="Save"
+                        <Button Content="_Save"
                                 Command="{Binding SaveVendorCommand}"
-                                Style="{StaticResource SuccessButtonStyle}"/>
-                        <Button Content="Cancel"
+                                Style="{StaticResource SuccessButtonStyle}"
+                                TabIndex="14"/>
+                        <Button Content="_Cancel"
                                 Command="{Binding CancelEditorCommand}"
                                 Style="{StaticResource SecondaryButtonStyle}"
-                                Margin="0"/>
+                                Margin="0"
+                                TabIndex="15"/>
                     </StackPanel>
                 </Grid>
 
@@ -139,37 +149,44 @@
 
                     <!-- Row 0: Name | ContactPerson | LeadTimeDays -->
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Name *" Style="{StaticResource FieldLabelStyle}" HorizontalAlignment="Right" Margin="0,0,6,0"/>
-                    <TextBox Grid.Row="0" Grid.Column="1"
+                    <TextBox x:Name="VendorNameTextBox"
+                             Grid.Row="0" Grid.Column="1"
                              Text="{Binding Editor.Name, UpdateSourceTrigger=PropertyChanged}"
-                             Padding="6,4" BorderThickness="1" VerticalContentAlignment="Center"/>
+                             Padding="6,4" BorderThickness="1" VerticalContentAlignment="Center"
+                             TabIndex="7"/>
 
                     <TextBlock Grid.Row="0" Grid.Column="3" Text="Contact Person" Style="{StaticResource FieldLabelStyle}" HorizontalAlignment="Right" Margin="0,0,6,0"/>
                     <TextBox Grid.Row="0" Grid.Column="4"
                              Text="{Binding Editor.ContactPerson, UpdateSourceTrigger=PropertyChanged}"
-                             Padding="6,4" BorderThickness="1" VerticalContentAlignment="Center"/>
+                             Padding="6,4" BorderThickness="1" VerticalContentAlignment="Center"
+                             TabIndex="8"/>
 
                     <TextBlock Grid.Row="0" Grid.Column="6" Text="Lead Time (days) *" Style="{StaticResource FieldLabelStyle}" HorizontalAlignment="Right" Margin="0,0,6,0"
                                TextWrapping="Wrap"/>
                     <TextBox Grid.Row="0" Grid.Column="7"
                              Text="{Binding Editor.DefaultLeadTimeDays, UpdateSourceTrigger=PropertyChanged}"
-                             Padding="6,4" BorderThickness="1" VerticalContentAlignment="Center"/>
+                             Padding="6,4" BorderThickness="1" VerticalContentAlignment="Center"
+                             TabIndex="9"/>
 
                     <!-- Row 2: Phone | Email -->
                     <TextBlock Grid.Row="2" Grid.Column="0" Text="Phone *" Style="{StaticResource FieldLabelStyle}" HorizontalAlignment="Right" Margin="0,0,6,0"/>
                     <TextBox Grid.Row="2" Grid.Column="1"
                              Text="{Binding Editor.Phone, UpdateSourceTrigger=PropertyChanged}"
-                             Padding="6,4" BorderThickness="1" VerticalContentAlignment="Center"/>
+                             Padding="6,4" BorderThickness="1" VerticalContentAlignment="Center"
+                             TabIndex="10"/>
 
                     <TextBlock Grid.Row="2" Grid.Column="3" Text="Email" Style="{StaticResource FieldLabelStyle}" HorizontalAlignment="Right" Margin="0,0,6,0"/>
                     <TextBox Grid.Row="2" Grid.Column="4"
                              Text="{Binding Editor.Email, UpdateSourceTrigger=PropertyChanged}"
-                             Padding="6,4" BorderThickness="1" VerticalContentAlignment="Center"/>
+                             Padding="6,4" BorderThickness="1" VerticalContentAlignment="Center"
+                             TabIndex="11"/>
 
                     <!-- Row 4: Address | Notes -->
                     <TextBlock Grid.Row="4" Grid.Column="0" Text="Address" Style="{StaticResource FieldLabelStyle}" HorizontalAlignment="Right" Margin="0,0,6,0"/>
                     <TextBox Grid.Row="4" Grid.Column="1"
                              Text="{Binding Editor.Address, UpdateSourceTrigger=PropertyChanged}"
-                             Padding="6,4" BorderThickness="1" VerticalContentAlignment="Center"/>
+                             Padding="6,4" BorderThickness="1" VerticalContentAlignment="Center"
+                             TabIndex="12"/>
 
                     <TextBlock Grid.Row="4" Grid.Column="3" Text="Notes" Style="{StaticResource FieldLabelStyle}" HorizontalAlignment="Right" Margin="0,0,6,0"/>
                     <TextBox Grid.Row="4" Grid.Column="4" Grid.ColumnSpan="4"
@@ -199,6 +216,7 @@
                                    Style="{StaticResource SectionHeaderStyle}" Margin="0,0,0,8"/>
 
                         <DataGrid x:Name="VendorGrid"
+                                  TabIndex="6"
                                   ItemsSource="{Binding Vendors}"
                                   AutoGenerateColumns="False"
                                   CanUserAddRows="False" CanUserDeleteRows="False"

@@ -90,11 +90,17 @@
                              Padding="6,4"
                              BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
                              VerticalContentAlignment="Center"
-                             x:Name="ProductSearchBox"/>
+                             x:Name="ProductSearchBox"
+                             TabIndex="1">
+                        <TextBox.InputBindings>
+                            <KeyBinding Key="Return" Command="{Binding SearchProductCommand}"/>
+                        </TextBox.InputBindings>
+                    </TextBox>
                     <Button Grid.Column="1" Content="Search"
                             Command="{Binding SearchProductCommand}"
                             Style="{StaticResource AccentButtonStyle}"
-                            Margin="4,0,0,0" Padding="12,4" Cursor="Hand"/>
+                            Margin="4,0,0,0" Padding="12,4" Cursor="Hand"
+                            TabIndex="2"/>
                 </Grid>
 
                 <!-- Tip -->
@@ -103,7 +109,7 @@
                            FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
 
                 <!-- Product list -->
-                <ListBox x:Name="ProductList"
+                <ListBox x:Name="ProductList" TabIndex="3"
                          ItemsSource="{Binding ProductSearchResults}"
                          SelectedItem="{Binding SelectedProduct}"
                          BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
@@ -179,7 +185,8 @@
                             Command="{Binding NewTransactionCommand}"
                             HorizontalAlignment="Right"
                             Padding="12,4"
-                            Cursor="Hand"/>
+                            Cursor="Hand"
+                            TabIndex="4"/>
                 </Grid>
 
                 <!-- Totals (dock bottom) -->
@@ -241,7 +248,8 @@
                               SelectionUnit="FullRow"
                               GridLinesVisibility="Horizontal"
                               BorderThickness="1"
-                              HeadersVisibility="Column">
+                              HeadersVisibility="Column"
+                              TabIndex="5">
 
                         <DataGrid.Columns>
                             <!-- Product -->
@@ -329,7 +337,8 @@
 
                         <Button Grid.Row="0" Grid.Column="0"
                                 Command="{Binding SelectPaymentMethodCommand}"
-                                CommandParameter="Cash">
+                                CommandParameter="Cash"
+                                TabIndex="6">
                             <Button.Style>
                                 <Style TargetType="Button" BasedOn="{StaticResource PayMethodButton}">
                                     <Style.Triggers>
@@ -351,7 +360,8 @@
 
                         <Button Grid.Row="0" Grid.Column="1"
                                 Command="{Binding SelectPaymentMethodCommand}"
-                                CommandParameter="GCash">
+                                CommandParameter="GCash"
+                                TabIndex="7">
                             <Button.Style>
                                 <Style TargetType="Button" BasedOn="{StaticResource PayMethodButton}">
                                     <Style.Triggers>
@@ -373,7 +383,8 @@
 
                         <Button Grid.Row="1" Grid.Column="0"
                                 Command="{Binding SelectPaymentMethodCommand}"
-                                CommandParameter="Bank">
+                                CommandParameter="Bank"
+                                TabIndex="8">
                             <Button.Style>
                                 <Style TargetType="Button" BasedOn="{StaticResource PayMethodButton}">
                                     <Style.Triggers>
@@ -395,7 +406,8 @@
 
                         <Button Grid.Row="1" Grid.Column="1"
                                 Command="{Binding SelectPaymentMethodCommand}"
-                                CommandParameter="Credit">
+                                CommandParameter="Credit"
+                                TabIndex="9">
                             <Button.Style>
                                 <Style TargetType="Button" BasedOn="{StaticResource PayMethodButton}">
                                     <Style.Triggers>
@@ -421,7 +433,8 @@
                         <TextBlock Text="Amount Tendered (₱)" Style="{StaticResource CaptionLabelStyle}"/>
                         <TextBox Text="{Binding AmountTendered, UpdateSourceTrigger=PropertyChanged, StringFormat='N2'}"
                                  Padding="6,4" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
-                                 HorizontalContentAlignment="Right" FontSize="{DynamicResource FontSizeSubhead}"/>
+                                 HorizontalContentAlignment="Right" FontSize="{DynamicResource FontSizeSubhead}"
+                                 TabIndex="10"/>
 
                         <TextBlock Text="Change" Style="{StaticResource CaptionLabelStyle}" Margin="0,8,0,2"/>
                         <TextBlock Text="{Binding ChangeAmount, StringFormat='₱{0:N2}'}"
@@ -441,17 +454,20 @@
                             <TextBox Grid.Column="0"
                                      Text="{Binding CreditCustomerSearch, UpdateSourceTrigger=PropertyChanged}"
                                      Padding="6,4" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
-                                     VerticalContentAlignment="Center"/>
+                                     VerticalContentAlignment="Center"
+                                     TabIndex="11"/>
                             <Button Grid.Column="1" Content="Find"
                                     Command="{Binding SearchCreditCustomerCommand}"
                                     Style="{StaticResource AccentButtonStyle}"
-                                    Margin="4,0,0,0" Padding="12,4" Cursor="Hand"/>
+                                    Margin="4,0,0,0" Padding="12,4" Cursor="Hand"
+                                    TabIndex="12"/>
                         </Grid>
 
                         <ListBox ItemsSource="{Binding CreditCustomers}"
                                  SelectedItem="{Binding SelectedCreditCustomer}"
                                  MaxHeight="120"
-                                 BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1">
+                                 BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                                 TabIndex="13">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
                                     <Border Padding="4,2">
@@ -484,7 +500,8 @@
                     <Button Content="PAY"
                             Command="{Binding PayCommand}"
                             Height="48" FontSize="{DynamicResource FontSizeSubhead}" FontWeight="Bold"
-                            Cursor="Hand">
+                            Cursor="Hand"
+                            TabIndex="14">
                         <Button.Style>
                             <Style TargetType="Button" BasedOn="{StaticResource AccentButtonStyle}">
                                 <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>

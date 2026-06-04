@@ -6,7 +6,8 @@
              xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
              mc:Ignorable="d"
              d:DesignHeight="768" d:DesignWidth="1280"
-             Background="{DynamicResource WindowBackgroundBrush}">
+             Background="{DynamicResource WindowBackgroundBrush}"
+             PreviewKeyDown="UserControl_PreviewKeyDown">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
@@ -71,7 +72,8 @@
                                               SelectedItem="{Binding SelectedCategoryFilter}"
                                               Width="140"
                                               Padding="6,4" VerticalContentAlignment="Center"
-                                              BorderBrush="{DynamicResource SeparatorBrush}"/>
+                                              BorderBrush="{DynamicResource SeparatorBrush}"
+                                              TabIndex="1"/>
                                 </StackPanel>
 
                                 <!-- Search -->
@@ -81,28 +83,32 @@
                                              Width="200"
                                              Padding="6,4" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
                                              VerticalContentAlignment="Center"
-                                             x:Name="SearchBox"/>
+                                             x:Name="SearchBox"
+                                             TabIndex="2"/>
                                 </StackPanel>
 
                                 <!-- Add Product -->
-                                <Button Content="+ Add Product"
+                                <Button Content="_Add Product"
                                         Command="{Binding AddProductCommand}"
                                         Style="{StaticResource PrimaryButtonStyle}"
-                                        VerticalAlignment="Center" Margin="0,0,12,4"/>
+                                        VerticalAlignment="Center" Margin="0,0,12,4"
+                                        TabIndex="3"/>
 
                                 <!-- Edit -->
-                                <Button Content="Edit"
+                                <Button Content="_Edit"
                                         Command="{Binding EditProductCommand}"
                                         CommandParameter="{Binding SelectedProduct}"
                                         IsEnabled="{Binding HasSelectedProduct}"
                                         Style="{StaticResource SecondaryButtonStyle}"
-                                        VerticalAlignment="Center" Margin="0,0,12,4"/>
+                                        VerticalAlignment="Center" Margin="0,0,12,4"
+                                        TabIndex="4"/>
 
                                 <!-- Deactivate / Reactivate -->
                                 <Button Command="{Binding DeactivateProductCommand}"
                                         CommandParameter="{Binding SelectedProduct}"
                                         IsEnabled="{Binding HasSelectedProduct}"
-                                        VerticalAlignment="Center" Margin="0,0,12,4">
+                                        VerticalAlignment="Center" Margin="0,0,12,4"
+                                        TabIndex="5">
                                     <Button.Style>
                                         <Style TargetType="Button" BasedOn="{StaticResource WarningButtonStyle}">
                                             <Setter Property="Content" Value="Deactivate"/>
@@ -117,24 +123,26 @@
                                 </Button>
 
                                 <!-- Price History -->
-                                <Button Content="Price History"
+                                <Button Content="_Price History"
                                         Click="ViewPriceHistory_Click"
                                         IsEnabled="{Binding HasSelectedProduct}"
                                         Style="{StaticResource SecondaryButtonStyle}"
-                                        VerticalAlignment="Center" Margin="0,0,12,4"/>
+                                        VerticalAlignment="Center" Margin="0,0,12,4"
+                                        TabIndex="6"/>
  
                                 <!-- Refresh -->
-                                <Button Content="Refresh"
+                                <Button Content="Re_fresh"
                                         Command="{Binding LoadDataCommand}"
                                         Style="{StaticResource SecondaryButtonStyle}"
-                                        VerticalAlignment="Center" Margin="0,0,12,4"/>
+                                        VerticalAlignment="Center" Margin="0,0,12,4"
+                                        TabIndex="7"/>
                             </WrapPanel>
                         </Border>
 
                         <!-- Product DataGrid Container -->
                         <Grid>
                             <!-- Product DataGrid -->
-                            <DataGrid x:Name="ProductGrid"
+                            <DataGrid x:Name="ProductGrid" TabIndex="8"
                                       ItemsSource="{Binding Products}"
                                       SelectedItem="{Binding SelectedProduct, Mode=TwoWay}"
                                       AutoGenerateColumns="False"
@@ -249,10 +257,11 @@
                                 Background="{DynamicResource WindowBackgroundBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="0,0,0,1"
                                 Padding="0,8,0,8" Margin="0,0,0,8">
                             <StackPanel Orientation="Horizontal">
-                                <Button Content="+ Add Category"
+                                <Button Content="Add _Category"
                                         Command="{Binding AddCategoryCommand}"
                                         Style="{StaticResource PrimaryButtonStyle}"
-                                        Margin="0,0,8,0"/>
+                                        Margin="0,0,8,0"
+                                        TabIndex="9"/>
                             </StackPanel>
                         </Border>
 
@@ -271,7 +280,8 @@
                                       SelectionUnit="FullRow" SelectionMode="Single"
                                       GridLinesVisibility="Horizontal"
                                       HeadersVisibility="Column"
-                                      CanUserSortColumns="True">
+                                      CanUserSortColumns="True"
+                                      TabIndex="10">
 
                                 <DataGrid.Columns>
 
@@ -360,7 +370,7 @@
              PRODUCT EDITOR OVERLAY
              ═══════════════════════════════════════════════════════════ -->
         <Grid Background="{DynamicResource OverlayBrush}"
-              Visibility="{Binding IsEditorOpen, Converter={StaticResource BoolToVis}}">
+              x:Name="ProductEditorOverlay" Visibility="{Binding IsEditorOpen, Converter={StaticResource BoolToVis}}" IsVisibleChanged="ProductEditorOverlay_IsVisibleChanged">
 
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
                           HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
@@ -382,19 +392,23 @@
                         <!-- Left Column -->
                         <StackPanel Grid.Column="0">
                             <TextBlock Text="Product Name *" Style="{StaticResource FieldLabelStyle}"/>
-                            <TextBox Text="{Binding EditorName, UpdateSourceTrigger=PropertyChanged}"
-                                     Style="{StaticResource FormInput}"/>
+                            <TextBox x:Name="EditorNameTextBox"
+                                     Text="{Binding EditorName, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource FormInput}"
+                                     TabIndex="11"/>
 
                             <TextBlock Text="SKU *" Style="{StaticResource FieldLabelStyle}"/>
                             <TextBox Text="{Binding EditorSku, UpdateSourceTrigger=PropertyChanged}"
-                                     Style="{StaticResource FormInput}"/>
+                                     Style="{StaticResource FormInput}"
+                                     TabIndex="12"/>
 
                             <TextBlock Text="Category *" Style="{StaticResource FieldLabelStyle}"/>
                             <ComboBox ItemsSource="{Binding Categories}"
                                       SelectedValuePath="CategoryId"
                                       DisplayMemberPath="Name"
                                       SelectedValue="{Binding EditorCategoryId}"
-                                      Style="{StaticResource FormCombo}"/>
+                                      Style="{StaticResource FormCombo}"
+                                      TabIndex="13"/>
 
                             <!-- Costing Helper Panel -->
                             <StackPanel Orientation="Vertical" Margin="0,0,0,10"
@@ -430,11 +444,13 @@
 
                             <TextBlock Text="Retail Price (₱) *" Style="{StaticResource FieldLabelStyle}"/>
                             <TextBox Text="{Binding EditorRetailPriceText, UpdateSourceTrigger=PropertyChanged}"
-                                     Style="{StaticResource FormInput}"/>
+                                     Style="{StaticResource FormInput}"
+                                     TabIndex="14"/>
 
                             <TextBlock Text="Price Change Reason (optional)" Style="{StaticResource FieldLabelStyle}"/>
                             <TextBox Text="{Binding EditorPriceChangeReason, UpdateSourceTrigger=PropertyChanged}"
-                                     Style="{StaticResource FormInput}"/>
+                                     Style="{StaticResource FormInput}"
+                                     TabIndex="15"/>
                         </StackPanel>
 
                         <!-- Right Column -->
@@ -442,23 +458,27 @@
                             <TextBlock Text="Unit *" Style="{StaticResource FieldLabelStyle}"/>
                             <ComboBox ItemsSource="{Binding UnitOptions}"
                                       SelectedItem="{Binding EditorUnit}"
-                                      Style="{StaticResource FormCombo}"/>
+                                      Style="{StaticResource FormCombo}"
+                                      TabIndex="16"/>
 
                             <TextBlock Text="Has Expiry Date" Style="{StaticResource FieldLabelStyle}"/>
                             <CheckBox IsChecked="{Binding EditorHasExpiry}"
                                       Content="Track expiry on batches"
-                                      Margin="0,0,0,12" FontSize="12"/>
+                                      Margin="0,0,0,12" FontSize="12"
+                                      TabIndex="17"/>
 
                             <TextBlock Text="Minimum Threshold *" Style="{StaticResource FieldLabelStyle}"/>
                             <TextBox Text="{Binding EditorMinThresholdText, UpdateSourceTrigger=PropertyChanged}"
-                                     Style="{StaticResource FormInput}"/>
+                                     Style="{StaticResource FormInput}"
+                                     TabIndex="18"/>
 
                             <TextBlock Text="Description" Style="{StaticResource FieldLabelStyle}"/>
                             <TextBox Text="{Binding EditorDescription, UpdateSourceTrigger=PropertyChanged}"
                                      Height="60" TextWrapping="Wrap" AcceptsReturn="True"
                                      VerticalScrollBarVisibility="Auto"
                                      Padding="6,4" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
-                                     FontSize="12" Margin="0,0,0,10"/>
+                                     FontSize="12" Margin="0,0,0,10"
+                                     TabIndex="19"/>
                         </StackPanel>
                     </Grid>
 
@@ -470,13 +490,15 @@
 
                     <!-- Footer Buttons -->
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button Content="Cancel"
+                        <Button Content="Ca_ncel"
                                 Command="{Binding CancelEditorCommand}"
                                 Style="{StaticResource SecondaryButtonStyle}"
-                                Margin="0,0,8,0"/>
-                        <Button Content="Save Product"
+                                Margin="0,0,8,0"
+                                TabIndex="20"/>
+                        <Button Content="_Save Product"
                                 Command="{Binding SaveProductCommand}"
-                                Style="{StaticResource PrimaryButtonStyle}"/>
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                TabIndex="21"/>
                     </StackPanel>
 
                 </StackPanel>
@@ -488,7 +510,7 @@
              CATEGORY EDITOR OVERLAY
              ═══════════════════════════════════════════════════════════ -->
         <Grid Background="{DynamicResource OverlayBrush}"
-              Visibility="{Binding IsCategoryEditorOpen, Converter={StaticResource BoolToVis}}">
+              x:Name="CategoryEditorOverlay" Visibility="{Binding IsCategoryEditorOpen, Converter={StaticResource BoolToVis}}" IsVisibleChanged="CategoryEditorOverlay_IsVisibleChanged">
 
             <Border Style="{StaticResource CardStyle}" MaxWidth="420" Padding="24,20" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel>
@@ -498,15 +520,18 @@
                                Margin="0,0,0,16"/>
 
                     <TextBlock Text="Category Name *" Style="{StaticResource FieldLabelStyle}"/>
-                    <TextBox Text="{Binding CategoryEditorName, UpdateSourceTrigger=PropertyChanged}"
-                             Style="{StaticResource FormInput}"/>
+                    <TextBox x:Name="CategoryEditorNameTextBox"
+                             Text="{Binding CategoryEditorName, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource FormInput}"
+                             TabIndex="22"/>
 
                     <TextBlock Text="Description" Style="{StaticResource FieldLabelStyle}"/>
                     <TextBox Text="{Binding CategoryEditorDescription, UpdateSourceTrigger=PropertyChanged}"
                              Height="70" TextWrapping="Wrap" AcceptsReturn="True"
                              VerticalScrollBarVisibility="Auto"
                              Padding="6,4" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
-                             FontSize="12" Margin="0,0,0,12"/>
+                             FontSize="12" Margin="0,0,0,12"
+                             TabIndex="23"/>
 
                     <!-- Validation Error -->
                     <TextBlock Text="{Binding CategoryEditorError}"
@@ -515,13 +540,15 @@
                                Visibility="{Binding HasCategoryEditorError, Converter={StaticResource BoolToVis}}"/>
 
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button Content="Cancel"
+                        <Button Content="Ca_ncel"
                                 Command="{Binding CancelCategoryEditorCommand}"
                                 Style="{StaticResource SecondaryButtonStyle}"
-                                Margin="0,0,8,0"/>
-                        <Button Content="Save Category"
+                                Margin="0,0,8,0"
+                                TabIndex="24"/>
+                        <Button Content="_Save Category"
                                 Command="{Binding SaveCategoryCommand}"
-                                Style="{StaticResource PrimaryButtonStyle}"/>
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                TabIndex="25"/>
                     </StackPanel>
 
                 </StackPanel>

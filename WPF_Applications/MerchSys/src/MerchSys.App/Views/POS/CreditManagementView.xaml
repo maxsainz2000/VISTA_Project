@@ -3,11 +3,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="clr-namespace:MerchSys.POS.ViewModels;assembly=MerchSys.POS"
              xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
              mc:Ignorable="d"
              d:DesignHeight="768" d:DesignWidth="1200"
-             Background="{DynamicResource WindowBackgroundBrush}">
+             Background="{DynamicResource WindowBackgroundBrush}"
+             PreviewKeyDown="UserControl_PreviewKeyDown">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
@@ -72,8 +72,7 @@
             <DockPanel LastChildFill="False">
 
                 <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
-
-                    <Button Content="All" Command="{Binding ApplyFilterCommand}" CommandParameter="All">
+                    <Button Content="All" Command="{Binding ApplyFilterCommand}" CommandParameter="All" IsTabStop="False">
                         <Button.Style>
                             <Style TargetType="Button" BasedOn="{StaticResource SecondaryButtonStyle}">
                                 <Setter Property="Height" Value="30"/>
@@ -89,8 +88,8 @@
                             </Style>
                         </Button.Style>
                     </Button>
-
-                    <Button Content="Blocked" Command="{Binding ApplyFilterCommand}" CommandParameter="Blocked">
+ 
+                    <Button Content="Blocked" Command="{Binding ApplyFilterCommand}" CommandParameter="Blocked" IsTabStop="False">
                         <Button.Style>
                             <Style TargetType="Button" BasedOn="{StaticResource SecondaryButtonStyle}">
                                 <Setter Property="Height" Value="30"/>
@@ -106,8 +105,8 @@
                             </Style>
                         </Button.Style>
                     </Button>
-
-                    <Button Content="With Balance" Command="{Binding ApplyFilterCommand}" CommandParameter="WithBalance">
+ 
+                    <Button Content="With Balance" Command="{Binding ApplyFilterCommand}" CommandParameter="WithBalance" IsTabStop="False">
                         <Button.Style>
                             <Style TargetType="Button" BasedOn="{StaticResource SecondaryButtonStyle}">
                                 <Setter Property="Height" Value="30"/>
@@ -123,8 +122,8 @@
                             </Style>
                         </Button.Style>
                     </Button>
-
-                    <Button Content="Cleared" Command="{Binding ApplyFilterCommand}" CommandParameter="Cleared">
+ 
+                    <Button Content="Cleared" Command="{Binding ApplyFilterCommand}" CommandParameter="Cleared" IsTabStop="False">
                         <Button.Style>
                             <Style TargetType="Button" BasedOn="{StaticResource SecondaryButtonStyle}">
                                 <Setter Property="Height" Value="30"/>
@@ -140,7 +139,6 @@
                             </Style>
                         </Button.Style>
                     </Button>
-
                 </StackPanel>
 
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
@@ -149,21 +147,25 @@
                              Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                              Width="180" Height="30" Padding="8,0"
                              VerticalContentAlignment="Center"
-                             BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"/>
-                    <Button Content="Search"
+                             BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                             TabIndex="1"/>
+                    <Button Content="_Search"
                              Command="{Binding SearchCommand}"
                              Margin="4,0,12,0" Style="{StaticResource PrimaryButtonStyle}"
-                             Height="30" Padding="14,0"/>
+                             Height="30" Padding="14,0"
+                             TabIndex="2"/>
 
-                    <Button Content="+ Add Account"
+                    <Button Content="_Add Account"
                              Command="{Binding AddAccountCommand}"
                              Style="{StaticResource SuccessButtonStyle}"
-                             Height="30" Padding="14,0"/>
+                             Height="30" Padding="14,0"
+                             TabIndex="3"/>
 
-                    <Button Content="Refresh"
+                    <Button Content="Re_fresh"
                              Command="{Binding LoadDataCommand}"
                              Margin="6,0,0,0" Height="30" Style="{StaticResource SecondaryButtonStyle}"
-                             Padding="12,0"/>
+                             Padding="12,0"
+                             TabIndex="4"/>
 
                 </StackPanel>
 
@@ -171,9 +173,11 @@
         </Border>
 
         <!-- ═══ ROW 2: Add Account Form ════════════════════════════════════════ -->
-        <Border Grid.Row="2" Style="{StaticResource CardStyle}" BorderBrush="{DynamicResource SuccessBrush}" BorderThickness="1"
+        <Border x:Name="AddAccountFormOverlay"
+                Grid.Row="2" Style="{StaticResource CardStyle}" BorderBrush="{DynamicResource SuccessBrush}" BorderThickness="1"
                 Padding="12,10" Margin="0,0,0,6"
-                Visibility="{Binding IsAddAccountVisible, Converter={StaticResource BoolToVis}}">
+                Visibility="{Binding IsAddAccountVisible, Converter={StaticResource BoolToVis}}"
+                IsVisibleChanged="AddAccountFormOverlay_IsVisibleChanged">
             <StackPanel>
 
                 <TextBlock Text="New Credit Account" Style="{StaticResource SectionHeaderStyle}" Margin="0,0,0,6"/>
@@ -188,32 +192,38 @@
 
                     <StackPanel Grid.Column="0" Margin="0,0,8,0">
                         <TextBlock Text="Customer Name *" Style="{StaticResource FieldLabelStyle}"/>
-                        <TextBox Text="{Binding NewAccountName, UpdateSourceTrigger=PropertyChanged}"
-                                 Padding="6,4" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"/>
+                        <TextBox x:Name="NewAccountNameTextBox"
+                                 Text="{Binding NewAccountName, UpdateSourceTrigger=PropertyChanged}"
+                                 Padding="6,4" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                                 TabIndex="6"/>
                     </StackPanel>
 
                     <StackPanel Grid.Column="1" Margin="0,0,8,0">
                         <TextBlock Text="Phone *" Style="{StaticResource FieldLabelStyle}"/>
                         <TextBox Text="{Binding NewAccountPhone, UpdateSourceTrigger=PropertyChanged}"
-                                 Padding="6,4" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"/>
+                                 Padding="6,4" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                                 TabIndex="7"/>
                     </StackPanel>
 
                     <StackPanel Grid.Column="2" Margin="0,0,8,0">
                         <TextBlock Text="Address" Style="{StaticResource FieldLabelStyle}"/>
                         <TextBox Text="{Binding NewAccountAddress, UpdateSourceTrigger=PropertyChanged}"
-                                 Padding="6,4" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"/>
+                                 Padding="6,4" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                                 TabIndex="8"/>
                     </StackPanel>
 
                     <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Bottom">
-                        <Button Content="Confirm"
+                        <Button Content="_Confirm"
                                 Command="{Binding ConfirmAddAccountCommand}"
                                 Style="{StaticResource SuccessButtonStyle}"
                                 Height="32" Padding="14,0"
-                                Margin="0,0,6,0"/>
-                        <Button Content="Cancel"
+                                Margin="0,0,6,0"
+                                TabIndex="9"/>
+                        <Button Content="Ca_ncel"
                                 Command="{Binding CancelAddAccountCommand}"
                                 Height="32" Style="{StaticResource SecondaryButtonStyle}"
-                                Padding="12,0"/>
+                                Padding="12,0"
+                                TabIndex="10"/>
                     </StackPanel>
 
                 </Grid>
@@ -271,6 +281,7 @@
                                    Style="{StaticResource SectionHeaderStyle}"/>
 
                         <DataGrid x:Name="AccountsDataGrid"
+                                  TabIndex="5"
                                   ItemsSource="{Binding Accounts}"
                                   SelectedItem="{Binding SelectedAccount}"
                                   AutoGenerateColumns="False"
@@ -353,7 +364,7 @@
                                 <DataGridTemplateColumn Header="" Width="80" IsReadOnly="True">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <Button Content="Pay"
+                                            <Button Content="_Pay"
                                                     Style="{StaticResource DangerButtonStyle}"
                                                     Height="28" Padding="10,0" FontSize="{DynamicResource FontSizeCaption}"
                                                     Command="{Binding DataContext.OpenPaymentDialogCommand,
@@ -554,8 +565,10 @@
         </Grid>
 
         <!-- ═══ Payment Dialog Overlay ═════════════════════════════════════════ -->
-        <Grid Grid.RowSpan="5" Panel.ZIndex="100"
-              Visibility="{Binding IsPaymentDialogVisible, Converter={StaticResource BoolToVis}}">
+        <Grid x:Name="PaymentDialogOverlay"
+              Grid.RowSpan="5" Panel.ZIndex="100"
+              Visibility="{Binding IsPaymentDialogVisible, Converter={StaticResource BoolToVis}}"
+              IsVisibleChanged="PaymentDialogOverlay_IsVisibleChanged">
 
             <Rectangle Fill="{DynamicResource OverlayBrush}"/>
 
@@ -605,16 +618,19 @@
                     </Border>
 
                     <TextBlock Text="Payment Amount (₱)" Style="{StaticResource FieldLabelStyle}" Margin="0,0,0,6"/>
-                    <TextBox Text="{Binding PaymentAmount, UpdateSourceTrigger=PropertyChanged}"
-                              Padding="8,6" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
-                              FontSize="{DynamicResource FontSizeTitle}" HorizontalContentAlignment="Right"
-                              Margin="0,0,0,12"/>
+                    <TextBox x:Name="PaymentAmountTextBox"
+                             Text="{Binding PaymentAmount, UpdateSourceTrigger=PropertyChanged}"
+                             Padding="8,6" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                             FontSize="{DynamicResource FontSizeTitle}" HorizontalContentAlignment="Right"
+                             Margin="0,0,0,12"
+                             TabIndex="11"/>
 
                     <TextBlock Text="Payment Method" Style="{StaticResource FieldLabelStyle}" Margin="0,0,0,6"/>
                     <ComboBox ItemsSource="{Binding PaymentMethodOptions}"
                                SelectedIndex="{Binding SelectedPaymentMethodIndex}"
                                Padding="8,6" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
-                               Margin="0,0,0,16"/>
+                               Margin="0,0,0,16"
+                               TabIndex="12"/>
 
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -623,7 +639,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <Button Grid.Column="0" Content="Cancel"
+                        <Button Grid.Column="0" Content="_Cancel"
                                 Command="{Binding CancelPaymentCommand}"
                                 Style="{StaticResource SecondaryButtonStyle}"
                                 Height="38" Padding="0"/>

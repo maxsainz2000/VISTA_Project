@@ -48,5 +48,6 @@ All engineering learnings from debugging and error-fixing sessions. Check this i
 | [wpf-vista-purchasing-dashboard](patterns/wpf-vista-purchasing-dashboard.md) | pattern | MerchSys.Purchasing | wpf, xaml, vb-net, mvvm, purchasing, dashboard | antigravity | 2026-06-03 | active |
 | [wpf-vista-state-feedback](patterns/wpf-vista-state-feedback.md) | pattern | MerchSys.App | wpf, mvvm, vb-net, state, feedback, busy, empty, error, concurrency, validation, notifications | claude-code | 2026-06-03 (updated UX-15) | active |
 | [wpf-vista-command-palette](patterns/wpf-vista-command-palette.md) | pattern | MerchSys.App | wpf, xaml, mvvm, command-palette, navigation, search, debouncing | antigravity | 2026-06-03 | active |
+| [wpf-vista-keyboard-focus](patterns/wpf-vista-keyboard-focus.md) | pattern | Infrastructure | wpf, xaml, vb-net, keyboard-focus, accessibility | antigravity | 2026-06-04 | active |
 
 

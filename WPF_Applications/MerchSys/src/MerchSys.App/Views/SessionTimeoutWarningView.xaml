@@ -58,13 +58,17 @@
                     </Grid.ColumnDefinitions>
 
                     <Button Grid.Column="0"
-                            Content="Stay signed in"
+                            Content="_Stay signed in"
+                            IsDefault="True"
+                            TabIndex="1"
                             Style="{StaticResource PrimaryButtonStyle}"
                             Height="36"
                             Command="{Binding StaySignedInCommand}"/>
 
                     <Button Grid.Column="2"
-                            Content="Sign out now"
+                            Content="_Sign out now"
+                            IsCancel="True"
+                            TabIndex="2"
                             Style="{StaticResource SecondaryButtonStyle}"
                             Height="36"
                             Command="{Binding SignOutCommand}"/>

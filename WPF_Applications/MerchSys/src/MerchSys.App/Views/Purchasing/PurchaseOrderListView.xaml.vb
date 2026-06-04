@@ -45,6 +45,31 @@ Namespace Views.Purchasing
             End If
         End Sub
 
+        Private Sub EditorPanelOverlay_IsVisibleChanged(sender As Object, e As DependencyPropertyChangedEventArgs)
+            If CType(e.NewValue, Boolean) Then
+                Dispatcher.BeginInvoke(Sub()
+                                           VendorComboBox.Focus()
+                                       End Sub, System.Windows.Threading.DispatcherPriority.Input)
+            End If
+        End Sub
+
+        Private Sub UserControl_PreviewKeyDown(sender As Object, e As System.Windows.Input.KeyEventArgs)
+            Dim vm = TryCast(DataContext, PurchaseOrderListViewModel)
+            If vm IsNot Nothing AndAlso vm.IsEditorOpen Then
+                If e.Key = System.Windows.Input.Key.Escape Then
+                    If vm.CancelEditorCommand.CanExecute(Nothing) Then
+                        vm.CancelEditorCommand.Execute(Nothing)
+                    End If
+                    e.Handled = True
+                ElseIf e.Key = System.Windows.Input.Key.Enter Then
+                    If vm.SaveDraftCommand.CanExecute(Nothing) Then
+                        vm.SaveDraftCommand.Execute(Nothing)
+                    End If
+                    e.Handled = True
+                End If
+            End If
+        End Sub
+
     End Class
 
 End Namespace
