@@ -89,7 +89,8 @@
                                 IsTabStop="False"
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Center"
-                                Margin="0,0,4,0">
+                                Margin="0,0,4,0"
+                                ToolTip="Show / hide password">
                             <Path Style="{StaticResource IconBase}" Data="{StaticResource IconEyeGeometry}"
                                   Width="18" Height="18" Fill="{DynamicResource TextSecondaryBrush}"/>
                         </Button>
@@ -142,7 +143,8 @@
                                 IsTabStop="False"
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Center"
-                                Margin="0,0,4,0">
+                                Margin="0,0,4,0"
+                                ToolTip="Show / hide new password">
                             <Path Style="{StaticResource IconBase}" Data="{StaticResource IconEyeGeometry}"
                                   Width="18" Height="18" Fill="{DynamicResource TextSecondaryBrush}"/>
                         </Button>

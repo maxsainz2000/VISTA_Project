@@ -244,7 +244,8 @@
                         <ToggleButton x:Name="ThemeToggle"
                                       IsChecked="{Binding IsDarkTheme, Mode=OneWay}"
                                       Command="{Binding ToggleThemeCommand}"
-                                      Style="{StaticResource ThemeToggleSwitchStyle}"/>
+                                      Style="{StaticResource ThemeToggleSwitchStyle}"
+                                      ToolTip="Toggle dark mode"/>
                     </StackPanel>
                 </Grid>
             </StackPanel>

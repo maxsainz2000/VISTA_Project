@@ -300,6 +300,34 @@
         </Style.Triggers>
     </Style>
 
+    <!-- ========================================== -->
+    <!-- TOOLTIP STYLE                            -->
+    <!-- ========================================== -->
+
+    <!-- Shared implicit ToolTip style — tokenized chrome (UX-22) -->
+    <Style TargetType="{x:Type ToolTip}">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="8,5"/>
+        <Setter Property="FontFamily" Value="{DynamicResource AppFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ToolTip}">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{DynamicResource RadiusSmall}"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- FieldRowStyle for HeaderedContentControl (Label + Input + Inline Error) -->
     <Style x:Key="FieldRowStyle" TargetType="{x:Type HeaderedContentControl}">
         <Setter Property="IsTabStop" Value="False"/>
