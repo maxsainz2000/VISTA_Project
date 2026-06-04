@@ -149,6 +149,7 @@ This page documents the composition root in `MerchSys.App`.
 | `IEventBus` | `MediatREventBus` | Scoped |
 | `INotificationService` | `DefaultNotificationService` | Singleton |
 | `IConflictPresenter` | `DefaultConflictPresenter` | Singleton |
+| `IConfirmationPresenter` | `DefaultConfirmationPresenter` | Singleton |
 | `ISessionService` | `LoginSessionService` | Singleton |
 | `IWriteContextScope` | `WriteContextScope` | Singleton |
 | `RoleGuardInterceptor` | `RoleGuardInterceptor` | Scoped |
@@ -175,3 +176,16 @@ This page documents the composition root in `MerchSys.App`.
 | `TransactionHistoryViewModel` | POS | `ProcessReturnAsync` |
 
 The five UX-06 VMs (`SalesCartViewModel`, `APLedgerViewModel`, `GoodsReceivingViewModel`, `CreditManagementViewModel`, `VatSettingsViewModel`) already had `IConflictPresenter` injected from UX-06; UX-14 consolidated their inline catch blocks onto the shared primitive.
+
+## UX-20 — Confirmation-Guard Dependency Notes
+
+> `IConfirmationPresenter` (Singleton, registered above) is injected as a constructor parameter into the following VMs to gate destructive, irreversible, or financial actions:
+
+| ViewModel | Module | Routed Paths Gated | Confirm Level |
+|---|---|---|---|
+| `ProductManagementViewModel` | Inventory | `DeleteCategoryAsync` | Plain |
+| `PurchaseOrderListViewModel` | Purchasing | `DeleteSelectedAsync`, `SubmitSelectedAsync`, `SubmitFromEditorAsync` | Plain |
+| `VendorListViewModel` | Purchasing | `DeleteSelectedAsync` | Typed (Vendor Name) |
+| `VendorCatalogViewModel` | Purchasing | `DeleteEntryAsync` | Plain |
+| `TransactionHistoryViewModel` | POS | `ProcessReturnAsync` | Plain |
+

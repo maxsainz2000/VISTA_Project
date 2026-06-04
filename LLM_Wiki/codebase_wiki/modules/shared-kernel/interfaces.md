@@ -15,6 +15,7 @@ last-updated: 2026-05-26
 | `Interfaces/IEventBus.vb` | `IEventBus` | `PublishAsync(Of T As INotification)(event As T)` |
 | `Interfaces/INotificationService.vb` | `INotificationService` | `ShowSuccess(message)`, `ShowError(message)`, `ShowInfo(message)`, `ShowWarning(message)` |
 | `Interfaces/IConflictPresenter.vb` | `IConflictPresenter` | `PromptAsync() As Task(Of Boolean)` |
+| `Interfaces/IConfirmationPresenter.vb` | `IConfirmationPresenter` | `PromptAsync(request) As Task(Of Boolean)` |
 | `Interfaces/ISessionService.vb` | `ISessionService` | `CurrentUsername`, `CurrentRole`, `IsAuthenticated` |
 | `Interfaces/IWriteContextScope.vb` | `IWriteContextScope` | `Current` (`WriteContextKind`), `SelfServiceUsername` (`String`), `Enter(kind, username) As IDisposable` |
 
