@@ -312,6 +312,7 @@ Namespace ViewModels
                 Await LoadDataAsync()
             End If
             Editor.PrepareForNew(_vendorList)
+            Editor.ClearEditorErrors()
             IsEditorOpen = True
         End Function
 
@@ -322,6 +323,7 @@ Namespace ViewModels
                 Dim po = Await _poService.GetByIdAsync(SelectedOrder.Id)
                 If po IsNot Nothing Then
                     Editor.LoadFromPO(po, _vendorList)
+                    Editor.ClearEditorErrors()
                     IsEditorOpen = True
                 End If
             Finally
@@ -394,8 +396,10 @@ Namespace ViewModels
 
         Private Async Function SaveDraftAsync() As Task
             If Not IsEditorOpen Then Return
-            If Editor.SelectedVendor Is Nothing Then
-                StatusMessage = "Please select a vendor."
+            
+            Editor.IsSubmitting = False
+            If Not Editor.ValidateAll() Then
+                StatusMessage = "Please correct the validation errors."
                 Return
             End If
             If Not Editor.LineItems.Any() Then
@@ -456,21 +460,17 @@ Namespace ViewModels
 
         Private Async Function SubmitFromEditorAsync() As Task
             If Not IsEditorOpen Then Return
-            If Editor.SelectedVendor Is Nothing Then
-                StatusMessage = "Please select a vendor."
+
+            Editor.IsSubmitting = True
+            If Not Editor.ValidateAll() Then
+                Editor.IsSubmitting = False
+                StatusMessage = "Please correct the validation errors."
                 Return
             End If
+            Editor.IsSubmitting = False
+
             If Not Editor.LineItems.Any() Then
                 StatusMessage = "Please add at least one line item."
-                Return
-            End If
-
-            If Not Editor.ExpectedDeliveryDate.HasValue Then
-                StatusMessage = "Expected delivery date is required."
-                Return
-            End If
-            If Editor.ExpectedDeliveryDate.Value.Date < DateTime.Today Then
-                StatusMessage = "Expected delivery date cannot be in the past."
                 Return
             End If
 

@@ -1,9 +1,9 @@
 ---
 type: pattern
 module: MerchSys.App
-agent: claude-code
+agent: antigravity
 date: 2026-06-03
-updated: 2026-06-03 (UX-15)
+updated: 2026-06-04 (UX-18)
 tags: [wpf, mvvm, vb-net, state, feedback, busy, empty, error, concurrency, validation, notifications]
 ---
 
@@ -191,13 +191,44 @@ each VM keeps its own domain-error UX. The primitive never swallows non-concurre
 payment, receive, save settings, delete) through it instead of ad-hoc message boxes. Registered as a
 singleton alongside `IConflictPresenter` in `Application.xaml.vb`.
 
-### 4. Inline validation (`ObservableValidator`)
+### 4. Inline validation (`ObservableValidator`) — UX-18
 
-Input-heavy VMs inherit `CommunityToolkit.Mvvm.ComponentModel.ObservableValidator`, decorate
-properties with data-annotation attributes (`Required`, `Range`, `MinLength`), and report errors via
-`INotifyDataErrorInfo`. The primary action's `CanExecute` gates on `Not HasErrors`, and the save body
-guards with `ValidateAllProperties()` + `If HasErrors Then Return`. The tokenized
-`Validation.ErrorTemplate` renders a red adorner + tooltip — no per-view error `TextBlock`.
+Input-heavy VMs inherit `CommunityToolkit.Mvvm.ComponentModel.ObservableValidator`, decorate properties with data-annotation attributes (`Required`, `Range`, `RegularExpression`), and report errors via `INotifyDataErrorInfo`. The primary action's `CanExecute` gates on `Not HasErrors`, and the save body guards with `ValidateAllProperties()` + `If HasErrors Then Return`. 
+
+To standardize form presentation and avoid layout shifts, the following three-part UX-18 standard must be applied to all editable forms:
+
+#### A. Shared Field Row Style (`FieldRowStyle`)
+Wrap every editable input control inside a `HeaderedContentControl` in XAML, utilizing the shared `FieldRowStyle` defined in `Themes/Components.xaml`:
+```xml
+<HeaderedContentControl Header="Field Label" 
+                        Style="{StaticResource FieldRowStyle}" 
+                        helpers:FormHelper.IsRequired="True">
+    <TextBox Text="{Binding FormProperty, UpdateSourceTrigger=PropertyChanged, NotifyOnValidationError=True}"
+             Style="{StaticResource FormInput}"/>
+</HeaderedContentControl>
+```
+*   **Asterisk Required Marker**: When `helpers:FormHelper.IsRequired="True"` is declared, a trailing red asterisk (`*`) is shown next to the label.
+*   **Mnemonic Focus Target**: The template binds the label's `Target` to the inner `Content` control to enable keyboard Alt-mnemonic focus targeting (UX-17).
+*   **Fixed Error Slot**: A fixed-height `18px` panel is reserved underneath the input slot, showing `Content.(Validation.Errors)[0].ErrorContent` when invalid. This prevents layout reflows and vertical jumping when errors toggle.
+*   **Validation Bubble-up**: You **must** specify `NotifyOnValidationError=True` on the child input bindings so that error notifications propagate to the parent containers for the `ErrorSummary`.
+
+#### B. Reusable Error Summary (`ErrorSummary`)
+For long or multi-section forms (e.g. Product Editor, Purchase Order Editor), insert the collapsible `ErrorSummary` control at the top of the form layout:
+```xml
+<views:ErrorSummary TargetContainer="{Binding ElementName=EditorOverlayGrid}" Margin="0,0,0,12"/>
+```
+*   It aggregates all validation errors bubbled up in the visual tree of the specified `TargetContainer`.
+*   Clicking an error button/link in the list automatically calls `Focus()` on the invalid element to guide the operator.
+
+#### C. Numeric Input Affordances (`FormHelper.InputMode`)
+To enforce input discipline, apply the attached property `helpers:FormHelper.InputMode` directly to `TextBox` elements:
+*   `PositiveInteger`: Restricts entry to positive integers only (regex `^\d*$`), aligns text `Right`, and formats on `LostFocus` (falling back to `"0"`).
+*   `PositiveDecimal`: Restricts entry to positive decimal numbers (up to 2 decimal places, regex `^\d*(\.\d{0,2})?$`), aligns text `Right`, and formats on `LostFocus` (e.g. `"12.00"` / `"0.00"`).
+```xml
+<TextBox Text="{Binding Price, UpdateSourceTrigger=PropertyChanged, NotifyOnValidationError=True}"
+         helpers:FormHelper.InputMode="PositiveDecimal"
+         Style="{StaticResource FormInput}"/>
+```
 
 ## Why It Works
 

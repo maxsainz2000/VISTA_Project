@@ -1,5 +1,6 @@
 Imports System.Collections.ObjectModel
 Imports System.ComponentModel
+Imports System.ComponentModel.DataAnnotations
 Imports CommunityToolkit.Mvvm.ComponentModel
 Imports CommunityToolkit.Mvvm.Input
 Imports MerchSys.Purchasing.Entities
@@ -87,7 +88,9 @@ Namespace ViewModels
     ''' service extension (IPurchaseOrderService.CreateDraftAsync does not accept them).
     ''' </summary>
     Public Class PurchaseOrderEditorViewModel
-        Inherits ObservableObject
+        Inherits ObservableValidator
+
+        Public Property IsSubmitting As Boolean = False
 
         Public Sub New()
             LineItems = New ObservableCollection(Of POLineItem)()
@@ -103,12 +106,13 @@ Namespace ViewModels
         Public Property VendorCatalog As ObservableCollection(Of Dtos.VendorProductDto)
 
         Private _selectedVendor As Vendor
+        <Required(ErrorMessage:="Vendor is required.")>
         Public Property SelectedVendor As Vendor
             Get
                 Return _selectedVendor
             End Get
             Set(value As Vendor)
-                SetProperty(_selectedVendor, value)
+                SetProperty(_selectedVendor, value, True)
             End Set
         End Property
 
@@ -129,12 +133,13 @@ Namespace ViewModels
         ' ─── Header Fields ────────────────────────────────────────────────────────
 
         Private _expectedDeliveryDate As DateTime?
+        <CustomValidation(GetType(PurchaseOrderEditorViewModel), NameOf(ValidateDeliveryDate))>
         Public Property ExpectedDeliveryDate As DateTime?
             Get
                 Return _expectedDeliveryDate
             End Get
             Set(value As DateTime?)
-                SetProperty(_expectedDeliveryDate, value)
+                SetProperty(_expectedDeliveryDate, value, True)
             End Set
         End Property
 
@@ -147,6 +152,32 @@ Namespace ViewModels
                 SetProperty(_notes, value)
             End Set
         End Property
+
+        Public Shared Function ValidateDeliveryDate(value As DateTime?, context As ValidationContext) As ValidationResult
+            Dim vm = DirectCast(context.ObjectInstance, PurchaseOrderEditorViewModel)
+            ' Delivery-date rules apply only on submit. Drafts never validated the delivery date
+            ' pre-UX-18, so both the required and past-date checks stay gated behind IsSubmitting to
+            ' preserve the original SaveDraft gating (UX-18 is presentation-only).
+            If vm.IsSubmitting Then
+                If Not value.HasValue Then
+                    Return New ValidationResult("Expected delivery date is required.")
+                End If
+                If value.Value.Date < DateTime.Today Then
+                    Return New ValidationResult("Expected delivery date cannot be in the past.")
+                End If
+            End If
+            Return ValidationResult.Success
+        End Function
+
+        Public Sub ClearEditorErrors()
+            ClearErrors(NameOf(SelectedVendor))
+            ClearErrors(NameOf(ExpectedDeliveryDate))
+        End Sub
+
+        Public Function ValidateAll() As Boolean
+            ValidateAllProperties()
+            Return Not HasErrors
+        End Function
 
         ' ─── State ────────────────────────────────────────────────────────────────
 

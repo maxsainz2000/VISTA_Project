@@ -4,6 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
+             xmlns:helpers="clr-namespace:MerchSys.App.Helpers"
              mc:Ignorable="d"
              d:DesignHeight="768" d:DesignWidth="1280"
              Background="{DynamicResource WindowBackgroundBrush}"
@@ -127,7 +128,7 @@
                     </TextBlock.Style>
                 </TextBlock>
 
-                <!-- Form fields: 2 rows × 4 columns (Label | Input | Label | Input) -->
+                <!-- Form fields: 3 rows × 3 columns of inputs with spacing -->
                 <Grid DockPanel.Dock="Top">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -137,61 +138,59 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="100"/>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="20"/>
-                        <ColumnDefinition Width="120"/>
+                        <ColumnDefinition Width="16"/>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="20"/>
-                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="16"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
                     <!-- Row 0: Name | ContactPerson | LeadTimeDays -->
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Name *" Style="{StaticResource FieldLabelStyle}" HorizontalAlignment="Right" Margin="0,0,6,0"/>
-                    <TextBox x:Name="VendorNameTextBox"
-                             Grid.Row="0" Grid.Column="1"
-                             Text="{Binding Editor.Name, UpdateSourceTrigger=PropertyChanged}"
-                             Padding="6,4" BorderThickness="1" VerticalContentAlignment="Center"
-                             TabIndex="7"/>
+                    <HeaderedContentControl Grid.Row="0" Grid.Column="0" Header="Name" Style="{StaticResource FieldRowStyle}" helpers:FormHelper.IsRequired="True">
+                        <TextBox x:Name="VendorNameTextBox"
+                                 Text="{Binding Editor.Name, UpdateSourceTrigger=PropertyChanged}"
+                                 Padding="6,4" BorderThickness="1" VerticalContentAlignment="Center"
+                                 TabIndex="7"/>
+                    </HeaderedContentControl>
 
-                    <TextBlock Grid.Row="0" Grid.Column="3" Text="Contact Person" Style="{StaticResource FieldLabelStyle}" HorizontalAlignment="Right" Margin="0,0,6,0"/>
-                    <TextBox Grid.Row="0" Grid.Column="4"
-                             Text="{Binding Editor.ContactPerson, UpdateSourceTrigger=PropertyChanged}"
-                             Padding="6,4" BorderThickness="1" VerticalContentAlignment="Center"
-                             TabIndex="8"/>
+                    <HeaderedContentControl Grid.Row="0" Grid.Column="2" Header="Contact Person" Style="{StaticResource FieldRowStyle}" helpers:FormHelper.IsRequired="False">
+                        <TextBox Text="{Binding Editor.ContactPerson, UpdateSourceTrigger=PropertyChanged}"
+                                 Padding="6,4" BorderThickness="1" VerticalContentAlignment="Center"
+                                 TabIndex="8"/>
+                    </HeaderedContentControl>
 
-                    <TextBlock Grid.Row="0" Grid.Column="6" Text="Lead Time (days) *" Style="{StaticResource FieldLabelStyle}" HorizontalAlignment="Right" Margin="0,0,6,0"
-                               TextWrapping="Wrap"/>
-                    <TextBox Grid.Row="0" Grid.Column="7"
-                             Text="{Binding Editor.DefaultLeadTimeDays, UpdateSourceTrigger=PropertyChanged}"
-                             Padding="6,4" BorderThickness="1" VerticalContentAlignment="Center"
-                             TabIndex="9"/>
+                    <HeaderedContentControl Grid.Row="0" Grid.Column="4" Header="Lead Time (days)" Style="{StaticResource FieldRowStyle}" helpers:FormHelper.IsRequired="True">
+                        <TextBox Text="{Binding Editor.DefaultLeadTimeDays, UpdateSourceTrigger=PropertyChanged}"
+                                 helpers:FormHelper.InputMode="PositiveInteger"
+                                 Padding="6,4" BorderThickness="1" VerticalContentAlignment="Center"
+                                 TabIndex="9"/>
+                    </HeaderedContentControl>
 
                     <!-- Row 2: Phone | Email -->
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Phone *" Style="{StaticResource FieldLabelStyle}" HorizontalAlignment="Right" Margin="0,0,6,0"/>
-                    <TextBox Grid.Row="2" Grid.Column="1"
-                             Text="{Binding Editor.Phone, UpdateSourceTrigger=PropertyChanged}"
-                             Padding="6,4" BorderThickness="1" VerticalContentAlignment="Center"
-                             TabIndex="10"/>
+                    <HeaderedContentControl Grid.Row="2" Grid.Column="0" Header="Phone" Style="{StaticResource FieldRowStyle}" helpers:FormHelper.IsRequired="True">
+                        <TextBox Text="{Binding Editor.Phone, UpdateSourceTrigger=PropertyChanged}"
+                                 Padding="6,4" BorderThickness="1" VerticalContentAlignment="Center"
+                                 TabIndex="10"/>
+                    </HeaderedContentControl>
 
-                    <TextBlock Grid.Row="2" Grid.Column="3" Text="Email" Style="{StaticResource FieldLabelStyle}" HorizontalAlignment="Right" Margin="0,0,6,0"/>
-                    <TextBox Grid.Row="2" Grid.Column="4"
-                             Text="{Binding Editor.Email, UpdateSourceTrigger=PropertyChanged}"
-                             Padding="6,4" BorderThickness="1" VerticalContentAlignment="Center"
-                             TabIndex="11"/>
+                    <HeaderedContentControl Grid.Row="2" Grid.Column="2" Header="Email" Style="{StaticResource FieldRowStyle}" helpers:FormHelper.IsRequired="False">
+                        <TextBox Text="{Binding Editor.Email, UpdateSourceTrigger=PropertyChanged}"
+                                 Padding="6,4" BorderThickness="1" VerticalContentAlignment="Center"
+                                 TabIndex="11"/>
+                    </HeaderedContentControl>
 
                     <!-- Row 4: Address | Notes -->
-                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Address" Style="{StaticResource FieldLabelStyle}" HorizontalAlignment="Right" Margin="0,0,6,0"/>
-                    <TextBox Grid.Row="4" Grid.Column="1"
-                             Text="{Binding Editor.Address, UpdateSourceTrigger=PropertyChanged}"
-                             Padding="6,4" BorderThickness="1" VerticalContentAlignment="Center"
-                             TabIndex="12"/>
+                    <HeaderedContentControl Grid.Row="4" Grid.Column="0" Header="Address" Style="{StaticResource FieldRowStyle}" helpers:FormHelper.IsRequired="False">
+                        <TextBox Text="{Binding Editor.Address, UpdateSourceTrigger=PropertyChanged}"
+                                 Padding="6,4" BorderThickness="1" VerticalContentAlignment="Center"
+                                 TabIndex="12"/>
+                    </HeaderedContentControl>
 
-                    <TextBlock Grid.Row="4" Grid.Column="3" Text="Notes" Style="{StaticResource FieldLabelStyle}" HorizontalAlignment="Right" Margin="0,0,6,0"/>
-                    <TextBox Grid.Row="4" Grid.Column="4" Grid.ColumnSpan="4"
-                             Text="{Binding Editor.Notes, UpdateSourceTrigger=PropertyChanged}"
-                             Padding="6,4" BorderThickness="1" VerticalContentAlignment="Center"/>
+                    <HeaderedContentControl Grid.Row="4" Grid.Column="2" Grid.ColumnSpan="3" Header="Notes" Style="{StaticResource FieldRowStyle}" helpers:FormHelper.IsRequired="False">
+                        <TextBox Text="{Binding Editor.Notes, UpdateSourceTrigger=PropertyChanged}"
+                                 Padding="6,4" BorderThickness="1" VerticalContentAlignment="Center"
+                                 TabIndex="13"/>
+                    </HeaderedContentControl>
                 </Grid>
 
             </DockPanel>

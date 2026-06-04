@@ -4,6 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
+             xmlns:helpers="clr-namespace:MerchSys.App.Helpers"
              mc:Ignorable="d"
              d:DesignHeight="768" d:DesignWidth="1200"
              Background="{DynamicResource WindowBackgroundBrush}"
@@ -190,27 +191,24 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0" Margin="0,0,8,0">
-                        <TextBlock Text="Customer Name *" Style="{StaticResource FieldLabelStyle}"/>
+                    <HeaderedContentControl Grid.Column="0" Margin="0,0,8,0" Header="Customer Name" Style="{StaticResource FieldRowStyle}" helpers:FormHelper.IsRequired="True">
                         <TextBox x:Name="NewAccountNameTextBox"
-                                 Text="{Binding NewAccountName, UpdateSourceTrigger=PropertyChanged}"
+                                 Text="{Binding NewAccountName, UpdateSourceTrigger=PropertyChanged, NotifyOnValidationError=True}"
                                  Padding="6,4" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
                                  TabIndex="6"/>
-                    </StackPanel>
+                    </HeaderedContentControl>
 
-                    <StackPanel Grid.Column="1" Margin="0,0,8,0">
-                        <TextBlock Text="Phone *" Style="{StaticResource FieldLabelStyle}"/>
-                        <TextBox Text="{Binding NewAccountPhone, UpdateSourceTrigger=PropertyChanged}"
+                    <HeaderedContentControl Grid.Column="1" Margin="0,0,8,0" Header="Phone" Style="{StaticResource FieldRowStyle}" helpers:FormHelper.IsRequired="True">
+                        <TextBox Text="{Binding NewAccountPhone, UpdateSourceTrigger=PropertyChanged, NotifyOnValidationError=True}"
                                  Padding="6,4" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
                                  TabIndex="7"/>
-                    </StackPanel>
+                    </HeaderedContentControl>
 
-                    <StackPanel Grid.Column="2" Margin="0,0,8,0">
-                        <TextBlock Text="Address" Style="{StaticResource FieldLabelStyle}"/>
-                        <TextBox Text="{Binding NewAccountAddress, UpdateSourceTrigger=PropertyChanged}"
+                    <HeaderedContentControl Grid.Column="2" Margin="0,0,8,0" Header="Address" Style="{StaticResource FieldRowStyle}" helpers:FormHelper.IsRequired="False">
+                        <TextBox Text="{Binding NewAccountAddress, UpdateSourceTrigger=PropertyChanged, NotifyOnValidationError=True}"
                                  Padding="6,4" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
                                  TabIndex="8"/>
-                    </StackPanel>
+                    </HeaderedContentControl>
 
                     <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Bottom">
                         <Button Content="_Confirm"
@@ -617,20 +615,23 @@
                         </Grid>
                     </Border>
 
-                    <TextBlock Text="Payment Amount (₱)" Style="{StaticResource FieldLabelStyle}" Margin="0,0,0,6"/>
-                    <TextBox x:Name="PaymentAmountTextBox"
-                             Text="{Binding PaymentAmount, UpdateSourceTrigger=PropertyChanged}"
-                             Padding="8,6" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
-                             FontSize="{DynamicResource FontSizeTitle}" HorizontalContentAlignment="Right"
-                             Margin="0,0,0,12"
-                             TabIndex="11"/>
+                    <HeaderedContentControl Header="Payment Amount (₱)" Style="{StaticResource FieldRowStyle}" helpers:FormHelper.IsRequired="True">
+                        <TextBox x:Name="PaymentAmountTextBox"
+                                 Text="{Binding PaymentAmount, UpdateSourceTrigger=PropertyChanged}"
+                                 helpers:FormHelper.InputMode="PositiveDecimal"
+                                 Padding="8,6" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                                 FontSize="{DynamicResource FontSizeTitle}" HorizontalContentAlignment="Right"
+                                 Margin="0,0,0,12"
+                                 TabIndex="11"/>
+                    </HeaderedContentControl>
 
-                    <TextBlock Text="Payment Method" Style="{StaticResource FieldLabelStyle}" Margin="0,0,0,6"/>
-                    <ComboBox ItemsSource="{Binding PaymentMethodOptions}"
-                               SelectedIndex="{Binding SelectedPaymentMethodIndex}"
-                               Padding="8,6" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
-                               Margin="0,0,0,16"
-                               TabIndex="12"/>
+                    <HeaderedContentControl Header="Payment Method" Style="{StaticResource FieldRowStyle}" helpers:FormHelper.IsRequired="True">
+                        <ComboBox ItemsSource="{Binding PaymentMethodOptions}"
+                                  SelectedIndex="{Binding SelectedPaymentMethodIndex}"
+                                  Padding="8,6" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                                  Margin="0,0,0,16"
+                                  TabIndex="12"/>
+                    </HeaderedContentControl>
 
                     <Grid>
                         <Grid.ColumnDefinitions>

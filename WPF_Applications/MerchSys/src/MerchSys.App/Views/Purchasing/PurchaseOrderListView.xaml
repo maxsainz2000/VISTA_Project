@@ -4,6 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
+             xmlns:helpers="clr-namespace:MerchSys.App.Helpers"
              mc:Ignorable="d"
              d:DesignHeight="768" d:DesignWidth="1280"
              Background="{DynamicResource WindowBackgroundBrush}"
@@ -93,13 +94,10 @@
                 IsVisibleChanged="EditorPanelOverlay_IsVisibleChanged">
             <DockPanel Margin="12,10">
 
-                <!-- Editor Header -->
-                <Grid DockPanel.Dock="Top" Margin="0,0,0,8">
+                <!-- Editor Header Row -->
+                <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="180"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
@@ -109,16 +107,7 @@
                                Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"
                                Margin="0,0,16,0"/>
 
-                    <TextBlock Grid.Column="2" Text="Vendor:" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,6,0"/>
-                    <ComboBox x:Name="VendorComboBox"
-                               Grid.Column="3"
-                               ItemsSource="{Binding Editor.Vendors}"
-                               SelectedItem="{Binding Editor.SelectedVendor}"
-                               DisplayMemberPath="Name"
-                               Padding="6,4" VerticalContentAlignment="Center"
-                               TabIndex="7"/>
-
-                    <StackPanel Grid.Column="4" Orientation="Horizontal" Margin="12,0,0,0">
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
                         <Button Content="_Save Draft"
                                 Command="{Binding SaveDraftCommand}"
                                 Style="{StaticResource PrimaryButtonStyle}"
@@ -135,27 +124,37 @@
                     </StackPanel>
                 </Grid>
 
-                <!-- Delivery Date + Notes row -->
-                <Grid DockPanel.Dock="Top" Margin="0,0,0,8">
+                <views:ErrorSummary TargetContainer="{Binding ElementName=EditorPanelOverlay}" Margin="0,0,0,8" DockPanel.Dock="Top"/>
+
+                <!-- Header Fields Row -->
+                <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="220"/>
                         <ColumnDefinition Width="16"/>
-                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="180"/>
+                        <ColumnDefinition Width="16"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock Grid.Column="0" Text="Expected Delivery:" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,6,0"/>
-                    <DatePicker Grid.Column="1"
-                                SelectedDate="{Binding Editor.ExpectedDeliveryDate}"
-                                TabIndex="8"/>
- 
-                    <TextBlock Grid.Column="3" Text="Notes:" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,6,0"/>
-                    <TextBox Grid.Column="4"
-                             Text="{Binding Editor.Notes, UpdateSourceTrigger=PropertyChanged}"
-                             Padding="6,3"
-                             VerticalContentAlignment="Center"
-                             TabIndex="9"/>
+                    <HeaderedContentControl Grid.Column="0" Header="Vendor" Style="{StaticResource FieldRowStyle}" helpers:FormHelper.IsRequired="True">
+                        <ComboBox x:Name="VendorComboBox"
+                                  ItemsSource="{Binding Editor.Vendors}"
+                                  SelectedItem="{Binding Editor.SelectedVendor, NotifyOnValidationError=True}"
+                                  DisplayMemberPath="Name"
+                                  Padding="6,4" VerticalContentAlignment="Center"
+                                  TabIndex="7"/>
+                    </HeaderedContentControl>
+
+                    <HeaderedContentControl Grid.Column="2" Header="Expected Delivery" Style="{StaticResource FieldRowStyle}" helpers:FormHelper.IsRequired="True">
+                        <DatePicker SelectedDate="{Binding Editor.ExpectedDeliveryDate, NotifyOnValidationError=True}"
+                                    TabIndex="8"/>
+                    </HeaderedContentControl>
+
+                    <HeaderedContentControl Grid.Column="4" Header="Notes" Style="{StaticResource FieldRowStyle}" helpers:FormHelper.IsRequired="False">
+                        <TextBox Text="{Binding Editor.Notes, UpdateSourceTrigger=PropertyChanged, NotifyOnValidationError=True}"
+                                 Padding="6,3" VerticalContentAlignment="Center"
+                                 TabIndex="9"/>
+                    </HeaderedContentControl>
                 </Grid>
 
                 <!-- Line Items toolbar -->

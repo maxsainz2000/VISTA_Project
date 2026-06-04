@@ -4,6 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
+             xmlns:helpers="clr-namespace:MerchSys.App.Helpers"
              mc:Ignorable="d"
              d:DesignHeight="768" d:DesignWidth="1280"
              Background="{DynamicResource WindowBackgroundBrush}"
@@ -382,6 +383,8 @@
                                FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"
                                Margin="0,0,0,16"/>
 
+                    <views:ErrorSummary TargetContainer="{Binding ElementName=ProductEditorOverlay}" Margin="0,0,0,12"/>
+
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -391,24 +394,27 @@
 
                         <!-- Left Column -->
                         <StackPanel Grid.Column="0">
-                            <TextBlock Text="Product Name *" Style="{StaticResource FieldLabelStyle}"/>
-                            <TextBox x:Name="EditorNameTextBox"
-                                     Text="{Binding EditorName, UpdateSourceTrigger=PropertyChanged}"
-                                     Style="{StaticResource FormInput}"
-                                     TabIndex="11"/>
+                            <HeaderedContentControl Header="Product Name" Style="{StaticResource FieldRowStyle}" helpers:FormHelper.IsRequired="True">
+                                <TextBox x:Name="EditorNameTextBox"
+                                         Text="{Binding EditorName, UpdateSourceTrigger=PropertyChanged, NotifyOnValidationError=True}"
+                                         Style="{StaticResource FormInput}"
+                                         TabIndex="11"/>
+                            </HeaderedContentControl>
 
-                            <TextBlock Text="SKU *" Style="{StaticResource FieldLabelStyle}"/>
-                            <TextBox Text="{Binding EditorSku, UpdateSourceTrigger=PropertyChanged}"
-                                     Style="{StaticResource FormInput}"
-                                     TabIndex="12"/>
+                            <HeaderedContentControl Header="SKU" Style="{StaticResource FieldRowStyle}" helpers:FormHelper.IsRequired="True">
+                                <TextBox Text="{Binding EditorSku, UpdateSourceTrigger=PropertyChanged, NotifyOnValidationError=True}"
+                                         Style="{StaticResource FormInput}"
+                                         TabIndex="12"/>
+                            </HeaderedContentControl>
 
-                            <TextBlock Text="Category *" Style="{StaticResource FieldLabelStyle}"/>
-                            <ComboBox ItemsSource="{Binding Categories}"
-                                      SelectedValuePath="CategoryId"
-                                      DisplayMemberPath="Name"
-                                      SelectedValue="{Binding EditorCategoryId}"
-                                      Style="{StaticResource FormCombo}"
-                                      TabIndex="13"/>
+                            <HeaderedContentControl Header="Category" Style="{StaticResource FieldRowStyle}" helpers:FormHelper.IsRequired="True">
+                                <ComboBox ItemsSource="{Binding Categories}"
+                                          SelectedValuePath="CategoryId"
+                                          DisplayMemberPath="Name"
+                                          SelectedValue="{Binding EditorCategoryId, NotifyOnValidationError=True}"
+                                          Style="{StaticResource FormCombo}"
+                                          TabIndex="13"/>
+                            </HeaderedContentControl>
 
                             <!-- Costing Helper Panel -->
                             <StackPanel Orientation="Vertical" Margin="0,0,0,10"
@@ -442,24 +448,28 @@
                                 </Grid>
                             </StackPanel>
 
-                            <TextBlock Text="Retail Price (₱) *" Style="{StaticResource FieldLabelStyle}"/>
-                            <TextBox Text="{Binding EditorRetailPriceText, UpdateSourceTrigger=PropertyChanged}"
-                                     Style="{StaticResource FormInput}"
-                                     TabIndex="14"/>
+                            <HeaderedContentControl Header="Retail Price (₱)" Style="{StaticResource FieldRowStyle}" helpers:FormHelper.IsRequired="True">
+                                <TextBox Text="{Binding EditorRetailPriceText, UpdateSourceTrigger=PropertyChanged, NotifyOnValidationError=True}"
+                                         helpers:FormHelper.InputMode="PositiveDecimal"
+                                         Style="{StaticResource FormInput}"
+                                         TabIndex="14"/>
+                            </HeaderedContentControl>
 
-                            <TextBlock Text="Price Change Reason (optional)" Style="{StaticResource FieldLabelStyle}"/>
-                            <TextBox Text="{Binding EditorPriceChangeReason, UpdateSourceTrigger=PropertyChanged}"
-                                     Style="{StaticResource FormInput}"
-                                     TabIndex="15"/>
+                            <HeaderedContentControl Header="Price Change Reason (optional)" Style="{StaticResource FieldRowStyle}" helpers:FormHelper.IsRequired="False">
+                                <TextBox Text="{Binding EditorPriceChangeReason, UpdateSourceTrigger=PropertyChanged, NotifyOnValidationError=True}"
+                                         Style="{StaticResource FormInput}"
+                                         TabIndex="15"/>
+                            </HeaderedContentControl>
                         </StackPanel>
 
                         <!-- Right Column -->
                         <StackPanel Grid.Column="2">
-                            <TextBlock Text="Unit *" Style="{StaticResource FieldLabelStyle}"/>
-                            <ComboBox ItemsSource="{Binding UnitOptions}"
-                                      SelectedItem="{Binding EditorUnit}"
-                                      Style="{StaticResource FormCombo}"
-                                      TabIndex="16"/>
+                            <HeaderedContentControl Header="Unit" Style="{StaticResource FieldRowStyle}" helpers:FormHelper.IsRequired="True">
+                                <ComboBox ItemsSource="{Binding UnitOptions}"
+                                          SelectedItem="{Binding EditorUnit, NotifyOnValidationError=True}"
+                                          Style="{StaticResource FormCombo}"
+                                          TabIndex="16"/>
+                            </HeaderedContentControl>
 
                             <TextBlock Text="Has Expiry Date" Style="{StaticResource FieldLabelStyle}"/>
                             <CheckBox IsChecked="{Binding EditorHasExpiry}"
@@ -467,18 +477,21 @@
                                       Margin="0,0,0,12" FontSize="12"
                                       TabIndex="17"/>
 
-                            <TextBlock Text="Minimum Threshold *" Style="{StaticResource FieldLabelStyle}"/>
-                            <TextBox Text="{Binding EditorMinThresholdText, UpdateSourceTrigger=PropertyChanged}"
-                                     Style="{StaticResource FormInput}"
-                                     TabIndex="18"/>
+                            <HeaderedContentControl Header="Minimum Threshold" Style="{StaticResource FieldRowStyle}" helpers:FormHelper.IsRequired="True">
+                                <TextBox Text="{Binding EditorMinThresholdText, UpdateSourceTrigger=PropertyChanged, NotifyOnValidationError=True}"
+                                         helpers:FormHelper.InputMode="PositiveInteger"
+                                         Style="{StaticResource FormInput}"
+                                         TabIndex="18"/>
+                            </HeaderedContentControl>
 
-                            <TextBlock Text="Description" Style="{StaticResource FieldLabelStyle}"/>
-                            <TextBox Text="{Binding EditorDescription, UpdateSourceTrigger=PropertyChanged}"
-                                     Height="60" TextWrapping="Wrap" AcceptsReturn="True"
-                                     VerticalScrollBarVisibility="Auto"
-                                     Padding="6,4" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
-                                     FontSize="12" Margin="0,0,0,10"
-                                     TabIndex="19"/>
+                            <HeaderedContentControl Header="Description" Style="{StaticResource FieldRowStyle}" helpers:FormHelper.IsRequired="False">
+                                <TextBox Text="{Binding EditorDescription, UpdateSourceTrigger=PropertyChanged, NotifyOnValidationError=True}"
+                                         Height="60" TextWrapping="Wrap" AcceptsReturn="True"
+                                         VerticalScrollBarVisibility="Auto"
+                                         Padding="6,4" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                                         FontSize="12" Margin="0,0,0,10"
+                                         TabIndex="19"/>
+                            </HeaderedContentControl>
                         </StackPanel>
                     </Grid>
 
@@ -519,19 +532,21 @@
                                FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"
                                Margin="0,0,0,16"/>
 
-                    <TextBlock Text="Category Name *" Style="{StaticResource FieldLabelStyle}"/>
-                    <TextBox x:Name="CategoryEditorNameTextBox"
-                             Text="{Binding CategoryEditorName, UpdateSourceTrigger=PropertyChanged}"
-                             Style="{StaticResource FormInput}"
-                             TabIndex="22"/>
+                    <HeaderedContentControl Header="Category Name" Style="{StaticResource FieldRowStyle}" helpers:FormHelper.IsRequired="True">
+                        <TextBox x:Name="CategoryEditorNameTextBox"
+                                 Text="{Binding CategoryEditorName, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource FormInput}"
+                                 TabIndex="22"/>
+                    </HeaderedContentControl>
 
-                    <TextBlock Text="Description" Style="{StaticResource FieldLabelStyle}"/>
-                    <TextBox Text="{Binding CategoryEditorDescription, UpdateSourceTrigger=PropertyChanged}"
-                             Height="70" TextWrapping="Wrap" AcceptsReturn="True"
-                             VerticalScrollBarVisibility="Auto"
-                             Padding="6,4" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
-                             FontSize="12" Margin="0,0,0,12"
-                             TabIndex="23"/>
+                    <HeaderedContentControl Header="Description" Style="{StaticResource FieldRowStyle}" helpers:FormHelper.IsRequired="False">
+                        <TextBox Text="{Binding CategoryEditorDescription, UpdateSourceTrigger=PropertyChanged}"
+                                 Height="70" TextWrapping="Wrap" AcceptsReturn="True"
+                                 VerticalScrollBarVisibility="Auto"
+                                 Padding="6,4" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                                 FontSize="12" Margin="0,0,0,12"
+                                 TabIndex="23"/>
+                    </HeaderedContentControl>
 
                     <!-- Validation Error -->
                     <TextBlock Text="{Binding CategoryEditorError}"

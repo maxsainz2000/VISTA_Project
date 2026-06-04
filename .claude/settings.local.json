@@ -112,7 +112,8 @@
       "PowerShell(& \"C:\\\\xampp\\\\mysql\\\\bin\\\\mysql.exe\" -u merchsys_owner \"-pVistaOwner2026!Read\" merchsys_central -e \"UPDATE Sys_UserAccounts SET Username='test' WHERE 1=0;\" 2>&1)",
       "WebSearch",
       "Read(//c/Users/Admin/**)",
-      "Bash(Select-String -Pattern \"error|warning|Build succeeded|Build FAILED\")"
+      "Bash(Select-String -Pattern \"error|warning|Build succeeded|Build FAILED\")",
+      "Bash(Select-String -Pattern \"error|warning|Build succeeded|Error\\\\\\(s\\\\\\)|Warning\\\\\\(s\\\\\\)\")"
     ]
   }
 }

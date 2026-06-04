@@ -4,6 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
+             xmlns:helpers="clr-namespace:MerchSys.App.Helpers"
              mc:Ignorable="d"
              d:DesignHeight="768" d:DesignWidth="1280"
              Background="{DynamicResource WindowBackgroundBrush}"
@@ -265,13 +266,13 @@
                                Margin="0,0,0,20"/>
 
                     <!-- Product -->
-                    <TextBlock Text="Product *" Style="{StaticResource FieldLabelStyle}"/>
-                    <ComboBox x:Name="DialogProductComboBox"
-                               ItemsSource="{Binding DialogProducts}"
-                               SelectedItem="{Binding DialogSelectedProduct}"
-                               Style="{StaticResource FormCombo}"
-                               Margin="0,0,0,4"
-                               TabIndex="8"/>
+                    <HeaderedContentControl Header="Product" Style="{StaticResource FieldRowStyle}" helpers:FormHelper.IsRequired="True">
+                        <ComboBox x:Name="DialogProductComboBox"
+                                  ItemsSource="{Binding DialogProducts}"
+                                  SelectedItem="{Binding DialogSelectedProduct, NotifyOnValidationError=True}"
+                                  Style="{StaticResource FormCombo}"
+                                  TabIndex="8"/>
+                    </HeaderedContentControl>
                     <TextBlock FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,12">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
@@ -289,37 +290,38 @@
                     </TextBlock>
 
                     <!-- Quantity -->
-                    <TextBlock Text="Quantity *" Style="{StaticResource FieldLabelStyle}"/>
-                    <TextBox x:Name="QuantityBox"
-                              Text="{Binding DialogQuantity, UpdateSourceTrigger=LostFocus}"
-                              Style="{StaticResource FormInput}"
-                              Margin="0,0,0,12"
-                              PreviewTextInput="QuantityBox_PreviewTextInput"
-                              TabIndex="9"/>
+                    <HeaderedContentControl Header="Quantity" Style="{StaticResource FieldRowStyle}" helpers:FormHelper.IsRequired="True">
+                        <TextBox x:Name="QuantityBox"
+                                 Text="{Binding DialogQuantity, UpdateSourceTrigger=LostFocus, NotifyOnValidationError=True}"
+                                 helpers:FormHelper.InputMode="PositiveInteger"
+                                 Style="{StaticResource FormInput}"
+                                 PreviewTextInput="QuantityBox_PreviewTextInput"
+                                 TabIndex="9"/>
+                    </HeaderedContentControl>
 
                     <!-- Reason -->
-                    <TextBlock Text="Reason *" Style="{StaticResource FieldLabelStyle}"/>
-                    <ComboBox ItemsSource="{Binding ReasonOptions}"
-                               SelectedItem="{Binding DialogReason}"
-                               Style="{StaticResource FormCombo}"
-                               Margin="0,0,0,12"
-                               TabIndex="10"/>
+                    <HeaderedContentControl Header="Reason" Style="{StaticResource FieldRowStyle}" helpers:FormHelper.IsRequired="True">
+                        <ComboBox ItemsSource="{Binding ReasonOptions}"
+                                  SelectedItem="{Binding DialogReason, NotifyOnValidationError=True}"
+                                  Style="{StaticResource FormCombo}"
+                                  TabIndex="10"/>
+                    </HeaderedContentControl>
 
                     <!-- Notes -->
-                    <TextBlock Text="Notes (optional)" Style="{StaticResource FieldLabelStyle}"/>
-                    <TextBox Text="{Binding DialogNotes, UpdateSourceTrigger=PropertyChanged}" TabIndex="11"
-                              Style="{StaticResource FormInput}"
-                              Height="64" TextWrapping="Wrap" AcceptsReturn="True"
-                              VerticalScrollBarVisibility="Auto"
-                              Margin="0,0,0,12"/>
+                    <HeaderedContentControl Header="Notes (optional)" Style="{StaticResource FieldRowStyle}" helpers:FormHelper.IsRequired="False">
+                        <TextBox Text="{Binding DialogNotes, UpdateSourceTrigger=PropertyChanged}" TabIndex="11"
+                                 Style="{StaticResource FormInput}"
+                                 Height="64" TextWrapping="Wrap" AcceptsReturn="True"
+                                 VerticalScrollBarVisibility="Auto"/>
+                    </HeaderedContentControl>
 
                     <!-- Batch (optional) -->
-                    <TextBlock Text="Batch (optional — leave Auto for FIFO)" Style="{StaticResource FieldLabelStyle}"/>
-                    <ComboBox ItemsSource="{Binding DialogBatches}"
-                               SelectedItem="{Binding DialogSelectedBatch}"
-                               Style="{StaticResource FormCombo}"
-                               Margin="0,0,0,20"
-                               TabIndex="12"/>
+                    <HeaderedContentControl Header="Batch (optional — leave Auto for FIFO)" Style="{StaticResource FieldRowStyle}" helpers:FormHelper.IsRequired="False">
+                        <ComboBox ItemsSource="{Binding DialogBatches}"
+                                  SelectedItem="{Binding DialogSelectedBatch}"
+                                  Style="{StaticResource FormCombo}"
+                                  TabIndex="12"/>
+                    </HeaderedContentControl>
 
                     <!-- Action buttons -->
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">

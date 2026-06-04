@@ -4,12 +4,21 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
+             xmlns:helpers="clr-namespace:MerchSys.App.Helpers"
              mc:Ignorable="d"
              d:DesignHeight="620" d:DesignWidth="800"
              Background="{DynamicResource WindowBackgroundBrush}">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
+        <Style x:Key="FormInput" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+            <Setter Property="Padding" Value="6,4"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+        </Style>
     </UserControl.Resources>
 
     <Grid>
@@ -97,47 +106,39 @@
                     <TextBlock Text="Tax Rates" FontSize="{DynamicResource FontSizeBody}" FontWeight="Bold"
                                Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
 
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="200"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="8"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="8"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
+                    <StackPanel>
                         <!-- TIN (visible only when VAT-registered) -->
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="TIN (BIR)"
-                                   Style="{StaticResource FieldLabelStyle}"
-                                   Visibility="{Binding IsVatRegistered, Converter={StaticResource BoolToVis}}"/>
-                        <TextBox Grid.Row="0" Grid.Column="1"
-                                 Text="{Binding Tin, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 Visibility="{Binding IsVatRegistered, Converter={StaticResource BoolToVis}}"
-                                 MaxLength="20"/>
+                        <HeaderedContentControl Header="TIN (BIR)"
+                                                Style="{StaticResource FieldRowStyle}"
+                                                helpers:FormHelper.IsRequired="True"
+                                                Visibility="{Binding IsVatRegistered, Converter={StaticResource BoolToVis}}">
+                            <TextBox Text="{Binding Tin, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, NotifyOnValidationError=True}"
+                                     MaxLength="20"
+                                     Style="{StaticResource FormInput}"/>
+                        </HeaderedContentControl>
 
                         <!-- VAT Rate (visible only when VAT-registered) -->
-                        <TextBlock Grid.Row="2" Grid.Column="0" Text="VAT Rate (%)"
-                                   Style="{StaticResource FieldLabelStyle}"
-                                   Visibility="{Binding IsVatRegistered, Converter={StaticResource BoolToVis}}"/>
-                        <TextBox Grid.Row="2" Grid.Column="1"
-                                 Text="{Binding VatRatePercent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 Visibility="{Binding IsVatRegistered, Converter={StaticResource BoolToVis}}"
-                                 MaxLength="6"/>
+                        <HeaderedContentControl Header="VAT Rate (%)"
+                                                Style="{StaticResource FieldRowStyle}"
+                                                helpers:FormHelper.IsRequired="False"
+                                                Visibility="{Binding IsVatRegistered, Converter={StaticResource BoolToVis}}">
+                            <TextBox Text="{Binding VatRatePercent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, NotifyOnValidationError=True}"
+                                     helpers:FormHelper.InputMode="PositiveDecimal"
+                                     MaxLength="6"
+                                     Style="{StaticResource FormInput}"/>
+                        </HeaderedContentControl>
 
                         <!-- Percentage Tax Rate (visible only when NOT VAT-registered) -->
-                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Percentage Tax Rate (%)"
-                                   Style="{StaticResource FieldLabelStyle}"
-                                   Visibility="{Binding IsNotVatRegistered, Converter={StaticResource BoolToVis}}"/>
-                        <TextBox Grid.Row="2" Grid.Column="1"
-                                 Text="{Binding PercentageTaxRatePercent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 Visibility="{Binding IsNotVatRegistered, Converter={StaticResource BoolToVis}}"
-                                 MaxLength="6"/>
-
-                    </Grid>
+                        <HeaderedContentControl Header="Percentage Tax Rate (%)"
+                                                Style="{StaticResource FieldRowStyle}"
+                                                helpers:FormHelper.IsRequired="False"
+                                                Visibility="{Binding IsNotVatRegistered, Converter={StaticResource BoolToVis}}">
+                            <TextBox Text="{Binding PercentageTaxRatePercent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, NotifyOnValidationError=True}"
+                                     helpers:FormHelper.InputMode="PositiveDecimal"
+                                     MaxLength="6"
+                                     Style="{StaticResource FormInput}"/>
+                        </HeaderedContentControl>
+                    </StackPanel>
                 </StackPanel>
             </Border>
 
@@ -149,32 +150,25 @@
                     <TextBlock Text="Business Information" FontSize="{DynamicResource FontSizeBody}" FontWeight="Bold"
                                Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
 
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="200"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="10"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
+                    <StackPanel>
+                        <HeaderedContentControl Header="Registered Business Name"
+                                                Style="{StaticResource FieldRowStyle}"
+                                                helpers:FormHelper.IsRequired="True">
+                            <TextBox Text="{Binding RegisteredBusinessName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, NotifyOnValidationError=True}"
+                                     MaxLength="200"
+                                     Style="{StaticResource FormInput}"/>
+                        </HeaderedContentControl>
 
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Registered Business Name"
-                                   Style="{StaticResource FieldLabelStyle}"/>
-                        <TextBox Grid.Row="0" Grid.Column="1"
-                                 Text="{Binding RegisteredBusinessName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 MaxLength="200"/>
-
-                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Registered Address"
-                                   Style="{StaticResource FieldLabelStyle}"/>
-                        <TextBox Grid.Row="2" Grid.Column="1"
-                                 Text="{Binding RegisteredAddress, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 AcceptsReturn="True" MinHeight="60" MaxHeight="100"
-                                 TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
-                                 MaxLength="500"/>
-
-                    </Grid>
+                        <HeaderedContentControl Header="Registered Address"
+                                                Style="{StaticResource FieldRowStyle}"
+                                                helpers:FormHelper.IsRequired="True">
+                            <TextBox Text="{Binding RegisteredAddress, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, NotifyOnValidationError=True}"
+                                     AcceptsReturn="True" MinHeight="60" MaxHeight="100"
+                                     TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
+                                     MaxLength="500"
+                                     Style="{StaticResource FormInput}"/>
+                        </HeaderedContentControl>
+                    </StackPanel>
                 </StackPanel>
             </Border>
 

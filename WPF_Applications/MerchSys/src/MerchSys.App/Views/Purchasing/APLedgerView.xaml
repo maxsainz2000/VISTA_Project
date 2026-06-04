@@ -4,6 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
+             xmlns:helpers="clr-namespace:MerchSys.App.Helpers"
              mc:Ignorable="d"
              d:DesignHeight="680" d:DesignWidth="1200"
              Background="{DynamicResource WindowBackgroundBrush}"
@@ -368,10 +369,13 @@
                     <Border Height="1" Background="{DynamicResource SeparatorBrush}" Margin="0,0,0,16"/>
 
                     <!-- Payment amount input -->
-                    <TextBox x:Name="PaymentAmountInputTextBox"
-                             Text="{Binding PaymentAmountText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             Padding="10,8" FontSize="14"
-                             TabIndex="4"/>
+                    <HeaderedContentControl Header="Payment Amount" Style="{StaticResource FieldRowStyle}" helpers:FormHelper.IsRequired="True">
+                        <TextBox x:Name="PaymentAmountInputTextBox"
+                                 Text="{Binding PaymentAmountText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 helpers:FormHelper.InputMode="PositiveDecimal"
+                                 Padding="10,8" FontSize="14"
+                                 TabIndex="4"/>
+                    </HeaderedContentControl>
 
                     <!-- Error message -->
                     <Border Visibility="{Binding HasPaymentError, Converter={StaticResource BoolToVis}}"
