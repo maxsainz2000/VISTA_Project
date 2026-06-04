@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.App
 layer: Services
-last-updated: 2026-06-04
+last-updated: 2026-06-05
 ---
 
 # MerchSys.App — Services
@@ -32,7 +32,9 @@ This page details the Service implementations specifically located within the **
 | `src/MerchSys.App/Services/IConnectionHealthMonitor.vb`<br>`src/MerchSys.App/Services/ConnectionHealthMonitor.vb` | `IConnectionHealthMonitor`<br>`ConnectionHealthMonitor` | Periodic MariaDB SELECT 1 health probe with a three-state machine (Online, Reconnecting, Offline), exponential backoff, and UI thread event dispatching. |
 | `src/MerchSys.App/Services/ConnectionHealthMonitorLocator.vb` | `ConnectionHealthMonitorLocator` (Module) | Static accessor used by UI attached behaviors to check current connection health. |
 | `src/MerchSys.App/Startup/ConnectionConfig.vb` | `ConnectionConfig` (Module) | Extension module (`AddConnectionHealthMonitor`) that registers connection health monitor services. |
-| `src/MerchSys.App/Services/Theming/IThemeService.vb`<br>`src/MerchSys.App/Services/Theming/ThemeService.vb`<br>`src/MerchSys.App/Services/Theming/AppTheme.vb` | `IThemeService`<br>`ThemeService`<br>`AppTheme` (Enum) | Manages application-wide theme states (Light/Dark). Hot-swaps MergedDictionaries at runtime and persists theme preference via local JSON settings (`%LOCALAPPDATA%\MerchSys\ui-settings.json`). |
+| `src/MerchSys.App/Services/Theming/IThemeService.vb`<br>`src/MerchSys.App/Services/Theming/ThemeService.vb`<br>`src/MerchSys.App/Services/Theming/AppTheme.vb` | `IThemeService`<br>`ThemeService`<br>`AppTheme` (Enum) | Manages application-wide theme states (Light/Dark). Hot-swaps MergedDictionaries at runtime. Reads/writes theme preference via `UiSettingsStore` (which owns `%LOCALAPPDATA%\MerchSys\ui-settings.json`); no longer reads the file directly (UX-23). |
+| `src/MerchSys.App/Services/UiSettingsStore.vb` | `UiSettingsStore` | Singleton JSON store for all per-laptop UI preferences. Reads/writes `%LOCALAPPDATA%\MerchSys\ui-settings.json` with all known keys (`theme`, `windowLeft`, `windowTop`, `windowWidth`, `windowHeight`, `windowMaximized`). Loads eagerly on construction; `Save()` is called by both `ThemeService` and `WindowPlacementService` so neither save clobbers the other's keys (UX-23). |
+| `src/MerchSys.App/Services/WindowPlacementService.vb` | `WindowPlacement` (data class)<br>`WindowPlacementService` | Saves and restores per-laptop window size, position, and maximized state via `UiSettingsStore`. `LoadPlacement()` validates saved bounds against `SystemParameters.VirtualScreen*`, requires ≥ 100×30 px on-screen, and returns `Nothing` (triggering `CenterScreen + Maximized` fallback) on off-screen saves. `SavePlacement(window)` captures `RestoreBounds` when maximized so un-maximize restores a sensible size (UX-23). |
 
 ## Debug & Utilities
 | File Path | Class | Description |

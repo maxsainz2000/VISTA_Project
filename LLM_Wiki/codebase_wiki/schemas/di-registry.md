@@ -1,6 +1,6 @@
 ---
 type: schema-map
-last-updated: 2026-06-03
+last-updated: 2026-06-05
 ---
 
 # Dependency Injection Registry
@@ -158,6 +158,8 @@ This page documents the composition root in `MerchSys.App`.
 | `IdleMonitorOptions` | (Configuration) | Singleton |
 | `IConnectionHealthMonitor` | `ConnectionHealthMonitor` | Singleton |
 | `IThemeService` | `ThemeService` | Singleton |
+| `UiSettingsStore` | `UiSettingsStore` | Singleton |
+| `WindowPlacementService` | `WindowPlacementService` | Singleton |
 | (Extension) | `AddModuleDbContexts()` | Registers all module DbContexts (Scoped) |
 | (Extension) | `AddMediatRServices()` | Registers MediatR and all module handlers |
 | (Extension) | `AddConnectionHealthMonitor()` | Registers Connection health monitor services |

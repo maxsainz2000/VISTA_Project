@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.App
 layer: UI
-last-updated: 2026-06-04
+last-updated: 2026-06-05
 ---
 
 # MerchSys.App — UI (Views)
@@ -14,7 +14,7 @@ This page details the WPF View implementations (XAML and code-behind) in the **M
 | File Path | Class | Description | DataContext / Injection |
 |---|---|---|---|
 | `src/MerchSys.App/Application.xaml`<br>`src/MerchSys.App/Application.xaml.vb` | `Application` | Main Application entry point. Handles Generic Host initialization, DI container building, manual schema bootstrapping via `MariaDbSchemaInitializer`, startup theme loading (UX-01), merging control styles (UX-03), and vector iconography (UX-07). | (none) |
-| `src/MerchSys.App/MainWindow.xaml`<br>`src/MerchSys.App/MainWindow.xaml.vb` | `MainWindow` | Main application shell. Uses token-based `AppFontFamily` (Inter) and a padded `Border` with `WindowBackgroundBrush` for a floating macOS-style content area. Registers `Ctrl+K` global hotkey and hosts the Spotlight-style command palette overlay. | `MainWindowViewModel` (Constructor Injection) |
+| `src/MerchSys.App/MainWindow.xaml`<br>`src/MerchSys.App/MainWindow.xaml.vb` | `MainWindow` | Main application shell. Uses token-based `AppFontFamily` (Inter) and a padded `Border` with `WindowBackgroundBrush` for a floating macOS-style content area. Registers `Ctrl+K` global hotkey and hosts the Spotlight-style command palette overlay. On load, restores window placement (size, position, maximized state) via `WindowPlacementService`; saves placement on `Closing`. `WindowState`/`WindowStartupLocation` are now set exclusively from code-behind — `CenterScreen + Maximized` only on first run or off-screen fallback (UX-23). | `MainWindowViewModel`, `WindowPlacementService` (Constructor Injection) |
 | `src/MerchSys.App/ViewModels/MainWindowViewModel.vb` | `MainWindowViewModel` | MVVM hub for the shell. Manages `ActiveModule`, `ActiveModuleName`, role-aware `AppModule` collections, navigation commands, theme state (`IsDarkTheme`/`ToggleThemeCommand`), the `AllNavigableItems` navigation aggregator, and `CommandPaletteViewModel` visibility. | `IServiceProvider`, `IThemeService` (Constructor Injection) |
 | `src/MerchSys.App/Models/NavigationItem.vb` | `NavigationItem`, `NavigationGroup` | POCO models representing navigation nodes and their parent groups. | (none) |
 | `src/MerchSys.App/Models/CommandPaletteItem.vb` | `CommandPaletteItem` | Model class representing unified search results (screens and products) in the command palette. | (none) |
@@ -113,4 +113,11 @@ This page details the WPF View implementations (XAML and code-behind) in the **M
 | `src/MerchSys.App/Themes/Controls.xaml` | Implicit, theme-aware control styles for common controls (Button, TextBox, PasswordBox, CheckBox, RadioButton, ListBox, ComboBox, TabControl, ScrollBar) and keyed styles `AccentButtonStyle`/`LinkButtonStyle`. Defines the shared `AppFocusVisual` style (a 1.5px `AccentBrush` ring with `RadiusSmall`, `Margin="1"`) applied as `FocusVisualStyle` on all common control implicit styles for app-wide theme-aware keyboard-focus visibility (UX-17). |
 | `src/MerchSys.App/Themes/Controls.DataGrid.xaml` | Implicit, theme-aware styles for `DataGrid`, `DataGridColumnHeader`, `DataGridRow`, and `DataGridCell`. |
 | `src/MerchSys.App/Themes/Icons.xaml` | Hand-drawn monoline vector glyphs library (UX-07) on a 24x24 viewbox with the reusable `IconBase` presentation style. |
-| `src/MerchSys.App/Themes/Components.xaml` | Consolidated semantic components library (Primary/Success/Danger/Warning/Secondary/Subtle Button styles, SegmentToggleStyle, CardStyle, AlertCardStyle, SectionHeaderStyle, PageTitleStyle, SubtitleStyle, CaptionLabelStyle, MetricValueStyle, MetricValueLargeStyle, SemanticRowStyle, NumericCellStyle, ValidationErrorTemplate). Includes `FieldRowStyle` for `HeaderedContentControl`: renders a target-linked mnemonic Label, red required asterisk (`FormHelper.IsRequired`), the input content slot, and a fixed `18px` inline validation error presenter to prevent layout shift (UX-18). |
+| `src/MerchSys.App/Themes/Components.xaml` | Consolidated semantic components library (Primary/Success/Danger/Warning/Secondary/Subtle Button styles, SegmentToggleStyle, CardStyle, AlertCardStyle, SectionHeaderStyle, PageTitleStyle, SubtitleStyle, CaptionLabelStyle, MetricValueStyle, MetricValueLargeStyle, SemanticRowStyle, NumericCellStyle, ValidationErrorTemplate). Includes `FieldRowStyle` for `HeaderedContentControl`: renders a target-linked mnemonic Label, red required asterisk (`FormHelper.IsRequired`), the input content slot, and a fixed `18px` inline validation error presenter to prevent layout shift (UX-18). Includes an implicit `ToolTip` style (tokenized `SurfaceBrush` background, `TextPrimaryBrush` foreground, `SeparatorBrush` border, Inter font, `RadiusSmall` `ControlTemplate` override) for app-wide theme-reactive tooltip chrome (UX-22). |
+| `src/MerchSys.App/Themes/Formats.xaml` | Centralised format-string resource dictionary defining all standard display formats: `FormatCurrency`, `FormatCurrencyNoDecimal`, `FormatQuantity`, `FormatQuantityInt`, `FormatDate`, `FormatDateShort`, `FormatDateTime`, `FormatDateTimeShort`, `FormatPercent`, `FormatPercentSigned`; also declares converter instances for `PesoConverter`, `PesoNoDecimalConverter`, `SignedPesoConverter`, `DateFormatter`, `DateTimeFormatter`, `QuantityConverter`. Merged into `Application.xaml` (UX-21). |
+
+## Converters
+
+| File Path | Class(es) | Description |
+|---|---|---|
+| `src/MerchSys.App/Converters/FormattingConverters.vb` | `PesoConverter`<br>`PesoNoDecimalConverter`<br>`SignedPesoConverter`<br>`DateFormatter`<br>`DateTimeFormatter`<br>`QuantityConverter` | Centralised `IValueConverter` implementations for currency, date/time, and quantity formatting. `PesoConverter`/`PesoNoDecimalConverter` support parse-back to `Decimal` (two-way money inputs). `SignedPesoConverter` formats as `− ₱{0:N2}`. All respect running culture separators. Instances declared in `Formats.xaml` and referenced by views that cannot use plain `StringFormat` (e.g. `Run.Text`, multi-binding). (UX-21) |
