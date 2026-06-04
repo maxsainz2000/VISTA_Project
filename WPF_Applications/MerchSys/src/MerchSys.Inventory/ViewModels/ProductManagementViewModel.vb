@@ -9,6 +9,7 @@ Imports MerchSys.Inventory.Entities
 Imports MerchSys.Inventory.Services
 Imports MerchSys.SharedKernel.Interfaces
 Imports MerchSys.SharedKernel.Persistence
+Imports MerchSys.SharedKernel.Enums
 
 Namespace ViewModels
 
@@ -56,16 +57,18 @@ Namespace ViewModels
             UnitOptions = New ObservableCollection(Of String) From {"bag", "bottle", "pack", "kg", "liter", "box", "piece", "set"}
 
             LoadDataCommand = New AsyncRelayCommand(AddressOf LoadDataAsync)
-            AddProductCommand = New RelayCommand(AddressOf OpenAddProductEditor)
-            EditProductCommand = New RelayCommand(Of ProductManagementRowItem)(AddressOf OpenEditProductEditor)
-            DeactivateProductCommand = New AsyncRelayCommand(Of ProductManagementRowItem)(AddressOf ToggleActiveAsync)
-            SaveProductCommand = New AsyncRelayCommand(AddressOf SaveProductAsync, Function() Not HasErrors)
-            CancelEditorCommand = New RelayCommand(AddressOf CloseProductEditor)
-            AddCategoryCommand = New RelayCommand(AddressOf OpenAddCategoryEditor)
-            EditCategoryCommand = New RelayCommand(Of CategoryManagementItem)(AddressOf OpenEditCategoryEditor)
-            DeleteCategoryCommand = New AsyncRelayCommand(Of CategoryManagementItem)(AddressOf DeleteCategoryAsync)
-            SaveCategoryCommand = New AsyncRelayCommand(AddressOf SaveCategoryAsync)
-            CancelCategoryEditorCommand = New RelayCommand(AddressOf CloseCategoryEditor)
+            If IsManager Then
+                AddProductCommand = New RelayCommand(AddressOf OpenAddProductEditor)
+                EditProductCommand = New RelayCommand(Of ProductManagementRowItem)(AddressOf OpenEditProductEditor)
+                DeactivateProductCommand = New AsyncRelayCommand(Of ProductManagementRowItem)(AddressOf ToggleActiveAsync)
+                SaveProductCommand = New AsyncRelayCommand(AddressOf SaveProductAsync, Function() Not HasErrors)
+                CancelEditorCommand = New RelayCommand(AddressOf CloseProductEditor)
+                AddCategoryCommand = New RelayCommand(AddressOf OpenAddCategoryEditor)
+                EditCategoryCommand = New RelayCommand(Of CategoryManagementItem)(AddressOf OpenEditCategoryEditor)
+                DeleteCategoryCommand = New AsyncRelayCommand(Of CategoryManagementItem)(AddressOf DeleteCategoryAsync)
+                SaveCategoryCommand = New AsyncRelayCommand(AddressOf SaveCategoryAsync)
+                CancelCategoryEditorCommand = New RelayCommand(AddressOf CloseCategoryEditor)
+            End If
 
             Dim initTask = LoadDataAsync()
         End Sub
@@ -156,6 +159,12 @@ Namespace ViewModels
         Public ReadOnly Property IsEmpty As Boolean
             Get
                 Return Products.Count = 0 AndAlso Not IsBusy AndAlso Not IsError
+            End Get
+        End Property
+
+        Public ReadOnly Property IsManager As Boolean
+            Get
+                Return _session.CurrentRole = UserRole.Manager OrElse _session.CurrentRole = UserRole.Developer
             End Get
         End Property
 

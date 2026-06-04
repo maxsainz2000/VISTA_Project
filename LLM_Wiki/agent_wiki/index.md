@@ -46,7 +46,7 @@ All engineering learnings from debugging and error-fixing sessions. Check this i
 | [wpf-vista-dashboard-layout](patterns/wpf-vista-dashboard-layout.md) | pattern | MerchSys.App | wpf, xaml, dashboard, layout, overflow | antigravity | 2026-06-03 | active |
 | [wpf-vista-trend-indicators](patterns/wpf-vista-trend-indicators.md) | pattern | MerchSys.App | wpf, xaml, dashboard, trend-indicators, delta-indicator, sparkline | antigravity | 2026-06-03 | active |
 | [wpf-vista-purchasing-dashboard](patterns/wpf-vista-purchasing-dashboard.md) | pattern | MerchSys.Purchasing | wpf, xaml, vb-net, mvvm, purchasing, dashboard | antigravity | 2026-06-03 | active |
-| [wpf-vista-state-feedback](patterns/wpf-vista-state-feedback.md) | pattern | MerchSys.App | wpf, mvvm, vb-net, state, feedback, busy, empty, error, concurrency, validation, notifications | claude-code / antigravity | 2026-06-04 (updated UX-18) | active |
+| [wpf-vista-state-feedback](patterns/wpf-vista-state-feedback.md) | pattern | MerchSys.App | wpf, mvvm, vb-net, state, feedback, busy, empty, error, concurrency, validation, notifications | claude-code / antigravity | 2026-06-04 (updated UX-19) | active |
 | [wpf-vista-command-palette](patterns/wpf-vista-command-palette.md) | pattern | MerchSys.App | wpf, xaml, mvvm, command-palette, navigation, search, debouncing | antigravity | 2026-06-03 | active |
 | [wpf-vista-keyboard-focus](patterns/wpf-vista-keyboard-focus.md) | pattern | Infrastructure | wpf, xaml, vb-net, keyboard-focus, accessibility | antigravity | 2026-06-04 | active |
 

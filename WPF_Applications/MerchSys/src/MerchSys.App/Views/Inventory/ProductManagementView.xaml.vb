@@ -64,24 +64,24 @@ Namespace Views.Inventory
             If vm IsNot Nothing Then
                 If vm.IsEditorOpen Then
                     If e.Key = System.Windows.Input.Key.Escape Then
-                        If vm.CancelEditorCommand.CanExecute(Nothing) Then
+                        If vm.CancelEditorCommand IsNot Nothing AndAlso vm.CancelEditorCommand.CanExecute(Nothing) Then
                             vm.CancelEditorCommand.Execute(Nothing)
                         End If
                         e.Handled = True
                     ElseIf e.Key = System.Windows.Input.Key.Enter Then
-                        If vm.SaveProductCommand.CanExecute(Nothing) Then
+                        If vm.SaveProductCommand IsNot Nothing AndAlso vm.SaveProductCommand.CanExecute(Nothing) Then
                             vm.SaveProductCommand.Execute(Nothing)
                         End If
                         e.Handled = True
                     End If
                 ElseIf vm.IsCategoryEditorOpen Then
                     If e.Key = System.Windows.Input.Key.Escape Then
-                        If vm.CancelCategoryEditorCommand.CanExecute(Nothing) Then
+                        If vm.CancelCategoryEditorCommand IsNot Nothing AndAlso vm.CancelCategoryEditorCommand.CanExecute(Nothing) Then
                             vm.CancelCategoryEditorCommand.Execute(Nothing)
                         End If
                         e.Handled = True
                     ElseIf e.Key = System.Windows.Input.Key.Enter Then
-                        If vm.SaveCategoryCommand.CanExecute(Nothing) Then
+                        If vm.SaveCategoryCommand IsNot Nothing AndAlso vm.SaveCategoryCommand.CanExecute(Nothing) Then
                             vm.SaveCategoryCommand.Execute(Nothing)
                         End If
                         e.Handled = True

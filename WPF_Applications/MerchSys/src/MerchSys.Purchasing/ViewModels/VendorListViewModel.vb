@@ -5,6 +5,7 @@ Imports MerchSys.Purchasing.Entities
 Imports MerchSys.Purchasing.Services
 Imports MerchSys.SharedKernel.Interfaces
 Imports MerchSys.SharedKernel.Persistence
+Imports MerchSys.SharedKernel.Enums
 
 Namespace ViewModels
 
@@ -30,22 +31,26 @@ Namespace ViewModels
 
         Private ReadOnly _vendorService As IVendorService
         Private ReadOnly _conflictPresenter As IConflictPresenter
+        Private ReadOnly _session As ISessionService
         Private _allVendors As List(Of Vendor) = New List(Of Vendor)()
 
-        Public Sub New(vendorService As IVendorService, conflictPresenter As IConflictPresenter)
+        Public Sub New(vendorService As IVendorService, conflictPresenter As IConflictPresenter, session As ISessionService)
             _vendorService = vendorService
             _conflictPresenter = conflictPresenter
+            _session = session
 
             Vendors = New ObservableCollection(Of Vendor)()
             RecentPOs = New ObservableCollection(Of POSummaryRow)()
             Editor = New VendorEditorViewModel()
 
             RefreshCommand = New AsyncRelayCommand(AddressOf LoadDataAsync)
-            AddVendorCommand = New AsyncRelayCommand(AddressOf OpenNewEditorAsync)
-            EditVendorCommand = New AsyncRelayCommand(AddressOf OpenEditEditorAsync, Function() SelectedVendor IsNot Nothing)
-            DeleteVendorCommand = New AsyncRelayCommand(AddressOf DeleteSelectedAsync, Function() SelectedVendor IsNot Nothing)
-            SaveVendorCommand = New AsyncRelayCommand(AddressOf SaveVendorAsync, Function() IsEditorOpen)
-            CancelEditorCommand = New RelayCommand(AddressOf CloseEditor)
+            If IsManager Then
+                AddVendorCommand = New AsyncRelayCommand(AddressOf OpenNewEditorAsync)
+                EditVendorCommand = New AsyncRelayCommand(AddressOf OpenEditEditorAsync, Function() SelectedVendor IsNot Nothing)
+                DeleteVendorCommand = New AsyncRelayCommand(AddressOf DeleteSelectedAsync, Function() SelectedVendor IsNot Nothing)
+                SaveVendorCommand = New AsyncRelayCommand(AddressOf SaveVendorAsync, Function() IsEditorOpen)
+                CancelEditorCommand = New RelayCommand(AddressOf CloseEditor)
+            End If
 
             Dim initTask = LoadDataAsync()
         End Sub
@@ -61,8 +66,8 @@ Namespace ViewModels
             End Get
             Set(value As Vendor)
                 If SetProperty(_selectedVendor, value) Then
-                    EditVendorCommand.NotifyCanExecuteChanged()
-                    DeleteVendorCommand.NotifyCanExecuteChanged()
+                    If EditVendorCommand IsNot Nothing Then EditVendorCommand.NotifyCanExecuteChanged()
+                    If DeleteVendorCommand IsNot Nothing Then DeleteVendorCommand.NotifyCanExecuteChanged()
                     If value IsNot Nothing Then
                         Dim detailTask = LoadVendorDetailAsync(value.Id)
                     Else
@@ -119,21 +124,17 @@ Namespace ViewModels
             End Get
             Set(value As Boolean)
                 If SetProperty(_isEditorOpen, value) Then
-                    SaveVendorCommand.NotifyCanExecuteChanged()
+                    If SaveVendorCommand IsNot Nothing Then SaveVendorCommand.NotifyCanExecuteChanged()
                 End If
             End Set
         End Property
 
         ' ─── Role ─────────────────────────────────────────────────────────────────
 
-        Private _isManager As Boolean = True
-        Public Property IsManager As Boolean
+        Public ReadOnly Property IsManager As Boolean
             Get
-                Return _isManager
+                Return _session.CurrentRole = UserRole.Manager OrElse _session.CurrentRole = UserRole.Developer
             End Get
-            Set(value As Boolean)
-                SetProperty(_isManager, value)
-            End Set
         End Property
 
         ' ─── Status ───────────────────────────────────────────────────────────────

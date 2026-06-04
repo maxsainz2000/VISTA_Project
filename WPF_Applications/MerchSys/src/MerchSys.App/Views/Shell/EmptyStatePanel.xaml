@@ -3,7 +3,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:converters="clr-namespace:MerchSys.App.Converters"
              mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <converters:NullToVisibilityConverter x:Key="NullToVis"/>
+    </UserControl.Resources>
+
     <Grid Margin="32">
         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
             <!-- Icon/Glyph -->
@@ -16,6 +22,14 @@
             <!-- Description -->
             <TextBlock Text="{Binding Description, RelativeSource={RelativeSource AncestorType=UserControl}}"
                        FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="300"/>
+            
+            <!-- Optional Action Button -->
+            <Button Content="{Binding ActionText, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                    Command="{Binding ActionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                    Style="{StaticResource PrimaryButtonStyle}"
+                    HorizontalAlignment="Center"
+                    Margin="0,20,0,0"
+                    Visibility="{Binding ActionCommand, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource NullToVis}}"/>
         </StackPanel>
     </Grid>
 </UserControl>

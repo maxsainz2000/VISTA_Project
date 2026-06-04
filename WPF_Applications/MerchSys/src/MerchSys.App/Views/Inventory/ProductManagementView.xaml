@@ -243,7 +243,9 @@
                             <views:EmptyStatePanel Title="No Products Found"
                                                    Description="No products match the selected criteria or search term."
                                                    HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                   Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}"/>
+                                                   Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}"
+                                                   ActionCommand="{Binding AddProductCommand}"
+                                                   ActionText="Add Product"/>
                         </Grid>
 
                     </DockPanel>
@@ -341,7 +343,9 @@
 
                             <views:EmptyStatePanel Title="No Categories Found"
                                                    Description="There are no product categories configured."
-                                                   HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                   ActionCommand="{Binding AddCategoryCommand}"
+                                                   ActionText="Add Category">
                                 <views:EmptyStatePanel.Style>
                                     <Style TargetType="UserControl">
                                         <Setter Property="Visibility" Value="Collapsed"/>

@@ -399,7 +399,9 @@
                     <views:EmptyStatePanel Title="No Purchase Orders"
                                            Description="There are no purchase orders found matching the filter."
                                            HorizontalAlignment="Center" VerticalAlignment="Center"
-                                           Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}"/>
+                                           Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}"
+                                           ActionCommand="{Binding NewPOCommand}"
+                                           ActionText="New PO"/>
 
                     <views:BusyOverlay Message="Loading purchase orders..."
                                        Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"

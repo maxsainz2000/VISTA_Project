@@ -66,13 +66,15 @@ Namespace ViewModels
             AddHandler Editor.PropertyChanged, AddressOf OnEditorPropertyChanged
 
             RefreshCommand = New AsyncRelayCommand(AddressOf LoadDataAsync)
-            NewPOCommand = New AsyncRelayCommand(AddressOf OpenNewEditorAsync)
-            EditPOCommand = New AsyncRelayCommand(AddressOf OpenEditEditorAsync, Function() CanEditSelected())
-            SubmitPOCommand = New AsyncRelayCommand(AddressOf SubmitSelectedAsync, Function() CanSubmitSelected())
-            DeletePOCommand = New AsyncRelayCommand(AddressOf DeleteSelectedAsync, Function() CanDeleteSelected())
-            SaveDraftCommand = New AsyncRelayCommand(AddressOf SaveDraftAsync, Function() IsEditorOpen)
-            SubmitEditorCommand = New AsyncRelayCommand(AddressOf SubmitFromEditorAsync, Function() IsEditorOpen)
-            CancelEditorCommand = New RelayCommand(AddressOf CloseEditor)
+            If IsManager Then
+                NewPOCommand = New AsyncRelayCommand(AddressOf OpenNewEditorAsync)
+                EditPOCommand = New AsyncRelayCommand(AddressOf OpenEditEditorAsync, Function() CanEditSelected())
+                SubmitPOCommand = New AsyncRelayCommand(AddressOf SubmitSelectedAsync, Function() CanSubmitSelected())
+                DeletePOCommand = New AsyncRelayCommand(AddressOf DeleteSelectedAsync, Function() CanDeleteSelected())
+                SaveDraftCommand = New AsyncRelayCommand(AddressOf SaveDraftAsync, Function() IsEditorOpen)
+                SubmitEditorCommand = New AsyncRelayCommand(AddressOf SubmitFromEditorAsync, Function() IsEditorOpen)
+                CancelEditorCommand = New RelayCommand(AddressOf CloseEditor)
+            End If
 
             Dim initTask = LoadDataAsync()
         End Sub
@@ -88,9 +90,9 @@ Namespace ViewModels
             End Get
             Set(value As PORowItem)
                 If SetProperty(_selectedOrder, value) Then
-                    EditPOCommand.NotifyCanExecuteChanged()
-                    SubmitPOCommand.NotifyCanExecuteChanged()
-                    DeletePOCommand.NotifyCanExecuteChanged()
+                    If EditPOCommand IsNot Nothing Then EditPOCommand.NotifyCanExecuteChanged()
+                    If SubmitPOCommand IsNot Nothing Then SubmitPOCommand.NotifyCanExecuteChanged()
+                    If DeletePOCommand IsNot Nothing Then DeletePOCommand.NotifyCanExecuteChanged()
                 End If
             End Set
         End Property
@@ -130,8 +132,8 @@ Namespace ViewModels
             End Get
             Set(value As Boolean)
                 If SetProperty(_isEditorOpen, value) Then
-                    SaveDraftCommand.NotifyCanExecuteChanged()
-                    SubmitEditorCommand.NotifyCanExecuteChanged()
+                    If SaveDraftCommand IsNot Nothing Then SaveDraftCommand.NotifyCanExecuteChanged()
+                    If SubmitEditorCommand IsNot Nothing Then SubmitEditorCommand.NotifyCanExecuteChanged()
                 End If
             End Set
         End Property

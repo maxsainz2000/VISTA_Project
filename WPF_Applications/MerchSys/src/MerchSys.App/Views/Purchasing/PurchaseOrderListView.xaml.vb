@@ -29,7 +29,7 @@ Namespace Views.Purchasing
 
             Dim vm = TryCast(DataContext, PurchaseOrderListViewModel)
             If vm Is Nothing Then Return
-            If vm.SelectedOrder IsNot Nothing AndAlso vm.EditPOCommand.CanExecute(Nothing) Then
+            If vm.SelectedOrder IsNot Nothing AndAlso vm.EditPOCommand IsNot Nothing AndAlso vm.EditPOCommand.CanExecute(Nothing) Then
                 Dispatcher.InvokeAsync(Async Function()
                                            Await vm.EditPOCommand.ExecuteAsync(Nothing)
                                        End Function)
@@ -57,12 +57,12 @@ Namespace Views.Purchasing
             Dim vm = TryCast(DataContext, PurchaseOrderListViewModel)
             If vm IsNot Nothing AndAlso vm.IsEditorOpen Then
                 If e.Key = System.Windows.Input.Key.Escape Then
-                    If vm.CancelEditorCommand.CanExecute(Nothing) Then
+                    If vm.CancelEditorCommand IsNot Nothing AndAlso vm.CancelEditorCommand.CanExecute(Nothing) Then
                         vm.CancelEditorCommand.Execute(Nothing)
                     End If
                     e.Handled = True
                 ElseIf e.Key = System.Windows.Input.Key.Enter Then
-                    If vm.SaveDraftCommand.CanExecute(Nothing) Then
+                    If vm.SaveDraftCommand IsNot Nothing AndAlso vm.SaveDraftCommand.CanExecute(Nothing) Then
                         vm.SaveDraftCommand.Execute(Nothing)
                     End If
                     e.Handled = True

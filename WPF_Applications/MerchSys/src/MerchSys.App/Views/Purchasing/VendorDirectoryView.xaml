@@ -270,7 +270,9 @@
                     <views:EmptyStatePanel Title="No Vendors Found"
                                            Description="There are no vendors registered in the directory."
                                            HorizontalAlignment="Center" VerticalAlignment="Center"
-                                           Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}"/>
+                                           Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}"
+                                           ActionCommand="{Binding AddVendorCommand}"
+                                           ActionText="Add Vendor"/>
 
                     <!-- Busy Overlay -->
                     <views:BusyOverlay Message="Loading vendors..."

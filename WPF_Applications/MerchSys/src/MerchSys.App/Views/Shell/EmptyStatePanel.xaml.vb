@@ -1,5 +1,6 @@
 Imports System.Windows
 Imports System.Windows.Controls
+Imports System.Windows.Input
 
 Namespace Views.Shell
 
@@ -11,6 +12,12 @@ Namespace Views.Shell
 
         Public Shared ReadOnly DescriptionProperty As DependencyProperty =
             DependencyProperty.Register("Description", GetType(String), GetType(EmptyStatePanel), New PropertyMetadata("There are no records to display."))
+
+        Public Shared ReadOnly ActionCommandProperty As DependencyProperty =
+            DependencyProperty.Register("ActionCommand", GetType(ICommand), GetType(EmptyStatePanel), New PropertyMetadata(Nothing))
+
+        Public Shared ReadOnly ActionTextProperty As DependencyProperty =
+            DependencyProperty.Register("ActionText", GetType(String), GetType(EmptyStatePanel), New PropertyMetadata(String.Empty))
 
         Public Property Title As String
             Get
@@ -27,6 +34,24 @@ Namespace Views.Shell
             End Get
             Set(value As String)
                 SetValue(DescriptionProperty, value)
+            End Set
+        End Property
+
+        Public Property ActionCommand As ICommand
+            Get
+                Return CType(GetValue(ActionCommandProperty), ICommand)
+            End Get
+            Set(value As ICommand)
+                SetValue(ActionCommandProperty, value)
+            End Set
+        End Property
+
+        Public Property ActionText As String
+            Get
+                Return CStr(GetValue(ActionTextProperty))
+            End Get
+            Set(value As String)
+                SetValue(ActionTextProperty, value)
             End Set
         End Property
 

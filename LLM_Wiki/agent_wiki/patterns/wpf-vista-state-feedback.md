@@ -128,6 +128,37 @@ add `OnPropertyChanged(NameOf(IsEmpty))` at the end of `ApplyFilters()` so IsEmp
 </views:EmptyStatePanel>
 ```
 
+**Actionable Empty State (Optional CTA) — UX-19:**
+To turn empty lists into onboarding entry points, `EmptyStatePanel` exposes `ActionCommand` (`ICommand`) and `ActionText` (`String`) dependency properties. If `ActionCommand` is non-null, a primary-styled CTA button is rendered below the description. If it is null/Nothing, the button is automatically collapsed.
+
+**XAML Wiring:**
+```xml
+<views:EmptyStatePanel Title="No Products Found"
+                       Description="No products match the selected criteria or search term."
+                       ActionCommand="{Binding AddProductCommand}"
+                       ActionText="Add Product"
+                       Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}"/>
+```
+
+**Role Gating & Command Nullability:**
+To prevent unauthorized writes (per OWASP-DA5 read-only enforcement), the bound command itself must be null for users lacking edit permissions (e.g., the Owner role).
+1. In the ViewModel constructor, only instantiate the command if the user is a Manager/Developer:
+```vb
+Public Sub New(session As ISessionService)
+    _session = session
+    If IsManager Then
+        AddProductCommand = New RelayCommand(AddressOf OpenAddProductEditor)
+    End If
+End Sub
+```
+2. Any VM properties or setters that invoke `.NotifyCanExecuteChanged()` on these commands must be null-guarded (e.g. `If AddProductCommand IsNot Nothing Then AddProductCommand.NotifyCanExecuteChanged()`).
+3. In the View code-behind (e.g., keyboard routing or mouse double-clicks), ensure null-guards protect the command references:
+```vb
+If vm.AddProductCommand IsNot Nothing AndAlso vm.AddProductCommand.CanExecute(Nothing) Then
+    vm.AddProductCommand.Execute(Nothing)
+End If
+```
+
 > A view with a `DockPanel` root must wrap that `DockPanel` in a parent `Grid` so overlays can
 > sit on top — overlays are the last child of a `Grid`, not docked.
 > VMs using `IsLoading` instead of `IsBusy` (VatReliefReportVM, TamperAuditReportVM) — bind

@@ -30,7 +30,7 @@ Namespace Views.Purchasing
 
             Dim vm = TryCast(DataContext, VendorListViewModel)
             If vm Is Nothing Then Return
-            If vm.SelectedVendor IsNot Nothing AndAlso vm.EditVendorCommand.CanExecute(Nothing) Then
+            If vm.SelectedVendor IsNot Nothing AndAlso vm.EditVendorCommand IsNot Nothing AndAlso vm.EditVendorCommand.CanExecute(Nothing) Then
                 Dispatcher.InvokeAsync(Async Function()
                                            Await vm.EditVendorCommand.ExecuteAsync(Nothing)
                                        End Function)
@@ -58,12 +58,12 @@ Namespace Views.Purchasing
             Dim vm = TryCast(DataContext, VendorListViewModel)
             If vm IsNot Nothing AndAlso vm.IsEditorOpen Then
                 If e.Key = System.Windows.Input.Key.Escape Then
-                    If vm.CancelEditorCommand.CanExecute(Nothing) Then
+                    If vm.CancelEditorCommand IsNot Nothing AndAlso vm.CancelEditorCommand.CanExecute(Nothing) Then
                         vm.CancelEditorCommand.Execute(Nothing)
                     End If
                     e.Handled = True
                 ElseIf e.Key = System.Windows.Input.Key.Enter Then
-                    If vm.SaveVendorCommand.CanExecute(Nothing) Then
+                    If vm.SaveVendorCommand IsNot Nothing AndAlso vm.SaveVendorCommand.CanExecute(Nothing) Then
                         vm.SaveVendorCommand.Execute(Nothing)
                     End If
                     e.Handled = True
