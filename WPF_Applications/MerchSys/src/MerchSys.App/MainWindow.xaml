@@ -7,8 +7,6 @@
         mc:Ignorable="d"
         Title="VISTA — Villon Integrated Supply and Trade Application"
         Height="720" Width="1280"
-        WindowStartupLocation="CenterScreen"
-        WindowState="Maximized"
         MinHeight="600" MinWidth="900"
         FontFamily="{DynamicResource AppFontFamily}"
         xmlns:views="clr-namespace:MerchSys.App.Views.Shell">

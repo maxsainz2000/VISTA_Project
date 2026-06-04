@@ -1,16 +1,21 @@
-Imports System.IO
 Imports System.Windows
+Imports MerchSys.App.Services
 
 Namespace Services.Theming
 
     ''' <summary>
-    ''' Implementation of <see cref="IThemeService"/> that hot-swaps theme ResourceDictionaries 
-    ''' at runtime and persists user preferences to LocalAppData.
+    ''' Implementation of <see cref="IThemeService"/> that hot-swaps theme ResourceDictionaries
+    ''' at runtime and persists user preferences to LocalAppData via UiSettingsStore.
     ''' </summary>
     Public Class ThemeService
         Implements IThemeService
 
+        Private ReadOnly _store As UiSettingsStore
         Private _current As AppTheme = AppTheme.Light
+
+        Public Sub New(store As UiSettingsStore)
+            _store = store
+        End Sub
 
         Public ReadOnly Property Current As AppTheme Implements IThemeService.Current
             Get
@@ -66,37 +71,21 @@ Namespace Services.Theming
 
         Public Function LoadPersisted() As AppTheme Implements IThemeService.LoadPersisted
             Try
-                Dim folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MerchSys")
-                Dim filePath = Path.Combine(folderPath, "ui-settings.json")
-                
-                If File.Exists(filePath) Then
-                    Dim json = File.ReadAllText(filePath)
-                    If json.Contains("""Dark""", StringComparison.OrdinalIgnoreCase) Then
-                        Return AppTheme.Dark
-                    End If
+                If _store.Theme.Equals("Dark", StringComparison.OrdinalIgnoreCase) Then
+                    Return AppTheme.Dark
                 End If
-            Catch ex As Exception
-                ' Fail-safe: fallback to default if settings are corrupted or inaccessible
+            Catch
+                ' Fail-safe: fallback to default if store is in an unexpected state
             End Try
             Return AppTheme.Light
         End Function
 
-        ''' <summary>
-        ''' Persists the selected theme synchronously to `%LOCALAPPDATA%\MerchSys\ui-settings.json`.
-        ''' </summary>
         Private Sub SavePersisted(theme As AppTheme)
             Try
-                Dim folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MerchSys")
-                If Not Directory.Exists(folderPath) Then
-                    Directory.CreateDirectory(folderPath)
-                End If
-
-                Dim filePath = Path.Combine(folderPath, "ui-settings.json")
-                ' Write a simple, mini JSON file to avoid external library dependencies
-                Dim json = $"{{""theme"": ""{theme}""}}"
-                File.WriteAllText(filePath, json)
-            Catch ex As Exception
-                ' Fail-safe: ignore or log error to prevent application crashes during settings write
+                _store.Theme = theme.ToString()
+                _store.Save()
+            Catch
+                ' Fail-safe: ignore errors to prevent crashes during settings write
             End Try
         End Sub
 

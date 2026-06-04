@@ -210,6 +210,10 @@ Class Application
                                       services.AddSingleton(Of Views.Shell.ModuleDetailPanel)()
                                       services.AddSingleton(Of MainWindow)()
 
+                                       ' ── UI Settings store (UX-23) — shared by ThemeService and WindowPlacementService ──
+                                       services.AddSingleton(Of UiSettingsStore)()
+                                       services.AddSingleton(Of WindowPlacementService)()
+
                                        ' ── Theming Foundation (UX-01) ────────────────────────
                                        services.AddSingleton(Of IThemeService, ThemeService)()
 
