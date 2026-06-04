@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.App
 layer: Services
-last-updated: 2026-06-02
+last-updated: 2026-06-04
 ---
 
 # MerchSys.App — Services
@@ -27,6 +27,7 @@ This page details the Service implementations specifically located within the **
 | `src/MerchSys.App/Services/LoginSessionService.vb` | `ISessionService`<br>`LoginSessionService` | Session service backed by authenticated UserAccount. Replaces DefaultSessionService, implementing `IsAuthenticated` and `CurrentRole`. |
 | `src/MerchSys.App/Services/IIdleMonitor.vb`<br>`src/MerchSys.App/Services/WpfIdleMonitor.vb` | `IIdleMonitor`<br>`WpfIdleMonitor` | OWASP DA2 session inactivity timeout. Hooks DispatcherTimer and InputManager.PreProcessInput to monitor user activity, prompting warning dialog or forced logout. |
 | `src/MerchSys.App/Helpers/PasswordBoxHelper.vb` | `PasswordBoxHelper` | Attached-property bridge for PasswordBox.Password binding to ViewModel string. |
+| `src/MerchSys.App/Helpers/FormHelper.vb` | `FormHelper` | Attached-property module providing `IsRequired` (shows/hides red required-field asterisk) and `InputMode` (`PositiveInteger`, `PositiveDecimal`) enforcing character filtering via `PreviewTextInput` regex checks, pasting interception, right-alignment, and lost-focus decimal formatting (`F2`) (UX-18). |
 | `src/MerchSys.App/Services/IConnectionHealthMonitor.vb`<br>`src/MerchSys.App/Services/ConnectionHealthMonitor.vb` | `IConnectionHealthMonitor`<br>`ConnectionHealthMonitor` | Periodic MariaDB SELECT 1 health probe with a three-state machine (Online, Reconnecting, Offline), exponential backoff, and UI thread event dispatching. |
 | `src/MerchSys.App/Services/ConnectionHealthMonitorLocator.vb` | `ConnectionHealthMonitorLocator` (Module) | Static accessor used by UI attached behaviors to check current connection health. |
 | `src/MerchSys.App/Startup/ConnectionConfig.vb` | `ConnectionConfig` (Module) | Extension module (`AddConnectionHealthMonitor`) that registers connection health monitor services. |
