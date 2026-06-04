@@ -32,12 +32,14 @@ Namespace ViewModels
         Private ReadOnly _vendorService As IVendorService
         Private ReadOnly _conflictPresenter As IConflictPresenter
         Private ReadOnly _session As ISessionService
+        Private ReadOnly _confirmationPresenter As IConfirmationPresenter
         Private _allVendors As List(Of Vendor) = New List(Of Vendor)()
 
-        Public Sub New(vendorService As IVendorService, conflictPresenter As IConflictPresenter, session As ISessionService)
+        Public Sub New(vendorService As IVendorService, conflictPresenter As IConflictPresenter, session As ISessionService, confirmationPresenter As IConfirmationPresenter)
             _vendorService = vendorService
             _conflictPresenter = conflictPresenter
             _session = session
+            _confirmationPresenter = confirmationPresenter
 
             Vendors = New ObservableCollection(Of Vendor)()
             RecentPOs = New ObservableCollection(Of POSummaryRow)()
@@ -336,6 +338,10 @@ Namespace ViewModels
         Private Async Function DeleteSelectedAsync() As Task
             If SelectedVendor Is Nothing Then Return
             Dim vendorName = SelectedVendor.Name
+
+            Dim req As New ConfirmationRequest("Delete Vendor", $"This will permanently delete the vendor '{vendorName}' and all associated details. This action cannot be undone.", "_Delete", True, vendorName)
+            If Not Await _confirmationPresenter.PromptAsync(req) Then Return
+
             IsBusy = True
             Dim invalidOperationError As Boolean = False
             Dim errorMessage As String = String.Empty

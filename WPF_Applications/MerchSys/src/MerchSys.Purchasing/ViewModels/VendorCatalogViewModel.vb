@@ -25,17 +25,20 @@ Namespace ViewModels
         Private ReadOnly _vendorProductService As IVendorProductService
         Private ReadOnly _mediator As IMediator
         Private ReadOnly _notifications As INotificationService
+        Private ReadOnly _confirmationPresenter As IConfirmationPresenter
 
         Public Sub New(session As ISessionService,
                        vendorService As IVendorService,
                        vendorProductService As IVendorProductService,
                        mediator As IMediator,
-                       notifications As INotificationService)
+                       notifications As INotificationService,
+                       confirmationPresenter As IConfirmationPresenter)
             _session = session
             _vendorService = vendorService
             _vendorProductService = vendorProductService
             _mediator = mediator
             _notifications = notifications
+            _confirmationPresenter = confirmationPresenter
 
             Vendors = New ObservableCollection(Of Vendor)()
             CatalogEntries = New ObservableCollection(Of VendorProductDto)()
@@ -308,6 +311,10 @@ Namespace ViewModels
 
         Public Async Function DeleteEntryAsync(entry As VendorProductDto) As Task
             If entry Is Nothing Then Return
+
+            Dim req As New ConfirmationRequest("Remove Product from Catalog", $"This will remove '{entry.ProductName}' from the catalog for the selected vendor.", "_Remove", True)
+            If Not Await _confirmationPresenter.PromptAsync(req) Then Return
+
             IsBusy = True
             Try
                 Await _vendorProductService.RemoveCatalogEntryAsync(entry.Id)

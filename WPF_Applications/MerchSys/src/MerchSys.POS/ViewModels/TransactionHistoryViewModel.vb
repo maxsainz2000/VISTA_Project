@@ -85,6 +85,7 @@ Namespace ViewModels
         Public Property ProductName As String
         Public Property OriginalQuantity As Integer
         Public Property AlreadyReturned As Integer
+        Public Property UnitPrice As Decimal
 
         Public ReadOnly Property MaxReturnable As Integer
             Get
@@ -112,6 +113,7 @@ Namespace ViewModels
         Private ReadOnly _returnService As ISalesReturnService
         Private ReadOnly _receiptService As IReceiptService
         Private ReadOnly _conflictPresenter As IConflictPresenter
+        Private ReadOnly _confirmationPresenter As IConfirmationPresenter
         Private ReadOnly _configuration As IConfiguration
         Private ReadOnly _pdfOptions As IOptions(Of ReceiptPdfOptions)
 
@@ -187,13 +189,15 @@ Namespace ViewModels
                        receiptService As IReceiptService,
                        conflictPresenter As IConflictPresenter,
                        configuration As IConfiguration,
-                       pdfOptions As IOptions(Of ReceiptPdfOptions))
+                       pdfOptions As IOptions(Of ReceiptPdfOptions),
+                       confirmationPresenter As IConfirmationPresenter)
 
             _session = session
             _cartService = cartService
             _returnService = returnService
             _receiptService = receiptService
             _conflictPresenter = conflictPresenter
+            _confirmationPresenter = confirmationPresenter
             _configuration = configuration
             _pdfOptions = pdfOptions
 
@@ -671,7 +675,8 @@ Namespace ViewModels
                                 .ProductId = line.ProductId,
                                 .ProductName = line.ProductName,
                                 .OriginalQuantity = line.Quantity,
-                                .AlreadyReturned = returned
+                                .AlreadyReturned = returned,
+                                .UnitPrice = line.UnitPrice
                             })
                         End If
                     Next
@@ -707,6 +712,10 @@ Namespace ViewModels
 
             Dim productName = SelectedReturnLine.ProductName
             Dim qty = ReturnQuantity
+            Dim refundVal = qty * SelectedReturnLine.UnitPrice
+            Dim req As New ConfirmationRequest("Confirm Return", $"This will process the return of {qty} units of '{productName}' and refund {refundVal:C} to the customer.", "_Confirm", False)
+            If Not Await _confirmationPresenter.PromptAsync(req) Then Return
+
             IsBusy = True
             Dim generalError As Boolean = False
             Dim generalErrorMessage As String = String.Empty

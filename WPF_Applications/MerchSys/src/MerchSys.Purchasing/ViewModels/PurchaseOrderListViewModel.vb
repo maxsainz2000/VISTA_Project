@@ -41,6 +41,7 @@ Namespace ViewModels
         Private ReadOnly _notifications As INotificationService
         Private ReadOnly _vendorProductService As IVendorProductService
         Private ReadOnly _conflictPresenter As IConflictPresenter
+        Private ReadOnly _confirmationPresenter As IConfirmationPresenter
 
         Private _allOrders As List(Of PORowItem) = New List(Of PORowItem)()
         Private _vendorList As List(Of Vendor) = New List(Of Vendor)()
@@ -51,7 +52,8 @@ Namespace ViewModels
                        db As PurchasingDbContext,
                        notifications As INotificationService,
                        vendorProductService As IVendorProductService,
-                       conflictPresenter As IConflictPresenter)
+                       conflictPresenter As IConflictPresenter,
+                       confirmationPresenter As IConfirmationPresenter)
             _session = session
             _poService = poService
             _vendorService = vendorService
@@ -59,6 +61,7 @@ Namespace ViewModels
             _notifications = notifications
             _vendorProductService = vendorProductService
             _conflictPresenter = conflictPresenter
+            _confirmationPresenter = confirmationPresenter
 
             Orders = New ObservableCollection(Of PORowItem)()
             StatusOptions = New ObservableCollection(Of String) From {"All", "Draft", "Submitted", "Received", "Verified", "Closed"}
@@ -342,6 +345,10 @@ Namespace ViewModels
         Private Async Function SubmitSelectedAsync() As Task
             If SelectedOrder Is Nothing Then Return
             Dim orderNum = SelectedOrder.OrderNumber
+
+            Dim req As New ConfirmationRequest("Submit PO", $"This will submit the purchase order '{orderNum}' to the vendor. It can no longer be edited as a draft.", "_Submit", False)
+            If Not Await _confirmationPresenter.PromptAsync(req) Then Return
+
             IsBusy = True
             Dim invalidOperationError As Boolean = False
             Dim errorMessage As String = String.Empty
@@ -369,6 +376,10 @@ Namespace ViewModels
 
         Private Async Function DeleteSelectedAsync() As Task
             If SelectedOrder Is Nothing Then Return
+
+            Dim req As New ConfirmationRequest("Delete Draft PO", $"This will permanently delete the draft purchase order '{SelectedOrder.OrderNumber}'.", "_Delete", True)
+            If Not Await _confirmationPresenter.PromptAsync(req) Then Return
+
             IsBusy = True
             Dim invalidOperationError As Boolean = False
             Dim errorMessage As String = String.Empty
@@ -490,6 +501,9 @@ Namespace ViewModels
                 StatusMessage = errorMsg
                 Return
             End If
+
+            Dim req As New ConfirmationRequest("Submit PO", "This will submit the purchase order to the vendor. It can no longer be edited as a draft.", "_Submit", False)
+            If Not Await _confirmationPresenter.PromptAsync(req) Then Return
 
             IsBusy = True
             Dim invalidOperationError As Boolean = False

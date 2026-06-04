@@ -42,14 +42,16 @@ Namespace ViewModels
         Private ReadOnly _db As InventoryDbContext
         Private ReadOnly _session As ISessionService
         Private ReadOnly _conflictPresenter As IConflictPresenter
+        Private ReadOnly _confirmationPresenter As IConfirmationPresenter
         Private _allProducts As List(Of ProductManagementRowItem) = New List(Of ProductManagementRowItem)()
         Private _loadedProducts As List(Of Product)
         Private _loadedCategories As List(Of ProductCategory)
 
-        Public Sub New(db As InventoryDbContext, session As ISessionService, conflictPresenter As IConflictPresenter)
+        Public Sub New(db As InventoryDbContext, session As ISessionService, conflictPresenter As IConflictPresenter, confirmationPresenter As IConfirmationPresenter)
             _db = db
             _session = session
             _conflictPresenter = conflictPresenter
+            _confirmationPresenter = confirmationPresenter
 
             Products = New ObservableCollection(Of ProductManagementRowItem)()
             Categories = New ObservableCollection(Of CategoryManagementItem)()
@@ -928,6 +930,9 @@ Namespace ViewModels
         Private Async Function DeleteCategoryAsync(item As CategoryManagementItem) As Task
             If item Is Nothing Then Return
             If item.ProductCount > 0 Then Return
+
+            Dim req As New ConfirmationRequest("Delete Category", $"This will permanently delete the category '{item.Name}'.", "_Delete", True)
+            If Not Await _confirmationPresenter.PromptAsync(req) Then Return
 
             Dim cat = Await _db.ProductCategories.FindAsync(item.CategoryId)
             If cat Is Nothing Then Return

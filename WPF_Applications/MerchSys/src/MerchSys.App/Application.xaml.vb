@@ -106,6 +106,7 @@ Class Application
 
                                       ' Infrastructure: Concurrency conflict presenter
                                       services.AddSingleton(Of MerchSys.SharedKernel.Interfaces.IConflictPresenter, Services.DefaultConflictPresenter)()
+                                      services.AddSingleton(Of MerchSys.SharedKernel.Interfaces.IConfirmationPresenter, Services.DefaultConfirmationPresenter)()
 
                                       ' ── Purchasing ────────────────────────────────────────
                                       services.AddPurchasingServices()
