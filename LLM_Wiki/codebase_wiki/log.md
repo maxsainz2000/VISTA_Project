@@ -129,4 +129,6 @@ This log tracks updates made to the `codebase_wiki/` by Antigravity during the H
 | 2026-06-03 | 20:36 | UX-13 | antigravity |
 | 2026-06-03 | 22:22 | UX-14 | antigravity |
 | 2026-06-03 | 23:40 | UX-15 | antigravity |
+| 2026-06-03 | 23:50 | UX-16 | antigravity |
+| 2026-06-04 | 21:09 | UX-17 | antigravity |
 
