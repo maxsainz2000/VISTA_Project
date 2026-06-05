@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.POS
 layer: Services
-last-updated: 2026-05-29
+last-updated: 2026-06-05
 ---
 
 # MerchSys.POS — Services
@@ -10,7 +10,7 @@ last-updated: 2026-05-29
 ## Core Services
 | File Path | Interface & Implementation | Key Methods | Dependencies (DI) |
 |---|---|---|---|
-| `src/MerchSys.POS/Services/ICartService.vb`<br>`src/MerchSys.POS/Services/CartService.vb` | `ICartService`<br>`CartService` | `CreateCartAsync()`, `AddLineAsync()`, `UpdateLineQuantityAsync()`, `RemoveLineAsync()`, `ApplyLineDiscountAsync()`, `FinalizeAsync()`, `VoidTransactionAsync()`, `GetTransactionHistoryAsync()` | `POSDbContext`, `IReceiptService`, `IConfiguration` |
+| `src/MerchSys.POS/Services/ICartService.vb`<br>`src/MerchSys.POS/Services/CartService.vb` | `ICartService`<br>`CartService` | `CreateCartAsync()`, `AddLineAsync()`, `UpdateLineQuantityAsync()`, `RemoveLineAsync()`, `ApplyLineDiscountAsync()`, `FinalizeAsync()`, `VoidTransactionAsync()`, `GetTransactionHistoryAsync()`, `GetCartAsync()` | `POSDbContext`, `IReceiptService`, `IConfiguration` |
 | `src/MerchSys.POS/Services/IPaymentService.vb`<br>`src/MerchSys.POS/Services/PaymentService.vb`| `IPaymentService`<br>`PaymentService` | `ProcessPaymentAsync()` | |
 | `src/MerchSys.POS/Services/ICreditService.vb`<br>`src/MerchSys.POS/Services/CreditService.vb` | `ICreditService`<br>`CreditService` | `CreateAccountAsync()`, `GetAccountAsync()`, `GetAllAccountsAsync()`, `SearchAccountsAsync()`, `CanExtendCreditAsync()`, `ChargeCreditAsync()`, `RecordPaymentAsync()`, `GetPaymentHistoryAsync()`, `GetTotalOutstandingAsync()`, `GetOverdueAccountsAsync()` | |
 | `src/MerchSys.POS/Services/IReceiptService.vb`<br>`src/MerchSys.POS/Services/ReceiptService.vb`| `IReceiptService`<br>`ReceiptService` | `GenerateReceiptAsync()`, `GetReceiptAsync()`, `GetReceiptByTransactionAsync()`, `PrintReceiptAsync()` | `POSDbContext`, `IConfiguration`, `IReceiptIntegrityService` (POS-15), `IReceiptBodyComposer` (POS-18), `IReceiptRenderer` (POS-19) |
