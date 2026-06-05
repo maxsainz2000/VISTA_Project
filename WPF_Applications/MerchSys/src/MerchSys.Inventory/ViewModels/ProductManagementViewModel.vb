@@ -55,6 +55,7 @@ Namespace ViewModels
         Private ReadOnly _session As ISessionService
         Private ReadOnly _conflictPresenter As IConflictPresenter
         Private ReadOnly _confirmationPresenter As IConfirmationPresenter
+        Private ReadOnly _notifications As INotificationService
         Private _allProducts As List(Of ProductManagementRowItem) = New List(Of ProductManagementRowItem)()
         Private _loadedProducts As List(Of Product)
         Private _loadedCategories As List(Of ProductCategory)
@@ -113,11 +114,12 @@ Namespace ViewModels
             End Get
         End Property
 
-        Public Sub New(db As InventoryDbContext, session As ISessionService, conflictPresenter As IConflictPresenter, confirmationPresenter As IConfirmationPresenter)
+        Public Sub New(db As InventoryDbContext, session As ISessionService, conflictPresenter As IConflictPresenter, confirmationPresenter As IConfirmationPresenter, notifications As INotificationService)
             _db = db
             _session = session
             _conflictPresenter = conflictPresenter
             _confirmationPresenter = confirmationPresenter
+            _notifications = notifications
 
             ' Restore session filters, resetting if user changed
             Dim currentUser = _session.CurrentUsername
@@ -1068,6 +1070,9 @@ Namespace ViewModels
             Dim cat = Await _db.ProductCategories.FindAsync(item.CategoryId)
             If cat Is Nothing Then Return
 
+            Dim categoryId = item.CategoryId
+            Dim categoryName = item.Name
+
             IsBusy = True
             Try
                 Dim saved = Await ConcurrencyHelper.ExecuteWithConflictPromptAsync(
@@ -1080,6 +1085,54 @@ Namespace ViewModels
 
                 If saved Then
                     Await LoadDataAsync()
+
+                    Dim hasUndone As Boolean = False
+                    Dim deleteTime = DateTime.UtcNow
+                    Dim undoCallback = Async Sub()
+                                           If hasUndone Then Return
+                                           If (DateTime.UtcNow - deleteTime).TotalSeconds > 8.0 Then
+                                               _notifications.ShowWarning("Undo window has expired.")
+                                               Return
+                                           End If
+                                           hasUndone = True
+
+                                           Dim success = False
+                                           Dim conflict = False
+                                           Dim errMsg = String.Empty
+                                           Try
+                                               Dim restoreSaved = Await ConcurrencyHelper.ExecuteWithConflictPromptAsync(
+                                                   Async Function()
+                                                       Dim c = Await _db.ProductCategories.IgnoreQueryFilters().FirstOrDefaultAsync(Function(x) x.Id = categoryId)
+                                                       If c IsNot Nothing Then
+                                                           c.IsDeleted = False
+                                                           c.DeletedBy = Nothing
+                                                           c.DeletedAt = Nothing
+                                                           Await _db.SaveChangesAsync()
+                                                           success = True
+                                                       End If
+                                                   End Function,
+                                                   AddressOf LoadDataAsync,
+                                                   _conflictPresenter)
+                                           Catch dbEx As Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException
+                                               conflict = True
+                                           Catch ex As Exception
+                                               errMsg = ex.Message
+                                           End Try
+
+                                           If conflict Then
+                                               _notifications.ShowError("Could not undo — data was changed elsewhere.")
+                                           ElseIf Not String.IsNullOrEmpty(errMsg) Then
+                                               _notifications.ShowError($"Restore failed: {errMsg}")
+                                           ElseIf success Then
+                                               Await LoadDataAsync()
+                                               _notifications.ShowSuccess($"Category '{categoryName}' restored.")
+                                           Else
+                                               _notifications.ShowError("Could not undo.")
+                                           End If
+                                       End Sub
+
+                    Dim undoAction = New NotificationAction("Undo", undoCallback)
+                    _notifications.ShowSuccess($"Category '{categoryName}' deleted.", undoAction)
                 End If
             Finally
                 IsBusy = False

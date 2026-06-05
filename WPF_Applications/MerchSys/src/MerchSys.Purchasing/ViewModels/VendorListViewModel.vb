@@ -33,13 +33,15 @@ Namespace ViewModels
         Private ReadOnly _conflictPresenter As IConflictPresenter
         Private ReadOnly _session As ISessionService
         Private ReadOnly _confirmationPresenter As IConfirmationPresenter
+        Private ReadOnly _notifications As INotificationService
         Private _allVendors As List(Of Vendor) = New List(Of Vendor)()
 
-        Public Sub New(vendorService As IVendorService, conflictPresenter As IConflictPresenter, session As ISessionService, confirmationPresenter As IConfirmationPresenter)
+        Public Sub New(vendorService As IVendorService, conflictPresenter As IConflictPresenter, session As ISessionService, confirmationPresenter As IConfirmationPresenter, notifications As INotificationService)
             _vendorService = vendorService
             _conflictPresenter = conflictPresenter
             _session = session
             _confirmationPresenter = confirmationPresenter
+            _notifications = notifications
 
             Vendors = New ObservableCollection(Of Vendor)()
             RecentPOs = New ObservableCollection(Of POSummaryRow)()
@@ -352,9 +354,46 @@ Namespace ViewModels
                     _conflictPresenter)
 
                 If saved Then
+                    Dim vendorId = SelectedVendor.Id
                     ClearVendorDetail()
                     Await LoadDataAsync()
                     StatusMessage = $"Vendor '{vendorName}' deleted."
+
+                    Dim hasUndone As Boolean = False
+                    Dim deleteTime = DateTime.UtcNow
+                    Dim undoCallback = Async Sub()
+                                           If hasUndone Then Return
+                                           If (DateTime.UtcNow - deleteTime).TotalSeconds > 8.0 Then
+                                               _notifications.ShowWarning("Undo window has expired.")
+                                               Return
+                                           End If
+                                           hasUndone = True
+
+                                           Dim success = False
+                                           Dim conflict = False
+                                           Dim errMsg = String.Empty
+                                           Try
+                                               success = Await _vendorService.RestoreAsync(vendorId)
+                                           Catch dbEx As Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException
+                                               conflict = True
+                                           Catch ex As Exception
+                                               errMsg = ex.Message
+                                           End Try
+
+                                           If conflict Then
+                                               _notifications.ShowError("Could not undo — data was changed elsewhere.")
+                                           ElseIf Not String.IsNullOrEmpty(errMsg) Then
+                                               _notifications.ShowError($"Restore failed: {errMsg}")
+                                           ElseIf success Then
+                                               Await LoadDataAsync()
+                                               _notifications.ShowSuccess($"Vendor '{vendorName}' restored.")
+                                           Else
+                                               _notifications.ShowError("Could not undo.")
+                                           End If
+                                       End Sub
+
+                    Dim undoAction = New NotificationAction("Undo", undoCallback)
+                    _notifications.ShowSuccess($"Vendor '{vendorName}' deleted.", undoAction)
                 End If
             Catch ex As InvalidOperationException
                 invalidOperationError = True

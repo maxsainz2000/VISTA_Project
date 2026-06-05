@@ -132,6 +132,28 @@ Namespace Services
             Await _db.SaveChangesAsync()
         End Function
 
+        Public Async Function RestoreCatalogEntryAsync(id As Integer) As Task Implements IVendorProductService.RestoreCatalogEntryAsync
+            If _session.CurrentRole <> UserRole.Manager AndAlso _session.CurrentRole <> UserRole.Developer Then
+                Throw New UnauthorizedAccessException("Only Managers are authorized to perform this operation.")
+            End If
+
+            Dim entry = Await _db.VendorProducts.
+                IgnoreQueryFilters().
+                FirstOrDefaultAsync(Function(vp) vp.Id = id AndAlso vp.IsDeleted)
+
+            If entry Is Nothing Then
+                Throw New InvalidOperationException("Catalog entry not found.")
+            End If
+
+            entry.IsDeleted = False
+            entry.DeletedBy = Nothing
+            entry.DeletedAt = Nothing
+            entry.ModifiedBy = _session.CurrentUsername
+            entry.ModifiedAt = DateTime.UtcNow
+
+            Await _db.SaveChangesAsync()
+        End Function
+
         Public Async Function UpdateLastUnitCostAsync(vendorId As Integer, productId As Integer, newCost As Decimal) As Task Implements IVendorProductService.UpdateLastUnitCostAsync
             If _session.CurrentRole <> UserRole.Manager AndAlso _session.CurrentRole <> UserRole.Developer Then
                 Throw New UnauthorizedAccessException("Only Managers are authorized to perform this operation.")

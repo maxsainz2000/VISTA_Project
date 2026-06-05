@@ -6,16 +6,16 @@ Namespace Interfaces
     Public Interface INotificationService
 
         ''' <summary>Displays a success toast notification with the given message.</summary>
-        Sub ShowSuccess(message As String)
+        Sub ShowSuccess(message As String, Optional action As NotificationAction = Nothing)
 
         ''' <summary>Displays an error toast notification with the given message.</summary>
-        Sub ShowError(message As String)
+        Sub ShowError(message As String, Optional action As NotificationAction = Nothing)
 
         ''' <summary>Displays an informational toast notification with the given message.</summary>
-        Sub ShowInfo(message As String)
+        Sub ShowInfo(message As String, Optional action As NotificationAction = Nothing)
 
         ''' <summary>Displays a warning toast notification with the given message.</summary>
-        Sub ShowWarning(message As String)
+        Sub ShowWarning(message As String, Optional action As NotificationAction = Nothing)
 
     End Interface
 

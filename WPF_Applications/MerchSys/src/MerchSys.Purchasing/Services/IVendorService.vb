@@ -36,6 +36,7 @@ Namespace Services
         Function GetAllAsync() As Task(Of List(Of Vendor))
         Function UpdateAsync(id As Integer, dto As UpdateVendorDto) As Task(Of Vendor)
         Function DeleteAsync(id As Integer) As Task(Of Boolean)
+        Function RestoreAsync(id As Integer) As Task(Of Boolean)
         Function SearchAsync(searchTerm As String) As Task(Of List(Of Vendor))
         Function GetVendorWithPurchaseHistoryAsync(id As Integer) As Task(Of VendorDetailDto)
     End Interface

@@ -146,6 +146,22 @@ Namespace Services
             Return True
         End Function
 
+        Public Async Function RestoreAsync(id As Integer) As Task(Of Boolean) Implements IVendorService.RestoreAsync
+            Dim vendor As Vendor = Await _db.Vendors.
+                IgnoreQueryFilters().
+                FirstOrDefaultAsync(Function(v) v.Id = id AndAlso v.IsDeleted)
+
+            If vendor Is Nothing Then
+                Return False
+            End If
+
+            vendor.IsDeleted = False
+            vendor.DeletedAt = Nothing
+            Await _db.SaveChangesAsync()
+
+            Return True
+        End Function
+
         Public Async Function SearchAsync(searchTerm As String) As Task(Of List(Of Vendor)) Implements IVendorService.SearchAsync
             If String.IsNullOrWhiteSpace(searchTerm) Then
                 Return Await GetAllAsync()

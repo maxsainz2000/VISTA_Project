@@ -317,8 +317,42 @@ Namespace ViewModels
 
             IsBusy = True
             Try
-                Await _vendorProductService.RemoveCatalogEntryAsync(entry.Id)
-                _notifications.ShowSuccess($"Removed {entry.ProductName} from catalog.")
+                Dim entryId = entry.Id
+                Dim productName = entry.ProductName
+                Await _vendorProductService.RemoveCatalogEntryAsync(entryId)
+
+                Dim hasUndone As Boolean = False
+                Dim deleteTime = DateTime.UtcNow
+                Dim undoCallback = Async Sub()
+                                       If hasUndone Then Return
+                                       If (DateTime.UtcNow - deleteTime).TotalSeconds > 8.0 Then
+                                           _notifications.ShowWarning("Undo window has expired.")
+                                           Return
+                                       End If
+                                       hasUndone = True
+
+                                       Dim conflict = False
+                                       Dim errMsg = String.Empty
+                                       Try
+                                           Await _vendorProductService.RestoreCatalogEntryAsync(entryId)
+                                       Catch dbEx As Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException
+                                           conflict = True
+                                       Catch ex As Exception
+                                           errMsg = ex.Message
+                                       End Try
+
+                                       If conflict Then
+                                           _notifications.ShowError("Could not undo — data was changed elsewhere.")
+                                       ElseIf Not String.IsNullOrEmpty(errMsg) Then
+                                           _notifications.ShowError($"Restore failed: {errMsg}")
+                                       Else
+                                           Await LoadCatalogAsync()
+                                           _notifications.ShowSuccess($"Restored {productName} to catalog.")
+                                       End If
+                                   End Sub
+
+                Dim undoAction = New NotificationAction("Undo", undoCallback)
+                _notifications.ShowSuccess($"Removed {productName} from catalog.", undoAction)
                 Await LoadCatalogAsync()
             Catch ex As Exception
                 _notifications.ShowError($"Remove failed: {ex.Message}")
