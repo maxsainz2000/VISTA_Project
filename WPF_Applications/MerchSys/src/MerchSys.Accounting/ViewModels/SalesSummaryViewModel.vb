@@ -2,6 +2,7 @@ Imports System.Collections.ObjectModel
 Imports CommunityToolkit.Mvvm.ComponentModel
 Imports CommunityToolkit.Mvvm.Input
 Imports MerchSys.Accounting.Services
+Imports MerchSys.SharedKernel.Interfaces
 
 Namespace ViewModels
 
@@ -13,6 +14,17 @@ Namespace ViewModels
 
     Public Class SalesSummaryViewModel
         Inherits ObservableObject
+        Implements IFreshnessAware
+
+        Private _lastLoadedAt As DateTime?
+        Public Property LastLoadedAt As DateTime? Implements IFreshnessAware.LastLoadedAt
+            Get
+                Return _lastLoadedAt
+            End Get
+            Set(value As DateTime?)
+                SetProperty(_lastLoadedAt, value)
+            End Set
+        End Property
 
         Private ReadOnly _salesService As ISalesSummaryService
         Private ReadOnly _whatThisMeansService As IWhatThisMeansService
@@ -359,6 +371,7 @@ Namespace ViewModels
                 ShowDailyBreakdown = (_periodType <> SalesSummaryPeriodType.Daily) AndAlso
                                      DailyBreakdown.Count > 0
                 IsError = False
+                LastLoadedAt = DateTime.Now
 
             Catch ex As Exception
                 ErrorMessage = ex.Message

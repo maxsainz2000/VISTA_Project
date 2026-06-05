@@ -53,5 +53,5 @@ All engineering learnings from debugging and error-fixing sessions. Check this i
 | [wpf-vista-formatting](patterns/wpf-vista-formatting.md) | pattern | MerchSys.App | wpf, xaml, vb-net, mvvm, formatting | antigravity | 2026-06-04 | active |
 | [wpf-vista-tooltips](patterns/wpf-vista-tooltips.md) | pattern | MerchSys.App | wpf, xaml, tooltips, affordance, accessibility, design-system | claude-code | 2026-06-05 | active |
 | [wpf-vista-ui-settings-persistence](patterns/wpf-vista-ui-settings-persistence.md) | pattern | MerchSys.App | wpf, vb-net, persistence, window-placement, ui-settings, json, theming | claude-code | 2026-06-05 | active |
-
-
+| [wpf-vista-freshness-chip](patterns/wpf-vista-freshness-chip.md) | pattern | MerchSys.App | wpf, xaml, freshness-chip, data-freshness, RelativeTimeConverter, vb-net | antigravity | 2026-06-05 | active |
+| [vbnet-nullable-trycast-value-type-compile-error](errors/vbnet-nullable-trycast-value-type-compile-error.md) | error-fix | MerchSys.App | vb-net, nullable, trycast, value-type, conversion, BC30792, build-error | antigravity | 2026-06-05 | active |

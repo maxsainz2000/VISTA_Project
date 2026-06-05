@@ -7,6 +7,7 @@ Imports MerchSys.Purchasing.Services
 Imports MerchSys.SharedKernel.Enums
 Imports MySqlConnector
 Imports Microsoft.EntityFrameworkCore
+Imports MerchSys.SharedKernel.Interfaces
 
 Namespace ViewModels
 
@@ -54,6 +55,17 @@ Namespace ViewModels
     ''' </summary>
     Public Class PurchasingDashboardViewModel
         Inherits ObservableObject
+        Implements IFreshnessAware
+
+        Private _lastLoadedAt As DateTime?
+        Public Property LastLoadedAt As DateTime? Implements IFreshnessAware.LastLoadedAt
+            Get
+                Return _lastLoadedAt
+            End Get
+            Set(value As DateTime?)
+                SetProperty(_lastLoadedAt, value)
+            End Set
+        End Property
 
         Private ReadOnly _db As PurchasingDbContext
         Private ReadOnly _poService As IPurchaseOrderService
@@ -357,6 +369,7 @@ Namespace ViewModels
                 WhatThisMeansText = BuildWhatThisMeansText()
 
                 LastRefreshed = $"Refreshed {DateTime.Now:HH:mm:ss}"
+                LastLoadedAt = DateTime.Now
             Catch ex As Exception
                 errMessage = ex.Message
             Finally

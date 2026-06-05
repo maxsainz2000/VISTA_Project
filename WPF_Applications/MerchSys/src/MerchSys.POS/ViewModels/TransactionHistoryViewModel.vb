@@ -107,6 +107,17 @@ Namespace ViewModels
     ''' </summary>
     Public Class TransactionHistoryViewModel
         Inherits ObservableObject
+        Implements IFreshnessAware
+
+        Private _lastLoadedAt As DateTime?
+        Public Property LastLoadedAt As DateTime? Implements IFreshnessAware.LastLoadedAt
+            Get
+                Return _lastLoadedAt
+            End Get
+            Set(value As DateTime?)
+                SetProperty(_lastLoadedAt, value)
+            End Set
+        End Property
 
         Private ReadOnly _session As ISessionService
         Private ReadOnly _cartService As ICartService
@@ -519,6 +530,7 @@ Namespace ViewModels
                 StatusMessage = $"{Transactions.Count} transaction(s) found."
                 IsStatusSuccess = True
                 IsError = False
+                LastLoadedAt = DateTime.Now
             Catch ex As Exception
                 StatusMessage = $"Error loading transactions: {ex.Message}"
                 IsStatusSuccess = False

@@ -22,7 +22,17 @@ Namespace ViewModels
     ''' </summary>
     Public Class OwnerDashboardViewModel
         Inherits ObservableObject
-        Implements IDisposable
+        Implements IDisposable, IFreshnessAware
+
+        Private _lastLoadedAt As DateTime?
+        Public Property LastLoadedAt As DateTime? Implements IFreshnessAware.LastLoadedAt
+            Get
+                Return _lastLoadedAt
+            End Get
+            Set(value As DateTime?)
+                SetProperty(_lastLoadedAt, value)
+            End Set
+        End Property
 
         Private ReadOnly _session As ISessionService
         Private ReadOnly _stockDashboard As IStockDashboardService
@@ -356,6 +366,7 @@ Namespace ViewModels
                 Await LoadSalesKpisAsync()
                 Await LoadAccountingKpisAsync()
                 LastRefreshedDisplay = $"Last refreshed: {DateTime.Now:HH:mm:ss}"
+                LastLoadedAt = DateTime.Now
                 IsError = False
             Catch ex As Exception
                 errMsg = ex.Message

@@ -20,56 +20,65 @@
              FILTER / TOOLBAR ROW
              ═══════════════════════════════════════════════════════════ -->
         <Border DockPanel.Dock="Top" Style="{StaticResource FilterBarStyle}" Margin="0,0,0,6">
-            <WrapPanel Orientation="Horizontal">
-                <!-- Status Filter -->
-                <StackPanel Style="{StaticResource FilterBarItemStyle}" Orientation="Horizontal">
-                    <TextBlock Text="Status:" Style="{StaticResource CaptionLabelStyle}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                    <ComboBox ItemsSource="{Binding StatusOptions}"
-                              SelectedItem="{Binding SelectedStatus}"
-                              Width="130"
-                              Padding="6,4" VerticalContentAlignment="Center"/>
-                </StackPanel>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-                <!-- Search Filter -->
-                <StackPanel Style="{StaticResource FilterBarItemStyle}" Orientation="Horizontal">
-                    <TextBlock Text="Search:" Style="{StaticResource CaptionLabelStyle}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                    <TextBox x:Name="SearchBox"
-                             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                             Width="200"
-                             Padding="6,4"
-                             VerticalContentAlignment="Center"/>
-                </StackPanel>
+                <WrapPanel Grid.Column="0" Orientation="Horizontal">
+                    <!-- Status Filter -->
+                    <StackPanel Style="{StaticResource FilterBarItemStyle}" Orientation="Horizontal">
+                        <TextBlock Text="Status:" Style="{StaticResource CaptionLabelStyle}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <ComboBox ItemsSource="{Binding StatusOptions}"
+                                  SelectedItem="{Binding SelectedStatus}"
+                                  Width="130"
+                                  Padding="6,4" VerticalContentAlignment="Center"/>
+                    </StackPanel>
 
-                <!-- Action buttons — hidden from Owner (IsManager = False) -->
-                <StackPanel Style="{StaticResource FilterBarItemStyle}" Orientation="Horizontal"
-                            Visibility="{Binding IsManager, Converter={StaticResource BoolToVis}}">
-                    <Button Content="_New PO"
-                            Command="{Binding NewPOCommand}"
-                            Style="{StaticResource SuccessButtonStyle}"
-                            Margin="0,0,6,0"
-                            TabIndex="1"/>
-                    <Button Content="_Edit"
-                            Command="{Binding EditPOCommand}"
-                            Style="{StaticResource PrimaryButtonStyle}"
-                            Margin="0,0,6,0"
-                            TabIndex="2"/>
-                    <Button Content="_Submit"
-                            Command="{Binding SubmitPOCommand}"
-                            Style="{StaticResource PrimaryButtonStyle}"
-                            Margin="0,0,6,0"
-                            TabIndex="3"/>
-                    <Button Content="_Delete"
-                            Command="{Binding DeletePOCommand}"
-                            Style="{StaticResource DangerButtonStyle}"
-                            Margin="0,0,6,0"
-                            TabIndex="4"/>
-                    <Button Content="Re_fresh"
-                            Command="{Binding RefreshCommand}"
-                            Style="{StaticResource SecondaryButtonStyle}"
-                            Margin="0"
-                            TabIndex="5"/>
-                </StackPanel>
-            </WrapPanel>
+                    <!-- Search Filter -->
+                    <StackPanel Style="{StaticResource FilterBarItemStyle}" Orientation="Horizontal">
+                        <TextBlock Text="Search:" Style="{StaticResource CaptionLabelStyle}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBox x:Name="SearchBox"
+                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                 Width="200"
+                                 Padding="6,4"
+                                 VerticalContentAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Action buttons — hidden from Owner (IsManager = False) -->
+                    <StackPanel Style="{StaticResource FilterBarItemStyle}" Orientation="Horizontal"
+                                Visibility="{Binding IsManager, Converter={StaticResource BoolToVis}}">
+                        <Button Content="_New PO"
+                                Command="{Binding NewPOCommand}"
+                                Style="{StaticResource SuccessButtonStyle}"
+                                Margin="0,0,6,0"
+                                TabIndex="1"/>
+                        <Button Content="_Edit"
+                                Command="{Binding EditPOCommand}"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Margin="0,0,6,0"
+                                TabIndex="2"/>
+                        <Button Content="_Submit"
+                                Command="{Binding SubmitPOCommand}"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Margin="0,0,6,0"
+                                TabIndex="3"/>
+                        <Button Content="_Delete"
+                                Command="{Binding DeletePOCommand}"
+                                Style="{StaticResource DangerButtonStyle}"
+                                Margin="0"
+                                TabIndex="4"/>
+                    </StackPanel>
+                </WrapPanel>
+
+                <!-- Data Freshness Chip -->
+                <views:FreshnessChip Grid.Column="1"
+                                     LastLoadedAt="{Binding LastLoadedAt}"
+                                     RefreshCommand="{Binding RefreshCommand}"
+                                     VerticalAlignment="Center"
+                                     Margin="8,0,0,0"/>
+            </Grid>
         </Border>
 
         <!-- ═══════════════════════════════════════════════════════════

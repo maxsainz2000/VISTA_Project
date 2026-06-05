@@ -33,6 +33,17 @@ Namespace ViewModels
     ''' </summary>
     Public Class PurchaseOrderListViewModel
         Inherits ObservableObject
+        Implements IFreshnessAware
+
+        Private _lastLoadedAt As DateTime?
+        Public Property LastLoadedAt As DateTime? Implements IFreshnessAware.LastLoadedAt
+            Get
+                Return _lastLoadedAt
+            End Get
+            Set(value As DateTime?)
+                SetProperty(_lastLoadedAt, value)
+            End Set
+        End Property
 
         Private ReadOnly _session As ISessionService
         Private ReadOnly _poService As IPurchaseOrderService
@@ -282,6 +293,7 @@ Namespace ViewModels
                 ApplyFilters()
                 StatusMessage = $"Loaded {pos.Count} POs, {_vendorList.Count} vendors"
                 IsError = False
+                LastLoadedAt = DateTime.Now
             Catch ex As Exception
                 ErrorMessage = ex.Message
                 IsError = True

@@ -112,6 +112,12 @@
                                  Margin="12,0,0,0"
                                  VerticalAlignment="Center"
                                  Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
+
+                    <!-- Data Freshness Chip -->
+                    <views:FreshnessChip LastLoadedAt="{Binding LastLoadedAt}"
+                                         RefreshCommand="{Binding SearchCommand}"
+                                         VerticalAlignment="Center"
+                                         Margin="12,0,0,4"/>
                 </WrapPanel>
             </Border>
 

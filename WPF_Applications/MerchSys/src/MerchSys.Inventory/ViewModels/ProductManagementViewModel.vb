@@ -38,6 +38,17 @@ Namespace ViewModels
 
     Public Class ProductManagementViewModel
         Inherits ObservableValidator
+        Implements IFreshnessAware
+
+        Private _lastLoadedAt As DateTime?
+        Public Property LastLoadedAt As DateTime? Implements IFreshnessAware.LastLoadedAt
+            Get
+                Return _lastLoadedAt
+            End Get
+            Set(value As DateTime?)
+                SetProperty(_lastLoadedAt, value)
+            End Set
+        End Property
 
         Private ReadOnly _db As InventoryDbContext
         Private ReadOnly _session As ISessionService
@@ -548,6 +559,7 @@ Namespace ViewModels
 
                 ApplyFilters()
                 IsError = False
+                LastLoadedAt = DateTime.Now
 
             Catch ex As Exception
                 ErrorMessage = ex.Message

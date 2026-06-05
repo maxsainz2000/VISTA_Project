@@ -111,11 +111,10 @@
                                Width="64" Margin="0,0,12,0" FontSize="11" VerticalAlignment="Center"
                                Visibility="{Binding ShowMonthSelectors, Converter={StaticResource BoolToVis}}"/>
 
-                    <TextBlock Text="Loading…" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"
-                               VerticalAlignment="Center" Margin="0,0,10,0"
-                               Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
-                    <Button Content="Refresh" Command="{Binding LoadCommand}"
-                            Style="{StaticResource PrimaryButtonStyle}" Padding="14,6" FontWeight="SemiBold"/>
+                    <!-- Data Freshness Chip -->
+                    <views:FreshnessChip LastLoadedAt="{Binding LastLoadedAt}"
+                                         RefreshCommand="{Binding LoadCommand}"
+                                         VerticalAlignment="Center"/>
 
                 </StackPanel>
             </Grid>

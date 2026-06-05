@@ -49,10 +49,18 @@
 
             <!-- Page Header -->
             <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
-                <StackPanel Orientation="Horizontal">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
                     <TextBlock Text="Product Management" Style="{StaticResource PageTitleStyle}"/>
                     <TextBlock Text="  (Manager Only)" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                 </StackPanel>
+                <views:FreshnessChip Grid.Column="1"
+                                     LastLoadedAt="{Binding LastLoadedAt}"
+                                     RefreshCommand="{Binding LoadDataCommand}"
+                                     VerticalAlignment="Center"/>
             </Grid>
 
             <!-- Tab Control -->
@@ -131,12 +139,7 @@
                                         VerticalAlignment="Center" Margin="0,0,12,4"
                                         TabIndex="6"/>
  
-                                <!-- Refresh -->
-                                <Button Content="Re_fresh"
-                                        Command="{Binding LoadDataCommand}"
-                                        Style="{StaticResource SecondaryButtonStyle}"
-                                        VerticalAlignment="Center" Margin="0,0,12,4"
-                                        TabIndex="7"/>
+
                             </WrapPanel>
                         </Border>
 

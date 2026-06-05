@@ -109,20 +109,10 @@
                     </TextBlock>
                 </StackPanel>
 
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding LastRefreshedDisplay}"
-                               FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
-                               VerticalAlignment="Center" Margin="0,0,12,0"/>
-                    <Button Command="{Binding RefreshCommand}"
-                            Style="{StaticResource RefreshButton}">
-                        <StackPanel Orientation="Horizontal">
-                            <Path Style="{StaticResource IconBase}" Data="{StaticResource IconRefreshGeometry}"
-                                  Width="13" Height="13" Margin="0,0,6,0"
-                                  Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
-                            <TextBlock Text="Refresh" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-                </StackPanel>
+                <views:FreshnessChip Grid.Column="1"
+                                     LastLoadedAt="{Binding LastLoadedAt}"
+                                     RefreshCommand="{Binding RefreshCommand}"
+                                     VerticalAlignment="Center"/>
             </Grid>
         </Border>
 

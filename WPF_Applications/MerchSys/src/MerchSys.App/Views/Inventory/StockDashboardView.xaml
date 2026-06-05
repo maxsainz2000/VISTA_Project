@@ -129,16 +129,11 @@
                                  x:Name="SearchBox"/>
                     </StackPanel>
 
-                    <!-- Last Refreshed -->
-                    <TextBlock Text="{Binding LastRefreshed}"
-                               Style="{StaticResource CaptionLabelStyle}"
-                               VerticalAlignment="Center" Margin="0,0,12,4"/>
-
-                    <!-- Refresh Button -->
-                    <Button Content="Refresh"
-                            Command="{Binding RefreshCommand}"
-                            Style="{StaticResource PrimaryButtonStyle}"
-                            VerticalAlignment="Center" Margin="0,0,12,4"/>
+                    <!-- Data Freshness Chip -->
+                    <views:FreshnessChip LastLoadedAt="{Binding LastLoadedAt}"
+                                         RefreshCommand="{Binding RefreshCommand}"
+                                         VerticalAlignment="Center"
+                                         Margin="0,0,12,4"/>
                 </WrapPanel>
             </Border>
 

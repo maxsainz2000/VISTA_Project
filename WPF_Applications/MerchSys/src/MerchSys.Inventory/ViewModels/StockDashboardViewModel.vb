@@ -4,6 +4,7 @@ Imports System.Timers
 Imports CommunityToolkit.Mvvm.ComponentModel
 Imports CommunityToolkit.Mvvm.Input
 Imports MerchSys.Inventory.Services
+Imports MerchSys.SharedKernel.Interfaces
 
 Namespace ViewModels
 
@@ -53,6 +54,17 @@ Namespace ViewModels
     ''' </summary>
     Public Class StockDashboardViewModel
         Inherits ObservableObject
+        Implements IFreshnessAware
+
+        Private _lastLoadedAt As DateTime?
+        Public Property LastLoadedAt As DateTime? Implements IFreshnessAware.LastLoadedAt
+            Get
+                Return _lastLoadedAt
+            End Get
+            Set(value As DateTime?)
+                SetProperty(_lastLoadedAt, value)
+            End Set
+        End Property
 
         Private ReadOnly _dashboardService As IStockDashboardService
         Private ReadOnly _stockoutService As IStockoutEstimationService
@@ -325,6 +337,7 @@ Namespace ViewModels
 
                 ApplyFilters()
                 LastRefreshed = $"Refreshed {DateTime.Now:HH:mm:ss}"
+                LastLoadedAt = DateTime.Now
 
             Catch ex As Exception
                 ErrorMessage = ex.Message

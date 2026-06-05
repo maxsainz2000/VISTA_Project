@@ -43,16 +43,10 @@
                         <TextBlock Text=" — Overview" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"
                                    VerticalAlignment="Center"/>
                     </StackPanel>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                        <TextBlock Text="{Binding LastRefreshed}"
-                                   FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"
-                                   VerticalAlignment="Center" Margin="0,0,10,0"/>
-                        <TextBlock Text="Loading…" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"
-                                   VerticalAlignment="Center" Margin="0,0,10,0"
-                                   Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
-                        <Button Content="Refresh" Command="{Binding RefreshCommand}"
-                                Style="{StaticResource PrimaryButtonStyle}" Padding="14,6" FontWeight="SemiBold"/>
-                    </StackPanel>
+                    <views:FreshnessChip LastLoadedAt="{Binding LastLoadedAt}"
+                                         RefreshCommand="{Binding RefreshCommand}"
+                                         HorizontalAlignment="Right"
+                                         VerticalAlignment="Center"/>
                 </Grid>
             </Border>
 
