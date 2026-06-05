@@ -4,6 +4,8 @@ Chronological record of all agent contributions to the Agent Wiki.
 
 <!-- Append new entries at the top. Format: ## [YYYY-MM-DD] agent | action | description -->
 
+## [2026-06-05] antigravity | added pattern | UX-25 implemented centralized motion tokens, transitioned view switching, and eased control states. Created `MotionEnabled`, `MotionDurationFast`, `MotionDurationStd`, and `MotionEasing` resources in `Themes/Tokens.xaml`. Updated startup to check `SystemParameters.ClientAreaAnimation` and dynamically override duration tokens to zero if animations are disabled. Configured active content view host triggers in `MainWindow.xaml` to fade & slide views on change. Modified `Button`, `AccentButtonStyle`, `ListBoxItem`, and `DataGridRow` to use VisualStateManager (VSM) and selection/hover overlays for eased transitions. See patterns/wpf-vista-motion.md.
+
 ## [2026-06-05] antigravity | added pattern | UX-24 implemented the manual refresh and freshness ticking chip pattern. Created `IFreshnessAware` interface, `RelativeTimeConverter` value converter, `FreshnessTimer` shared static clock ticking at 30 seconds interval, and `FreshnessChip` UserControl displaying relative time and a vector refresh button. Wired 8 target ViewModels and Views to mount and bind the chip. Clean build 0/0. See patterns/wpf-vista-freshness-chip.md.
 
 ## [2026-06-05] antigravity | added error-fix | Resolved VB.NET compilation error BC30792 ('TryCast' operand must be reference type, but 'Date?' is a value type) in custom value converters by converting to an explicit TypeOf check + DirectCast. Fixed duplicate Style setting in FreshnessChip.xaml. See errors/vbnet-nullable-trycast-value-type-compile-error.md.

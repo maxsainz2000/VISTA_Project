@@ -32,6 +32,14 @@ Class Application
     Private _warningTimer As DispatcherTimer
 
     Private Sub Application_Startup(sender As Object, e As StartupEventArgs)
+        ' Respect reduced motion (UX-25)
+        Dim motionEnabled As Boolean = System.Windows.SystemParameters.ClientAreaAnimation
+        Application.Current.Resources("MotionEnabled") = motionEnabled
+        If Not motionEnabled Then
+            Application.Current.Resources("MotionDurationFast") = New System.Windows.Duration(System.TimeSpan.Zero)
+            Application.Current.Resources("MotionDurationStd") = New System.Windows.Duration(System.TimeSpan.Zero)
+        End If
+
         Dim builder = Host.CreateDefaultBuilder()
 
         builder.ConfigureAppConfiguration(Sub(ctx, cfg)

@@ -67,6 +67,51 @@
                             BorderThickness="{TemplateBinding BorderThickness}"
                             SnapsToDevicePixels="True">
                         <Grid>
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualStateGroup.Transitions>
+                                        <VisualTransition GeneratedDuration="{StaticResource MotionDurationFast}">
+                                            <VisualTransition.GeneratedEasingFunction>
+                                                <StaticResource ResourceKey="MotionEasing"/>
+                                            </VisualTransition.GeneratedEasingFunction>
+                                        </VisualTransition>
+                                    </VisualStateGroup.Transitions>
+                                    <VisualState x:Name="Normal"/>
+                                    <VisualState x:Name="Normal_Alternating"/>
+                                    <VisualState x:Name="MouseOver">
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="HoverOverlay"
+                                                             Storyboard.TargetProperty="Opacity"
+                                                             To="1" Duration="0"/>
+                                        </Storyboard>
+                                    </VisualState>
+                                </VisualStateGroup>
+                                <VisualStateGroup x:Name="SelectionStates">
+                                    <VisualStateGroup.Transitions>
+                                        <VisualTransition GeneratedDuration="{StaticResource MotionDurationFast}">
+                                            <VisualTransition.GeneratedEasingFunction>
+                                                <StaticResource ResourceKey="MotionEasing"/>
+                                            </VisualTransition.GeneratedEasingFunction>
+                                        </VisualTransition>
+                                    </VisualStateGroup.Transitions>
+                                    <VisualState x:Name="Unselected"/>
+                                    <VisualState x:Name="Selected">
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="SelectionOverlay"
+                                                             Storyboard.TargetProperty="Opacity"
+                                                             To="1" Duration="0"/>
+                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Foreground">
+                                                <DiscreteObjectKeyFrame KeyTime="0" Value="{DynamicResource SelectionForegroundBrush}"/>
+                                            </ObjectAnimationUsingKeyFrames>
+                                        </Storyboard>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateManager.VisualStateGroups>
+                            <!-- Selection overlay: visible only when selected -->
+                            <Border Name="SelectionOverlay"
+                                    Background="{DynamicResource SelectionBackgroundBrush}"
+                                    Opacity="0"
+                                    IsHitTestVisible="False"/>
                             <!-- Hover overlay: visible only when mouse is over the row -->
                             <Border Name="HoverOverlay"
                                     Background="{DynamicResource HoverBackgroundBrush}"
@@ -76,17 +121,6 @@
                                                     SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
                         </Grid>
                     </Border>
-                    <ControlTemplate.Triggers>
-                        <!-- Hover trigger -->
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="HoverOverlay" Property="Opacity" Value="1"/>
-                        </Trigger>
-                        <!-- Selection trigger: swaps background/foreground -->
-                        <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource SelectionBackgroundBrush}"/>
-                            <Setter Property="Foreground" Value="{DynamicResource SelectionForegroundBrush}"/>
-                        </Trigger>
-                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

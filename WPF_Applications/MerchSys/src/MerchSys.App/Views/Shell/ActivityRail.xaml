@@ -54,7 +54,8 @@
                                         <Storyboard>
                                             <DoubleAnimation Storyboard.TargetName="HoverBg"
                                                              Storyboard.TargetProperty="Opacity"
-                                                             To="1" Duration="0:0:0.12"/>
+                                                             To="1" Duration="{StaticResource MotionDurationFast}"
+                                                             EasingFunction="{StaticResource MotionEasing}"/>
                                         </Storyboard>
                                     </BeginStoryboard>
                                 </Trigger.EnterActions>
@@ -63,7 +64,8 @@
                                         <Storyboard>
                                             <DoubleAnimation Storyboard.TargetName="HoverBg"
                                                              Storyboard.TargetProperty="Opacity"
-                                                             To="0" Duration="0:0:0.12"/>
+                                                             To="0" Duration="{StaticResource MotionDurationFast}"
+                                                             EasingFunction="{StaticResource MotionEasing}"/>
                                         </Storyboard>
                                     </BeginStoryboard>
                                 </Trigger.ExitActions>
@@ -76,7 +78,8 @@
                                         <Storyboard>
                                             <DoubleAnimation Storyboard.TargetName="ActiveBg"
                                                              Storyboard.TargetProperty="Opacity"
-                                                             To="1" Duration="0:0:0.12"/>
+                                                             To="1" Duration="{StaticResource MotionDurationFast}"
+                                                             EasingFunction="{StaticResource MotionEasing}"/>
                                         </Storyboard>
                                     </BeginStoryboard>
                                 </DataTrigger.EnterActions>
@@ -85,7 +88,8 @@
                                         <Storyboard>
                                             <DoubleAnimation Storyboard.TargetName="ActiveBg"
                                                              Storyboard.TargetProperty="Opacity"
-                                                             To="0" Duration="0:0:0.12"/>
+                                                             To="0" Duration="{StaticResource MotionDurationFast}"
+                                                             EasingFunction="{StaticResource MotionEasing}"/>
                                         </Storyboard>
                                     </BeginStoryboard>
                                 </DataTrigger.ExitActions>

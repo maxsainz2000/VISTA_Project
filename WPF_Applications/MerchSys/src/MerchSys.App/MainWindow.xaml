@@ -65,7 +65,26 @@
         <Border Grid.Column="2"
                 Background="{DynamicResource WindowBackgroundBrush}"
                 Padding="{DynamicResource SpacingL}">
-            <ContentControl Content="{Binding CurrentView}"/>
+            <ContentControl Content="{Binding CurrentView, NotifyOnTargetUpdated=True}">
+                <ContentControl.RenderTransform>
+                    <TranslateTransform Y="0"/>
+                </ContentControl.RenderTransform>
+                <ContentControl.Triggers>
+                    <EventTrigger RoutedEvent="Binding.TargetUpdated">
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                 From="0.0" To="1.0"
+                                                 Duration="{StaticResource MotionDurationStd}"/>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
+                                                 From="8.0" To="0.0"
+                                                 Duration="{StaticResource MotionDurationStd}"
+                                                 EasingFunction="{StaticResource MotionEasing}"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+                </ContentControl.Triggers>
+            </ContentControl>
         </Border>
 
         <!-- Command Palette Overlay -->

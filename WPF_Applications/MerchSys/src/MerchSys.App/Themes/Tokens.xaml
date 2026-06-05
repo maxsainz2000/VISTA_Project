@@ -39,4 +39,11 @@
     <!-- Overlay Dimming Brush -->
     <SolidColorBrush x:Key="OverlayBrush" Color="#000000" Opacity="0.4"/>
 
+    <!-- Motion & Micro-interactions (UX-25) -->
+    <sys:Boolean x:Key="MotionEnabled">True</sys:Boolean>
+    <Duration x:Key="MotionDurationFast">0:0:0.15</Duration>
+    <Duration x:Key="MotionDurationStd">0:0:0.22</Duration>
+    <CubicEase x:Key="MotionEasing" EasingMode="EaseOut"/>
+
 </ResourceDictionary>
+

@@ -148,6 +148,38 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Button}">
                     <Grid>
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualStateGroup.Transitions>
+                                    <VisualTransition GeneratedDuration="{StaticResource MotionDurationFast}">
+                                        <VisualTransition.GeneratedEasingFunction>
+                                            <StaticResource ResourceKey="MotionEasing"/>
+                                        </VisualTransition.GeneratedEasingFunction>
+                                    </VisualTransition>
+                                </VisualStateGroup.Transitions>
+                                <VisualState x:Name="Normal"/>
+                                <VisualState x:Name="MouseOver">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="HoverOverlay"
+                                                         Storyboard.TargetProperty="Opacity"
+                                                         To="1" Duration="0"/>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="Pressed">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="PressedOverlay"
+                                                         Storyboard.TargetProperty="Opacity"
+                                                         To="1" Duration="0"/>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="Disabled">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                         To="0.5" Duration="0"/>
+                                    </Storyboard>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
                         <Border Name="Border"
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
@@ -174,17 +206,6 @@
                                           RecognizesAccessKey="True"
                                           SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
                     </Grid>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="HoverOverlay" Property="Opacity" Value="1"/>
-                        </Trigger>
-                        <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="PressedOverlay" Property="Opacity" Value="1"/>
-                        </Trigger>
-                        <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Opacity" Value="0.5"/>
-                        </Trigger>
-                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
@@ -199,11 +220,55 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Button}">
                     <Grid>
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualStateGroup.Transitions>
+                                    <VisualTransition GeneratedDuration="{StaticResource MotionDurationFast}">
+                                        <VisualTransition.GeneratedEasingFunction>
+                                            <StaticResource ResourceKey="MotionEasing"/>
+                                        </VisualTransition.GeneratedEasingFunction>
+                                    </VisualTransition>
+                                </VisualStateGroup.Transitions>
+                                <VisualState x:Name="Normal"/>
+                                <VisualState x:Name="MouseOver">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="HoverOverlay"
+                                                         Storyboard.TargetProperty="Opacity"
+                                                         To="1" Duration="0"/>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="Pressed">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="HoverOverlay"
+                                                         Storyboard.TargetProperty="Opacity"
+                                                         To="1" Duration="0"/>
+                                        <DoubleAnimation Storyboard.TargetName="PressedOverlay"
+                                                         Storyboard.TargetProperty="Opacity"
+                                                         To="1" Duration="0"/>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="Disabled">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                         To="0.5" Duration="0"/>
+                                    </Storyboard>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
                         <Border Name="Border"
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
                                 CornerRadius="{DynamicResource RadiusSmall}"
+                                SnapsToDevicePixels="True"/>
+                        <!-- Hover overlay for primary action -->
+                        <Border Name="HoverOverlay"
+                                Background="{DynamicResource AccentHoverBrush}"
+                                BorderBrush="{DynamicResource AccentHoverBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="{DynamicResource RadiusSmall}"
+                                Opacity="0"
+                                IsHitTestVisible="False"
                                 SnapsToDevicePixels="True"/>
                         <Border Name="PressedOverlay"
                                 Background="{DynamicResource HoverBackgroundBrush}"
@@ -217,22 +282,6 @@
                                           RecognizesAccessKey="True"
                                           SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
                     </Grid>
-                    <ControlTemplate.Triggers>
-                        <!-- In macOS, primary action buttons get slightly brighter/darker accent colors on hover. Let's use AccentHoverBrush for Hover! -->
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}"/>
-                            <Setter Property="BorderBrush" Value="{DynamicResource AccentHoverBrush}"/>
-                        </Trigger>
-                        <!-- On Pressed, overlay HoverBackgroundBrush on top of AccentHoverBrush -->
-                        <Trigger Property="IsPressed" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}"/>
-                            <Setter Property="BorderBrush" Value="{DynamicResource AccentHoverBrush}"/>
-                            <Setter TargetName="PressedOverlay" Property="Opacity" Value="1"/>
-                        </Trigger>
-                        <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Opacity" Value="0.5"/>
-                        </Trigger>
-                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
@@ -499,11 +548,73 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ListBoxItem}">
                     <Grid Margin="2,1">
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualStateGroup.Transitions>
+                                    <VisualTransition GeneratedDuration="{StaticResource MotionDurationFast}">
+                                        <VisualTransition.GeneratedEasingFunction>
+                                            <StaticResource ResourceKey="MotionEasing"/>
+                                        </VisualTransition.GeneratedEasingFunction>
+                                    </VisualTransition>
+                                </VisualStateGroup.Transitions>
+                                <VisualState x:Name="Normal"/>
+                                <VisualState x:Name="MouseOver">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="HoverOverlay"
+                                                         Storyboard.TargetProperty="Opacity"
+                                                         To="1" Duration="0"/>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="Disabled">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                         To="0.5" Duration="0"/>
+                                    </Storyboard>
+                                </VisualState>
+                            </VisualStateGroup>
+                            <VisualStateGroup x:Name="SelectionStates">
+                                <VisualStateGroup.Transitions>
+                                    <VisualTransition GeneratedDuration="{StaticResource MotionDurationFast}">
+                                        <VisualTransition.GeneratedEasingFunction>
+                                            <StaticResource ResourceKey="MotionEasing"/>
+                                        </VisualTransition.GeneratedEasingFunction>
+                                    </VisualTransition>
+                                </VisualStateGroup.Transitions>
+                                <VisualState x:Name="Unselected"/>
+                                <VisualState x:Name="Selected">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionOverlay"
+                                                         Storyboard.TargetProperty="Opacity"
+                                                         To="1" Duration="0"/>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Foreground">
+                                            <DiscreteObjectKeyFrame KeyTime="0" Value="{DynamicResource SelectionForegroundBrush}"/>
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="SelectedUnfocused">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionOverlay"
+                                                         Storyboard.TargetProperty="Opacity"
+                                                         To="1" Duration="0"/>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Foreground">
+                                            <DiscreteObjectKeyFrame KeyTime="0" Value="{DynamicResource SelectionForegroundBrush}"/>
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
                         <Border Name="Bg"
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
                                 CornerRadius="{DynamicResource RadiusSmall}"
+                                SnapsToDevicePixels="True"/>
+                        <!-- Selection Overlay (eased) -->
+                        <Border Name="SelectionOverlay"
+                                Background="{DynamicResource SelectionBackgroundBrush}"
+                                CornerRadius="{DynamicResource RadiusSmall}"
+                                Opacity="0"
+                                IsHitTestVisible="False"
                                 SnapsToDevicePixels="True"/>
                         <Border Name="HoverOverlay"
                                 Background="{DynamicResource HoverBackgroundBrush}"
@@ -516,18 +627,6 @@
                                           VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                           SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
                     </Grid>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="HoverOverlay" Property="Opacity" Value="1"/>
-                        </Trigger>
-                        <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SelectionBackgroundBrush}"/>
-                            <Setter Property="Foreground" Value="{DynamicResource SelectionForegroundBrush}"/>
-                        </Trigger>
-                        <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Opacity" Value="0.5"/>
-                        </Trigger>
-                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

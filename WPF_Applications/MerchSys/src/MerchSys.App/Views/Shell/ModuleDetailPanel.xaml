@@ -56,7 +56,8 @@
                                         <Storyboard>
                                             <DoubleAnimation Storyboard.TargetName="HoverBg"
                                                              Storyboard.TargetProperty="Opacity"
-                                                             To="1" Duration="0:0:0.12"/>
+                                                             To="1" Duration="{StaticResource MotionDurationFast}"
+                                                             EasingFunction="{StaticResource MotionEasing}"/>
                                         </Storyboard>
                                     </BeginStoryboard>
                                 </Trigger.EnterActions>
@@ -65,7 +66,8 @@
                                         <Storyboard>
                                             <DoubleAnimation Storyboard.TargetName="HoverBg"
                                                              Storyboard.TargetProperty="Opacity"
-                                                             To="0" Duration="0:0:0.12"/>
+                                                             To="0" Duration="{StaticResource MotionDurationFast}"
+                                                             EasingFunction="{StaticResource MotionEasing}"/>
                                         </Storyboard>
                                     </BeginStoryboard>
                                 </Trigger.ExitActions>
@@ -78,7 +80,8 @@
                                         <Storyboard>
                                             <DoubleAnimation Storyboard.TargetName="ActiveBg"
                                                              Storyboard.TargetProperty="Opacity"
-                                                             To="1" Duration="0:0:0.12"/>
+                                                             To="1" Duration="{StaticResource MotionDurationFast}"
+                                                             EasingFunction="{StaticResource MotionEasing}"/>
                                         </Storyboard>
                                     </BeginStoryboard>
                                 </DataTrigger.EnterActions>
@@ -87,7 +90,8 @@
                                         <Storyboard>
                                             <DoubleAnimation Storyboard.TargetName="ActiveBg"
                                                              Storyboard.TargetProperty="Opacity"
-                                                             To="0" Duration="0:0:0.12"/>
+                                                             To="0" Duration="{StaticResource MotionDurationFast}"
+                                                             EasingFunction="{StaticResource MotionEasing}"/>
                                         </Storyboard>
                                     </BeginStoryboard>
                                 </DataTrigger.ExitActions>
@@ -175,11 +179,13 @@
                                             <!-- Fade track accent color in -->
                                             <DoubleAnimation Storyboard.TargetName="ActiveTrack"
                                                              Storyboard.TargetProperty="Opacity"
-                                                             To="1" Duration="0:0:0.15"/>
+                                                             To="1" Duration="{StaticResource MotionDurationFast}"
+                                                             EasingFunction="{StaticResource MotionEasing}"/>
                                             <!-- Translate thumb to the right -->
                                             <DoubleAnimation Storyboard.TargetName="Thumb"
                                                              Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
-                                                             To="16" Duration="0:0:0.15"/>
+                                                             To="16" Duration="{StaticResource MotionDurationFast}"
+                                                             EasingFunction="{StaticResource MotionEasing}"/>
                                         </Storyboard>
                                     </BeginStoryboard>
                                 </Trigger.EnterActions>
@@ -189,11 +195,13 @@
                                             <!-- Fade track accent color out -->
                                             <DoubleAnimation Storyboard.TargetName="ActiveTrack"
                                                              Storyboard.TargetProperty="Opacity"
-                                                             To="0" Duration="0:0:0.15"/>
+                                                             To="0" Duration="{StaticResource MotionDurationFast}"
+                                                             EasingFunction="{StaticResource MotionEasing}"/>
                                             <!-- Translate thumb back to the left -->
                                             <DoubleAnimation Storyboard.TargetName="Thumb"
                                                              Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
-                                                             To="0" Duration="0:0:0.15"/>
+                                                             To="0" Duration="{StaticResource MotionDurationFast}"
+                                                             EasingFunction="{StaticResource MotionEasing}"/>
                                         </Storyboard>
                                     </BeginStoryboard>
                                 </Trigger.ExitActions>
