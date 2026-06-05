@@ -234,6 +234,7 @@ All code must implement the OWASP DA Top 10 controls documented in `LLM_Wiki/wik
 
 - **Manager** — full access to all modules and operations
 - **Owner** — read-only access to KPIs, financial reports, and notifications
+- **Developer** — Manager superset (full CRUD) plus exclusive access to the Developer Tools module. Reserved for the single internal developer account (seeded idempotently at startup by `MariaDbSchemaInitializer.EnsureDeveloperAccount`). `UserRole.Developer = 3`; enforced at the data layer via `RoleGuardInterceptor` (treated as Manager for write access), and Developer Tools nav/rail/palette entries are gated to this role only.
 
 ## Module Audit Skill (`/vista-audit`)
 

@@ -100,9 +100,6 @@
                                             <DoubleAnimation Storyboard.TargetName="SelectionOverlay"
                                                              Storyboard.TargetProperty="Opacity"
                                                              To="1" Duration="0"/>
-                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Foreground">
-                                                <DiscreteObjectKeyFrame KeyTime="0" Value="{DynamicResource SelectionForegroundBrush}"/>
-                                            </ObjectAnimationUsingKeyFrames>
                                         </Storyboard>
                                     </VisualState>
                                 </VisualStateGroup>
@@ -124,6 +121,15 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <Style.Triggers>
+            <!-- Recolor the row's Foreground on selection via a property trigger, not a
+                 VSM Storyboard: the DataGridRow template root is a Border (no Foreground
+                 property), so Storyboard.TargetProperty="Foreground" cannot resolve.
+                 See agent_wiki/errors/wpf-vsm-foreground-on-non-control-template-root.md -->
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Foreground" Value="{DynamicResource SelectionForegroundBrush}"/>
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
     <!-- ========================================== -->

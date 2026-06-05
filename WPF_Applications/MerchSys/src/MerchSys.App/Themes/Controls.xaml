@@ -586,9 +586,6 @@
                                         <DoubleAnimation Storyboard.TargetName="SelectionOverlay"
                                                          Storyboard.TargetProperty="Opacity"
                                                          To="1" Duration="0"/>
-                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Foreground">
-                                            <DiscreteObjectKeyFrame KeyTime="0" Value="{DynamicResource SelectionForegroundBrush}"/>
-                                        </ObjectAnimationUsingKeyFrames>
                                     </Storyboard>
                                 </VisualState>
                                 <VisualState x:Name="SelectedUnfocused">
@@ -596,9 +593,6 @@
                                         <DoubleAnimation Storyboard.TargetName="SelectionOverlay"
                                                          Storyboard.TargetProperty="Opacity"
                                                          To="1" Duration="0"/>
-                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Foreground">
-                                            <DiscreteObjectKeyFrame KeyTime="0" Value="{DynamicResource SelectionForegroundBrush}"/>
-                                        </ObjectAnimationUsingKeyFrames>
                                     </Storyboard>
                                 </VisualState>
                             </VisualStateGroup>
@@ -630,6 +624,17 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <Style.Triggers>
+            <!-- Recolor the item's own Foreground on selection. Set via a property
+                 trigger (not a VSM Storyboard) because the ListBoxItem template root
+                 is a Grid, which has no Foreground property — animating
+                 Storyboard.TargetProperty="Foreground" there throws
+                 "Cannot resolve all property references in the property path 'Foreground'".
+                 See agent_wiki/errors/wpf-vsm-foreground-on-non-control-template-root.md -->
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Foreground" Value="{DynamicResource SelectionForegroundBrush}"/>
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
     <!-- ListBox (Implicit) -->

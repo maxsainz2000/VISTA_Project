@@ -53,27 +53,75 @@ Class MainWindow
     End Sub
 
     Private Sub MainWindow_PreviewKeyDown(sender As Object, e As KeyEventArgs) Handles Me.PreviewKeyDown
-        If _viewModel IsNot Nothing AndAlso _viewModel.IsCommandPaletteOpen Then
-            Select Case e.Key
-                Case Key.Escape
-                    _viewModel.CommandPalette.CloseCommand.Execute(Nothing)
+        If _viewModel IsNot Nothing Then
+            ' 1. If Shortcuts Overlay is open, Esc dismisses it
+            If _viewModel.IsShortcutsOverlayOpen Then
+                If e.Key = Key.Escape Then
+                    _viewModel.ShortcutsOverlay.CloseCommand.Execute(Nothing)
                     e.Handled = True
-                Case Key.Up
-                    _viewModel.CommandPalette.MoveSelectionUp()
-                    If CommandPaletteControl IsNot Nothing Then
-                        CommandPaletteControl.ScrollSelectedIndexIntoView()
+                    Exit Sub
+                End If
+            End If
+
+            ' 2. If Command Palette is open, handle its navigation/close keys
+            If _viewModel.IsCommandPaletteOpen Then
+                Select Case e.Key
+                    Case Key.Escape
+                        _viewModel.CommandPalette.CloseCommand.Execute(Nothing)
+                        e.Handled = True
+                        Exit Sub
+                    Case Key.Up
+                        _viewModel.CommandPalette.MoveSelectionUp()
+                        If CommandPaletteControl IsNot Nothing Then
+                            CommandPaletteControl.ScrollSelectedIndexIntoView()
+                        End If
+                        e.Handled = True
+                        Exit Sub
+                    Case Key.Down
+                        _viewModel.CommandPalette.MoveSelectionDown()
+                        If CommandPaletteControl IsNot Nothing Then
+                            CommandPaletteControl.ScrollSelectedIndexIntoView()
+                        End If
+                        e.Handled = True
+                        Exit Sub
+                    Case Key.Enter
+                        _viewModel.CommandPalette.ExecuteSelectedCommand.Execute(Nothing)
+                        e.Handled = True
+                        Exit Sub
+                End Select
+            End If
+
+            ' 3. Handle toggling the Shortcuts Overlay via Ctrl+/ or ?
+            If e.Key = Key.OemQuestion Then
+                Dim hasControl = (Keyboard.Modifiers And ModifierKeys.Control) = ModifierKeys.Control
+                Dim hasShift = (Keyboard.Modifiers And ModifierKeys.Shift) = ModifierKeys.Shift
+                Dim hasAltOrWin = (Keyboard.Modifiers And (ModifierKeys.Alt Or ModifierKeys.Windows)) <> 0
+
+                If Not hasAltOrWin Then
+                    If hasControl AndAlso Not hasShift Then
+                        ' Ctrl+/ triggers unconditionally
+                        _viewModel.ShortcutsOverlay.ToggleCommand.Execute(Nothing)
+                        e.Handled = True
+                        Exit Sub
+                    ElseIf hasShift AndAlso Not hasControl Then
+                        ' ? (Shift+/) triggers only if focused control is not a text entry field
+                        Dim focused = Keyboard.FocusedElement
+                        Dim isTextInput = False
+                        If focused IsNot Nothing Then
+                            If TypeOf focused Is System.Windows.Controls.Primitives.TextBoxBase OrElse
+                               TypeOf focused Is System.Windows.Controls.PasswordBox Then
+                                isTextInput = True
+                            End If
+                        End If
+
+                        If Not isTextInput Then
+                            _viewModel.ShortcutsOverlay.ToggleCommand.Execute(Nothing)
+                            e.Handled = True
+                            Exit Sub
+                        End If
                     End If
-                    e.Handled = True
-                Case Key.Down
-                    _viewModel.CommandPalette.MoveSelectionDown()
-                    If CommandPaletteControl IsNot Nothing Then
-                        CommandPaletteControl.ScrollSelectedIndexIntoView()
-                    End If
-                    e.Handled = True
-                Case Key.Enter
-                    _viewModel.CommandPalette.ExecuteSelectedCommand.Execute(Nothing)
-                    e.Handled = True
-            End Select
+                End If
+            End If
         End If
     End Sub
 

@@ -120,12 +120,46 @@ Namespace ViewModels
                 OnPropertyChanged(NameOf(IsCommandPaletteOpen))
                 SelectModuleCommand.NotifyCanExecuteChanged()
                 NavigateCommand.NotifyCanExecuteChanged()
+                If CommandPalette.IsOpen AndAlso ShortcutsOverlay.IsOpen Then
+                    ShortcutsOverlay.IsOpen = False
+                End If
             End If
         End Sub
 
         Public ReadOnly Property IsCommandPaletteOpen As Boolean
             Get
                 Return CommandPalette.IsOpen
+            End Get
+        End Property
+
+        ' ── Shortcuts Overlay Integration ────────────────────────────────────────
+
+        Private _shortcutsOverlay As ShortcutsOverlayViewModel
+
+        Public ReadOnly Property ShortcutsOverlay As ShortcutsOverlayViewModel
+            Get
+                If _shortcutsOverlay Is Nothing Then
+                    _shortcutsOverlay = _services.GetRequiredService(Of ShortcutsOverlayViewModel)()
+                    AddHandler _shortcutsOverlay.PropertyChanged, AddressOf OnShortcutsOverlayPropertyChanged
+                End If
+                Return _shortcutsOverlay
+            End Get
+        End Property
+
+        Private Sub OnShortcutsOverlayPropertyChanged(sender As Object, e As System.ComponentModel.PropertyChangedEventArgs)
+            If e.PropertyName = NameOf(ShortcutsOverlayViewModel.IsOpen) Then
+                OnPropertyChanged(NameOf(IsShortcutsOverlayOpen))
+                SelectModuleCommand.NotifyCanExecuteChanged()
+                NavigateCommand.NotifyCanExecuteChanged()
+                If ShortcutsOverlay.IsOpen AndAlso CommandPalette.IsOpen Then
+                    CommandPalette.IsOpen = False
+                End If
+            End If
+        End Sub
+
+        Public ReadOnly Property IsShortcutsOverlayOpen As Boolean
+            Get
+                Return ShortcutsOverlay.IsOpen
             End Get
         End Property
 
@@ -166,11 +200,11 @@ Namespace ViewModels
         ' ── Navigation ───────────────────────────────────────────────────────────
 
         Private Function CanNavigate(item As NavigationItem) As Boolean
-            Return Not IsCommandPaletteOpen
+            Return Not IsCommandPaletteOpen AndAlso Not IsShortcutsOverlayOpen
         End Function
 
         Private Function CanSelectModule(m As AppModule) As Boolean
-            Return Not IsCommandPaletteOpen
+            Return Not IsCommandPaletteOpen AndAlso Not IsShortcutsOverlayOpen
         End Function
 
         Private Sub Navigate(item As NavigationItem)

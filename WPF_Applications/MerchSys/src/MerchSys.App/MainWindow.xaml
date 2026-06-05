@@ -93,5 +93,11 @@
                               Visibility="{Binding IsOpen, Converter={StaticResource BooleanToVisibilityConverter}}"
                               DataContext="{Binding CommandPalette}"/>
 
+        <!-- Shortcuts Overlay -->
+        <views:ShortcutsOverlay x:Name="ShortcutsOverlayControl"
+                                Grid.Column="0" Grid.ColumnSpan="3"
+                                Visibility="{Binding IsOpen, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                DataContext="{Binding ShortcutsOverlay}"/>
+
     </Grid>
 </Window>
