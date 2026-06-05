@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.SharedKernel
 layer: Interfaces & Enums
-last-updated: 2026-05-26
+last-updated: 2026-06-05
 ---
 
 # MerchSys.SharedKernel — Interfaces & Enums
@@ -18,6 +18,7 @@ last-updated: 2026-05-26
 | `Interfaces/IConfirmationPresenter.vb` | `IConfirmationPresenter` | `PromptAsync(request) As Task(Of Boolean)` |
 | `Interfaces/ISessionService.vb` | `ISessionService` | `CurrentUsername`, `CurrentRole`, `IsAuthenticated` |
 | `Interfaces/IWriteContextScope.vb` | `IWriteContextScope` | `Current` (`WriteContextKind`), `SelfServiceUsername` (`String`), `Enter(kind, username) As IDisposable` |
+| `Interfaces/IFreshnessAware.vb` | `IFreshnessAware` | `Property LastLoadedAt As DateTime?` — marker interface implemented by data ViewModels that expose a freshness timestamp; allows `FreshnessChip` bindings to be declared uniformly. Additive; does not force a base class (UX-24). |
 
 ## Enums
 | File Path | Enum | Values |
