@@ -151,6 +151,14 @@
                 </WrapPanel>
             </Border>
 
+            <!-- Filter summary bar showing count, active filter chips, and clear all -->
+            <views:FilterSummaryBar DockPanel.Dock="Top"
+                                    Margin="4,0,4,8"
+                                    ShownCount="{Binding Products.Count}"
+                                    TotalCount="{Binding TotalProducts}"
+                                    ActiveFilters="{Binding ActiveFilterChips}"
+                                    ClearAllCommand="{Binding ClearFiltersCommand}"/>
+
             <!-- ═══════════════════════════════════════════════════════════
                  PRODUCT DETAIL PANEL (bottom, docked, visible on row click)
                  ═══════════════════════════════════════════════════════════ -->
@@ -430,8 +438,10 @@
 
                         </DataGrid>
 
-                        <views:EmptyStatePanel Title="No Stock Products"
-                                               Description="There are no products in the stock inventory matching the filters."
+                        <views:EmptyStatePanel Title="{Binding EmptyStateTitle}"
+                                               Description="{Binding EmptyStateDescription}"
+                                               ActionText="{Binding EmptyStateActionText}"
+                                               ActionCommand="{Binding EmptyStateActionCommand}"
                                                HorizontalAlignment="Center" VerticalAlignment="Center"
                                                Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}"/>
                     </Grid>

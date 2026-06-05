@@ -1,5 +1,6 @@
 Imports System.Collections.ObjectModel
 Imports System.ComponentModel.DataAnnotations
+Imports System.Windows.Input
 Imports CommunityToolkit.Mvvm.ComponentModel
 Imports CommunityToolkit.Mvvm.Input
 Imports MySqlConnector
@@ -58,18 +59,86 @@ Namespace ViewModels
         Private _loadedProducts As List(Of Product)
         Private _loadedCategories As List(Of ProductCategory)
 
+        ' Session memory fields
+        Private Shared _savedCategoryFilter As String = "All"
+        Private Shared _savedSearchText As String = String.Empty
+        Private Shared _lastUser As String = Nothing
+
+        Public Property ActiveFilterChips As ObservableCollection(Of FilterChipItem)
+        Public Property ClearFiltersCommand As RelayCommand
+
+        Public ReadOnly Property IsFilterActive As Boolean
+            Get
+                Return (SelectedCategoryFilter <> "All") OrElse Not String.IsNullOrWhiteSpace(SearchText)
+            End Get
+        End Property
+
+        Public ReadOnly Property EmptyStateTitle As String
+            Get
+                If IsFilterActive Then
+                    If Not String.IsNullOrWhiteSpace(SearchText) Then
+                        Return $"No results for '{SearchText.Trim()}'"
+                    Else
+                        Return "No results matching filters"
+                    End If
+                End If
+                Return "No Products Found"
+            End Get
+        End Property
+
+        Public ReadOnly Property EmptyStateDescription As String
+            Get
+                If IsFilterActive Then
+                    Return "Try adjusting your filters or search term to find what you're looking for."
+                End If
+                Return "No products match the selected criteria or search term."
+            End Get
+        End Property
+
+        Public ReadOnly Property EmptyStateActionCommand As ICommand
+            Get
+                If IsFilterActive Then
+                    Return ClearFiltersCommand
+                End If
+                Return AddProductCommand
+            End Get
+        End Property
+
+        Public ReadOnly Property EmptyStateActionText As String
+            Get
+                If IsFilterActive Then
+                    Return "Clear filters"
+                End If
+                Return "Add Product"
+            End Get
+        End Property
+
         Public Sub New(db As InventoryDbContext, session As ISessionService, conflictPresenter As IConflictPresenter, confirmationPresenter As IConfirmationPresenter)
             _db = db
             _session = session
             _conflictPresenter = conflictPresenter
             _confirmationPresenter = confirmationPresenter
 
+            ' Restore session filters, resetting if user changed
+            Dim currentUser = _session.CurrentUsername
+            If currentUser <> _lastUser Then
+                _savedCategoryFilter = "All"
+                _savedSearchText = String.Empty
+                _lastUser = currentUser
+            End If
+
+            _selectedCategoryFilter = _savedCategoryFilter
+            _searchText = _savedSearchText
+
             Products = New ObservableCollection(Of ProductManagementRowItem)()
+            ActiveFilterChips = New ObservableCollection(Of FilterChipItem)()
             Categories = New ObservableCollection(Of CategoryManagementItem)()
             CategoryFilters = New ObservableCollection(Of String) From {"All"}
             UnitOptions = New ObservableCollection(Of String) From {"bag", "bottle", "pack", "kg", "liter", "box", "piece", "set"}
 
             LoadDataCommand = New AsyncRelayCommand(AddressOf LoadDataAsync)
+            ClearFiltersCommand = New RelayCommand(AddressOf ClearFilters)
+
             If IsManager Then
                 AddProductCommand = New RelayCommand(AddressOf OpenAddProductEditor)
                 EditProductCommand = New RelayCommand(Of ProductManagementRowItem)(AddressOf OpenEditProductEditor)
@@ -99,7 +168,10 @@ Namespace ViewModels
                 Return _searchText
             End Get
             Set(value As String)
-                If SetProperty(_searchText, value) Then ApplyFilters()
+                If SetProperty(_searchText, value) Then
+                    _savedSearchText = value
+                    ApplyFilters()
+                End If
             End Set
         End Property
 
@@ -109,7 +181,10 @@ Namespace ViewModels
                 Return _selectedCategoryFilter
             End Get
             Set(value As String)
-                If SetProperty(_selectedCategoryFilter, value) Then ApplyFilters()
+                If SetProperty(_selectedCategoryFilter, value) Then
+                    _savedCategoryFilter = value
+                    ApplyFilters()
+                End If
             End Set
         End Property
 
@@ -134,6 +209,12 @@ Namespace ViewModels
         Public ReadOnly Property SelectedProductIsActive As Boolean
             Get
                 Return SelectedProduct IsNot Nothing AndAlso SelectedProduct.IsActive
+            End Get
+        End Property
+
+        Public ReadOnly Property TotalProducts As Integer
+            Get
+                Return _allProducts.Count
             End Get
         End Property
 
@@ -558,6 +639,7 @@ Namespace ViewModels
                 Next
 
                 ApplyFilters()
+                OnPropertyChanged(NameOf(TotalProducts))
                 IsError = False
                 LastLoadedAt = DateTime.Now
 
@@ -586,7 +668,44 @@ Namespace ViewModels
             For Each item In filtered
                 Products.Add(item)
             Next
+
+            RefreshFilterChips()
             OnPropertyChanged(NameOf(IsEmpty))
+        End Sub
+
+        Private Sub RefreshFilterChips()
+            If ActiveFilterChips Is Nothing Then
+                ActiveFilterChips = New ObservableCollection(Of FilterChipItem)()
+            Else
+                ActiveFilterChips.Clear()
+            End If
+
+            If Not String.IsNullOrEmpty(SelectedCategoryFilter) AndAlso SelectedCategoryFilter <> "All" Then
+                ActiveFilterChips.Add(New FilterChipItem($"Category: {SelectedCategoryFilter}", "Category", New RelayCommand(Sub() SelectedCategoryFilter = "All")))
+            End If
+
+            If Not String.IsNullOrWhiteSpace(SearchText) Then
+                ActiveFilterChips.Add(New FilterChipItem($"Search: {SearchText.Trim()}", "Search", New RelayCommand(Sub() SearchText = String.Empty)))
+            End If
+
+            OnPropertyChanged(NameOf(IsFilterActive))
+            OnPropertyChanged(NameOf(EmptyStateTitle))
+            OnPropertyChanged(NameOf(EmptyStateDescription))
+            OnPropertyChanged(NameOf(EmptyStateActionCommand))
+            OnPropertyChanged(NameOf(EmptyStateActionText))
+        End Sub
+
+        Private Sub ClearFilters()
+            _selectedCategoryFilter = "All"
+            _searchText = String.Empty
+
+            OnPropertyChanged(NameOf(SelectedCategoryFilter))
+            OnPropertyChanged(NameOf(SearchText))
+
+            _savedCategoryFilter = "All"
+            _savedSearchText = String.Empty
+
+            ApplyFilters()
         End Sub
 
         ' ─── Product Editor ────────────────────────────────────────────────────────

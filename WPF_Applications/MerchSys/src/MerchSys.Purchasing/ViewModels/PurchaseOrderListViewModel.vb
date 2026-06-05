@@ -1,4 +1,5 @@
 Imports System.Collections.ObjectModel
+Imports System.Windows.Input
 Imports CommunityToolkit.Mvvm.ComponentModel
 Imports CommunityToolkit.Mvvm.Input
 Imports MySqlConnector
@@ -57,6 +58,66 @@ Namespace ViewModels
         Private _allOrders As List(Of PORowItem) = New List(Of PORowItem)()
         Private _vendorList As List(Of Vendor) = New List(Of Vendor)()
 
+        ' Session memory fields
+        Private Shared _savedStatus As String = "All"
+        Private Shared _savedSearchText As String = String.Empty
+        Private Shared _lastUser As String = Nothing
+
+        Public Property ActiveFilterChips As ObservableCollection(Of FilterChipItem)
+        Public Property ClearFiltersCommand As RelayCommand
+
+        Public ReadOnly Property IsFilterActive As Boolean
+            Get
+                Return (SelectedStatus <> "All") OrElse Not String.IsNullOrWhiteSpace(SearchText)
+            End Get
+        End Property
+
+        Public ReadOnly Property EmptyStateTitle As String
+            Get
+                If IsFilterActive Then
+                    If Not String.IsNullOrWhiteSpace(SearchText) Then
+                        Return $"No results for '{SearchText.Trim()}'"
+                    Else
+                        Return "No results matching filters"
+                    End If
+                End If
+                Return "No Purchase Orders"
+            End Get
+        End Property
+
+        Public ReadOnly Property EmptyStateDescription As String
+            Get
+                If IsFilterActive Then
+                    Return "Try adjusting your filters or search term to find what you're looking for."
+                End If
+                Return "There are no purchase orders in the system."
+            End Get
+        End Property
+
+        Public ReadOnly Property EmptyStateActionCommand As ICommand
+            Get
+                If IsFilterActive Then
+                    Return ClearFiltersCommand
+                End If
+                Return NewPOCommand
+            End Get
+        End Property
+
+        Public ReadOnly Property EmptyStateActionText As String
+            Get
+                If IsFilterActive Then
+                    Return "Clear filters"
+                End If
+                Return "New PO"
+            End Get
+        End Property
+
+        Public ReadOnly Property TotalOrders As Integer
+            Get
+                Return _allOrders.Count
+            End Get
+        End Property
+
         Public Sub New(session As ISessionService,
                        poService As IPurchaseOrderService,
                        vendorService As IVendorService,
@@ -74,12 +135,26 @@ Namespace ViewModels
             _conflictPresenter = conflictPresenter
             _confirmationPresenter = confirmationPresenter
 
+            ' Restore session filters, resetting if user changed
+            Dim currentUser = _session.CurrentUsername
+            If currentUser <> _lastUser Then
+                _savedStatus = "All"
+                _savedSearchText = String.Empty
+                _lastUser = currentUser
+            End If
+
+            _selectedStatus = _savedStatus
+            _searchText = _savedSearchText
+
             Orders = New ObservableCollection(Of PORowItem)()
+            ActiveFilterChips = New ObservableCollection(Of FilterChipItem)()
             StatusOptions = New ObservableCollection(Of String) From {"All", "Draft", "Submitted", "Received", "Verified", "Closed"}
             Editor = New PurchaseOrderEditorViewModel()
             AddHandler Editor.PropertyChanged, AddressOf OnEditorPropertyChanged
 
             RefreshCommand = New AsyncRelayCommand(AddressOf LoadDataAsync)
+            ClearFiltersCommand = New RelayCommand(AddressOf ClearFilters)
+
             If IsManager Then
                 NewPOCommand = New AsyncRelayCommand(AddressOf OpenNewEditorAsync)
                 EditPOCommand = New AsyncRelayCommand(AddressOf OpenEditEditorAsync, Function() CanEditSelected())
@@ -121,7 +196,10 @@ Namespace ViewModels
                 Return _selectedStatus
             End Get
             Set(value As String)
-                If SetProperty(_selectedStatus, value) Then ApplyFilters()
+                If SetProperty(_selectedStatus, value) Then
+                    _savedStatus = value
+                    ApplyFilters()
+                End If
             End Set
         End Property
 
@@ -131,7 +209,10 @@ Namespace ViewModels
                 Return _searchText
             End Get
             Set(value As String)
-                If SetProperty(_searchText, value) Then ApplyFilters()
+                If SetProperty(_searchText, value) Then
+                    _savedSearchText = value
+                    ApplyFilters()
+                End If
             End Set
         End Property
 
@@ -291,6 +372,7 @@ Namespace ViewModels
 
                 Editor.LoadVendors(_vendorList)
                 ApplyFilters()
+                OnPropertyChanged(NameOf(TotalOrders))
                 StatusMessage = $"Loaded {pos.Count} POs, {_vendorList.Count} vendors"
                 IsError = False
                 LastLoadedAt = DateTime.Now
@@ -319,7 +401,44 @@ Namespace ViewModels
             For Each item In filtered
                 Orders.Add(item)
             Next
+
+            RefreshFilterChips()
             OnPropertyChanged(NameOf(IsEmpty))
+        End Sub
+
+        Private Sub RefreshFilterChips()
+            If ActiveFilterChips Is Nothing Then
+                ActiveFilterChips = New ObservableCollection(Of FilterChipItem)()
+            Else
+                ActiveFilterChips.Clear()
+            End If
+
+            If Not String.IsNullOrEmpty(SelectedStatus) AndAlso SelectedStatus <> "All" Then
+                ActiveFilterChips.Add(New FilterChipItem($"Status: {SelectedStatus}", "Status", New RelayCommand(Sub() SelectedStatus = "All")))
+            End If
+
+            If Not String.IsNullOrWhiteSpace(SearchText) Then
+                ActiveFilterChips.Add(New FilterChipItem($"Search: {SearchText.Trim()}", "Search", New RelayCommand(Sub() SearchText = String.Empty)))
+            End If
+
+            OnPropertyChanged(NameOf(IsFilterActive))
+            OnPropertyChanged(NameOf(EmptyStateTitle))
+            OnPropertyChanged(NameOf(EmptyStateDescription))
+            OnPropertyChanged(NameOf(EmptyStateActionCommand))
+            OnPropertyChanged(NameOf(EmptyStateActionText))
+        End Sub
+
+        Private Sub ClearFilters()
+            _selectedStatus = "All"
+            _searchText = String.Empty
+
+            OnPropertyChanged(NameOf(SelectedStatus))
+            OnPropertyChanged(NameOf(SearchText))
+
+            _savedStatus = "All"
+            _savedSearchText = String.Empty
+
+            ApplyFilters()
         End Sub
 
         ' ─── Editor Lifecycle ─────────────────────────────────────────────────────

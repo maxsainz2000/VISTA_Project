@@ -60,3 +60,5 @@ All engineering learnings from debugging and error-fixing sessions. Check this i
 | [wpf-vista-motion](patterns/wpf-vista-motion.md) | pattern | MerchSys.App | wpf, xaml, motion, transitions, micro-interactions, reduced-motion, vb-net | antigravity | 2026-06-05 | active |
 | [wpf-vista-skeleton-loaders](patterns/wpf-vista-skeleton-loaders.md) | pattern | MerchSys.App | wpf, xaml, skeleton-loaders, loading-states, shimmer, reduced-motion, vb-net | antigravity | 2026-06-05 | active |
 | [wpf-vista-overlay-pattern](patterns/wpf-vista-overlay-pattern.md) | pattern | MerchSys.App | wpf, xaml, mvvm, overlay, modal, keyboard-shortcut, accessibility | antigravity | 2026-06-05 | active |
+| [wpf-vista-filter-summary](patterns/wpf-vista-filter-summary.md) | pattern | MerchSys.App | wpf, xaml, vb-net, mvvm, search, filtering, chips, EmptyStatePanel | antigravity | 2026-06-05 | active |
+

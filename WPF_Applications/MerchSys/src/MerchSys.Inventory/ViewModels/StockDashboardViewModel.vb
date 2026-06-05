@@ -1,6 +1,7 @@
 Imports System.Collections.ObjectModel
 Imports System.Threading
 Imports System.Timers
+Imports System.Windows.Input
 Imports CommunityToolkit.Mvvm.ComponentModel
 Imports CommunityToolkit.Mvvm.Input
 Imports MerchSys.Inventory.Services
@@ -68,27 +69,100 @@ Namespace ViewModels
 
         Private ReadOnly _dashboardService As IStockDashboardService
         Private ReadOnly _stockoutService As IStockoutEstimationService
+        Private ReadOnly _session As ISessionService
         Private ReadOnly _refreshTimer As System.Timers.Timer
         Private ReadOnly _uiContext As SynchronizationContext
 
         Private _allProducts As List(Of ProductRowItem) = New List(Of ProductRowItem)()
 
+        ' Session memory fields
+        Private Shared _savedCategory As String = "All"
+        Private Shared _savedStatus As String = "All"
+        Private Shared _savedSearchText As String = String.Empty
+        Private Shared _lastUser As String = Nothing
+
+        Public Property ActiveFilterChips As ObservableCollection(Of FilterChipItem)
+        Public Property ClearFiltersCommand As RelayCommand
+
+        Public ReadOnly Property IsFilterActive As Boolean
+            Get
+                Return (SelectedCategory <> "All") OrElse (SelectedStatus <> "All") OrElse Not String.IsNullOrWhiteSpace(SearchText)
+            End Get
+        End Property
+
+        Public ReadOnly Property EmptyStateTitle As String
+            Get
+                If IsFilterActive Then
+                    If Not String.IsNullOrWhiteSpace(SearchText) Then
+                        Return $"No results for '{SearchText.Trim()}'"
+                    Else
+                        Return "No results matching filters"
+                    End If
+                End If
+                Return "No Stock Products"
+            End Get
+        End Property
+
+        Public ReadOnly Property EmptyStateDescription As String
+            Get
+                If IsFilterActive Then
+                    Return "Try adjusting your filters or search term to find what you're looking for."
+                End If
+                Return "There are no products in the stock inventory."
+            End Get
+        End Property
+
+        Public ReadOnly Property EmptyStateActionCommand As ICommand
+            Get
+                If IsFilterActive Then
+                    Return ClearFiltersCommand
+                End If
+                Return Nothing
+            End Get
+        End Property
+
+        Public ReadOnly Property EmptyStateActionText As String
+            Get
+                If IsFilterActive Then
+                    Return "Clear filters"
+                End If
+                Return Nothing
+            End Get
+        End Property
+
         Public Sub New(dashboardService As IStockDashboardService,
-                       stockoutService As IStockoutEstimationService)
+                       stockoutService As IStockoutEstimationService,
+                       session As ISessionService)
 
             _dashboardService = dashboardService
             _stockoutService = stockoutService
+            _session = session
 
             ' Capture the UI SynchronizationContext so the timer callback can marshal
             ' ObservableCollection mutations back to the dispatcher thread.
             _uiContext = SynchronizationContext.Current
 
+            ' Restore session filters, resetting if user changed
+            Dim currentUser = _session.CurrentUsername
+            If currentUser <> _lastUser Then
+                _savedCategory = "All"
+                _savedStatus = "All"
+                _savedSearchText = String.Empty
+                _lastUser = currentUser
+            End If
+
+            _selectedCategory = _savedCategory
+            _selectedStatus = _savedStatus
+            _searchText = _savedSearchText
+
             Products = New ObservableCollection(Of ProductRowItem)()
+            ActiveFilterChips = New ObservableCollection(Of FilterChipItem)()
             Categories = New ObservableCollection(Of String) From {"All"}
             StatusOptions = New ObservableCollection(Of String) From {"All", "Out", "Low", "Normal"}
 
             RefreshCommand = New AsyncRelayCommand(AddressOf LoadDataAsync)
             SelectProductCommand = New AsyncRelayCommand(Of ProductRowItem)(AddressOf LoadProductDetailAsync)
+            ClearFiltersCommand = New RelayCommand(AddressOf ClearFilters)
 
             _refreshTimer = New System.Timers.Timer(60_000) With {.AutoReset = True}
             AddHandler _refreshTimer.Elapsed, AddressOf OnRefreshTick
@@ -164,7 +238,10 @@ Namespace ViewModels
                 Return _selectedCategory
             End Get
             Set(value As String)
-                If SetProperty(_selectedCategory, value) Then ApplyFilters()
+                If SetProperty(_selectedCategory, value) Then
+                    _savedCategory = value
+                    ApplyFilters()
+                End If
             End Set
         End Property
 
@@ -174,7 +251,10 @@ Namespace ViewModels
                 Return _selectedStatus
             End Get
             Set(value As String)
-                If SetProperty(_selectedStatus, value) Then ApplyFilters()
+                If SetProperty(_selectedStatus, value) Then
+                    _savedStatus = value
+                    ApplyFilters()
+                End If
             End Set
         End Property
 
@@ -184,7 +264,10 @@ Namespace ViewModels
                 Return _searchText
             End Get
             Set(value As String)
-                If SetProperty(_searchText, value) Then ApplyFilters()
+                If SetProperty(_searchText, value) Then
+                    _savedSearchText = value
+                    ApplyFilters()
+                End If
             End Set
         End Property
 
@@ -368,7 +451,51 @@ Namespace ViewModels
             For Each item In filtered
                 Products.Add(item)
             Next
+
+            RefreshFilterChips()
             OnPropertyChanged(NameOf(IsEmpty))
+        End Sub
+
+        Private Sub RefreshFilterChips()
+            If ActiveFilterChips Is Nothing Then
+                ActiveFilterChips = New ObservableCollection(Of FilterChipItem)()
+            Else
+                ActiveFilterChips.Clear()
+            End If
+
+            If Not String.IsNullOrEmpty(SelectedCategory) AndAlso SelectedCategory <> "All" Then
+                ActiveFilterChips.Add(New FilterChipItem($"Category: {SelectedCategory}", "Category", New RelayCommand(Sub() SelectedCategory = "All")))
+            End If
+
+            If Not String.IsNullOrEmpty(SelectedStatus) AndAlso SelectedStatus <> "All" Then
+                ActiveFilterChips.Add(New FilterChipItem($"Status: {SelectedStatus}", "Status", New RelayCommand(Sub() SelectedStatus = "All")))
+            End If
+
+            If Not String.IsNullOrWhiteSpace(SearchText) Then
+                ActiveFilterChips.Add(New FilterChipItem($"Search: {SearchText.Trim()}", "Search", New RelayCommand(Sub() SearchText = String.Empty)))
+            End If
+
+            OnPropertyChanged(NameOf(IsFilterActive))
+            OnPropertyChanged(NameOf(EmptyStateTitle))
+            OnPropertyChanged(NameOf(EmptyStateDescription))
+            OnPropertyChanged(NameOf(EmptyStateActionCommand))
+            OnPropertyChanged(NameOf(EmptyStateActionText))
+        End Sub
+
+        Private Sub ClearFilters()
+            _selectedCategory = "All"
+            _selectedStatus = "All"
+            _searchText = String.Empty
+
+            OnPropertyChanged(NameOf(SelectedCategory))
+            OnPropertyChanged(NameOf(SelectedStatus))
+            OnPropertyChanged(NameOf(SearchText))
+
+            _savedCategory = "All"
+            _savedStatus = "All"
+            _savedSearchText = String.Empty
+
+            ApplyFilters()
         End Sub
 
         Private Async Function LoadProductDetailAsync(row As ProductRowItem) As Task

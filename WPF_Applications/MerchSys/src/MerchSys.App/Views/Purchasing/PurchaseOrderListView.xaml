@@ -81,6 +81,14 @@
             </Grid>
         </Border>
 
+        <!-- Filter summary bar showing count, active filter chips, and clear all -->
+        <views:FilterSummaryBar DockPanel.Dock="Top"
+                                Margin="4,0,4,8"
+                                ShownCount="{Binding Orders.Count}"
+                                TotalCount="{Binding TotalOrders}"
+                                ActiveFilters="{Binding ActiveFilterChips}"
+                                ClearAllCommand="{Binding ClearFiltersCommand}"/>
+
         <!-- ═══════════════════════════════════════════════════════════
              STATUS BAR
              ═══════════════════════════════════════════════════════════ -->
@@ -425,12 +433,12 @@
                         </DataGrid.Columns>
                     </DataGrid>
 
-                    <views:EmptyStatePanel Title="No Purchase Orders"
-                                           Description="There are no purchase orders found matching the filter."
+                    <views:EmptyStatePanel Title="{Binding EmptyStateTitle}"
+                                           Description="{Binding EmptyStateDescription}"
+                                           ActionText="{Binding EmptyStateActionText}"
+                                           ActionCommand="{Binding EmptyStateActionCommand}"
                                            HorizontalAlignment="Center" VerticalAlignment="Center"
-                                           Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}"
-                                           ActionCommand="{Binding NewPOCommand}"
-                                           ActionText="New PO"/>
+                                           Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}"/>
 
                     <views:SkeletonPanel Kind="Rows" IsBusy="{Binding IsBusy}" LastLoadedAt="{Binding LastLoadedAt}"/>
 
