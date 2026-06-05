@@ -46,6 +46,20 @@
              MAIN CONTENT
              ═══════════════════════════════════════════════════════════ -->
         <DockPanel Margin="12">
+            <DockPanel.Style>
+                <Style TargetType="DockPanel">
+                    <Setter Property="Visibility" Value="Visible"/>
+                    <Style.Triggers>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsBusy}" Value="True"/>
+                                <Condition Binding="{Binding LastLoadedAt}" Value="{x:Null}"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </MultiDataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DockPanel.Style>
 
             <!-- Page Header -->
             <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
@@ -580,7 +594,9 @@
             </Border>
         </Grid>
 
-        <views:BusyOverlay Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
+        <views:SkeletonPanel Kind="Rows" IsBusy="{Binding IsBusy}" LastLoadedAt="{Binding LastLoadedAt}" Margin="12"/>
+
+        <views:BusyOverlay IsBusy="{Binding IsBusy}" LastLoadedAt="{Binding LastLoadedAt}"/>
 
         <views:ErrorStatePanel Title="Load Failed"
                                Message="{Binding ErrorMessage}"

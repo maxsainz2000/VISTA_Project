@@ -39,6 +39,20 @@
 
     <Grid>
         <DockPanel Margin="10">
+            <DockPanel.Style>
+                <Style TargetType="DockPanel">
+                    <Setter Property="Visibility" Value="Visible"/>
+                    <Style.Triggers>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsBusy}" Value="True"/>
+                                <Condition Binding="{Binding LastLoadedAt}" Value="{x:Null}"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </MultiDataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DockPanel.Style>
 
             <!-- ═══════════════════════════════════════════════════════════
                  SUMMARY CARDS ROW
@@ -427,7 +441,9 @@
 
         </DockPanel>
 
-        <views:BusyOverlay Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
+        <views:SkeletonPanel Kind="Cards" IsBusy="{Binding IsBusy}" LastLoadedAt="{Binding LastLoadedAt}" Margin="10"/>
+
+        <views:BusyOverlay IsBusy="{Binding IsBusy}" LastLoadedAt="{Binding LastLoadedAt}"/>
 
         <views:ErrorStatePanel Title="Load Failed"
                                Message="{Binding ErrorMessage}"

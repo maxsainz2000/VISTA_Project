@@ -40,6 +40,20 @@
         <!-- MAIN CONTENT                                                            -->
         <!-- ═══════════════════════════════════════════════════════════════════════ -->
         <Grid x:Name="MainGrid">
+            <Grid.Style>
+                <Style TargetType="Grid">
+                    <Setter Property="Visibility" Value="Visible"/>
+                    <Style.Triggers>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsBusy}" Value="True"/>
+                                <Condition Binding="{Binding LastLoadedAt}" Value="{x:Null}"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </MultiDataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Style>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
@@ -554,8 +568,9 @@
             </Border>
         </Grid>
 
-        <views:BusyOverlay Grid.RowSpan="3"
-                           Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
+        <views:SkeletonPanel Kind="Rows" IsBusy="{Binding IsBusy}" LastLoadedAt="{Binding LastLoadedAt}" Margin="12"/>
+
+        <views:BusyOverlay Grid.RowSpan="3" IsBusy="{Binding IsBusy}" LastLoadedAt="{Binding LastLoadedAt}"/>
 
         <views:ErrorStatePanel Grid.RowSpan="3"
                                Title="Load Failed"

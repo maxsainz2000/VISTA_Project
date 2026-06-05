@@ -18,6 +18,30 @@ Namespace Views.Shell
             End Set
         End Property
 
+        Public Shared ReadOnly IsBusyProperty As DependencyProperty =
+            DependencyProperty.Register("IsBusy", GetType(Boolean), GetType(BusyOverlay), New PropertyMetadata(False))
+
+        Public Property IsBusy As Boolean
+            Get
+                Return CBool(GetValue(IsBusyProperty))
+            End Get
+            Set(value As Boolean)
+                SetValue(IsBusyProperty, value)
+            End Set
+        End Property
+
+        Public Shared ReadOnly LastLoadedAtProperty As DependencyProperty =
+            DependencyProperty.Register("LastLoadedAt", GetType(DateTime?), GetType(BusyOverlay), New PropertyMetadata(Nothing))
+
+        Public Property LastLoadedAt As DateTime?
+            Get
+                Return CType(GetValue(LastLoadedAtProperty), DateTime?)
+            End Get
+            Set(value As DateTime?)
+                SetValue(LastLoadedAtProperty, value)
+            End Set
+        End Property
+
         Public Sub New()
             InitializeComponent()
         End Sub

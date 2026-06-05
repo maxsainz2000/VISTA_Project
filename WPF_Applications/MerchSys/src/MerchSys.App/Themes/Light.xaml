@@ -38,4 +38,8 @@
     <SolidColorBrush x:Key="WarningBrush"          Color="#FF9F0A"/>
     <SolidColorBrush x:Key="SuccessBrush"          Color="#34C759"/>
 
+    <!-- Skeleton Loaders (UX-26) -->
+    <SolidColorBrush x:Key="SkeletonBaseBrush"           Color="#E8E8EC"/>
+    <Color x:Key="SkeletonShimmerHighlightColor">#F2F2F7</Color>
+
 </ResourceDictionary>

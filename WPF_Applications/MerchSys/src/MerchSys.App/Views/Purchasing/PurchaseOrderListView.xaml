@@ -319,6 +319,20 @@
                               Background="{DynamicResource SurfaceBrush}"
                               AlternatingRowBackground="{DynamicResource WindowBackgroundBrush}"
                               FontSize="{DynamicResource FontSizeBody}">
+                        <DataGrid.Style>
+                            <Style TargetType="DataGrid">
+                                <Setter Property="Visibility" Value="Visible"/>
+                                <Style.Triggers>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding IsBusy}" Value="True"/>
+                                            <Condition Binding="{Binding LastLoadedAt}" Value="{x:Null}"/>
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.Style>
                         <DataGrid.RowStyle>
                             <Style TargetType="{x:Type DataGridRow}" BasedOn="{StaticResource SemanticRowStyle}"/>
                         </DataGrid.RowStyle>
@@ -418,9 +432,9 @@
                                            ActionCommand="{Binding NewPOCommand}"
                                            ActionText="New PO"/>
 
-                    <views:BusyOverlay Message="Loading purchase orders..."
-                                       Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"
-                                       HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                    <views:SkeletonPanel Kind="Rows" IsBusy="{Binding IsBusy}" LastLoadedAt="{Binding LastLoadedAt}"/>
+
+                    <views:BusyOverlay Message="Loading purchase orders..." IsBusy="{Binding IsBusy}" LastLoadedAt="{Binding LastLoadedAt}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
 
                     <views:ErrorStatePanel Title="Load Failed"
                                            Message="{Binding ErrorMessage}"
