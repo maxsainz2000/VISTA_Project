@@ -91,6 +91,42 @@ Namespace ViewModels
         Private ReadOnly _notifications As INotificationService
 
         Private _currentCartId As Guid = Guid.Empty
+        Private _heldCartId As Guid = Guid.Empty
+        Private _selectedCartLine As CartLineItem
+
+        Public Property HeldCartId As Guid
+            Get
+                Return _heldCartId
+            End Get
+            Set(value As Guid)
+                SetProperty(_heldCartId, value)
+                OnPropertyChanged(NameOf(HasHeldCart))
+                HoldCartCommand.NotifyCanExecuteChanged()
+                RecallCartCommand.NotifyCanExecuteChanged()
+            End Set
+        End Property
+
+        Public ReadOnly Property HasHeldCart As Boolean
+            Get
+                Return HeldCartId <> Guid.Empty
+            End Get
+        End Property
+
+        Public Property SelectedCartLine As CartLineItem
+            Get
+                Return _selectedCartLine
+            End Get
+            Set(value As CartLineItem)
+                SetProperty(_selectedCartLine, value)
+            End Set
+        End Property
+
+        Public Event TransactionCompleted As EventHandler
+
+        Public ReadOnly Property SearchAndAddProductCommand As AsyncRelayCommand
+        Public ReadOnly Property ApplyDiscountCommand As AsyncRelayCommand(Of CartLineItem)
+        Public ReadOnly Property HoldCartCommand As AsyncRelayCommand
+        Public ReadOnly Property RecallCartCommand As AsyncRelayCommand
 
         Public Sub New(cartService As ICartService,
                        paymentService As IPaymentService,
@@ -121,6 +157,11 @@ Namespace ViewModels
             SelectCreditCustomerCommand = New RelayCommand(Of CreditAccount)(AddressOf SelectCreditCustomer)
             PayCommand = New AsyncRelayCommand(AddressOf ProcessPaymentAsync, Function() CanPay)
             NewTransactionCommand = New AsyncRelayCommand(AddressOf StartNewTransactionAsync)
+
+            SearchAndAddProductCommand = New AsyncRelayCommand(AddressOf SearchAndAddProductAsync)
+            ApplyDiscountCommand = New AsyncRelayCommand(Of CartLineItem)(AddressOf ApplyDiscountAsync)
+            HoldCartCommand = New AsyncRelayCommand(AddressOf HoldCartAsync, Function() CartLines.Count > 0)
+            RecallCartCommand = New AsyncRelayCommand(AddressOf RecallCartAsync, Function() HasHeldCart)
 
             ' Fire-and-forget initialization: create the first cart and load credit customers.
             Dim initTask = InitializeAsync()
@@ -419,6 +460,72 @@ Namespace ViewModels
             Await SearchCreditCustomersAsync()
         End Function
 
+        Private Async Function SearchAndAddProductAsync() As Task
+            If String.IsNullOrWhiteSpace(ProductSearchText) Then Return
+
+            IsError = False
+            IsBusy = True
+            Try
+                Dim query As New GetProductCatalogQuery() With {.SearchTerm = ProductSearchText}
+                Dim result = Await _mediator.Send(query)
+
+                ProductSearchResults.Clear()
+                For Each item In result.Items
+                    ProductSearchResults.Add(New ProductSearchItem() With {
+                        .ProductId = item.ProductId,
+                        .ProductName = item.ProductName,
+                        .Sku = item.Sku,
+                        .UnitPrice = item.UnitPrice,
+                        .AvailableStock = item.AvailableStock,
+                        .IsLowStock = item.IsLowStock
+                    })
+                Next
+
+                If ProductSearchResults.Count = 1 Then
+                    Dim matchedProduct = ProductSearchResults(0)
+                    Await AddToCartAsync(matchedProduct)
+                    ProductSearchText = String.Empty
+                    ProductSearchResults.Clear()
+                ElseIf ProductSearchResults.Count = 0 Then
+                    StatusMessage = $"No product found matching '{ProductSearchText}'."
+                End If
+            Catch ex As Exception
+                StatusMessage = $"Product search error: {ex.Message}"
+                ErrorMessage = ex.Message
+                IsError = True
+            Finally
+                IsBusy = False
+            End Try
+        End Function
+
+        Private Async Function HoldCartAsync() As Task
+            If CartLines.Count = 0 Then Return
+
+            HeldCartId = _currentCartId
+            Await StartNewTransactionAsync()
+            _notifications.ShowSuccess("Cart held successfully.")
+        End Function
+
+        Private Async Function RecallCartAsync() As Task
+            If Not HasHeldCart Then Return
+
+            Dim tempId = _currentCartId
+            _currentCartId = HeldCartId
+            HeldCartId = tempId
+
+            Try
+                Dim cart = Await _cartService.GetCartAsync(_currentCartId)
+                SyncCartLines(cart)
+                _notifications.ShowSuccess("Cart recalled successfully.")
+            Catch ex As Exception
+                StatusMessage = $"Could not recall cart: {ex.Message}"
+                ' Revert swap
+                Dim revertId = _currentCartId
+                _currentCartId = HeldCartId
+                HeldCartId = revertId
+            End Try
+        End Function
+
         Private Async Function SearchProductsAsync() As Task
             If String.IsNullOrWhiteSpace(ProductSearchText) Then
                 ProductSearchResults.Clear()
@@ -502,6 +609,17 @@ Namespace ViewModels
             End Try
         End Function
 
+        Private Async Function ApplyDiscountAsync(line As CartLineItem) As Task
+            If line Is Nothing Then Return
+
+            Try
+                Dim cart = Await _cartService.ApplyLineDiscountAsync(_currentCartId, line.LineIndex, line.DiscountAmount)
+                SyncCartLines(cart)
+            Catch ex As Exception
+                StatusMessage = $"Could not apply discount: {ex.Message}"
+            End Try
+        End Function
+
         Private Sub SelectPaymentMethod(methodName As String)
             Select Case methodName
                 Case "Cash" : SelectedPaymentMethod = PaymentMethod.Cash
@@ -575,6 +693,8 @@ Namespace ViewModels
                         VatAmount = 0D
                         GrandTotal = 0D
                         AmountTendered = 0D
+                        HoldCartCommand.NotifyCanExecuteChanged()
+                        RaiseEvent TransactionCompleted(Me, EventArgs.Empty)
                     End Function,
                     AddressOf StartNewTransactionAsync,
                     _conflictPresenter)
@@ -607,6 +727,7 @@ Namespace ViewModels
             CurrentReceipt = Nothing
             StatusMessage = String.Empty
             SelectedPaymentMethod = PaymentMethod.Cash
+            HoldCartCommand.NotifyCanExecuteChanged()
         End Function
 
         ' ─── Private Helpers ──────────────────────────────────────────────────────
@@ -647,6 +768,7 @@ Namespace ViewModels
             DiscountTotal = cart.DiscountTotal
             VatAmount = cart.VatAmount
             GrandTotal = cart.GrandTotal
+            HoldCartCommand.NotifyCanExecuteChanged()
         End Sub
 
     End Class

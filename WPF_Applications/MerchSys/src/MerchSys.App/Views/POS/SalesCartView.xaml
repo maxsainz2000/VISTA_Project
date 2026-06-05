@@ -91,11 +91,7 @@
                              BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
                              VerticalContentAlignment="Center"
                              x:Name="ProductSearchBox"
-                             TabIndex="1">
-                        <TextBox.InputBindings>
-                            <KeyBinding Key="Return" Command="{Binding SearchProductCommand}"/>
-                        </TextBox.InputBindings>
-                    </TextBox>
+                             TabIndex="1"/>
                     <Button Grid.Column="1" Content="Search"
                             Command="{Binding SearchProductCommand}"
                             Style="{StaticResource AccentButtonStyle}"
@@ -236,10 +232,56 @@
                            TextWrapping="Wrap" Margin="0,4,0,0"
                            Visibility="{Binding StatusMessage, Converter={StaticResource BoolToVis}}"/>
 
+                <!-- Keyboard Shortcuts / Quick Actions Toolbar -->
+                <Border DockPanel.Dock="Bottom" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="0,1,0,0"
+                        Padding="0,6" Margin="0,4">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Orientation="Horizontal">
+                            <!-- Focus Qty cell of selected row -->
+                            <Button Content="Set _Quantity (Ctrl+Q)"
+                                    x:Name="SetQtyButton"
+                                    Click="SetQtyButton_Click"
+                                    Margin="0,0,8,0" Padding="8,4"
+                                    TabIndex="20"/>
+                            <!-- Focus Discount cell of selected row -->
+                            <Button Content="Apply _Discount (Ctrl+D)"
+                                    x:Name="ApplyDiscountButton"
+                                    Click="ApplyDiscountButton_Click"
+                                    Margin="0,0,8,0" Padding="8,4"
+                                    TabIndex="21"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <Button Content="_Hold"
+                                    Command="{Binding HoldCartCommand}"
+                                    Margin="0,0,8,0" Padding="8,4"
+                                    TabIndex="22"/>
+                            <Button Content="_Recall"
+                                    Command="{Binding RecallCartCommand}"
+                                    Padding="8,4"
+                                    TabIndex="23">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding HasHeldCart}" Value="False">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
                 <!-- Cart DataGrid and Empty State -->
                 <Grid>
                     <DataGrid x:Name="CartDataGrid"
                               ItemsSource="{Binding CartLines}"
+                              SelectedItem="{Binding SelectedCartLine}"
                               AutoGenerateColumns="False"
                               CanUserAddRows="False"
                               CanUserDeleteRows="False"
@@ -439,8 +481,13 @@
 
                     <!-- Cash section -->
                     <StackPanel Visibility="{Binding IsCash, Converter={StaticResource BoolToVis}}">
-                        <TextBlock Text="Amount Tendered (₱)" Style="{StaticResource CaptionLabelStyle}"/>
-                        <TextBox Text="{Binding AmountTendered, UpdateSourceTrigger=PropertyChanged, StringFormat={StaticResource FormatQuantity}}"
+                        <Label Content="Amount _Tendered (₱)"
+                               Target="{Binding ElementName=AmountTenderedTextBox}"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               FontSize="{DynamicResource FontSizeCaption}"
+                               Padding="0" Margin="0,0,0,2"/>
+                        <TextBox x:Name="AmountTenderedTextBox"
+                                 Text="{Binding AmountTendered, UpdateSourceTrigger=PropertyChanged, StringFormat={StaticResource FormatQuantity}}"
                                  Padding="6,4" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
                                  HorizontalContentAlignment="Right" FontSize="{DynamicResource FontSizeSubhead}"
                                  TabIndex="10"/>
@@ -460,7 +507,8 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBox Grid.Column="0"
+                            <TextBox x:Name="CreditCustomerSearch"
+                                     Grid.Column="0"
                                      Text="{Binding CreditCustomerSearch, UpdateSourceTrigger=PropertyChanged}"
                                      Padding="6,4" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
                                      VerticalContentAlignment="Center"
@@ -508,6 +556,7 @@
                     <!-- PAY button -->
                     <Button Content="PAY"
                             Command="{Binding PayCommand}"
+                            IsDefault="True"
                             Height="48" FontSize="{DynamicResource FontSizeSubhead}" FontWeight="Bold"
                             Cursor="Hand"
                             TabIndex="14">

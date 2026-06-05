@@ -38,6 +38,10 @@ Namespace Services
             Return cart
         End Function
 
+        Public Function GetCartAsync(cartId As Guid) As Task(Of CartDto) Implements ICartService.GetCartAsync
+            Return Task.FromResult(GetCart(cartId))
+        End Function
+
         Public Async Function AddLineAsync(cartId As Guid, productId As Integer, productName As String, quantity As Integer, unitPrice As Decimal) As Task(Of CartDto) Implements ICartService.AddLineAsync
             Dim cart = GetCart(cartId)
             cart.Lines.Add(New CartLineDto() With {

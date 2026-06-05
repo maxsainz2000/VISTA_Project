@@ -23,6 +23,7 @@ Namespace Services
 
     Public Interface ICartService
         Function CreateCartAsync() As Task(Of CartDto)
+        Function GetCartAsync(cartId As Guid) As Task(Of CartDto)
         Function AddLineAsync(cartId As Guid, productId As Integer, productName As String, quantity As Integer, unitPrice As Decimal) As Task(Of CartDto)
         Function UpdateLineQuantityAsync(cartId As Guid, lineIndex As Integer, newQuantity As Integer) As Task(Of CartDto)
         Function RemoveLineAsync(cartId As Guid, lineIndex As Integer) As Task(Of CartDto)

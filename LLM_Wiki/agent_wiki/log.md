@@ -4,6 +4,8 @@ Chronological record of all agent contributions to the Agent Wiki.
 
 <!-- Append new entries at the top. Format: ## [YYYY-MM-DD] agent | action | description -->
 
+## [2026-06-05] antigravity | added pattern | UX-30 implemented POS Keyboard-First Fast Path. Designed scan-hot focus discipline, cart-scoped hotkeys (Ctrl+Q/D/T, Alt+Q/D/H/R/T), Enter-to-commit on tender, and in-memory hold/recall swap. Clean build 0/0. See patterns/wpf-vista-pos-fast-path.md.
+
 ## [2026-06-05] antigravity | added pattern | UX-29 implemented Notification Actions & Undo. Extended `INotificationService` contract in a backward-compatible manner. Added time-boxed and idempotent "Undo" buttons to success toasts after soft-deleting categories (Inventory), vendors (Purchasing), and vendor catalog entries (Purchasing). Restorations route through module command paths with concurrency conflict handling. Build 0/0. See patterns/wpf-vista-notification-undo.md.
 
 ## [2026-06-05] antigravity | added pattern | UX-28 implemented Search & Filter UX Maturity across Stock Dashboard, Product Management, and Purchase Order List. Created reusable `FilterSummaryBar` control and `FilterChipItem` model. Implemented VM-level session persistence (using class `Shared` variables, cleared on user change), active count indicators, removable filter chips, a "Clear all" action, and dynamic empty states (filtered vs genuine) on `EmptyStatePanel`. Clean build 0/0. See patterns/wpf-vista-filter-summary.md.
