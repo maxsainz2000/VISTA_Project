@@ -19,6 +19,7 @@ last-updated: 2026-06-05
 | `Interfaces/ISessionService.vb` | `ISessionService` | `CurrentUsername`, `CurrentRole`, `IsAuthenticated` |
 | `Interfaces/IWriteContextScope.vb` | `IWriteContextScope` | `Current` (`WriteContextKind`), `SelfServiceUsername` (`String`), `Enter(kind, username) As IDisposable` |
 | `Interfaces/IFreshnessAware.vb` | `IFreshnessAware` | `Property LastLoadedAt As DateTime?` — marker interface implemented by data ViewModels that expose a freshness timestamp; allows `FreshnessChip` bindings to be declared uniformly. Additive; does not force a base class (UX-24). |
+| `Interfaces/FilterChipItem.vb` | `FilterChipItem` | Model class (not an interface) representing an active filter chip in the `FilterSummaryBar`. Exposes `DisplayText` (the human-readable label), `FilterKey` (the filter facet identifier), and `RemoveCommand` (`ICommand` — a `RelayCommand` wired to reset the specific filter property in the ViewModel). Instantiated by `RefreshFilterChips()` in each ViewModel when `ApplyFilters()` runs; stored in `ObservableCollection(Of FilterChipItem)` bound to the bar's chip `ItemsControl` (UX-28). |
 
 ## Enums
 | File Path | Enum | Values |
