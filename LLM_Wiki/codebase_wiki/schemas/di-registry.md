@@ -1,6 +1,6 @@
 ---
 type: schema-map
-last-updated: 2026-06-05
+last-updated: 2026-06-06
 ---
 
 # Dependency Injection Registry
@@ -190,4 +190,7 @@ The five UX-06 VMs (`SalesCartViewModel`, `APLedgerViewModel`, `GoodsReceivingVi
 | `VendorListViewModel` | Purchasing | `DeleteSelectedAsync` | Typed (Vendor Name) |
 | `VendorCatalogViewModel` | Purchasing | `DeleteEntryAsync` | Plain |
 | `TransactionHistoryViewModel` | POS | `ProcessReturnAsync` | Plain |
+
+### Dialog Instantiation Convention
+> Note: While `IConfirmationPresenter` is resolved via dependency injection (as a Singleton), the `ConfirmationDialog` itself is **not** registered in the DI container. This modal window is instantiated directly using `New ConfirmationDialog(request)` per invocation. This is because the dialog requires a runtime `ConfirmationRequest` parameter in its constructor, and has no external ViewModel or dependencies requiring DI resolution.
 

@@ -271,6 +271,55 @@
                             <TextBlock Grid.Column="1" Text="Trigger Mnemonic Access Key" Style="{StaticResource ShortcutDescriptionText}"/>
                         </Grid>
 
+                        <!-- Category: Confirmation Dialogs -->
+                        <TextBlock Text="Confirmation Dialogs" 
+                                   FontSize="{DynamicResource FontSizeSubhead}" 
+                                   FontWeight="Bold" 
+                                   Foreground="{DynamicResource AccentBrush}" 
+                                   Margin="0,0,0,16"/>
+
+                        <!-- Enter -->
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="140"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Style="{StaticResource KeyChipBorder}">
+                                    <TextBlock Text="Enter" Style="{StaticResource KeyChipText}"/>
+                                </Border>
+                            </StackPanel>
+                            <TextBlock Grid.Column="1" Text="Confirm action (when enabled)" Style="{StaticResource ShortcutDescriptionText}"/>
+                        </Grid>
+
+                        <!-- Esc -->
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="140"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Style="{StaticResource KeyChipBorder}">
+                                    <TextBlock Text="Esc" Style="{StaticResource KeyChipText}"/>
+                                </Border>
+                            </StackPanel>
+                            <TextBlock Grid.Column="1" Text="Cancel and close dialog" Style="{StaticResource ShortcutDescriptionText}"/>
+                        </Grid>
+
+                        <!-- Type Match -->
+                        <Grid Margin="0,0,0,24">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="140"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Style="{StaticResource KeyChipBorder}">
+                                    <TextBlock Text="Type Match" Style="{StaticResource KeyChipText}"/>
+                                </Border>
+                            </StackPanel>
+                            <TextBlock Grid.Column="1" Text="Requires exact text match to enable confirmation for dangerous actions" Style="{StaticResource ShortcutDescriptionText}"/>
+                        </Grid>
+
                         <!-- Category: Overlay Controls -->
                         <TextBlock Text="Cheat Sheet Controls" 
                                    FontSize="{DynamicResource FontSizeSubhead}" 

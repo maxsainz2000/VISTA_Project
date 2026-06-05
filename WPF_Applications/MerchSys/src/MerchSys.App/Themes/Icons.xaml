@@ -62,15 +62,14 @@
     <!-- Eye — password reveal (EvenOdd: almond ring + filled pupil) -->
     <Geometry x:Key="IconEyeGeometry">F0 M2,12 C5,6 19,6 22,12 C19,18 5,18 2,12 Z M4.5,12 C7,8 17,8 19.5,12 C17,16 7,16 4.5,12 Z M12,9 A3,3 0 1 1 11.99,9 Z</Geometry>
 
-    <!-- Eye-off — struck-through eye (defined for completeness; LoginView
-         uses a single static reveal glyph so IconEyeGeometry is consumed) -->
+    <!-- Eye-off — struck-through eye. LoginView swaps to this via a DataTrigger
+         when the password is revealed (two-state eye / eye-off reveal button). -->
     <Geometry x:Key="IconEyeOffGeometry">F0 M2,12 C5,6 19,6 22,12 C19,18 5,18 2,12 Z M4.5,12 C7,8 17,8 19.5,12 C17,16 7,16 4.5,12 Z M12,9 A3,3 0 1 1 11.99,9 Z M4,3.5 L5.5,2 L21,17.5 L19.5,19 Z</Geometry>
 
     <!-- Open folder — empty-state art (Nonzero union of back + front flap) -->
     <Geometry x:Key="IconFolderOpenGeometry">F1 M2,6 A2,2 0 0 1 4,4 L9,4 L11,6.5 L20,6.5 A2,2 0 0 1 22,8.5 L22,10 L2,10 Z M2,11 L22,11 L19.5,19.5 A1.5,1.5 0 0 1 18,20.5 L3.5,20.5 A1.5,1.5 0 0 1 2,19 Z</Geometry>
 
-    <!-- Chevron-left — optional, axis label -->
-    <Geometry x:Key="IconChevronLeftGeometry">M15,5 L17,7 L11.8,12 L17,17 L15,19 L8,12 Z</Geometry>
+
 
     <!-- Arrow up — period-over-period positive direction indicator -->
     <Geometry x:Key="IconArrowUpGeometry">M12,3 L21,12 L16,12 L16,21 L8,21 L8,12 L3,12 Z</Geometry>

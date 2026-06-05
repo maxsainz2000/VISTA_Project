@@ -2,7 +2,7 @@
 type: pattern
 module: MerchSys.App
 agent: antigravity
-date: 2026-06-05
+date: 2026-06-06
 tags: [wpf, xaml, motion, transitions, micro-interactions, reduced-motion]
 ---
 
@@ -31,18 +31,56 @@ The pattern uses:
     <CubicEase x:Key="MotionEasing" EasingMode="EaseOut"/>
 ```
 
-### 2. Startup Gate VB.NET (`Application.xaml.vb`)
+### 2. Live Motion & Reduced Motion Listener VB.NET (`Application.xaml.vb`)
+
+We subscribe to `SystemParameters.StaticPropertyChanged` on startup so a mid-session change to the
+Windows "show animations" setting re-runs `UpdateMotionSettings()` and rewrites the motion tokens in the
+application resource dictionary. We detach the handler cleanly on application exit to avoid memory leak
+risks.
+
+> **Scope of "live" (important).** Rewriting the resource-dictionary entries only affects consumers that
+> read them at *runtime*: the `MotionEnabled` boolean gate (e.g. `SkeletonBlock.xaml.vb` reads
+> `Resources("MotionEnabled")` each time a skeleton is created) and any content whose `StaticResource`
+> is resolved after the change. It does **not** retroactively update the duration of animations that are
+> already baked: every `MotionDuration*` consumer here is a `DoubleAnimation.Duration` inside a sealed
+> template/trigger `Storyboard` or a `VisualTransition.GeneratedDuration`. Those `StaticResource`
+> references are resolved once when the template is sealed (effectively at startup for the theme
+> dictionaries and the singleton shell views) and cannot carry a `DynamicResource` (a frozen `Freezable`
+> is immutable). **Net effect: the reduced-motion gate and newly-created skeletons respond live; the
+> sealed view/control animations keep their startup durations until the app is restarted.** Making those
+> genuinely live would require a code-behind change (gate each storyboard on `MotionEnabled`, or rebuild
+> the storyboards on the motion-changed event) — out of scope for UX-34.
+
 ```vb
     Private Sub Application_Startup(sender As Object, e As StartupEventArgs)
         ' Respect reduced motion (UX-25)
+        UpdateMotionSettings()
+        AddHandler System.Windows.SystemParameters.StaticPropertyChanged, AddressOf SystemParameters_StaticPropertyChanged
+        
+        ' ... proceed with host and window creation
+    End Sub
+
+    Private Sub Application_Exit(sender As Object, e As ExitEventArgs)
+        RemoveHandler System.Windows.SystemParameters.StaticPropertyChanged, AddressOf SystemParameters_StaticPropertyChanged
+        ' ... clean up services and dispose host
+    End Sub
+
+    Private Sub SystemParameters_StaticPropertyChanged(sender As Object, e As System.ComponentModel.PropertyChangedEventArgs)
+        If e.PropertyName = "ClientAreaAnimation" Then
+            UpdateMotionSettings()
+        End If
+    End Sub
+
+    Private Sub UpdateMotionSettings()
         Dim motionEnabled As Boolean = System.Windows.SystemParameters.ClientAreaAnimation
         Application.Current.Resources("MotionEnabled") = motionEnabled
         If Not motionEnabled Then
             Application.Current.Resources("MotionDurationFast") = New System.Windows.Duration(System.TimeSpan.Zero)
             Application.Current.Resources("MotionDurationStd") = New System.Windows.Duration(System.TimeSpan.Zero)
+        Else
+            Application.Current.Resources("MotionDurationFast") = New System.Windows.Duration(System.TimeSpan.FromSeconds(0.15))
+            Application.Current.Resources("MotionDurationStd") = New System.Windows.Duration(System.TimeSpan.FromSeconds(0.22))
         End If
-        
-        ' ... proceed with host and window creation
     End Sub
 ```
 

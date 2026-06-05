@@ -34,12 +34,8 @@ Class Application
 
     Private Sub Application_Startup(sender As Object, e As StartupEventArgs)
         ' Respect reduced motion (UX-25)
-        Dim motionEnabled As Boolean = System.Windows.SystemParameters.ClientAreaAnimation
-        Application.Current.Resources("MotionEnabled") = motionEnabled
-        If Not motionEnabled Then
-            Application.Current.Resources("MotionDurationFast") = New System.Windows.Duration(System.TimeSpan.Zero)
-            Application.Current.Resources("MotionDurationStd") = New System.Windows.Duration(System.TimeSpan.Zero)
-        End If
+        UpdateMotionSettings()
+        AddHandler System.Windows.SystemParameters.StaticPropertyChanged, AddressOf SystemParameters_StaticPropertyChanged
 
         Dim builder = Host.CreateDefaultBuilder()
 
@@ -323,6 +319,7 @@ Class Application
     End Sub
 
     Private Sub Application_Exit(sender As Object, e As ExitEventArgs)
+        RemoveHandler System.Windows.SystemParameters.StaticPropertyChanged, AddressOf SystemParameters_StaticPropertyChanged
         ' Stop monitors before disposing the host so no background callbacks fire
         ' against a disposed DI container.
         If _idleMonitor IsNot Nothing Then _idleMonitor.Stop()
@@ -330,6 +327,24 @@ Class Application
         If mon IsNot Nothing Then mon.[Stop]()
         _host?.StopAsync().GetAwaiter().GetResult()
         _host?.Dispose()
+    End Sub
+
+    Private Sub SystemParameters_StaticPropertyChanged(sender As Object, e As System.ComponentModel.PropertyChangedEventArgs)
+        If e.PropertyName = "ClientAreaAnimation" Then
+            UpdateMotionSettings()
+        End If
+    End Sub
+
+    Private Sub UpdateMotionSettings()
+        Dim motionEnabled As Boolean = System.Windows.SystemParameters.ClientAreaAnimation
+        Application.Current.Resources("MotionEnabled") = motionEnabled
+        If Not motionEnabled Then
+            Application.Current.Resources("MotionDurationFast") = New System.Windows.Duration(System.TimeSpan.Zero)
+            Application.Current.Resources("MotionDurationStd") = New System.Windows.Duration(System.TimeSpan.Zero)
+        Else
+            Application.Current.Resources("MotionDurationFast") = New System.Windows.Duration(System.TimeSpan.FromSeconds(0.15))
+            Application.Current.Resources("MotionDurationStd") = New System.Windows.Duration(System.TimeSpan.FromSeconds(0.22))
+        End If
     End Sub
 
     ' ── Idle timeout (DA2) ────────────────────────────────────────────────────
