@@ -41,35 +41,40 @@
                     <StackPanel Style="{StaticResource FilterBarItemStyle}" Orientation="Horizontal">
                         <TextBlock Text="From:" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
                         <DatePicker SelectedDate="{Binding DateFrom, Mode=TwoWay}"
-                                    Width="130" VerticalAlignment="Center"/>
+                                    Width="130" VerticalAlignment="Center"
+                                    TabIndex="1"/>
                     </StackPanel>
 
                     <!-- To Date -->
                     <StackPanel Style="{StaticResource FilterBarItemStyle}" Orientation="Horizontal">
                         <TextBlock Text="To:" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
                         <DatePicker SelectedDate="{Binding DateTo, Mode=TwoWay}"
-                                    Width="130" VerticalAlignment="Center"/>
+                                    Width="130" VerticalAlignment="Center"
+                                    TabIndex="2"/>
                     </StackPanel>
 
                     <!-- Apply Filter Button -->
-                    <Button Content="Apply Filter"
+                    <Button Content="_Apply Filter"
                             Style="{StaticResource PrimaryButtonStyle}" Padding="14,6" FontWeight="SemiBold"
                             Command="{Binding LoadCommand}"
-                            VerticalAlignment="Center" Margin="0,0,12,4"/>
+                            VerticalAlignment="Center" Margin="0,0,12,4"
+                            TabIndex="3"/>
 
                     <!-- Export to CSV Button -->
-                    <Button Content="Export to CSV"
+                    <Button Content="Export to _CSV"
                             Style="{StaticResource PrimaryButtonStyle}" Padding="14,6" FontWeight="SemiBold"
                             IsEnabled="{Binding HasEntries}"
                             Click="ExportCsv_Click"
-                            VerticalAlignment="Center" Margin="0,0,12,4"/>
+                            VerticalAlignment="Center" Margin="0,0,12,4"
+                            TabIndex="4"/>
 
                     <!-- Export to PDF Button -->
-                    <Button Content="Export to PDF"
+                    <Button Content="Export to _PDF"
                             Style="{StaticResource PrimaryButtonStyle}" Padding="14,6" FontWeight="SemiBold"
                             IsEnabled="{Binding HasEntries}"
                             Click="ExportPdf_Click"
-                            VerticalAlignment="Center" Margin="0,0,12,4"/>
+                            VerticalAlignment="Center" Margin="0,0,12,4"
+                            TabIndex="5"/>
 
                     <!-- Loading indicator -->
                     <TextBlock Text="Loading…"
@@ -78,6 +83,13 @@
                                Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}"/>
                 </WrapPanel>
             </Border>
+
+            <!-- Filter summary bar showing count and clear all -->
+            <views:FilterSummaryBar Grid.Row="2"
+                                    Margin="0,0,0,12"
+                                    ShownCount="{Binding Entries.Count}"
+                                    TotalCount="{Binding Entries.Count}"
+                                    ClearAllCommand="{Binding ClearFiltersCommand}"/>
 
             <!-- Incident DataGrid — shown when entries exist -->
             <Border Grid.Row="3" Style="{StaticResource CardStyle}" CornerRadius="{DynamicResource RadiusSmall}" Padding="0"
@@ -92,7 +104,8 @@
                           RowStyle="{StaticResource SemanticRowStyle}"
                           SelectionMode="Single"
                           VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
-                          ItemsSource="{Binding Entries}">
+                          ItemsSource="{Binding Entries}"
+                          TabIndex="6">
                     <DataGrid.Columns>
 
                         <DataGridTextColumn Header="Date / Time Detected"

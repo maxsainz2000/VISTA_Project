@@ -1,4 +1,5 @@
 Imports MerchSys.SharedKernel.Interfaces
+Imports MerchSys.SharedKernel.Presentation
 Imports Notification.Wpf
 
 Namespace Services

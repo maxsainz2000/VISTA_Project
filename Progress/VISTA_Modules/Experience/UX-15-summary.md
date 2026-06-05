@@ -147,8 +147,8 @@ To verify ErrorStatePanel appears:
 
 ## What's Next
 
-- [ ] Operator verification: force load failure per module (per the repro above) to confirm ErrorStatePanel shows in both themes
-- [ ] codebase_wiki sync (Antigravity) after commit
+- [ ] Operator verification: force load failure per module (per the repro above) to confirm ErrorStatePanel shows in both themes — tracked by `Operator/UX-verification-checklist.md` Test 8.
+- [x] codebase_wiki sync (Antigravity) after commit — resolved; synced (log.md, 2026-06-03).
 
 ## Cross-References
 

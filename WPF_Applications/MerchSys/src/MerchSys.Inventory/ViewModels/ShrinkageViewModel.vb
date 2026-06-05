@@ -1,11 +1,14 @@
 Imports System.Collections.ObjectModel
 Imports System.ComponentModel.DataAnnotations
 Imports System.Linq
+Imports System.Windows.Input
 Imports CommunityToolkit.Mvvm.ComponentModel
 Imports CommunityToolkit.Mvvm.Input
 Imports MerchSys.Inventory.Services
 Imports MerchSys.SharedKernel.Interfaces
 Imports MerchSys.SharedKernel.Persistence
+Imports MerchSys.SharedKernel.Presentation
+Imports MerchSys.SharedKernel.Enums
 
 Namespace ViewModels
 
@@ -45,14 +48,34 @@ Namespace ViewModels
 
     Public Class ShrinkageViewModel
         Inherits ObservableValidator
+        Implements IFreshnessAware
 
+        Private _lastLoadedAt As DateTime?
+        Public Property LastLoadedAt As DateTime? Implements IFreshnessAware.LastLoadedAt
+            Get
+                Return _lastLoadedAt
+            End Get
+            Set(value As DateTime?)
+                SetProperty(_lastLoadedAt, value)
+            End Set
+        End Property
+
+        Private ReadOnly _session As ISessionService
         Private ReadOnly _shrinkageService As IShrinkageService
         Private ReadOnly _stockService As IStockService
         Private ReadOnly _conflictPresenter As IConflictPresenter
         Private ReadOnly _reasonOptions As String() = {"Damage", "Spoilage", "Expiry", "Admin Error"}
         Private _allHistory As New List(Of ShrinkageRowItem)()
 
-        Public Sub New(shrinkageService As IShrinkageService, stockService As IStockService, conflictPresenter As IConflictPresenter)
+        ' Session memory fields
+        Private Shared _savedFilterStartDate As DateTime? = Nothing
+        Private Shared _savedFilterEndDate As DateTime? = Nothing
+        Private Shared _savedFilterProductId As Integer? = Nothing
+        Private Shared _savedFilterReason As String = Nothing
+        Private Shared _lastUser As String = Nothing
+
+        Public Sub New(session As ISessionService, shrinkageService As IShrinkageService, stockService As IStockService, conflictPresenter As IConflictPresenter)
+            _session = session
             _shrinkageService = shrinkageService
             _stockService = stockService
             _conflictPresenter = conflictPresenter
@@ -61,11 +84,24 @@ Namespace ViewModels
             FilterProducts = New ObservableCollection(Of ShrinkageProductItem)()
             DialogProducts = New ObservableCollection(Of ShrinkageProductItem)()
             DialogBatches = New ObservableCollection(Of ShrinkageBatchItem)()
+            ActiveFilterChips = New ObservableCollection(Of FilterChipItem)()
 
-            _filterStartDate = New DateTime(DateTime.Now.Year, DateTime.Now.Month, 1)
-            _filterEndDate = DateTime.Now.Date
+            ' Restore session filters
+            Dim currentUser = _session.CurrentUsername
+            If currentUser <> _lastUser Then
+                _savedFilterStartDate = New DateTime(DateTime.Now.Year, DateTime.Now.Month, 1)
+                _savedFilterEndDate = DateTime.Now.Date
+                _savedFilterProductId = 0
+                _savedFilterReason = String.Empty
+                _lastUser = currentUser
+            End If
+
+            _filterStartDate = _savedFilterStartDate.Value
+            _filterEndDate = _savedFilterEndDate.Value
+            _filterReason = _savedFilterReason
 
             LoadDataCommand = New AsyncRelayCommand(AddressOf LoadDataAsync)
+            ClearFiltersCommand = New RelayCommand(AddressOf ClearFilters)
             OpenDialogCommand = New RelayCommand(AddressOf OpenDialog)
             CancelDialogCommand = New RelayCommand(AddressOf CloseDialog)
             ExecuteRecordCommand = New AsyncRelayCommand(AddressOf ExecuteRecordAsync, Function() Not HasErrors)
@@ -79,10 +115,17 @@ Namespace ViewModels
         Public Property FilterProducts As ObservableCollection(Of ShrinkageProductItem)
         Public Property DialogProducts As ObservableCollection(Of ShrinkageProductItem)
         Public Property DialogBatches As ObservableCollection(Of ShrinkageBatchItem)
+        Public Property ActiveFilterChips As ObservableCollection(Of FilterChipItem)
 
         Public ReadOnly Property ReasonOptions As String()
             Get
                 Return _reasonOptions
+            End Get
+        End Property
+
+        Public ReadOnly Property TotalCount As Integer
+            Get
+                Return _allHistory.Count
             End Get
         End Property
 
@@ -94,7 +137,10 @@ Namespace ViewModels
                 Return _filterStartDate
             End Get
             Set(value As DateTime)
-                If SetProperty(_filterStartDate, value) Then ApplyFilters()
+                If SetProperty(_filterStartDate, value) Then
+                    _savedFilterStartDate = value
+                    ApplyFilters()
+                End If
             End Set
         End Property
 
@@ -104,7 +150,10 @@ Namespace ViewModels
                 Return _filterEndDate
             End Get
             Set(value As DateTime)
-                If SetProperty(_filterEndDate, value) Then ApplyFilters()
+                If SetProperty(_filterEndDate, value) Then
+                    _savedFilterEndDate = value
+                    ApplyFilters()
+                End If
             End Set
         End Property
 
@@ -114,7 +163,12 @@ Namespace ViewModels
                 Return _filterSelectedProduct
             End Get
             Set(value As ShrinkageProductItem)
-                If SetProperty(_filterSelectedProduct, value) Then ApplyFilters()
+                If SetProperty(_filterSelectedProduct, value) Then
+                    If value IsNot Nothing Then
+                        _savedFilterProductId = value.ProductId
+                    End If
+                    ApplyFilters()
+                End If
             End Set
         End Property
 
@@ -124,7 +178,10 @@ Namespace ViewModels
                 Return _filterReason
             End Get
             Set(value As String)
-                If SetProperty(_filterReason, value) Then ApplyFilters()
+                If SetProperty(_filterReason, value) Then
+                    _savedFilterReason = value
+                    ApplyFilters()
+                End If
             End Set
         End Property
 
@@ -303,6 +360,7 @@ Namespace ViewModels
         ' ─── Commands ────────────────────────────────────────────────────────────
 
         Public Property LoadDataCommand As AsyncRelayCommand
+        Public Property ClearFiltersCommand As RelayCommand
         Public Property OpenDialogCommand As RelayCommand
         Public Property CancelDialogCommand As RelayCommand
         Public Property ExecuteRecordCommand As AsyncRelayCommand
@@ -361,10 +419,10 @@ Namespace ViewModels
                         .CurrentStock = s.CurrentQuantity
                     })
                 Next
-                If _filterSelectedProduct Is Nothing Then
-                    _filterSelectedProduct = FilterProducts.FirstOrDefault()
-                    OnPropertyChanged(NameOf(FilterSelectedProduct))
-                End If
+                Dim targetProductId = If(_savedFilterProductId.HasValue, _savedFilterProductId.Value, 0)
+                Dim restoredProduct = FilterProducts.FirstOrDefault(Function(p) p.ProductId = targetProductId)
+                _filterSelectedProduct = If(restoredProduct IsNot Nothing, restoredProduct, FilterProducts.FirstOrDefault())
+                OnPropertyChanged(NameOf(FilterSelectedProduct))
 
                 DialogProducts.Clear()
                 For Each s In productList
@@ -379,6 +437,7 @@ Namespace ViewModels
                 ApplyFilters()
                 LastRefreshed = $"Refreshed {DateTime.Now:HH:mm:ss}"
                 IsError = False
+                LastLoadedAt = DateTime.Now
             Catch ex As Exception
                 ErrorMessage = ex.Message
                 IsError = True
@@ -421,6 +480,86 @@ Namespace ViewModels
             DialogAvailableStock = total
         End Function
 
+        Public ReadOnly Property IsFilterActive As Boolean
+            Get
+                Return (FilterSelectedProduct IsNot Nothing AndAlso FilterSelectedProduct.ProductId <> 0) OrElse
+                       (Not String.IsNullOrEmpty(FilterReason))
+            End Get
+        End Property
+
+        Private Sub RefreshFilterChips()
+            If ActiveFilterChips Is Nothing Then
+                ActiveFilterChips = New ObservableCollection(Of FilterChipItem)()
+            Else
+                ActiveFilterChips.Clear()
+            End If
+
+            If FilterSelectedProduct IsNot Nothing AndAlso FilterSelectedProduct.ProductId <> 0 Then
+                Dim selectedProd = FilterSelectedProduct
+                ActiveFilterChips.Add(New FilterChipItem($"Product: {selectedProd.ProductName}", "Product", New RelayCommand(Sub() FilterSelectedProduct = FilterProducts.FirstOrDefault())))
+            End If
+
+            If Not String.IsNullOrEmpty(FilterReason) Then
+                ActiveFilterChips.Add(New FilterChipItem($"Reason: {FilterReason}", "Reason", New RelayCommand(Sub() FilterReason = String.Empty)))
+            End If
+
+            OnPropertyChanged(NameOf(IsFilterActive))
+        End Sub
+
+        Private Sub ClearFilters()
+            _filterReason = String.Empty
+            _savedFilterReason = String.Empty
+            OnPropertyChanged(NameOf(FilterReason))
+
+            _filterStartDate = New DateTime(DateTime.Now.Year, DateTime.Now.Month, 1)
+            _savedFilterStartDate = _filterStartDate
+            OnPropertyChanged(NameOf(FilterStartDate))
+
+            _filterEndDate = DateTime.Now.Date
+            _savedFilterEndDate = _filterEndDate
+            OnPropertyChanged(NameOf(FilterEndDate))
+
+            Dim allProductsItem = FilterProducts.FirstOrDefault()
+            _filterSelectedProduct = allProductsItem
+            _savedFilterProductId = 0
+            OnPropertyChanged(NameOf(FilterSelectedProduct))
+
+            ApplyFilters()
+        End Sub
+
+        Public ReadOnly Property CanEdit As Boolean
+            Get
+                Return _session.CurrentRole = UserRole.Manager OrElse _session.CurrentRole = UserRole.Developer
+            End Get
+        End Property
+
+        Public ReadOnly Property EmptyStateTitle As String
+            Get
+                Return "No Shrinkage Records"
+            End Get
+        End Property
+
+        Public ReadOnly Property EmptyStateDescription As String
+            Get
+                Return "No shrinkage loss records found for the selected period."
+            End Get
+        End Property
+
+        Public ReadOnly Property EmptyStateActionText As String
+            Get
+                Return "Record Shrinkage"
+            End Get
+        End Property
+
+        Public ReadOnly Property EmptyStateActionCommand As ICommand
+            Get
+                If _session.CurrentRole = UserRole.Manager OrElse _session.CurrentRole = UserRole.Developer Then
+                    Return OpenDialogCommand
+                End If
+                Return Nothing
+            End Get
+        End Property
+
         Private Sub ApplyFilters()
             Dim startDay As DateTime = FilterStartDate.Date
             Dim endDay As DateTime = FilterEndDate.Date.AddDays(1).AddTicks(-1)
@@ -449,6 +588,9 @@ Namespace ViewModels
             Next
             PeriodTotalValue = total
             FilteredCount = filtered.Count
+            
+            RefreshFilterChips()
+            OnPropertyChanged(NameOf(TotalCount))
             OnPropertyChanged(NameOf(IsEmpty))
         End Sub
 

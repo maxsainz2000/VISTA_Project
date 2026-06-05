@@ -5,6 +5,7 @@ Imports MerchSys.Purchasing.Services
 Imports MerchSys.SharedKernel.Enums
 Imports MerchSys.SharedKernel.Interfaces
 Imports MerchSys.SharedKernel.Persistence
+Imports MerchSys.SharedKernel.Presentation
 
 Namespace ViewModels
 
@@ -41,11 +42,38 @@ Namespace ViewModels
     ''' </summary>
     Public Class APLedgerViewModel
         Inherits ObservableObject
+        Implements IFreshnessAware
+
+        Private _lastLoadedAt As DateTime?
+        Public Property LastLoadedAt As DateTime? Implements IFreshnessAware.LastLoadedAt
+            Get
+                Return _lastLoadedAt
+            End Get
+            Set(value As DateTime?)
+                SetProperty(_lastLoadedAt, value)
+            End Set
+        End Property
 
         Private ReadOnly _session As ISessionService
         Private ReadOnly _apService As IAccountsPayableService
         Private _allRows As List(Of APLedgerRow) = New List(Of APLedgerRow)()
         Private _payingEntryId As Integer
+
+        ' Session memory fields
+        Private Shared _savedActiveFilter As String = "All"
+        Private Shared _savedVendorId As Integer = 0
+        Private Shared _lastUser As String = Nothing
+
+        Public Property ActiveFilterChips As ObservableCollection(Of FilterChipItem)
+
+        Public ReadOnly Property TotalAPRows As Integer
+            Get
+                Return _allRows.Count
+            End Get
+        End Property
+
+        Private ReadOnly _conflictPresenter As IConflictPresenter
+        Private ReadOnly _notifications As INotificationService
 
         ''' <summary>
         ''' True when the current role is Manager. Owner role receives read-only access (DA5 UI enforcement).
@@ -57,19 +85,28 @@ Namespace ViewModels
             End Get
         End Property
 
-        Private ReadOnly _conflictPresenter As IConflictPresenter
-        Private ReadOnly _notifications As INotificationService
-
         Public Sub New(session As ISessionService, apService As IAccountsPayableService, conflictPresenter As IConflictPresenter, notifications As INotificationService)
             _session = session
             _apService = apService
             _conflictPresenter = conflictPresenter
             _notifications = notifications
 
+            ' Restore session filters
+            Dim currentUser = _session.CurrentUsername
+            If currentUser <> _lastUser Then
+                _savedActiveFilter = "All"
+                _savedVendorId = 0
+                _lastUser = currentUser
+            End If
+
+            _activeFilter = _savedActiveFilter
+
             Entries = New ObservableCollection(Of APLedgerRow)()
             VendorItems = New ObservableCollection(Of VendorSelectorItem)()
+            ActiveFilterChips = New ObservableCollection(Of FilterChipItem)()
 
             RefreshCommand = New AsyncRelayCommand(AddressOf LoadDataAsync)
+            ClearFiltersCommand = New RelayCommand(AddressOf ClearFilters)
             SetFilterCommand = New RelayCommand(Of String)(Sub(filterName) ActiveFilter = filterName)
             OpenPaymentDialogCommand = New RelayCommand(
                 AddressOf OpenPaymentDialog,
@@ -119,6 +156,7 @@ Namespace ViewModels
             End Get
             Set(value As String)
                 If SetProperty(_activeFilter, value) Then
+                    _savedActiveFilter = value
                     OnPropertyChanged(NameOf(IsAllFilterActive))
                     OnPropertyChanged(NameOf(IsOutstandingFilterActive))
                     OnPropertyChanged(NameOf(IsOverdueFilterActive))
@@ -161,6 +199,9 @@ Namespace ViewModels
             End Get
             Set(value As VendorSelectorItem)
                 If SetProperty(_selectedVendorItem, value) Then
+                    If value IsNot Nothing Then
+                        _savedVendorId = value.VendorId
+                    End If
                     ApplyFilter()
                 End If
             End Set
@@ -221,6 +262,7 @@ Namespace ViewModels
         ' ─── Commands ─────────────────────────────────────────────────────────────
 
         Public Property RefreshCommand As AsyncRelayCommand
+        Public Property ClearFiltersCommand As RelayCommand
         Public Property SetFilterCommand As RelayCommand(Of String)
         Public Property OpenPaymentDialogCommand As RelayCommand
         Public Property ConfirmPaymentCommand As AsyncRelayCommand
@@ -324,6 +366,7 @@ Namespace ViewModels
                 TotalOutstanding = Await _apService.GetTotalOutstandingAsync()
                 StatusMessage = $"Loaded {_allRows.Count} invoice(s)."
                 IsError = False
+                LastLoadedAt = DateTime.Now
             Catch ex As Exception
                 ErrorMessage = ex.Message
                 IsError = True
@@ -351,9 +394,52 @@ Namespace ViewModels
                 VendorItems.Add(vendorSel)
             Next
 
-            Dim restoredItem = VendorItems.FirstOrDefault(Function(vi) vi.VendorId = prevVendorId)
+            Dim targetVendorId As Integer = If(_selectedVendorItem IsNot Nothing, _selectedVendorItem.VendorId, _savedVendorId)
+            Dim restoredItem = VendorItems.FirstOrDefault(Function(vi) vi.VendorId = targetVendorId)
             _selectedVendorItem = If(restoredItem IsNot Nothing, restoredItem, VendorItems(0))
             OnPropertyChanged(NameOf(SelectedVendorItem))
+        End Sub
+
+        Public ReadOnly Property IsFilterActive As Boolean
+            Get
+                Return (_activeFilter <> "All") OrElse (_selectedVendorItem IsNot Nothing AndAlso _selectedVendorItem.VendorId <> 0)
+            End Get
+        End Property
+
+        Private Sub RefreshFilterChips()
+            If ActiveFilterChips Is Nothing Then
+                ActiveFilterChips = New ObservableCollection(Of FilterChipItem)()
+            Else
+                ActiveFilterChips.Clear()
+            End If
+
+            If _activeFilter <> "All" Then
+                ActiveFilterChips.Add(New FilterChipItem($"Status: {_activeFilter}", "Status", New RelayCommand(Sub() ActiveFilter = "All")))
+            End If
+
+            If _selectedVendorItem IsNot Nothing AndAlso _selectedVendorItem.VendorId <> 0 Then
+                Dim selectedVendor = _selectedVendorItem
+                ActiveFilterChips.Add(New FilterChipItem($"Vendor: {selectedVendor.DisplayName}", "Vendor", New RelayCommand(Sub() SelectedVendorItem = VendorItems.FirstOrDefault(Function(v) v.VendorId = 0))))
+            End If
+
+            OnPropertyChanged(NameOf(IsFilterActive))
+        End Sub
+
+        Private Sub ClearFilters()
+            _activeFilter = "All"
+            _savedActiveFilter = "All"
+            OnPropertyChanged(NameOf(ActiveFilter))
+            OnPropertyChanged(NameOf(IsAllFilterActive))
+            OnPropertyChanged(NameOf(IsOutstandingFilterActive))
+            OnPropertyChanged(NameOf(IsOverdueFilterActive))
+            OnPropertyChanged(NameOf(IsPaidFilterActive))
+            
+            Dim allVendorsItem = VendorItems.FirstOrDefault(Function(vi) vi.VendorId = 0)
+            _selectedVendorItem = allVendorsItem
+            _savedVendorId = 0
+            OnPropertyChanged(NameOf(SelectedVendorItem))
+
+            ApplyFilter()
         End Sub
 
         Private Sub ApplyFilter()
@@ -377,6 +463,9 @@ Namespace ViewModels
             For Each apRow In filtered.OrderBy(Function(apR) apR.DueDate)
                 Entries.Add(apRow)
             Next
+            
+            RefreshFilterChips()
+            OnPropertyChanged(NameOf(TotalAPRows))
             OnPropertyChanged(NameOf(IsEmpty))
         End Sub
 

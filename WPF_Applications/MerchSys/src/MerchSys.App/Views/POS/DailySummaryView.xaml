@@ -7,7 +7,8 @@
              xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
              mc:Ignorable="d"
              d:DesignHeight="768" d:DesignWidth="1280"
-             Background="{DynamicResource WindowBackgroundBrush}">
+             Background="{DynamicResource WindowBackgroundBrush}"
+             PreviewKeyDown="UserControl_PreviewKeyDown">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
@@ -71,8 +72,8 @@
                     <!-- Mode toggle buttons (left) -->
                     <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Margin="0,0,20,0">
 
-                        <Button Command="{Binding SetDailyModeCommand}" Content="Daily"
-                                Margin="0,0,0,0">
+                        <Button Command="{Binding SetDailyModeCommand}" Content="_Daily"
+                                Margin="0,0,0,0" TabIndex="1">
                             <Button.Style>
                                 <Style TargetType="Button" BasedOn="{StaticResource ModeButton}">
                                     <Style.Triggers>
@@ -86,8 +87,8 @@
                             </Button.Style>
                         </Button>
 
-                        <Button Command="{Binding SetWeeklyModeCommand}" Content="Weekly"
-                                Margin="4,0,0,0">
+                        <Button Command="{Binding SetWeeklyModeCommand}" Content="_Weekly"
+                                Margin="4,0,0,0" TabIndex="2">
                             <Button.Style>
                                 <Style TargetType="Button" BasedOn="{StaticResource ModeButton}">
                                     <Style.Triggers>
@@ -101,8 +102,8 @@
                             </Button.Style>
                         </Button>
 
-                        <Button Command="{Binding SetMonthlyModeCommand}" Content="Monthly"
-                                Margin="4,0,0,0">
+                        <Button Command="{Binding SetMonthlyModeCommand}" Content="_Monthly"
+                                Margin="4,0,0,0" TabIndex="3">
                             <Button.Style>
                                 <Style TargetType="Button" BasedOn="{StaticResource ModeButton}">
                                     <Style.Triggers>
@@ -117,16 +118,16 @@
                         </Button>
                     </StackPanel>
 
-                    <!-- Refresh + BusyBar (right) -->
+                    <!-- Refresh + Freshness (right) -->
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                        <ProgressBar IsIndeterminate="True"
-                                     Width="70" Height="4"
-                                     Margin="0,0,10,0"
-                                     VerticalAlignment="Center"
-                                     Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
-                        <Button Content="Refresh"
+                        <views:FreshnessChip LastLoadedAt="{Binding LastLoadedAt}"
+                                             RefreshCommand="{Binding LoadCommand}"
+                                             VerticalAlignment="Center"
+                                             Margin="0,0,12,0"/>
+                        <Button Content="_Refresh"
                                 Command="{Binding LoadCommand}"
-                                Style="{StaticResource PrimaryButtonStyle}"/>
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                TabIndex="4"/>
                     </StackPanel>
 
                     <!-- Prev / Period Header / Next (center) -->
@@ -134,7 +135,8 @@
                         <Button Content="◄"
                                 Command="{Binding PrevPeriodCommand}"
                                 Style="{StaticResource NavButton}"
-                                Margin="0,0,8,0"/>
+                                Margin="0,0,8,0"
+                                TabIndex="5"/>
                         <TextBlock Text="{Binding PeriodHeader}"
                                    FontSize="{DynamicResource FontSizeSubhead}" FontWeight="Bold"
                                    Foreground="{DynamicResource TextPrimaryBrush}"
@@ -143,7 +145,8 @@
                         <Button Content="►"
                                 Command="{Binding NextPeriodCommand}"
                                 Style="{StaticResource NavButton}"
-                                Margin="8,0,0,0"/>
+                                Margin="8,0,0,0"
+                                TabIndex="6"/>
                     </StackPanel>
                 </DockPanel>
 
@@ -164,7 +167,8 @@
                         </StackPanel.Style>
                         <TextBlock Text="Date:" Style="{StaticResource CaptionLabelStyle}"/>
                         <DatePicker SelectedDate="{Binding SelectedDate, Mode=TwoWay}"
-                                    Width="130" Height="28" FontSize="12"/>
+                                    Width="130" Height="28" FontSize="12"
+                                    TabIndex="7"/>
                     </StackPanel>
 
                     <!-- Weekly: any-date picker + week range label -->
@@ -182,7 +186,8 @@
                         <TextBlock Text="Any date in week:" Style="{StaticResource CaptionLabelStyle}"/>
                         <DatePicker SelectedDate="{Binding WeekDate, Mode=TwoWay}"
                                     Width="130" Height="28" FontSize="12"
-                                    Margin="0,0,10,0"/>
+                                    Margin="0,0,10,0"
+                                    TabIndex="8"/>
                         <TextBlock Text="{Binding WeekRangeDisplay}"
                                    FontSize="{DynamicResource FontSizeBody}" Foreground="{DynamicResource TextPrimaryBrush}"
                                    VerticalAlignment="Center" FontStyle="Italic"/>
@@ -204,11 +209,13 @@
                         <ComboBox ItemsSource="{Binding AvailableMonths}"
                                   SelectedIndex="{Binding SelectedMonthIndex, Mode=TwoWay}"
                                   Width="110" Height="28" FontSize="12"
-                                  Margin="0,0,10,0"/>
+                                  Margin="0,0,10,0"
+                                  TabIndex="9"/>
                         <TextBlock Text="Year:" Style="{StaticResource CaptionLabelStyle}"/>
                         <ComboBox ItemsSource="{Binding AvailableYears}"
                                   SelectedItem="{Binding SelectedYear, Mode=TwoWay}"
-                                  Width="72" Height="28" FontSize="12"/>
+                                  Width="72" Height="28" FontSize="12"
+                                  TabIndex="10"/>
                     </StackPanel>
 
                 </WrapPanel>
@@ -221,6 +228,20 @@
         <ScrollViewer Grid.Row="1"
                       VerticalScrollBarVisibility="Auto"
                       HorizontalScrollBarVisibility="Disabled">
+            <ScrollViewer.Style>
+                <Style TargetType="ScrollViewer">
+                    <Setter Property="Visibility" Value="Visible"/>
+                    <Style.Triggers>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsBusy}" Value="True"/>
+                                <Condition Binding="{Binding LastLoadedAt}" Value="{x:Null}"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </MultiDataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ScrollViewer.Style>
             <StackPanel Margin="12,12,12,12">
 
                 <!-- ── KPI Summary Cards ──────────────────────────────────────── -->
@@ -469,8 +490,11 @@
             </TextBlock>
         </Border>
 
+        <views:SkeletonPanel Grid.Row="1" Kind="Rows" IsBusy="{Binding IsBusy}" LastLoadedAt="{Binding LastLoadedAt}" Margin="10"/>
+
         <views:BusyOverlay Grid.Row="0" Grid.RowSpan="3"
-                           Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
+                           IsBusy="{Binding IsBusy}"
+                           LastLoadedAt="{Binding LastLoadedAt}"/>
 
         <views:ErrorStatePanel Grid.Row="0" Grid.RowSpan="3"
                                Title="Load Failed"

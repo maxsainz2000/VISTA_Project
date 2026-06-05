@@ -136,6 +136,7 @@ Namespace ViewModels
         End Property
 
         Public ReadOnly Property LoadCommand As AsyncRelayCommand
+        Public ReadOnly Property ClearFiltersCommand As RelayCommand
         Public ReadOnly Property ExportCsvCommand As AsyncRelayCommand(Of String)
         Public ReadOnly Property ExportPdfCommand As AsyncRelayCommand(Of String)
 
@@ -156,8 +157,16 @@ Namespace ViewModels
             _entries = Nothing
 
             LoadCommand = New AsyncRelayCommand(AddressOf LoadAsync)
+            ClearFiltersCommand = New RelayCommand(AddressOf ClearFilters)
             ExportCsvCommand = New AsyncRelayCommand(Of String)(AddressOf ExportCsvAsync, AddressOf CanExport)
             ExportPdfCommand = New AsyncRelayCommand(Of String)(AddressOf ExportPdfAsync, AddressOf CanExport)
+        End Sub
+
+        Private Sub ClearFilters()
+            Dim today = DateTime.Today
+            DateFrom = today.AddDays(-30)
+            DateTo = today
+            Dim t = LoadAsync()
         End Sub
 
         Private Function CanExport(targetPath As String) As Boolean

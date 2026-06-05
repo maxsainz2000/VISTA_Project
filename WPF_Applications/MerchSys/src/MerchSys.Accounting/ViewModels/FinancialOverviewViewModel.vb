@@ -5,6 +5,7 @@ Imports CommunityToolkit.Mvvm.ComponentModel
 Imports CommunityToolkit.Mvvm.Input
 Imports MerchSys.Accounting.Services
 Imports MerchSys.SharedKernel.Interfaces
+Imports MerchSys.SharedKernel.Presentation
 
 Namespace ViewModels
 

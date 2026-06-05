@@ -141,9 +141,9 @@ Trigger-driven DataGrid cells were converted from `TextBlock`+`Text` setters to 
   Goods Receiving (reload + discrepancy badge), AP Ledger (refresh), Sales Cart (pay methods + line
   remove), Credit Management (status cell + blocked banner), the three insight callouts, VAT Return
   header, EmptyStatePanel, ConcurrencyConflictPrompt — confirm each icon realizes, recolors on the
-  toggle, and the semantic icons resolve to the intended token.
+  toggle, and the semantic icons resolve to the intended token. — tracked by `Operator/UX-verification-checklist.md` Test 7.
 - [ ] (Optional, future) two-state password reveal consuming `IconEyeOffGeometry`; ActivityRail
-  per-module icon map.
+  per-module icon map. — planned as UX-34.
 
 ## Cross-References
 

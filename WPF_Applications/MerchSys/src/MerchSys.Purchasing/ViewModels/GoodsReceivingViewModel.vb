@@ -8,6 +8,7 @@ Imports MerchSys.Purchasing.Services
 Imports MerchSys.SharedKernel.Enums
 Imports MerchSys.SharedKernel.Interfaces
 Imports MerchSys.SharedKernel.Persistence
+Imports MerchSys.SharedKernel.Presentation
 
 Namespace ViewModels
 
@@ -120,6 +121,17 @@ Namespace ViewModels
     ''' </summary>
     Public Class GoodsReceivingViewModel
         Inherits ObservableValidator
+        Implements IFreshnessAware
+
+        Private _lastLoadedAt As DateTime?
+        Public Property LastLoadedAt As DateTime? Implements IFreshnessAware.LastLoadedAt
+            Get
+                Return _lastLoadedAt
+            End Get
+            Set(value As DateTime?)
+                SetProperty(_lastLoadedAt, value)
+            End Set
+        End Property
 
         Private ReadOnly _poService As IPurchaseOrderService
         Private ReadOnly _grService As IGoodsReceivingService
@@ -271,6 +283,7 @@ Namespace ViewModels
                     $"{SubmittedPOs.Count} submitted PO(s) awaiting receipt.",
                     "No submitted POs found.")
                 IsError = False
+                LastLoadedAt = DateTime.Now
             Catch ex As Exception
                 ErrorMessage = ex.Message
                 IsError = True

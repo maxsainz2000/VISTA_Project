@@ -49,6 +49,20 @@
 
     <Grid>
         <DockPanel Margin="10">
+            <DockPanel.Style>
+                <Style TargetType="DockPanel">
+                    <Setter Property="Visibility" Value="Visible"/>
+                    <Style.Triggers>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsBusy}" Value="True"/>
+                                <Condition Binding="{Binding LastLoadedAt}" Value="{x:Null}"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </MultiDataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DockPanel.Style>
 
         <!-- ═══════════════════════════════════════════════════════════
              SUMMARY CARDS ROW
@@ -93,7 +107,13 @@
             <WrapPanel Orientation="Horizontal">
                 <!-- Threshold spinner -->
                 <StackPanel Style="{StaticResource FilterBarItemStyle}" Orientation="Horizontal">
-                    <TextBlock Text="Near-expiry threshold:" Style="{StaticResource CaptionLabelStyle}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <Label Target="{Binding ElementName=ThresholdBox}" VerticalAlignment="Center" Margin="0,0,6,0" Padding="0">
+                        <AccessText Text="Near-expiry _threshold:"
+                                    FontFamily="{DynamicResource AppFontFamily}"
+                                    FontSize="{DynamicResource FontSizeCaption}"
+                                    Foreground="{DynamicResource TextSecondaryBrush}"
+                                    VerticalAlignment="Center"/>
+                    </Label>
                     <Border BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1" CornerRadius="3" Margin="0,0,6,0">
                         <Grid Width="78">
                             <Grid.ColumnDefinitions>
@@ -105,7 +125,8 @@
                                      Text="{Binding DaysThreshold, UpdateSourceTrigger=LostFocus}"
                                      BorderThickness="0" Padding="6,3"
                                      VerticalContentAlignment="Center"
-                                     PreviewTextInput="ThresholdBox_PreviewTextInput"/>
+                                     PreviewTextInput="ThresholdBox_PreviewTextInput"
+                                     TabIndex="1"/>
                             <StackPanel Grid.Column="1" VerticalAlignment="Stretch">
                                 <RepeatButton Content="▲" FontSize="8" BorderThickness="0"
                                               Background="Transparent" Padding="0"
@@ -122,21 +143,16 @@
                 </StackPanel>
  
                 <!-- Refresh Button -->
-                <Button Content="Refresh"
+                <Button Content="_Refresh"
                         Command="{Binding RefreshCommand}"
                         Style="{StaticResource PrimaryButtonStyle}"
-                        VerticalAlignment="Center" Margin="0,0,12,4"/>
+                        VerticalAlignment="Center" Margin="0,0,12,4"
+                        TabIndex="2"/>
 
-                <!-- Last Refreshed -->
-                <TextBlock Text="{Binding LastRefreshed}"
-                           Style="{StaticResource CaptionLabelStyle}"
-                           VerticalAlignment="Center" Margin="0,0,12,4"/>
- 
-                <!-- Loading indicator -->
-                <TextBlock Text="Loading…"
-                           FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"
-                           VerticalAlignment="Center" Margin="0,0,12,4"
-                           Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
+                <!-- Data Freshness Chip -->
+                <views:FreshnessChip LastLoadedAt="{Binding LastLoadedAt}"
+                                     RefreshCommand="{Binding RefreshCommand}"
+                                     VerticalAlignment="Center" Margin="0,0,12,4"/>
 
                 <!-- Status message -->
                 <TextBlock Text="{Binding StatusMessage}"
@@ -157,16 +173,24 @@
             </WrapPanel>
         </Border>
 
+        <!-- Filter summary bar showing count, active filter chips, and clear all -->
+        <views:FilterSummaryBar DockPanel.Dock="Top"
+                                Margin="4,0,4,8"
+                                ShownCount="{Binding NearExpiryCount}"
+                                TotalCount="{Binding TotalCount}"
+                                ActiveFilters="{Binding ActiveFilterChips}"
+                                ClearAllCommand="{Binding ClearFiltersCommand}"/>
+
         <!-- ═══════════════════════════════════════════════════════════
              TAB CONTROL
              ═══════════════════════════════════════════════════════════ -->
-        <TabControl Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" Padding="0">
+        <TabControl Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" Padding="0" TabIndex="3">
 
             <!-- ── Near-Expiry Tab ─────────────────────────────────── -->
             <TabItem>
                 <TabItem.Header>
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="Near-Expiry (" FontWeight="SemiBold"/>
+                        <AccessText Text="_Near-Expiry Batches (" FontWeight="SemiBold"/>
                         <TextBlock Text="{Binding NearExpiryCount}" FontWeight="SemiBold"/>
                         <TextBlock Text=")" FontWeight="SemiBold"/>
                     </StackPanel>
@@ -192,7 +216,8 @@
                               HeadersVisibility="Column" GridLinesVisibility="Horizontal"
                               RowStyle="{StaticResource NearExpiryRowStyle}"
                               CanUserSortColumns="True"
-                              FontSize="12">
+                              FontSize="12"
+                              TabIndex="4">
                         <DataGrid.Columns>
 
                             <DataGridTextColumn Header="Product" Width="*" MinWidth="160"
@@ -291,7 +316,7 @@
             <TabItem>
                 <TabItem.Header>
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="Expired (" FontWeight="SemiBold"/>
+                        <AccessText Text="_Expired Batches (" FontWeight="SemiBold"/>
                         <TextBlock Text="{Binding ExpiredCount}" FontWeight="SemiBold" Foreground="{DynamicResource DangerBrush}"/>
                         <TextBlock Text=")" FontWeight="SemiBold"/>
                     </StackPanel>
@@ -311,7 +336,8 @@
                               HeadersVisibility="Column" GridLinesVisibility="Horizontal"
                               RowStyle="{StaticResource ExpiredRowStyle}"
                               CanUserSortColumns="True"
-                              FontSize="12">
+                              FontSize="12"
+                              TabIndex="5">
                         <DataGrid.Columns>
 
                             <DataGridTextColumn Header="Product" Width="*" MinWidth="160"
@@ -418,7 +444,9 @@
     </TabControl>
 
 </DockPanel>
-<views:BusyOverlay Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}" />
+        <views:SkeletonPanel Kind="Rows" IsBusy="{Binding IsBusy}" LastLoadedAt="{Binding LastLoadedAt}" Margin="10"/>
+
+        <views:BusyOverlay IsBusy="{Binding IsBusy}" LastLoadedAt="{Binding LastLoadedAt}"/>
 
 <views:ErrorStatePanel Title="Load Failed"
                        Message="{Binding ErrorMessage}"

@@ -11,6 +11,7 @@ Imports MerchSys.App.ViewModels
 Imports MerchSys.App.Views
 Imports MerchSys.Inventory.Services
 Imports MerchSys.SharedKernel.Interfaces
+Imports MerchSys.SharedKernel.Presentation
 Imports MerchSys.SharedKernel.Data
 Imports MerchSys.Inventory.ViewModels
 Imports MerchSys.Accounting.Services
@@ -114,7 +115,7 @@ Class Application
 
                                       ' Infrastructure: Concurrency conflict presenter
                                       services.AddSingleton(Of MerchSys.SharedKernel.Interfaces.IConflictPresenter, Services.DefaultConflictPresenter)()
-                                      services.AddSingleton(Of MerchSys.SharedKernel.Interfaces.IConfirmationPresenter, Services.DefaultConfirmationPresenter)()
+                                      services.AddSingleton(Of MerchSys.SharedKernel.Presentation.IConfirmationPresenter, Services.DefaultConfirmationPresenter)()
 
                                       ' ── Purchasing ────────────────────────────────────────
                                       services.AddPurchasingServices()

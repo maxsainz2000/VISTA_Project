@@ -1,4 +1,4 @@
-Namespace Interfaces
+Namespace Presentation
 
     ''' <summary>
     ''' Marks a ViewModel or component as trackable for data freshness.

@@ -1,6 +1,7 @@
 Imports System.Windows
 Imports System.Windows.Media
 Imports MerchSys.SharedKernel.Interfaces
+Imports MerchSys.SharedKernel.Presentation
 
 Namespace Views.Shell
 

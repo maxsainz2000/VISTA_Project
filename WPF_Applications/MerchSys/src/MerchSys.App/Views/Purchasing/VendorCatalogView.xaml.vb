@@ -39,6 +39,24 @@ Namespace Views.Purchasing
             End If
         End Sub
 
+        Private Sub UserControl_PreviewKeyDown(sender As Object, e As System.Windows.Input.KeyEventArgs)
+            Dim vm = TryCast(DataContext, VendorCatalogViewModel)
+            If vm IsNot Nothing AndAlso vm.IsSearchDialogOpen Then
+                If e.Key = System.Windows.Input.Key.Escape Then
+                    vm.IsSearchDialogOpen = False
+                    e.Handled = True
+                ElseIf e.Key = System.Windows.Input.Key.Enter Then
+                    Dim focusedTxt = TryCast(System.Windows.Input.Keyboard.FocusedElement, TextBox)
+                    If focusedTxt Is Nothing OrElse focusedTxt.Name <> "ModalSearchBox" Then
+                        If vm.AddProductCommand.CanExecute(Nothing) Then
+                            vm.AddProductCommand.Execute(Nothing)
+                        End If
+                        e.Handled = True
+                    End If
+                End If
+            End If
+        End Sub
+
     End Class
 
 End Namespace

@@ -58,7 +58,7 @@ Implemented period-over-period direction indicators and inline sparkline trends 
 
 ## What's Next
 
-- [ ] Update Codebase Wiki manifests.
+- [x] Update Codebase Wiki manifests — resolved; synced by Antigravity (log.md, 2026-06-03).
 
 ## Cross-References
 

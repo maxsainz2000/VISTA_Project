@@ -49,7 +49,7 @@ Implemented tasteful, restrained transitions and micro-interactions on the shell
 
 ## What's Next
 
-- [ ] UX-26: Skeleton Loaders & Shimmer effects
+- [x] UX-26: Skeleton Loaders & Shimmer effects — resolved by UX-26.
 
 ## Cross-References
 

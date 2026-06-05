@@ -1,9 +1,12 @@
 Imports System.Collections.ObjectModel
 Imports System.Threading
 Imports System.Timers
+Imports System.Windows.Input
 Imports CommunityToolkit.Mvvm.ComponentModel
 Imports CommunityToolkit.Mvvm.Input
 Imports MerchSys.Inventory.Services
+Imports MerchSys.SharedKernel.Interfaces
+Imports MerchSys.SharedKernel.Presentation
 
 Namespace ViewModels
 
@@ -32,19 +35,49 @@ Namespace ViewModels
     ''' </summary>
     Public Class ExpiryMonitorViewModel
         Inherits ObservableObject
+        Implements IFreshnessAware
 
+        Private _lastLoadedAt As DateTime?
+        Public Property LastLoadedAt As DateTime? Implements IFreshnessAware.LastLoadedAt
+            Get
+                Return _lastLoadedAt
+            End Get
+            Set(value As DateTime?)
+                SetProperty(_lastLoadedAt, value)
+            End Set
+        End Property
+
+        Private ReadOnly _session As ISessionService
         Private ReadOnly _expiryService As IExpiryTrackingService
         Private ReadOnly _refreshTimer As System.Timers.Timer
         Private ReadOnly _uiContext As SynchronizationContext
+        Private _allNearExpiry As New List(Of ExpiryRowItem)()
+        Private _allExpired As New List(Of ExpiryRowItem)()
 
-        Public Sub New(expiryService As IExpiryTrackingService)
+        ' Session memory
+        Private Shared _savedDaysThreshold As Integer? = Nothing
+        Private Shared _lastUser As String = Nothing
+
+        Public Sub New(session As ISessionService, expiryService As IExpiryTrackingService)
+            _session = session
             _expiryService = expiryService
             _uiContext = SynchronizationContext.Current
 
             NearExpiryBatches = New ObservableCollection(Of ExpiryRowItem)()
             ExpiredBatches = New ObservableCollection(Of ExpiryRowItem)()
+            ActiveFilterChips = New ObservableCollection(Of FilterChipItem)()
+
+            ' Restore session threshold
+            Dim currentUser = _session.CurrentUsername
+            If currentUser <> _lastUser Then
+                _savedDaysThreshold = 30
+                _lastUser = currentUser
+            End If
+
+            _daysThreshold = _savedDaysThreshold.Value
 
             RefreshCommand = New AsyncRelayCommand(AddressOf LoadDataAsync)
+            ClearFiltersCommand = New RelayCommand(AddressOf ClearFilters)
             WriteOffCommand = New AsyncRelayCommand(Of ExpiryRowItem)(AddressOf ExecuteWriteOffAsync)
 
             _refreshTimer = New System.Timers.Timer(60_000) With {.AutoReset = True}
@@ -96,10 +129,75 @@ Namespace ViewModels
             Set(value As Integer)
                 Dim clamped As Integer = Math.Max(1, Math.Min(365, value))
                 If SetProperty(_daysThreshold, clamped) Then
-                    Dim t = LoadDataAsync()
+                    _savedDaysThreshold = clamped
+                    ApplyThreshold()
                 End If
             End Set
         End Property
+
+        Public Property ActiveFilterChips As ObservableCollection(Of FilterChipItem)
+        Public Property ClearFiltersCommand As RelayCommand
+
+        Public ReadOnly Property TotalCount As Integer
+            Get
+                Return _allNearExpiry.Count + _allExpired.Count
+            End Get
+        End Property
+
+        Public ReadOnly Property IsFilterActive As Boolean
+            Get
+                Return DaysThreshold <> 30
+            End Get
+        End Property
+
+        Private Sub RefreshFilterChips()
+            If ActiveFilterChips Is Nothing Then
+                ActiveFilterChips = New ObservableCollection(Of FilterChipItem)()
+            Else
+                ActiveFilterChips.Clear()
+            End If
+
+            If DaysThreshold <> 30 Then
+                ActiveFilterChips.Add(New FilterChipItem($"Threshold: {DaysThreshold} days", "Threshold", New RelayCommand(Sub() DaysThreshold = 30)))
+            End If
+
+            OnPropertyChanged(NameOf(IsFilterActive))
+        End Sub
+
+        Private Sub ClearFilters()
+            DaysThreshold = 30
+        End Sub
+
+        Private Sub ApplyThreshold()
+            NearExpiryBatches.Clear()
+            For Each item In _allNearExpiry
+                If item.DaysRemaining <= DaysThreshold Then
+                    NearExpiryBatches.Add(item)
+                End If
+            Next
+
+            ExpiredBatches.Clear()
+            For Each item In _allExpired
+                ExpiredBatches.Add(item)
+            Next
+
+            NearExpiryCount = NearExpiryBatches.Count
+            ExpiredCount = ExpiredBatches.Count
+
+            Dim nearValue As Decimal = 0D
+            For Each b In NearExpiryBatches
+                nearValue += b.Value
+            Next
+            Dim expiredValue As Decimal = 0D
+            For Each b In ExpiredBatches
+                expiredValue += b.Value
+            Next
+            TotalValueAtRisk = nearValue + expiredValue
+
+            RefreshFilterChips()
+            OnPropertyChanged(NameOf(TotalCount))
+            OnPropertyChanged(NameOf(IsEmpty))
+        End Sub
 
         ' ─── Grid Data ────────────────────────────────────────────────────────────
 
@@ -187,16 +285,16 @@ Namespace ViewModels
             IsError = False
             IsBusy = True
             Try
-                Dim nearTask = _expiryService.GetNearExpiryBatchesAsync(DaysThreshold)
+                Dim nearTask = _expiryService.GetNearExpiryBatchesAsync(365)
                 Dim expiredTask = _expiryService.GetExpiredBatchesAsync()
                 Await Task.WhenAll(nearTask, expiredTask)
 
                 Dim nearDtos = nearTask.Result
                 Dim expiredDtos = expiredTask.Result
 
-                NearExpiryBatches.Clear()
+                _allNearExpiry.Clear()
                 For Each dto In nearDtos
-                    NearExpiryBatches.Add(New ExpiryRowItem With {
+                    _allNearExpiry.Add(New ExpiryRowItem With {
                         .BatchId = dto.BatchId,
                         .ProductName = dto.ProductName,
                         .QtyRemaining = dto.QtyRemaining,
@@ -208,9 +306,9 @@ Namespace ViewModels
                     })
                 Next
 
-                ExpiredBatches.Clear()
+                _allExpired.Clear()
                 For Each dto In expiredDtos
-                    ExpiredBatches.Add(New ExpiryRowItem With {
+                    _allExpired.Add(New ExpiryRowItem With {
                         .BatchId = dto.BatchId,
                         .ProductName = dto.ProductName,
                         .QtyRemaining = dto.QtyRemaining,
@@ -222,21 +320,10 @@ Namespace ViewModels
                     })
                 Next
 
-                NearExpiryCount = NearExpiryBatches.Count
-                ExpiredCount = ExpiredBatches.Count
-
-                Dim nearValue As Decimal = 0D
-                For Each b In NearExpiryBatches
-                    nearValue += b.Value
-                Next
-                Dim expiredValue As Decimal = 0D
-                For Each b In ExpiredBatches
-                    expiredValue += b.Value
-                Next
-                TotalValueAtRisk = nearValue + expiredValue
-
+                ApplyThreshold()
                 LastRefreshed = $"Refreshed {DateTime.Now:HH:mm:ss}"
                 IsError = False
+                LastLoadedAt = DateTime.Now
 
             Catch ex As Exception
                 ErrorMessage = ex.Message

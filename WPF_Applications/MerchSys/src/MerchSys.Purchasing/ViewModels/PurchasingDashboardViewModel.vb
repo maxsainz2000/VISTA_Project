@@ -8,6 +8,7 @@ Imports MerchSys.SharedKernel.Enums
 Imports MySqlConnector
 Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.SharedKernel.Interfaces
+Imports MerchSys.SharedKernel.Presentation
 
 Namespace ViewModels
 

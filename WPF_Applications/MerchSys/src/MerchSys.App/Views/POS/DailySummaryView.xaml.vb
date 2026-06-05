@@ -23,6 +23,18 @@ Namespace Views.POS
                                    End Function)
         End Sub
 
+        Private Sub UserControl_PreviewKeyDown(sender As Object, e As System.Windows.Input.KeyEventArgs)
+            Dim vm = TryCast(DataContext, DailySummaryViewModel)
+            If vm IsNot Nothing Then
+                If e.Key = System.Windows.Input.Key.Enter Then
+                    If vm.LoadCommand.CanExecute(Nothing) Then
+                        vm.LoadCommand.Execute(Nothing)
+                    End If
+                    e.Handled = True
+                End If
+            End If
+        End Sub
+
     End Class
 
 End Namespace

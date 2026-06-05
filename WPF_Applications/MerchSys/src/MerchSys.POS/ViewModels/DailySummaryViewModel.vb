@@ -2,6 +2,7 @@ Imports System.Collections.ObjectModel
 Imports CommunityToolkit.Mvvm.ComponentModel
 Imports CommunityToolkit.Mvvm.Input
 Imports MerchSys.POS.Services
+Imports MerchSys.SharedKernel.Presentation
 
 Namespace ViewModels
 
@@ -20,6 +21,17 @@ Namespace ViewModels
 
     Public Class DailySummaryViewModel
         Inherits ObservableObject
+        Implements IFreshnessAware
+
+        Private _lastLoadedAt As DateTime?
+        Public Property LastLoadedAt As DateTime? Implements IFreshnessAware.LastLoadedAt
+            Get
+                Return _lastLoadedAt
+            End Get
+            Set(value As DateTime?)
+                SetProperty(_lastLoadedAt, value)
+            End Set
+        End Property
 
         Private ReadOnly _summaryService As IDailySummaryService
 
@@ -476,6 +488,7 @@ Namespace ViewModels
                 IsStatusSuccess = True
                 StatusMessage = "Loaded: " & PeriodHeader
                 IsError = False
+                LastLoadedAt = DateTime.Now
             Catch ex As Exception
                 IsStatusSuccess = False
                 StatusMessage = "Error loading summary: " & ex.Message

@@ -64,5 +64,5 @@ Implemented Search & Filter UX Maturity (**UX-28**) to introduce live "{shown} o
 
 ## What's Next
 
-- [ ] Adopt the `FilterSummaryBar` on other report lists (e.g. `TransactionHistoryView`) as a nice-to-have.
-- [ ] Add unit testing for ViewModel filter logic in future iterations.
+- [ ] Adopt the `FilterSummaryBar` on other report lists (e.g. `TransactionHistoryView`) as a nice-to-have. — planned as UX-31.
+- [ ] Add unit testing for ViewModel filter logic in future iterations. — deferred to the dedicated testing phase (review Verification Debt #6).

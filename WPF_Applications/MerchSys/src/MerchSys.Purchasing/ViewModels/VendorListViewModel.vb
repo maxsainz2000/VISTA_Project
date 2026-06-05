@@ -4,6 +4,7 @@ Imports CommunityToolkit.Mvvm.Input
 Imports MerchSys.Purchasing.Entities
 Imports MerchSys.Purchasing.Services
 Imports MerchSys.SharedKernel.Interfaces
+Imports MerchSys.SharedKernel.Presentation
 Imports MerchSys.SharedKernel.Persistence
 Imports MerchSys.SharedKernel.Enums
 
@@ -28,6 +29,17 @@ Namespace ViewModels
     ''' </summary>
     Public Class VendorListViewModel
         Inherits ObservableObject
+        Implements IFreshnessAware
+
+        Private _lastLoadedAt As DateTime?
+        Public Property LastLoadedAt As DateTime? Implements IFreshnessAware.LastLoadedAt
+            Get
+                Return _lastLoadedAt
+            End Get
+            Set(value As DateTime?)
+                SetProperty(_lastLoadedAt, value)
+            End Set
+        End Property
 
         Private ReadOnly _vendorService As IVendorService
         Private ReadOnly _conflictPresenter As IConflictPresenter
@@ -36,6 +48,18 @@ Namespace ViewModels
         Private ReadOnly _notifications As INotificationService
         Private _allVendors As List(Of Vendor) = New List(Of Vendor)()
 
+        ' Session memory fields
+        Private Shared _savedSearchText As String = String.Empty
+        Private Shared _lastUser As String = Nothing
+
+        Public Property ActiveFilterChips As ObservableCollection(Of FilterChipItem)
+
+        Public ReadOnly Property TotalVendors As Integer
+            Get
+                Return _allVendors.Count
+            End Get
+        End Property
+
         Public Sub New(vendorService As IVendorService, conflictPresenter As IConflictPresenter, session As ISessionService, confirmationPresenter As IConfirmationPresenter, notifications As INotificationService)
             _vendorService = vendorService
             _conflictPresenter = conflictPresenter
@@ -43,11 +67,23 @@ Namespace ViewModels
             _confirmationPresenter = confirmationPresenter
             _notifications = notifications
 
+            ' Restore session filters
+            Dim currentUser = _session.CurrentUsername
+            If currentUser <> _lastUser Then
+                _savedSearchText = String.Empty
+                _lastUser = currentUser
+            End If
+
+            _searchText = _savedSearchText
+
             Vendors = New ObservableCollection(Of Vendor)()
             RecentPOs = New ObservableCollection(Of POSummaryRow)()
             Editor = New VendorEditorViewModel()
+            ActiveFilterChips = New ObservableCollection(Of FilterChipItem)()
 
             RefreshCommand = New AsyncRelayCommand(AddressOf LoadDataAsync)
+            ClearFiltersCommand = New RelayCommand(AddressOf ClearFilters)
+
             If IsManager Then
                 AddVendorCommand = New AsyncRelayCommand(AddressOf OpenNewEditorAsync)
                 EditVendorCommand = New AsyncRelayCommand(AddressOf OpenEditEditorAsync, Function() SelectedVendor IsNot Nothing)
@@ -89,7 +125,10 @@ Namespace ViewModels
                 Return _searchText
             End Get
             Set(value As String)
-                If SetProperty(_searchText, value) Then ApplyFilter()
+                If SetProperty(_searchText, value) Then
+                    _savedSearchText = value
+                    ApplyFilter()
+                End If
             End Set
         End Property
 
@@ -194,6 +233,7 @@ Namespace ViewModels
         ' ─── Commands ─────────────────────────────────────────────────────────────
 
         Public Property RefreshCommand As AsyncRelayCommand
+        Public Property ClearFiltersCommand As RelayCommand
         Public Property AddVendorCommand As AsyncRelayCommand
         Public Property EditVendorCommand As AsyncRelayCommand
         Public Property DeleteVendorCommand As AsyncRelayCommand
@@ -210,6 +250,7 @@ Namespace ViewModels
                 ApplyFilter()
                 StatusMessage = $"Loaded {_allVendors.Count} vendors"
                 IsError = False
+                LastLoadedAt = DateTime.Now
             Catch ex As Exception
                 ErrorMessage = ex.Message
                 IsError = True
@@ -217,6 +258,33 @@ Namespace ViewModels
                 IsBusy = False
             End Try
         End Function
+
+        Public ReadOnly Property IsFilterActive As Boolean
+            Get
+                Return Not String.IsNullOrWhiteSpace(SearchText)
+            End Get
+        End Property
+
+        Private Sub RefreshFilterChips()
+            If ActiveFilterChips Is Nothing Then
+                ActiveFilterChips = New ObservableCollection(Of FilterChipItem)()
+            Else
+                ActiveFilterChips.Clear()
+            End If
+
+            If Not String.IsNullOrWhiteSpace(SearchText) Then
+                ActiveFilterChips.Add(New FilterChipItem($"Search: {SearchText.Trim()}", "Search", New RelayCommand(Sub() SearchText = String.Empty)))
+            End If
+
+            OnPropertyChanged(NameOf(IsFilterActive))
+        End Sub
+
+        Private Sub ClearFilters()
+            _searchText = String.Empty
+            _savedSearchText = String.Empty
+            OnPropertyChanged(NameOf(SearchText))
+            ApplyFilter()
+        End Sub
 
         Private Sub ApplyFilter()
             Dim filtered = _allVendors.AsEnumerable()
@@ -233,6 +301,9 @@ Namespace ViewModels
             For Each vendor In filtered
                 Vendors.Add(vendor)
             Next
+
+            RefreshFilterChips()
+            OnPropertyChanged(NameOf(TotalVendors))
             OnPropertyChanged(NameOf(IsEmpty))
         End Sub
 

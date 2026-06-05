@@ -45,7 +45,7 @@ Implemented dashboard layout compositions across 10 KPI-band views in `MerchSys.
 
 ## What's Next
 
-- [ ] Apply responsive scroll viewer wrapping and FilterBar reflowing standards to all dashboard and list views (planned in UX-11).
+- [x] Apply responsive scroll viewer wrapping and FilterBar reflowing standards to all dashboard and list views — resolved by UX-11.
 
 ## Cross-References
 

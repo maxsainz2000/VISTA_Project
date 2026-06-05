@@ -5,6 +5,7 @@ Imports MerchSys.POS.Entities
 Imports MerchSys.POS.Services
 Imports MerchSys.SharedKernel.Enums
 Imports MerchSys.SharedKernel.Interfaces
+Imports MerchSys.SharedKernel.Presentation
 Imports MerchSys.SharedKernel.Persistence
 Imports Microsoft.Extensions.Configuration
 Imports Microsoft.Extensions.Options
@@ -128,6 +129,29 @@ Namespace ViewModels
         Private ReadOnly _configuration As IConfiguration
         Private ReadOnly _pdfOptions As IOptions(Of ReceiptPdfOptions)
 
+        Private _allTransactions As New List(Of TransactionSummaryItem)()
+
+        ' Session memory fields
+        Private Shared _savedDateFrom As DateTime? = Nothing
+        Private Shared _savedDateTo As DateTime? = Nothing
+        Private Shared _savedTxNumberFilter As String = String.Empty
+        Private Shared _savedPaymentMethodFilter As String = "All"
+        Private Shared _lastUser As String = Nothing
+
+        Public Property ActiveFilterChips As ObservableCollection(Of FilterChipItem)
+
+        Public ReadOnly Property TotalTransactions As Integer
+            Get
+                Return _allTransactions.Count
+            End Get
+        End Property
+
+        Public ReadOnly Property IsFilterActive As Boolean
+            Get
+                Return (SelectedPaymentMethodFilter <> "All") OrElse Not String.IsNullOrWhiteSpace(TxNumberFilter)
+            End Get
+        End Property
+
         ''' <summary>
         ''' True when the current role is Manager. Owner role receives read-only access (DA5 UI enforcement).
         ''' Binds to IsEnabled on write-capable action buttons (Process Return).
@@ -212,6 +236,23 @@ Namespace ViewModels
             _configuration = configuration
             _pdfOptions = pdfOptions
 
+            ' Restore session filters
+            Dim currentUser = _session.CurrentUsername
+            If currentUser <> _lastUser Then
+                _savedDateFrom = New DateTime(DateTime.Today.Year, DateTime.Today.Month, 1)
+                _savedDateTo = DateTime.Today
+                _savedTxNumberFilter = String.Empty
+                _savedPaymentMethodFilter = "All"
+                _lastUser = currentUser
+            End If
+
+            _dateFrom = If(_savedDateFrom, New DateTime(DateTime.Today.Year, DateTime.Today.Month, 1))
+            _dateTo = If(_savedDateTo, DateTime.Today)
+            _txNumberFilter = _savedTxNumberFilter
+            _selectedPaymentMethodFilter = _savedPaymentMethodFilter
+
+            ActiveFilterChips = New ObservableCollection(Of FilterChipItem)()
+
             SearchCommand = New AsyncRelayCommand(AddressOf SearchAsync)
             ClearFiltersCommand = New RelayCommand(AddressOf ClearFilters)
             SelectTransactionCommand = New AsyncRelayCommand(Of TransactionSummaryItem)(AddressOf SelectTransactionAsync)
@@ -223,6 +264,8 @@ Namespace ViewModels
                 Function() SelectedTransaction IsNot Nothing AndAlso Not SelectedTransaction.IsVoided)
             ProcessReturnCommand = New AsyncRelayCommand(AddressOf ProcessReturnAsync, AddressOf CanProcessReturn)
             CancelReturnCommand = New RelayCommand(Sub() IsReturnDialogVisible = False)
+
+            Dim initTask = SearchAsync()
         End Sub
 
         ' ── Filter properties ─────────────────────────────────────────────────────
@@ -232,7 +275,10 @@ Namespace ViewModels
                 Return _dateFrom
             End Get
             Set(value As DateTime)
-                SetProperty(_dateFrom, value)
+                If SetProperty(_dateFrom, value) Then
+                    _savedDateFrom = value
+                    Dim t = SearchAsync()
+                End If
             End Set
         End Property
 
@@ -241,7 +287,10 @@ Namespace ViewModels
                 Return _dateTo
             End Get
             Set(value As DateTime)
-                SetProperty(_dateTo, value)
+                If SetProperty(_dateTo, value) Then
+                    _savedDateTo = value
+                    Dim t = SearchAsync()
+                End If
             End Set
         End Property
 
@@ -250,7 +299,10 @@ Namespace ViewModels
                 Return _txNumberFilter
             End Get
             Set(value As String)
-                SetProperty(_txNumberFilter, value)
+                If SetProperty(_txNumberFilter, value) Then
+                    _savedTxNumberFilter = value
+                    ApplyFilters()
+                End If
             End Set
         End Property
 
@@ -259,7 +311,10 @@ Namespace ViewModels
                 Return _selectedPaymentMethodFilter
             End Get
             Set(value As String)
-                SetProperty(_selectedPaymentMethodFilter, value)
+                If SetProperty(_selectedPaymentMethodFilter, value) Then
+                    _savedPaymentMethodFilter = value
+                    ApplyFilters()
+                End If
             End Set
         End Property
 
@@ -497,23 +552,9 @@ Namespace ViewModels
                 Dim txIds = results.Select(Function(t) t.Id).ToList()
                 Dim txIdsWithReturns = Await _returnService.GetTransactionIdsWithReturnsAsync(txIds)
 
-                ' Apply in-memory filters
-                Dim filtered = results.AsEnumerable()
-
-                If Not String.IsNullOrWhiteSpace(TxNumberFilter) Then
-                    Dim pattern = TxNumberFilter.Trim()
-                    filtered = filtered.Where(
-                        Function(t) t.TransactionNumber.IndexOf(pattern, StringComparison.OrdinalIgnoreCase) >= 0)
-                End If
-
-                If SelectedPaymentMethodFilter <> "All" Then
-                    Dim pm = CType([Enum].Parse(GetType(PaymentMethod), SelectedPaymentMethodFilter), PaymentMethod)
-                    filtered = filtered.Where(Function(t) t.PaymentMethod = pm)
-                End If
-
-                Transactions.Clear()
-                For Each tx In filtered
-                    Transactions.Add(New TransactionSummaryItem() With {
+                _allTransactions.Clear()
+                For Each tx In results
+                    _allTransactions.Add(New TransactionSummaryItem() With {
                         .TransactionId = tx.Id,
                         .TransactionNumber = tx.TransactionNumber,
                         .TransactionDate = tx.TransactionDate,
@@ -527,9 +568,7 @@ Namespace ViewModels
                     })
                 Next
 
-                StatusMessage = $"{Transactions.Count} transaction(s) found."
-                IsStatusSuccess = True
-                IsError = False
+                ApplyFilters()
                 LastLoadedAt = DateTime.Now
             Catch ex As Exception
                 StatusMessage = $"Error loading transactions: {ex.Message}"
@@ -541,11 +580,68 @@ Namespace ViewModels
             End Try
         End Function
 
+        Private Sub ApplyFilters()
+            Dim filtered = _allTransactions.AsEnumerable()
+
+            If Not String.IsNullOrWhiteSpace(TxNumberFilter) Then
+                Dim pattern = TxNumberFilter.Trim()
+                filtered = filtered.Where(
+                    Function(t) t.TransactionNumber.IndexOf(pattern, StringComparison.OrdinalIgnoreCase) >= 0)
+            End If
+
+            If SelectedPaymentMethodFilter <> "All" Then
+                filtered = filtered.Where(Function(t) t.PaymentMethod.Equals(SelectedPaymentMethodFilter, StringComparison.OrdinalIgnoreCase))
+            End If
+
+            Transactions.Clear()
+            For Each tx In filtered
+                Transactions.Add(tx)
+            Next
+
+            StatusMessage = $"{Transactions.Count} transaction(s) found."
+            IsStatusSuccess = True
+            IsError = False
+
+            RefreshFilterChips()
+            OnPropertyChanged(NameOf(TotalTransactions))
+            OnPropertyChanged(NameOf(IsEmpty))
+        End Sub
+
+        Private Sub RefreshFilterChips()
+            If ActiveFilterChips Is Nothing Then
+                ActiveFilterChips = New ObservableCollection(Of FilterChipItem)()
+            Else
+                ActiveFilterChips.Clear()
+            End If
+
+            If Not String.IsNullOrEmpty(SelectedPaymentMethodFilter) AndAlso SelectedPaymentMethodFilter <> "All" Then
+                ActiveFilterChips.Add(New FilterChipItem($"Method: {SelectedPaymentMethodFilter}", "PaymentMethod", New RelayCommand(Sub() SelectedPaymentMethodFilter = "All")))
+            End If
+
+            If Not String.IsNullOrWhiteSpace(TxNumberFilter) Then
+                ActiveFilterChips.Add(New FilterChipItem($"TX#: {TxNumberFilter.Trim()}", "TxNumber", New RelayCommand(Sub() TxNumberFilter = String.Empty)))
+            End If
+
+            OnPropertyChanged(NameOf(IsFilterActive))
+        End Sub
+
         Private Sub ClearFilters()
-            DateFrom = New DateTime(DateTime.Today.Year, DateTime.Today.Month, 1)
-            DateTo = DateTime.Today
-            TxNumberFilter = ""
-            SelectedPaymentMethodFilter = "All"
+            _dateFrom = New DateTime(DateTime.Today.Year, DateTime.Today.Month, 1)
+            _dateTo = DateTime.Today
+            _txNumberFilter = ""
+            _selectedPaymentMethodFilter = "All"
+
+            _savedDateFrom = _dateFrom
+            _savedDateTo = _dateTo
+            _savedTxNumberFilter = ""
+            _savedPaymentMethodFilter = "All"
+
+            OnPropertyChanged(NameOf(DateFrom))
+            OnPropertyChanged(NameOf(DateTo))
+            OnPropertyChanged(NameOf(TxNumberFilter))
+            OnPropertyChanged(NameOf(SelectedPaymentMethodFilter))
+
+            Dim t = SearchAsync()
         End Sub
 
         Friend Async Function SelectTransactionAsync(item As TransactionSummaryItem) As Task

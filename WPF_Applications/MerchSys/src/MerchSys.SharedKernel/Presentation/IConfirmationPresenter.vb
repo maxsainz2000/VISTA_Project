@@ -1,6 +1,6 @@
 Imports System.Threading.Tasks
 
-Namespace Interfaces
+Namespace Presentation
 
     ''' <summary>
     ''' Cross-cutting service for prompting the user with confirmation dialogs.

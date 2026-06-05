@@ -1,4 +1,4 @@
-Namespace Interfaces
+Namespace Presentation
 
     ''' <summary>
     ''' Represents an optional action button attached to a toast notification.

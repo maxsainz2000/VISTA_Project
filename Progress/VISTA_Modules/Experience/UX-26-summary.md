@@ -45,7 +45,7 @@ The shimmer animation is implemented as a `Storyboard` animating the `StartPoint
 
 ## What's Next
 
-- [ ] Run the application to manually inspect visual alignment and polish micro-interactions if necessary.
+- [ ] Run the application to manually inspect visual alignment and polish micro-interactions if necessary — folded into the both-theme realization pass of UX-31 (which mounts more skeletons).
 
 ## Cross-References
 

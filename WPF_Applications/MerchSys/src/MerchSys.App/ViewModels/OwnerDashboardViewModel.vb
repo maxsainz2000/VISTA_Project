@@ -7,6 +7,7 @@ Imports MerchSys.POS.Services
 Imports MerchSys.Purchasing.Services
 Imports MerchSys.SharedKernel.Enums
 Imports MerchSys.SharedKernel.Interfaces
+Imports MerchSys.SharedKernel.Presentation
 
 Namespace ViewModels
 

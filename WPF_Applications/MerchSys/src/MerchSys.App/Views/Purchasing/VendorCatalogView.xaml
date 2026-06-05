@@ -6,7 +6,8 @@
              xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
              mc:Ignorable="d"
              d:DesignHeight="768" d:DesignWidth="1280"
-             Background="{DynamicResource WindowBackgroundBrush}">
+             Background="{DynamicResource WindowBackgroundBrush}"
+             PreviewKeyDown="UserControl_PreviewKeyDown">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
@@ -15,13 +16,39 @@
     <Grid>
         <!-- Main Master-Detail Layout -->
         <DockPanel Margin="10">
+            <DockPanel.Style>
+                <Style TargetType="DockPanel">
+                    <Setter Property="Visibility" Value="Visible"/>
+                    <Style.Triggers>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsBusy}" Value="True"/>
+                                <Condition Binding="{Binding LastLoadedAt}" Value="{x:Null}"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </MultiDataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DockPanel.Style>
+
             <!-- Header/Status row -->
             <Border DockPanel.Dock="Top"
                     Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
                     CornerRadius="{DynamicResource RadiusSmall}" Padding="12,8" Margin="0,0,0,6">
                 <Grid>
-                    <TextBlock Text="Vendor Product Catalog Manager" Style="{StaticResource SectionHeaderStyle}" VerticalAlignment="Center"/>
-                    <TextBlock Text="{Binding StatusMessage}" HorizontalAlignment="Right" FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Vendor Product Catalog Manager" Style="{StaticResource SectionHeaderStyle}" VerticalAlignment="Center"/>
+                    <views:FreshnessChip Grid.Column="1"
+                                         LastLoadedAt="{Binding LastLoadedAt}"
+                                         RefreshCommand="{Binding LoadVendorsCommand}"
+                                         VerticalAlignment="Center"
+                                         Margin="16,0,0,0"
+                                         HorizontalAlignment="Left"/>
+                    <TextBlock Grid.Column="2" Text="{Binding StatusMessage}" FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                 </Grid>
             </Border>
 
@@ -41,7 +68,8 @@
                         <ListBox ItemsSource="{Binding Vendors}"
                                  SelectedItem="{Binding SelectedVendor}"
                                  DisplayMemberPath="Name"
-                                 FontSize="12" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                 FontSize="12" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                 TabIndex="1">
                             <ListBox.ItemContainerStyle>
                                 <Style TargetType="ListBoxItem">
                                     <Setter Property="Padding" Value="8,6"/>
@@ -84,13 +112,14 @@
                                         </StackPanel>
 
                                         <!-- Add Product Action (Manager Only) -->
-                                        <Button Content="+ Add Product to Catalog"
+                                        <Button Content="+ _Add Product to Catalog"
                                                 Command="{Binding SearchProductsCommand}"
                                                 CommandParameter=""
                                                 Click="OpenSearchDialog"
                                                 Style="{StaticResource SuccessButtonStyle}"
                                                 HorizontalAlignment="Right"
-                                                Visibility="{Binding IsManager, Converter={StaticResource BoolToVis}}"/>
+                                                Visibility="{Binding IsManager, Converter={StaticResource BoolToVis}}"
+                                                TabIndex="2"/>
                                     </Grid>
 
                                     <!-- Catalog Grid -->
@@ -104,7 +133,8 @@
                                                   HeadersVisibility="Column"
                                                   Background="{DynamicResource SurfaceBrush}"
                                                   AlternatingRowBackground="{DynamicResource WindowBackgroundBrush}"
-                                                  FontSize="{DynamicResource FontSizeBody}">
+                                                  FontSize="{DynamicResource FontSizeBody}"
+                                                  TabIndex="3">
                                             <DataGrid.RowStyle>
                                                 <Style TargetType="{x:Type DataGridRow}" BasedOn="{StaticResource SemanticRowStyle}"/>
                                             </DataGrid.RowStyle>
@@ -140,12 +170,12 @@
                                                     <DataGridTemplateColumn.CellTemplate>
                                                         <DataTemplate>
                                                             <StackPanel Orientation="Horizontal">
-                                                                <Button Content="Save"
+                                                                <Button Content="_Save"
                                                                         Command="{Binding DataContext.SaveEntryCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                                         CommandParameter="{Binding}"
                                                                         FontSize="10" Padding="6,2" Margin="0,0,4,0"
                                                                         Style="{StaticResource SuccessButtonStyle}"/>
-                                                                <Button Content="Remove"
+                                                                <Button Content="_Remove"
                                                                         Command="{Binding DataContext.DeleteEntryCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                                         CommandParameter="{Binding}"
                                                                         FontSize="10" Padding="6,2"
@@ -188,8 +218,11 @@
                         </DockPanel>
 
                         <!-- Busy Overlay -->
+                        <views:SkeletonPanel Kind="Rows" IsBusy="{Binding IsBusy}" LastLoadedAt="{Binding LastLoadedAt}" Margin="10"/>
+
                         <views:BusyOverlay Message="Loading catalog..."
-                                           Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"
+                                           IsBusy="{Binding IsBusy}"
+                                           LastLoadedAt="{Binding LastLoadedAt}"
                                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
 
                         <views:ErrorStatePanel Title="Load Failed"
@@ -216,13 +249,15 @@
 
                     <!-- Footer actions -->
                     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
-                        <Button Content="Add Product"
+                        <Button Content="_Add Product"
                                 Command="{Binding AddProductCommand}"
                                 Style="{StaticResource SuccessButtonStyle}"
-                                Margin="0,0,8,0"/>
-                        <Button Content="Cancel"
+                                Margin="0,0,8,0"
+                                TabIndex="14"/>
+                        <Button Content="_Cancel"
                                 Click="CloseSearchDialog"
-                                Style="{StaticResource SecondaryButtonStyle}"/>
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                TabIndex="15"/>
                     </StackPanel>
 
                     <!-- Product detail input -->
@@ -236,7 +271,7 @@
                         </Grid.RowDefinitions>
 
                         <TextBlock Grid.Row="0" Grid.Column="0" Text="Catalog Notes:" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,8,0"/>
-                        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding NewEntryNotes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Padding="6,4"/>
+                        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding NewEntryNotes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Padding="6,4" TabIndex="13"/>
                     </Grid>
 
                     <!-- Product search box -->
@@ -247,17 +282,20 @@
                         </Grid.ColumnDefinitions>
                         <TextBox Grid.Column="0" Text="{Binding ProductSearchTerm, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                  x:Name="ModalSearchBox" KeyDown="ModalSearchBox_KeyDown"
-                                 Padding="6,4" VerticalContentAlignment="Center"/>
-                        <Button Grid.Column="1" Content="Search"
+                                 Padding="6,4" VerticalContentAlignment="Center"
+                                 TabIndex="10"/>
+                        <Button Grid.Column="1" Content="_Search"
                                 Command="{Binding SearchProductsCommand}"
                                 Style="{StaticResource PrimaryButtonStyle}"
-                                Margin="4,0,0,0"/>
+                                Margin="4,0,0,0"
+                                TabIndex="11"/>
                     </Grid>
 
                     <!-- Search Results -->
                     <ListBox ItemsSource="{Binding ProductSearchResults}"
                              SelectedItem="{Binding SelectedProductResult}"
-                             FontSize="11">
+                             FontSize="11"
+                             TabIndex="12">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <Grid Margin="4,2">

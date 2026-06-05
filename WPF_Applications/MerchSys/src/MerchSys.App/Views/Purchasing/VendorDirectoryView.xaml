@@ -38,6 +38,13 @@
                          VerticalContentAlignment="Center"
                          TabIndex="5"/>
 
+                <views:FreshnessChip Grid.Column="2"
+                                     LastLoadedAt="{Binding LastLoadedAt}"
+                                     RefreshCommand="{Binding RefreshCommand}"
+                                     VerticalAlignment="Center"
+                                     HorizontalAlignment="Left"
+                                     Margin="16,0,0,0"/>
+
                 <StackPanel Grid.Column="3" Orientation="Horizontal"
                             Visibility="{Binding IsManager, Converter={StaticResource BoolToVis}}">
                     <Button Content="_Add Vendor"
@@ -211,8 +218,31 @@
                     CornerRadius="{DynamicResource RadiusSmall}" Margin="0,0,6,0">
                 <Grid>
                     <DockPanel Margin="12">
+                        <DockPanel.Style>
+                            <Style TargetType="DockPanel">
+                                <Setter Property="Visibility" Value="Visible"/>
+                                <Style.Triggers>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding IsBusy}" Value="True"/>
+                                            <Condition Binding="{Binding LastLoadedAt}" Value="{x:Null}"/>
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DockPanel.Style>
+
                         <TextBlock DockPanel.Dock="Top" Text="Vendors"
                                    Style="{StaticResource SectionHeaderStyle}" Margin="0,0,0,8"/>
+
+                        <!-- Filter summary bar showing count, active filter chips, and clear all -->
+                        <views:FilterSummaryBar DockPanel.Dock="Top"
+                                                Margin="4,0,4,8"
+                                                ShownCount="{Binding Vendors.Count}"
+                                                TotalCount="{Binding TotalVendors}"
+                                                ActiveFilters="{Binding ActiveFilterChips}"
+                                                ClearAllCommand="{Binding ClearFiltersCommand}"/>
 
                         <DataGrid x:Name="VendorGrid"
                                   TabIndex="6"
@@ -274,10 +304,11 @@
                                            ActionCommand="{Binding AddVendorCommand}"
                                            ActionText="Add Vendor"/>
 
+                    <!-- Skeleton Panel -->
+                    <views:SkeletonPanel Kind="Rows" IsBusy="{Binding IsBusy}" LastLoadedAt="{Binding LastLoadedAt}" Margin="10"/>
+
                     <!-- Busy Overlay -->
-                    <views:BusyOverlay Message="Loading vendors..."
-                                       Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"
-                                       HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                    <views:BusyOverlay IsBusy="{Binding IsBusy}" LastLoadedAt="{Binding LastLoadedAt}"/>
 
                     <views:ErrorStatePanel Title="Load Failed"
                                            Message="{Binding ErrorMessage}"

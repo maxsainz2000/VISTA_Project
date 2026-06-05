@@ -46,8 +46,8 @@ None.
 
 ## What's Next
 
-- [ ] Apply the metric hierarchy and composition standards to the 10 target dashboard views (planned in UX-10).
-- [ ] Apply responsive scroll viewer and FilterBar wrapping to views (planned in UX-11).
+- [x] Apply the metric hierarchy and composition standards to the 10 target dashboard views — resolved by UX-10.
+- [x] Apply responsive scroll viewer and FilterBar wrapping to views — resolved by UX-11.
 
 ## Cross-References
 

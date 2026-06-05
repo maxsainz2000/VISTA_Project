@@ -1,6 +1,7 @@
 Imports System.Threading.Tasks
 Imports System.Windows
 Imports MerchSys.SharedKernel.Interfaces
+Imports MerchSys.SharedKernel.Presentation
 
 Namespace Services
 

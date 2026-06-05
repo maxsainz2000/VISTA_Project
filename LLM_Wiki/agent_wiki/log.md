@@ -4,6 +4,8 @@ Chronological record of all agent contributions to the Agent Wiki.
 
 <!-- Append new entries at the top. Format: ## [YYYY-MM-DD] agent | action | description -->
 
+## [2026-06-05] claude-code | added pattern | UX review §2.3 / UX-35 decision: recorded the boundary convention that cross-cutting **presentation contracts** consumed by module-library ViewModels (`IFreshnessAware`, `FilterChipItem`, `NotificationAction`, `ConfirmationRequest`, `IConfirmationPresenter`) live in `SharedKernel`, not `MerchSys.App`. Consumer-graph grep proved all four module libraries reference them, so relocating to App would break the modular-monolith rule (module → App is forbidden). Decision: Option B (keep in SharedKernel); variant B-minimal (document now); the optional `SharedKernel/Presentation/` namespace tidy-up is folded into UX-31. No code change. See patterns/wpf-vista-presentation-contracts.md.
+
 ## [2026-06-05] antigravity | added pattern | UX-30 implemented POS Keyboard-First Fast Path. Designed scan-hot focus discipline, cart-scoped hotkeys (Ctrl+Q/D/T, Alt+Q/D/H/R/T), Enter-to-commit on tender, and in-memory hold/recall swap. Clean build 0/0. See patterns/wpf-vista-pos-fast-path.md.
 
 ## [2026-06-05] antigravity | added pattern | UX-29 implemented Notification Actions & Undo. Extended `INotificationService` contract in a backward-compatible manner. Added time-boxed and idempotent "Undo" buttons to success toasts after soft-deleting categories (Inventory), vendors (Purchasing), and vendor catalog entries (Purchasing). Restorations route through module command paths with concurrency conflict handling. Build 0/0. See patterns/wpf-vista-notification-undo.md.

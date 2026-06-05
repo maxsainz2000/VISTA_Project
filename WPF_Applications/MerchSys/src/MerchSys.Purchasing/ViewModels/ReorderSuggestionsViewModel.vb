@@ -5,6 +5,9 @@ Imports MerchSys.Purchasing.Entities
 Imports MerchSys.Purchasing.Services
 Imports MerchSys.SharedKernel.Interfaces
 Imports MerchSys.SharedKernel.Persistence
+Imports MerchSys.SharedKernel.Presentation
+Imports MerchSys.SharedKernel.Enums
+Imports System.Windows.Input
 
 Namespace ViewModels
 
@@ -27,21 +30,53 @@ Namespace ViewModels
     ''' </summary>
     Public Class ReorderSuggestionsViewModel
         Inherits ObservableObject
+        Implements IFreshnessAware
+
+        Private _lastLoadedAt As DateTime?
+        Public Property LastLoadedAt As DateTime? Implements IFreshnessAware.LastLoadedAt
+            Get
+                Return _lastLoadedAt
+            End Get
+            Set(value As DateTime?)
+                SetProperty(_lastLoadedAt, value)
+            End Set
+        End Property
 
         Private ReadOnly _reorderService As IReorderService
         Private ReadOnly _conflictPresenter As IConflictPresenter
+        Private ReadOnly _session As ISessionService
+
         Private _allSuggestions As List(Of SuggestionRow) = New List(Of SuggestionRow)()
         Private _editingConfig As ReorderConfig
 
-        Public Sub New(reorderService As IReorderService, conflictPresenter As IConflictPresenter)
+        ' Session memory
+        Private Shared _savedActiveFilter As String = "Pending"
+        Private Shared _savedActiveTab As String = "Suggestions"
+        Private Shared _lastUser As String = Nothing
+
+        Public Sub New(reorderService As IReorderService, conflictPresenter As IConflictPresenter, session As ISessionService)
             _reorderService = reorderService
             _conflictPresenter = conflictPresenter
+            _session = session
+
+            ' Restore session filters
+            Dim currentUser = _session.CurrentUsername
+            If currentUser <> _lastUser Then
+                _savedActiveFilter = "Pending"
+                _savedActiveTab = "Suggestions"
+                _lastUser = currentUser
+            End If
+
+            _activeFilter = _savedActiveFilter
+            _activeTab = _savedActiveTab
 
             Suggestions = New ObservableCollection(Of SuggestionRow)()
             Configs = New ObservableCollection(Of ReorderConfig)()
+            ActiveFilterChips = New ObservableCollection(Of FilterChipItem)()
 
             GenerateCommand = New AsyncRelayCommand(AddressOf GenerateAsync, Function() Not IsBusy)
             RefreshCommand = New AsyncRelayCommand(AddressOf LoadDataAsync, Function() Not IsBusy)
+            ClearFiltersCommand = New RelayCommand(AddressOf ClearFilters)
             SetFilterCommand = New RelayCommand(Of String)(Sub(f) ActiveFilter = f)
             SwitchTabCommand = New RelayCommand(Of String)(Sub(t) ActiveTab = t)
             AcceptCommand = New AsyncRelayCommand(Of SuggestionRow)(AddressOf AcceptAsync, Function(r) r IsNot Nothing AndAlso Not IsBusy)
@@ -180,6 +215,7 @@ Namespace ViewModels
 
         Public Property GenerateCommand As AsyncRelayCommand
         Public Property RefreshCommand As AsyncRelayCommand
+        Public Property ClearFiltersCommand As RelayCommand
         Public Property SetFilterCommand As RelayCommand(Of String)
         Public Property SwitchTabCommand As RelayCommand(Of String)
         Public Property AcceptCommand As AsyncRelayCommand(Of SuggestionRow)
@@ -187,6 +223,32 @@ Namespace ViewModels
         Public Property OpenEditConfigCommand As RelayCommand(Of ReorderConfig)
         Public Property SaveConfigCommand As AsyncRelayCommand
         Public Property CancelEditCommand As RelayCommand
+
+        Public Property ActiveFilterChips As ObservableCollection(Of FilterChipItem)
+
+        Public ReadOnly Property TotalSuggestions As Integer
+            Get
+                Return _allSuggestions.Count
+            End Get
+        End Property
+
+        Public ReadOnly Property CanEdit As Boolean
+            Get
+                Return _session.CurrentRole = UserRole.Manager OrElse _session.CurrentRole = UserRole.Developer
+            End Get
+        End Property
+
+        Public ReadOnly Property EmptyStateActionCommand As ICommand
+            Get
+                Return If(CanEdit, GenerateCommand, Nothing)
+            End Get
+        End Property
+
+        Public ReadOnly Property EmptyStateActionText As String
+            Get
+                Return If(CanEdit, "Generate suggestions", Nothing)
+            End Get
+        End Property
 
         ' ─── Config Edit Dialog ────────────────────────────────────────────────────
 
@@ -329,6 +391,7 @@ Namespace ViewModels
 
                 StatusMessage = $"Loaded {_allSuggestions.Count} suggestion(s), {Configs.Count} config(s)."
                 IsError = False
+                LastLoadedAt = DateTime.Now
             Catch ex As Exception
                 ErrorMessage = ex.Message
                 IsError = True
@@ -337,12 +400,38 @@ Namespace ViewModels
             End Try
         End Function
 
+        Public ReadOnly Property IsFilterActive As Boolean
+            Get
+                Return _activeFilter <> "Pending"
+            End Get
+        End Property
+
+        Private Sub RefreshFilterChips()
+            If ActiveFilterChips Is Nothing Then
+                ActiveFilterChips = New ObservableCollection(Of FilterChipItem)()
+            Else
+                ActiveFilterChips.Clear()
+            End If
+
+            If _activeFilter <> "Pending" Then
+                ActiveFilterChips.Add(New FilterChipItem($"Status: {_activeFilter}", "Status", New RelayCommand(Sub() ActiveFilter = "Pending")))
+            End If
+
+            OnPropertyChanged(NameOf(IsFilterActive))
+        End Sub
+
+        Private Sub ClearFilters()
+            ActiveFilter = "Pending"
+        End Sub
+
         Private Sub ApplyFilter()
             Dim filtered = _allSuggestions.Where(Function(sg) sg.Status = _activeFilter).ToList()
             Suggestions.Clear()
             For Each row In filtered
                 Suggestions.Add(row)
             Next
+            RefreshFilterChips()
+            OnPropertyChanged(NameOf(TotalSuggestions))
             OnPropertyChanged(NameOf(IsEmpty))
         End Sub
 

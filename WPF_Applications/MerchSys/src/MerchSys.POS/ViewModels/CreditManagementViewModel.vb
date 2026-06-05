@@ -10,6 +10,7 @@ Imports MerchSys.POS.Services
 Imports MerchSys.SharedKernel.Enums
 Imports MerchSys.SharedKernel.Interfaces
 Imports MerchSys.SharedKernel.Persistence
+Imports MerchSys.SharedKernel.Presentation
 
 Namespace ViewModels
 
@@ -29,6 +30,17 @@ Namespace ViewModels
     ''' </summary>
     Public Class CreditManagementViewModel
         Inherits ObservableValidator
+        Implements IFreshnessAware
+
+        Private _lastLoadedAt As DateTime?
+        Public Property LastLoadedAt As DateTime? Implements IFreshnessAware.LastLoadedAt
+            Get
+                Return _lastLoadedAt
+            End Get
+            Set(value As DateTime?)
+                SetProperty(_lastLoadedAt, value)
+            End Set
+        End Property
 
         Private ReadOnly _creditService As ICreditService
         Private ReadOnly _context As POSDbContext
@@ -39,6 +51,11 @@ Namespace ViewModels
         ' Unfiltered master list used for in-memory filtering
         Private _allAccounts As List(Of CreditAccount) = New List(Of CreditAccount)()
         Private _historyTxList As List(Of SalesTransaction)
+
+        ' Session memory
+        Private Shared _savedSearchText As String = String.Empty
+        Private Shared _savedActiveFilter As String = "All"
+        Private Shared _lastUser As String = Nothing
 
         ' ── Backing fields ────────────────────────────────────────────────────────
 
@@ -52,6 +69,7 @@ Namespace ViewModels
         Private _activeFilter As String = "All"
 
         Private _paymentHistory As ObservableCollection(Of CreditPayment) = New ObservableCollection(Of CreditPayment)()
+        Private _activeFilterChips As ObservableCollection(Of FilterChipItem) = New ObservableCollection(Of FilterChipItem)()
         Private _creditTransactions As ObservableCollection(Of CreditTransactionItem) = New ObservableCollection(Of CreditTransactionItem)()
 
         Private _isAddAccountVisible As Boolean
@@ -71,6 +89,7 @@ Namespace ViewModels
         ' ── Commands ──────────────────────────────────────────────────────────────
 
         Public ReadOnly Property LoadDataCommand As AsyncRelayCommand
+        Public ReadOnly Property ClearFiltersCommand As RelayCommand
         Public ReadOnly Property SearchCommand As RelayCommand
         Public ReadOnly Property ApplyFilterCommand As RelayCommand(Of String)
         Public ReadOnly Property AddAccountCommand As RelayCommand
@@ -140,7 +159,10 @@ Namespace ViewModels
                 Return _searchText
             End Get
             Set(value As String)
-                SetProperty(_searchText, value)
+                If SetProperty(_searchText, value) Then
+                    _savedSearchText = value
+                    ApplyFilter()
+                End If
             End Set
         End Property
 
@@ -148,13 +170,22 @@ Namespace ViewModels
             Get
                 Return _activeFilter
             End Get
-            Private Set(value As String)
-                SetProperty(_activeFilter, value)
-                OnPropertyChanged(NameOf(IsFilterAll))
-                OnPropertyChanged(NameOf(IsFilterBlocked))
-                OnPropertyChanged(NameOf(IsFilterWithBalance))
-                OnPropertyChanged(NameOf(IsFilterCleared))
+            Set(value As String)
+                If SetProperty(_activeFilter, value) Then
+                    _savedActiveFilter = value
+                    OnPropertyChanged(NameOf(IsFilterAll))
+                    OnPropertyChanged(NameOf(IsFilterBlocked))
+                    OnPropertyChanged(NameOf(IsFilterWithBalance))
+                    OnPropertyChanged(NameOf(IsFilterCleared))
+                    ApplyFilter()
+                End If
             End Set
+        End Property
+
+        Public ReadOnly Property TotalAccounts As Integer
+            Get
+                Return _allAccounts.Count
+            End Get
         End Property
 
         Public ReadOnly Property IsFilterAll As Boolean
@@ -196,6 +227,15 @@ Namespace ViewModels
             End Get
             Private Set(value As ObservableCollection(Of CreditTransactionItem))
                 SetProperty(_creditTransactions, value)
+            End Set
+        End Property
+
+        Public Property ActiveFilterChips As ObservableCollection(Of FilterChipItem)
+            Get
+                Return _activeFilterChips
+            End Get
+            Set(value As ObservableCollection(Of FilterChipItem))
+                SetProperty(_activeFilterChips, value)
             End Set
         End Property
 
@@ -361,7 +401,19 @@ Namespace ViewModels
             _conflictPresenter = conflictPresenter
             _notifications = notifications
 
+            ' Restore session filters
+            Dim currentUser = _session.CurrentUsername
+            If currentUser <> _lastUser Then
+                _savedSearchText = String.Empty
+                _savedActiveFilter = "All"
+                _lastUser = currentUser
+            End If
+
+            _searchText = _savedSearchText
+            _activeFilter = _savedActiveFilter
+
             LoadDataCommand = New AsyncRelayCommand(AddressOf LoadDataAsync)
+            ClearFiltersCommand = New RelayCommand(AddressOf ClearFilters)
             SearchCommand = New RelayCommand(AddressOf ApplyFilter)
             ApplyFilterCommand = New RelayCommand(Of String)(AddressOf SetFilter)
             AddAccountCommand = New RelayCommand(Sub() IsAddAccountVisible = True)
@@ -375,6 +427,7 @@ Namespace ViewModels
                                                         PaymentAmount = String.Empty
                                                         StatusMessage = String.Empty
                                                     End Sub)
+            ActiveFilterChips = New ObservableCollection(Of FilterChipItem)()
 
             Dim initTask = LoadDataAsync()
         End Sub
@@ -438,6 +491,7 @@ Namespace ViewModels
             Try
                 Await LoadDataInternalAsync()
                 IsError = False
+                LastLoadedAt = DateTime.Now
             Catch ex As Exception
                 ShowError("Failed to load accounts: " & ex.Message)
                 ErrorMessage = ex.Message
@@ -446,6 +500,46 @@ Namespace ViewModels
                 IsBusy = False
             End Try
         End Function
+
+        Public ReadOnly Property IsFilterActive As Boolean
+            Get
+                Return (ActiveFilter <> "All") OrElse (Not String.IsNullOrWhiteSpace(SearchText))
+            End Get
+        End Property
+
+        Private Sub RefreshFilterChips()
+            If ActiveFilterChips Is Nothing Then
+                ActiveFilterChips = New ObservableCollection(Of FilterChipItem)()
+            Else
+                ActiveFilterChips.Clear()
+            End If
+
+            If ActiveFilter <> "All" Then
+                ActiveFilterChips.Add(New FilterChipItem($"Status: {ActiveFilter}", "Status", New RelayCommand(Sub() ActiveFilter = "All")))
+            End If
+
+            If Not String.IsNullOrWhiteSpace(SearchText) Then
+                ActiveFilterChips.Add(New FilterChipItem($"Search: {SearchText.Trim()}", "Search", New RelayCommand(Sub() SearchText = String.Empty)))
+            End If
+
+            OnPropertyChanged(NameOf(IsFilterActive))
+        End Sub
+
+        Private Sub ClearFilters()
+            _searchText = String.Empty
+            _savedSearchText = String.Empty
+            OnPropertyChanged(NameOf(SearchText))
+
+            _activeFilter = "All"
+            _savedActiveFilter = "All"
+            OnPropertyChanged(NameOf(ActiveFilter))
+            OnPropertyChanged(NameOf(IsFilterAll))
+            OnPropertyChanged(NameOf(IsFilterBlocked))
+            OnPropertyChanged(NameOf(IsFilterWithBalance))
+            OnPropertyChanged(NameOf(IsFilterCleared))
+
+            ApplyFilter()
+        End Sub
 
         Private Sub ApplyFilter()
             Dim filtered = _allAccounts.AsEnumerable()
@@ -469,12 +563,14 @@ Namespace ViewModels
             For Each account In filtered.OrderBy(Function(a) a.CustomerName)
                 Accounts.Add(account)
             Next
+            
+            RefreshFilterChips()
+            OnPropertyChanged(NameOf(TotalAccounts))
             OnPropertyChanged(NameOf(IsEmpty))
         End Sub
 
-        Private Sub SetFilter(filter As String)
-            ActiveFilter = filter
-            ApplyFilter()
+        Private Sub SetFilter(filterName As String)
+            ActiveFilter = filterName
         End Sub
 
         Private Async Function SelectAccountAsync(account As CreditAccount) As Task

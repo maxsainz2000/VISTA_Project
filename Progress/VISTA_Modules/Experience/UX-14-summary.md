@@ -102,8 +102,8 @@ Realization check not performed in this session (no second client available); th
 
 ## What's Next
 
-- [ ] UX-15 state consistency sweep (remaining IsBusy/IsEmpty gaps)
-- [ ] UX-16 command palette
+- [x] UX-15 state consistency sweep (remaining IsBusy/IsEmpty gaps) — resolved by UX-15.
+- [x] UX-16 command palette — resolved by UX-16.
 
 ## Cross-References
 

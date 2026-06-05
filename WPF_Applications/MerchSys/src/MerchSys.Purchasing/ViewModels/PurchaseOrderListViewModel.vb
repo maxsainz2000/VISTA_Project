@@ -9,6 +9,7 @@ Imports MerchSys.Purchasing.Entities
 Imports MerchSys.Purchasing.Services
 Imports MerchSys.SharedKernel.Enums
 Imports MerchSys.SharedKernel.Interfaces
+Imports MerchSys.SharedKernel.Presentation
 Imports MerchSys.SharedKernel.Persistence
 
 Namespace ViewModels

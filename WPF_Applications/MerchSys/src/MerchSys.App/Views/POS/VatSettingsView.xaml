@@ -43,10 +43,12 @@
                         <TextBlock Text="Saving…" FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}"
                                    VerticalAlignment="Center" Margin="0,0,10,0"
                                    Visibility="{Binding IsSaving, Converter={StaticResource BoolToVis}}"/>
-                        <Button Content="Reload" Command="{Binding ReloadCommand}"
-                                Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,6,0"/>
-                        <Button Content="Save" Command="{Binding SaveCommand}"
-                                Style="{StaticResource PrimaryButtonStyle}" Margin="0"/>
+                        <Button Content="_Reload" Command="{Binding ReloadCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,6,0"
+                                TabIndex="1"/>
+                        <Button Content="_Save" Command="{Binding SaveCommand}"
+                                Style="{StaticResource PrimaryButtonStyle}" Margin="0"
+                                IsDefault="True" TabIndex="2"/>
                     </StackPanel>
                 </Grid>
             </Border>
@@ -88,7 +90,8 @@
                                Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
 
                     <CheckBox IsChecked="{Binding IsVatRegistered, Mode=TwoWay}"
-                              FontSize="{DynamicResource FontSizeBody}" Foreground="{DynamicResource TextPrimaryBrush}" Cursor="Hand">
+                              FontSize="{DynamicResource FontSizeBody}" Foreground="{DynamicResource TextPrimaryBrush}" Cursor="Hand"
+                              TabIndex="3">
                         <TextBlock TextWrapping="Wrap">
                             <Run Text="Business is VAT-registered with BIR"/>
                             <LineBreak/>
@@ -114,7 +117,8 @@
                                                 Visibility="{Binding IsVatRegistered, Converter={StaticResource BoolToVis}}">
                             <TextBox Text="{Binding Tin, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, NotifyOnValidationError=True}"
                                      MaxLength="20"
-                                     Style="{StaticResource FormInput}"/>
+                                     Style="{StaticResource FormInput}"
+                                     TabIndex="4"/>
                         </HeaderedContentControl>
 
                         <!-- VAT Rate (visible only when VAT-registered) -->
@@ -125,7 +129,8 @@
                             <TextBox Text="{Binding VatRatePercent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, NotifyOnValidationError=True}"
                                      helpers:FormHelper.InputMode="PositiveDecimal"
                                      MaxLength="6"
-                                     Style="{StaticResource FormInput}"/>
+                                     Style="{StaticResource FormInput}"
+                                     TabIndex="5"/>
                         </HeaderedContentControl>
 
                         <!-- Percentage Tax Rate (visible only when NOT VAT-registered) -->
@@ -136,7 +141,8 @@
                             <TextBox Text="{Binding PercentageTaxRatePercent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, NotifyOnValidationError=True}"
                                      helpers:FormHelper.InputMode="PositiveDecimal"
                                      MaxLength="6"
-                                     Style="{StaticResource FormInput}"/>
+                                     Style="{StaticResource FormInput}"
+                                     TabIndex="6"/>
                         </HeaderedContentControl>
                     </StackPanel>
                 </StackPanel>
@@ -156,7 +162,8 @@
                                                 helpers:FormHelper.IsRequired="True">
                             <TextBox Text="{Binding RegisteredBusinessName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, NotifyOnValidationError=True}"
                                      MaxLength="200"
-                                     Style="{StaticResource FormInput}"/>
+                                     Style="{StaticResource FormInput}"
+                                     TabIndex="7"/>
                         </HeaderedContentControl>
 
                         <HeaderedContentControl Header="Registered Address"
@@ -166,7 +173,8 @@
                                      AcceptsReturn="True" MinHeight="60" MaxHeight="100"
                                      TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
                                      MaxLength="500"
-                                     Style="{StaticResource FormInput}"/>
+                                     Style="{StaticResource FormInput}"
+                                     TabIndex="8"/>
                         </HeaderedContentControl>
                     </StackPanel>
                 </StackPanel>

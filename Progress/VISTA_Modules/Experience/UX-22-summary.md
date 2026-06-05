@@ -85,8 +85,8 @@ None. The tooltip style and per-control attributes compiled cleanly.
 
 ## What's Next
 
-- [ ] Manual hover test in both Light and Dark themes: verify every icon-only control (rail buttons, eye buttons, cart remove, theme toggle) shows a correctly styled, readable tooltip
-- [ ] Verify the shared tooltip chrome recolors on theme toggle (SurfaceBrush switches from white to dark surface)
+- [ ] Manual hover test in both Light and Dark themes: verify every icon-only control (rail buttons, eye buttons, cart remove, theme toggle) shows a correctly styled, readable tooltip — tracked by `Operator/UX-verification-checklist.md` Test 1.
+- [ ] Verify the shared tooltip chrome recolors on theme toggle (SurfaceBrush switches from white to dark surface) — tracked by `Operator/UX-verification-checklist.md` Test 1.
 
 ## Cross-References
 

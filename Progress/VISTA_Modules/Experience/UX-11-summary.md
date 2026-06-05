@@ -47,7 +47,7 @@ Implemented the UX-11 Layout-Resilience Sweep across all affected VISTA views in
 ## What's Next
 
 - [x] Complete layout-resilience sweep (UX-11).
-- [ ] Implement trend data visualization and sparklines (UX-12).
+- [x] Implement trend data visualization and sparklines — resolved by UX-12.
 
 ## Cross-References
 

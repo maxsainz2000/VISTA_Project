@@ -1,4 +1,4 @@
-Namespace Interfaces
+Namespace Presentation
 
     ''' <summary>
     ''' Data carrying object for a user confirmation dialog prompt.

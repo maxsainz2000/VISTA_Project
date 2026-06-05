@@ -7,6 +7,7 @@ Imports MerchSys.Purchasing.Entities
 Imports MerchSys.Purchasing.Services
 Imports MerchSys.Purchasing.Dtos
 Imports MerchSys.SharedKernel.Interfaces
+Imports MerchSys.SharedKernel.Presentation
 Imports MerchSys.SharedKernel.Enums
 Imports MerchSys.SharedKernel.Queries
 
@@ -19,6 +20,17 @@ Namespace ViewModels
     ''' </summary>
     Public Class VendorCatalogViewModel
         Inherits ObservableObject
+        Implements IFreshnessAware
+
+        Private _lastLoadedAt As DateTime?
+        Public Property LastLoadedAt As DateTime? Implements IFreshnessAware.LastLoadedAt
+            Get
+                Return _lastLoadedAt
+            End Get
+            Set(value As DateTime?)
+                SetProperty(_lastLoadedAt, value)
+            End Set
+        End Property
 
         Private ReadOnly _session As ISessionService
         Private ReadOnly _vendorService As IVendorService
@@ -221,6 +233,7 @@ Namespace ViewModels
                 Next
                 StatusMessage = $"Loaded {Vendors.Count} vendors."
                 IsError = False
+                LastLoadedAt = DateTime.Now
             Catch ex As Exception
                 ErrorMessage = ex.Message
                 IsError = True
@@ -243,6 +256,7 @@ Namespace ViewModels
                 Next
                 StatusMessage = $"Loaded {CatalogEntries.Count} catalog entries for {SelectedVendor.Name}."
                 AddProductCommand.NotifyCanExecuteChanged()
+                LastLoadedAt = DateTime.Now
             Catch ex As Exception
                 StatusMessage = $"[ERROR] Failed to load catalog: {ex.Message}"
                 _notifications.ShowError("Failed to load vendor's product catalog.")

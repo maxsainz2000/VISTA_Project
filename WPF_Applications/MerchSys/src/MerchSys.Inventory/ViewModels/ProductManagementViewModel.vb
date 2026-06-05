@@ -9,6 +9,7 @@ Imports MerchSys.Inventory.Data
 Imports MerchSys.Inventory.Entities
 Imports MerchSys.Inventory.Services
 Imports MerchSys.SharedKernel.Interfaces
+Imports MerchSys.SharedKernel.Presentation
 Imports MerchSys.SharedKernel.Persistence
 Imports MerchSys.SharedKernel.Enums
 

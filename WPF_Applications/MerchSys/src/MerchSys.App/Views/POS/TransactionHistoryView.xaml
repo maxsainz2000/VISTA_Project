@@ -56,6 +56,7 @@
             </Grid.Style>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
@@ -135,7 +136,15 @@
                 </WrapPanel>
             </Border>
 
-            <Grid Grid.Row="1">
+            <!-- Filter summary bar showing count, active filter chips, and clear all -->
+            <views:FilterSummaryBar Grid.Row="1"
+                                    Margin="16,8,16,0"
+                                    ShownCount="{Binding Transactions.Count}"
+                                    TotalCount="{Binding TotalTransactions}"
+                                    ActiveFilters="{Binding ActiveFilterChips}"
+                                    ClearAllCommand="{Binding ClearFiltersCommand}"/>
+
+            <Grid Grid.Row="2">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="400"/>
@@ -433,8 +442,8 @@
                 </Grid>
             </Grid>
 
-            <!-- ── Row 2: Status bar ──────────────────────────────────────────────── -->
-            <Border Grid.Row="2"
+            <!-- ── Row 3: Status bar ──────────────────────────────────────────────── -->
+            <Border Grid.Row="3"
                     Background="{DynamicResource SurfaceBrush}"
                     BorderBrush="{DynamicResource SeparatorBrush}"
                     BorderThickness="0,1,0,0"
@@ -570,9 +579,9 @@
 
         <views:SkeletonPanel Kind="Rows" IsBusy="{Binding IsBusy}" LastLoadedAt="{Binding LastLoadedAt}" Margin="12"/>
 
-        <views:BusyOverlay Grid.RowSpan="3" IsBusy="{Binding IsBusy}" LastLoadedAt="{Binding LastLoadedAt}"/>
+        <views:BusyOverlay Grid.RowSpan="4" IsBusy="{Binding IsBusy}" LastLoadedAt="{Binding LastLoadedAt}"/>
 
-        <views:ErrorStatePanel Grid.RowSpan="3"
+        <views:ErrorStatePanel Grid.RowSpan="4"
                                Title="Load Failed"
                                Message="{Binding ErrorMessage}"
                                RetryCommand="{Binding SearchCommand}"

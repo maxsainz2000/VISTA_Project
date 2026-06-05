@@ -1,3 +1,5 @@
+Imports MerchSys.SharedKernel.Presentation
+
 Namespace Interfaces
 
     ''' <summary>

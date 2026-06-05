@@ -24,6 +24,20 @@
 
     <Grid>
         <DockPanel Margin="10">
+            <DockPanel.Style>
+                <Style TargetType="DockPanel">
+                    <Setter Property="Visibility" Value="Visible"/>
+                    <Style.Triggers>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsBusy}" Value="True"/>
+                                <Condition Binding="{Binding LastLoadedAt}" Value="{x:Null}"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </MultiDataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DockPanel.Style>
 
             <!-- ═══════════════════════════════════════════════════════════
                  PO SELECTOR TOOLBAR
@@ -60,6 +74,13 @@
                               Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
                     </Button>
 
+                    <views:FreshnessChip Grid.Column="2"
+                                         LastLoadedAt="{Binding LastLoadedAt}"
+                                         RefreshCommand="{Binding LoadPOsCommand}"
+                                         VerticalAlignment="Center"
+                                         Margin="12,0"
+                                         HorizontalAlignment="Left"/>
+
                     <Button Grid.Column="3"
                             Content="_Confirm Receipt"
                             Command="{Binding ConfirmReceiptCommand}"
@@ -83,11 +104,22 @@
                  PLACEHOLDER — shown when no PO is selected
                  ═══════════════════════════════════════════════════════════ -->
             <Border DockPanel.Dock="Top"
-                    Visibility="{Binding IsPOSelected, Converter={StaticResource BoolToVis},
-                                 ConverterParameter=Inverse}"
                     Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
                     CornerRadius="{DynamicResource RadiusSmall}" Padding="24" Margin="0,0,0,6"
                     Height="120">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Visibility" Value="Visible"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsPOSelected}" Value="True">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsEmpty}" Value="True">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                     <TextBlock Text="Select a submitted Purchase Order above to begin receiving goods."
                                FontSize="{DynamicResource FontSizeBody}" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
@@ -305,9 +337,16 @@
 
         </DockPanel>
 
+        <views:EmptyStatePanel Title="No Purchase Orders Awaiting Receipt"
+                               Description="There are no submitted purchase orders currently awaiting receipt."
+                               Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+        <views:SkeletonPanel Kind="Rows" IsBusy="{Binding IsBusy}" LastLoadedAt="{Binding LastLoadedAt}" Margin="10"/>
+
         <views:BusyOverlay Message="Processing receipt..."
-                           Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"
-                           HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                           IsBusy="{Binding IsBusy}"
+                           LastLoadedAt="{Binding LastLoadedAt}"/>
 
         <views:ErrorStatePanel Title="Load Failed"
                                Message="{Binding ErrorMessage}"

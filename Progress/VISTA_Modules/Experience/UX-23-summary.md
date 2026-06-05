@@ -127,6 +127,8 @@ cleanly in VB.NET. The `Using doc = JsonDocument.Parse(json)` pattern handles di
 
 ## What's Next
 
+> Tracked by `Operator/UX-verification-checklist.md` Tests 2–6.
+
 - [ ] Operator realization test: resize/move → close → relaunch (verify position restored)
 - [ ] Operator realization test: maximize → close → relaunch (verify maximized; un-maximize to sensible size)
 - [ ] Operator realization test: simulate off-screen → verify CenterScreen fallback

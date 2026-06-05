@@ -51,6 +51,20 @@
              MAIN CONTENT
              ═══════════════════════════════════════════════════════════ -->
         <DockPanel Margin="10">
+            <DockPanel.Style>
+                <Style TargetType="DockPanel">
+                    <Setter Property="Visibility" Value="Visible"/>
+                    <Style.Triggers>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsBusy}" Value="True"/>
+                                <Condition Binding="{Binding LastLoadedAt}" Value="{x:Null}"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </MultiDataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DockPanel.Style>
 
             <!-- SUMMARY HEADER ───────────────────────────────────────── -->
             <Border DockPanel.Dock="Top"
@@ -167,6 +181,10 @@
 
                     <!-- Record Payment + Refresh -->
                     <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+                        <views:FreshnessChip LastLoadedAt="{Binding LastLoadedAt}"
+                                             RefreshCommand="{Binding RefreshCommand}"
+                                             VerticalAlignment="Center"
+                                             Margin="0,0,12,0"/>
                         <Button Content="_Record Payment"
                                 Command="{Binding OpenPaymentDialogCommand}"
                                 Style="{StaticResource PrimaryButtonStyle}"
@@ -208,6 +226,14 @@
                                VerticalAlignment="Center"/>
                 </StackPanel>
             </Border>
+
+            <!-- Filter summary bar showing count, active filter chips, and clear all -->
+            <views:FilterSummaryBar DockPanel.Dock="Top"
+                                    Margin="4,0,4,8"
+                                    ShownCount="{Binding Entries.Count}"
+                                    TotalCount="{Binding TotalAPRows}"
+                                    ActiveFilters="{Binding ActiveFilterChips}"
+                                    ClearAllCommand="{Binding ClearFiltersCommand}"/>
 
             <!-- AP LEDGER GRID ────────────────────────────────────────── -->
             <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1" CornerRadius="{DynamicResource RadiusSmall}">
@@ -302,9 +328,9 @@
 
         </DockPanel>
 
-        <views:BusyOverlay Message="Loading ledger..."
-                           Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"
-                           HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+        <views:SkeletonPanel Kind="Rows" IsBusy="{Binding IsBusy}" LastLoadedAt="{Binding LastLoadedAt}" Margin="10"/>
+
+        <views:BusyOverlay IsBusy="{Binding IsBusy}" LastLoadedAt="{Binding LastLoadedAt}"/>
 
         <views:ErrorStatePanel Title="Load Failed"
                                Message="{Binding ErrorMessage}"
@@ -390,12 +416,12 @@
                     <!-- Action buttons -->
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
                                 Margin="0,20,0,0">
-                        <Button Content="_Cancel"
+                        <Button Content="_Cancel" IsCancel="True"
                                 Command="{Binding CancelPaymentCommand}"
                                 Style="{StaticResource SecondaryButtonStyle}"
                                 Margin="0,0,10,0"
                                 TabIndex="5"/>
-                        <Button Content="_Confirm Payment"
+                        <Button Content="_Confirm Payment" IsDefault="True"
                                 Command="{Binding ConfirmPaymentCommand}"
                                 Style="{StaticResource SuccessButtonStyle}"
                                 TabIndex="6"/>

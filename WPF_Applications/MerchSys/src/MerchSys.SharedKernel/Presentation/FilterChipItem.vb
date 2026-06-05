@@ -1,6 +1,6 @@
 Imports System.Windows.Input
 
-Namespace Interfaces
+Namespace Presentation
 
     ''' <summary>
     ''' Represents an active filter facet displayed as a chip in the FilterSummaryBar.

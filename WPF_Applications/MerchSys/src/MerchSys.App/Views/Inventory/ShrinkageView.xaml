@@ -37,6 +37,20 @@
              MAIN CONTENT
              ═══════════════════════════════════════════════════════════ -->
         <DockPanel Margin="10">
+            <DockPanel.Style>
+                <Style TargetType="DockPanel">
+                    <Setter Property="Visibility" Value="Visible"/>
+                    <Style.Triggers>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsBusy}" Value="True"/>
+                                <Condition Binding="{Binding LastLoadedAt}" Value="{x:Null}"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </MultiDataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DockPanel.Style>
 
             <!-- ── Summary Cards ──────────────────────────────────── -->
             <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
@@ -70,6 +84,7 @@
                     <!-- Record button -->
                     <Button Content="_Record Shrinkage"
                             Command="{Binding OpenDialogCommand}"
+                            IsEnabled="{Binding CanEdit}"
                             Style="{StaticResource DangerButtonStyle}"
                             VerticalAlignment="Center" Margin="0,0,12,4"
                             TabIndex="1"/>
@@ -124,10 +139,10 @@
                             VerticalAlignment="Center" Margin="0,0,12,4"
                             TabIndex="6"/>
 
-                    <!-- Last Refreshed -->
-                    <TextBlock Text="{Binding LastRefreshed}"
-                               Style="{StaticResource CaptionLabelStyle}"
-                               VerticalAlignment="Center" Margin="0,0,12,4"/>
+                    <!-- Data Freshness Chip -->
+                    <views:FreshnessChip LastLoadedAt="{Binding LastLoadedAt}"
+                                         RefreshCommand="{Binding LoadDataCommand}"
+                                         VerticalAlignment="Center" Margin="0,0,12,4"/>
 
                     <!-- Status Message -->
                     <TextBlock Text="{Binding StatusMessage}"
@@ -148,6 +163,14 @@
                     </TextBlock>
                 </WrapPanel>
             </Border>
+
+            <!-- Filter summary bar showing count, active filter chips, and clear all -->
+            <views:FilterSummaryBar DockPanel.Dock="Top"
+                                    Margin="4,0,4,8"
+                                    ShownCount="{Binding FilteredCount}"
+                                    TotalCount="{Binding TotalCount}"
+                                    ActiveFilters="{Binding ActiveFilterChips}"
+                                    ClearAllCommand="{Binding ClearFiltersCommand}"/>
 
             <!-- ── History DataGrid Container ─────────────────────── -->
             <Grid>
@@ -239,8 +262,10 @@
                     </DataGrid.Columns>
                 </DataGrid>
 
-                <views:EmptyStatePanel Title="No Shrinkage Records"
-                                       Description="No shrinkage loss records found for the selected period."
+                <views:EmptyStatePanel Title="{Binding EmptyStateTitle}"
+                                       Description="{Binding EmptyStateDescription}"
+                                       ActionCommand="{Binding EmptyStateActionCommand}"
+                                       ActionText="{Binding EmptyStateActionText}"
                                        HorizontalAlignment="Center" VerticalAlignment="Center"
                                        Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}"/>
             </Grid>
@@ -343,7 +368,9 @@
             </Border>
         </Grid>
 
-        <views:BusyOverlay Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
+        <views:SkeletonPanel Kind="Rows" IsBusy="{Binding IsBusy}" LastLoadedAt="{Binding LastLoadedAt}" Margin="10"/>
+
+        <views:BusyOverlay IsBusy="{Binding IsBusy}" LastLoadedAt="{Binding LastLoadedAt}"/>
 
         <views:ErrorStatePanel Title="Load Failed"
                                Message="{Binding ErrorMessage}"
