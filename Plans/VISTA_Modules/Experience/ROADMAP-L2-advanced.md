@@ -16,6 +16,15 @@ estimated-files: 0
 
 Each entry: **What · Why · Research · Codebase grounding · Scope · Owner · Done-when.**
 
+> **Status (2026-06-05):** all seven Advanced items have implementable plans drafted —
+> A1→`24-data-freshness-refresh.md`, A2→`25-motion-microinteractions.md`,
+> A3→`26-skeleton-loaders.md`, A4→`27-shortcut-discoverability-overlay.md`,
+> A5→`28-search-filter-maturity.md`, A6→`29-notification-actions-undo.md`,
+> A7→`30-pos-keyboard-fast-path.md`. Every dependency (UX-02..06, UX-11, UX-14..17) is already
+> shipped, so **all seven are unblocked** and may be taken in any order; ascending
+> **UX-24 → UX-30** is the suggested default. Items are checked off here when *implemented*, not
+> when planned.
+
 ---
 
 ## A1 — Data Freshness & Manual Refresh
