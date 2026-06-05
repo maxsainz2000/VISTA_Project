@@ -13,7 +13,8 @@ last-updated: 2026-06-05
 | `Interfaces/IAuditable.vb` | `IAuditable` | `CreatedBy`, `CreatedAt`, `ModifiedBy`, `ModifiedAt` |
 | `Interfaces/ISoftDeletable.vb` | `ISoftDeletable` | `IsDeleted`, `DeletedBy`, `DeletedAt` |
 | `Interfaces/IEventBus.vb` | `IEventBus` | `PublishAsync(Of T As INotification)(event As T)` |
-| `Interfaces/INotificationService.vb` | `INotificationService` | `ShowSuccess(message)`, `ShowError(message)`, `ShowInfo(message)`, `ShowWarning(message)` |
+| `Interfaces/INotificationService.vb` | `INotificationService` | `ShowSuccess(message, Optional action)`, `ShowError(message, Optional action)`, `ShowInfo(message, Optional action)`, `ShowWarning(message, Optional action)` — extended to support optional action button |
+| `Interfaces/NotificationAction.vb` | `NotificationAction` | Model class representing an optional action button attached to a toast notification. Exposes `Label` (button text) and `Callback` (`Action` delegate) (UX-29) |
 | `Interfaces/IConflictPresenter.vb` | `IConflictPresenter` | `PromptAsync() As Task(Of Boolean)` |
 | `Interfaces/IConfirmationPresenter.vb` | `IConfirmationPresenter` | `PromptAsync(request) As Task(Of Boolean)` |
 | `Interfaces/ISessionService.vb` | `ISessionService` | `CurrentUsername`, `CurrentRole`, `IsAuthenticated` |
