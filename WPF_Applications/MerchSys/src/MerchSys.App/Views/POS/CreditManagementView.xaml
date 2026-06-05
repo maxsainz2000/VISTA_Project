@@ -473,6 +473,24 @@
                                         </StackPanel>
                                     </Border>
 
+                                    <Button Command="{Binding ToggleBlockCommand}"
+                                            CommandParameter="{Binding SelectedAccount}"
+                                            Height="30" Margin="0,0,0,8" IsTabStop="False">
+                                        <Button.Style>
+                                            <Style TargetType="Button" BasedOn="{StaticResource SecondaryButtonStyle}">
+                                                <Setter Property="Content" Value="Block Credit"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedAccount.IsBlocked}" Value="True">
+                                                        <Setter Property="Content" Value="Unblock Credit"/>
+                                                        <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
+                                                        <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource SuccessBrush}"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+
                                     <Separator Margin="0,0,0,8" Background="{DynamicResource SeparatorBrush}"/>
 
                                     <!-- Payments -->

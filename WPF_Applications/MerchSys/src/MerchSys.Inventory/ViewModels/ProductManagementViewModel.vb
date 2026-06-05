@@ -944,6 +944,10 @@ Namespace ViewModels
             Dim product = Await _db.Products.FindAsync(row.ProductId)
             If product Is Nothing Then Return
 
+            Dim wasActive As Boolean = product.IsActive
+            Dim productId = product.Id
+            Dim productName = product.Name
+
             IsBusy = True
             Try
                 Dim saved = Await ConcurrencyHelper.ExecuteWithConflictPromptAsync(
@@ -956,6 +960,54 @@ Namespace ViewModels
 
                 If saved Then
                     Await LoadDataAsync()
+
+                    If wasActive Then
+                        Dim hasUndone As Boolean = False
+                        Dim actionTime = DateTime.UtcNow
+                        Dim undoCallback = Async Sub()
+                                               If hasUndone Then Return
+                                               If (DateTime.UtcNow - actionTime).TotalSeconds > 8.0 Then
+                                                   _notifications.ShowWarning("Undo window has expired.")
+                                                   Return
+                                               End If
+                                               hasUndone = True
+
+                                               Dim success = False
+                                               Dim conflict = False
+                                               Dim errMsg = String.Empty
+                                               Try
+                                                   Dim restoreSaved = Await ConcurrencyHelper.ExecuteWithConflictPromptAsync(
+                                                       Async Function()
+                                                           Dim p = Await _db.Products.FindAsync(productId)
+                                                           If p IsNot Nothing Then
+                                                               p.IsActive = True
+                                                               Await _db.SaveChangesAsync()
+                                                               success = True
+                                                           End If
+                                                       End Function,
+                                                       AddressOf LoadDataAsync,
+                                                       _conflictPresenter)
+                                               Catch dbEx As Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException
+                                                   conflict = True
+                                               Catch ex As Exception
+                                                   errMsg = ex.Message
+                                               End Try
+
+                                               If conflict Then
+                                                   _notifications.ShowError("Could not undo — data was changed elsewhere.")
+                                               ElseIf Not String.IsNullOrEmpty(errMsg) Then
+                                                   _notifications.ShowError($"Restore failed: {errMsg}")
+                                               ElseIf success Then
+                                                   Await LoadDataAsync()
+                                                   _notifications.ShowSuccess($"Product '{productName}' reactivated.")
+                                               Else
+                                                   _notifications.ShowError("Could not undo.")
+                                               End If
+                                           End Sub
+
+                        Dim undoAction = New NotificationAction("Undo", undoCallback)
+                        _notifications.ShowSuccess($"Product '{productName}' deactivated.", undoAction)
+                    End If
                 End If
             Finally
                 IsBusy = False

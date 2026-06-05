@@ -64,4 +64,5 @@ All engineering learnings from debugging and error-fixing sessions. Check this i
 | [wpf-vista-notification-undo](patterns/wpf-vista-notification-undo.md) | pattern | MerchSys.App | wpf, xaml, vb-net, mvvm, notifications, undo, soft-delete, closures | antigravity | 2026-06-05 | active |
 | [wpf-vista-pos-fast-path](patterns/wpf-vista-pos-fast-path.md) | pattern | MerchSys.POS | wpf, xaml, keyboard-focus, fast-path, focus-discipline, mvvm | antigravity | 2026-06-05 | active |
 | [wpf-vista-presentation-contracts](patterns/wpf-vista-presentation-contracts.md) | pattern | Infrastructure | vb-net, architecture, modular-monolith, sharedkernel, mvvm, presentation-contracts, boundaries | claude-code | 2026-06-05 | active |
+| [wpf-vista-destructive-action-guard](patterns/wpf-vista-destructive-action-guard.md) | pattern | MerchSys.POS | wpf, vb-net, mvvm, user-experience, confirmation, undo, guardrail | antigravity | 2026-06-05 | active |
 

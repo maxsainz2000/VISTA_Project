@@ -509,7 +509,10 @@ Namespace ViewModels
         Private Async Function DeleteSelectedAsync() As Task
             If SelectedOrder Is Nothing Then Return
 
-            Dim req As New ConfirmationRequest("Delete Draft PO", $"This will permanently delete the draft purchase order '{SelectedOrder.OrderNumber}'.", "_Delete", True)
+            Dim poId = SelectedOrder.Id
+            Dim orderNum = SelectedOrder.OrderNumber
+
+            Dim req As New ConfirmationRequest("Delete Draft PO", $"This will permanently delete the draft purchase order '{orderNum}'.", "_Delete", True)
             If Not Await _confirmationPresenter.PromptAsync(req) Then Return
 
             IsBusy = True
@@ -517,13 +520,55 @@ Namespace ViewModels
             Dim errorMessage As String = String.Empty
             Try
                 Dim saved = Await ConcurrencyHelper.ExecuteWithConflictPromptAsync(
-                    Async Function() Await _poService.DeleteDraftAsync(SelectedOrder.Id),
+                    Async Function() Await _poService.DeleteDraftAsync(poId),
                     AddressOf LoadDataAsync,
                     _conflictPresenter)
 
                 If saved Then
                     Await LoadDataAsync()
                     StatusMessage = "Draft deleted."
+
+                    Dim hasUndone As Boolean = False
+                    Dim deleteTime = DateTime.UtcNow
+                    Dim undoCallback = Async Sub()
+                                           If hasUndone Then Return
+                                           If (DateTime.UtcNow - deleteTime).TotalSeconds > 8.0 Then
+                                               _notifications.ShowWarning("Undo window has expired.")
+                                               Return
+                                           End If
+                                           hasUndone = True
+
+                                           Dim success = False
+                                           Dim conflict = False
+                                           Dim restoreErrMsg = String.Empty
+                                           Try
+                                               Dim restoreSaved = Await ConcurrencyHelper.ExecuteWithConflictPromptAsync(
+                                                   Async Function()
+                                                       success = Await _poService.RestoreDraftAsync(poId)
+                                                   End Function,
+                                                   AddressOf LoadDataAsync,
+                                                   _conflictPresenter)
+                                           Catch dbEx As Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException
+                                               conflict = True
+                                           Catch ex As Exception
+                                               restoreErrMsg = ex.Message
+                                           End Try
+
+                                           If conflict Then
+                                               _notifications.ShowError("Could not undo — data was changed elsewhere.")
+                                           ElseIf Not String.IsNullOrEmpty(restoreErrMsg) Then
+                                               _notifications.ShowError($"Restore failed: {restoreErrMsg}")
+                                           ElseIf success Then
+                                               Await LoadDataAsync()
+                                               _notifications.ShowSuccess($"Draft PO '{orderNum}' restored.")
+                                               StatusMessage = $"Draft PO '{orderNum}' restored."
+                                           Else
+                                               _notifications.ShowError("Could not undo.")
+                                           End If
+                                       End Sub
+
+                    Dim undoAction = New NotificationAction("Undo", undoCallback)
+                    _notifications.ShowSuccess($"Draft PO '{orderNum}' deleted.", undoAction)
                 End If
             Catch ex As InvalidOperationException
                 invalidOperationError = True

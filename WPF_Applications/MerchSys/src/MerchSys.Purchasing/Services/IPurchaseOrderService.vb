@@ -26,6 +26,7 @@ Namespace Services
         Function VerifyAsync(id As Integer) As Task(Of PurchaseOrder)
         Function CloseAsync(id As Integer) As Task(Of PurchaseOrder)
         Function DeleteDraftAsync(id As Integer) As Task(Of Boolean)
+        Function RestoreDraftAsync(id As Integer) As Task(Of Boolean)
     End Interface
 
 End Namespace

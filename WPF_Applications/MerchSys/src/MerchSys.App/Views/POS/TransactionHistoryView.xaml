@@ -436,6 +436,12 @@
                                         Command="{Binding OpenReturnDialogCommand}"
                                         IsEnabled="{Binding CanEdit}"
                                         TabIndex="10"/>
+                                <Button Content="_Void Transaction"
+                                        Style="{StaticResource DangerButtonStyle}"
+                                        Command="{Binding VoidTransactionCommand}"
+                                        IsEnabled="{Binding CanEdit}"
+                                        Margin="6,0,0,0"
+                                        TabIndex="11"/>
                             </StackPanel>
                         </Border>
                     </Grid>

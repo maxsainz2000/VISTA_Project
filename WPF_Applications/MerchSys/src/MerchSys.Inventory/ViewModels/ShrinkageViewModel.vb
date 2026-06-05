@@ -64,6 +64,7 @@ Namespace ViewModels
         Private ReadOnly _shrinkageService As IShrinkageService
         Private ReadOnly _stockService As IStockService
         Private ReadOnly _conflictPresenter As IConflictPresenter
+        Private ReadOnly _confirmationPresenter As IConfirmationPresenter
         Private ReadOnly _reasonOptions As String() = {"Damage", "Spoilage", "Expiry", "Admin Error"}
         Private _allHistory As New List(Of ShrinkageRowItem)()
 
@@ -74,11 +75,12 @@ Namespace ViewModels
         Private Shared _savedFilterReason As String = Nothing
         Private Shared _lastUser As String = Nothing
 
-        Public Sub New(session As ISessionService, shrinkageService As IShrinkageService, stockService As IStockService, conflictPresenter As IConflictPresenter)
+        Public Sub New(session As ISessionService, shrinkageService As IShrinkageService, stockService As IStockService, conflictPresenter As IConflictPresenter, confirmationPresenter As IConfirmationPresenter)
             _session = session
             _shrinkageService = shrinkageService
             _stockService = stockService
             _conflictPresenter = conflictPresenter
+            _confirmationPresenter = confirmationPresenter
 
             HistoryItems = New ObservableCollection(Of ShrinkageRowItem)()
             FilterProducts = New ObservableCollection(Of ShrinkageProductItem)()
@@ -629,15 +631,17 @@ Namespace ViewModels
             ValidateAllProperties()
             If HasErrors Then Return
 
+            Dim recordedProductName As String = If(DialogSelectedProduct IsNot Nothing, DialogSelectedProduct.ProductName, String.Empty)
+            Dim req As New ConfirmationRequest("Record Shrinkage", $"This will record a shrinkage loss of {DialogQuantity} units for '{recordedProductName}'. This action is irreversible and reduces inventory.", "_Record", True, "RECORD")
+            If Not Await _confirmationPresenter.PromptAsync(req) Then Return
+
             IsBusy = True
             StatusMessage = String.Empty
-            IsStatusError = False
             IsDialogOpen = False
             Dim generalError As Boolean = False
             Dim generalErrorMessage As String = String.Empty
             Dim recordedQty As Integer = 0
             Dim recordedValue As Decimal = 0D
-            Dim recordedProductName As String = If(DialogSelectedProduct IsNot Nothing, DialogSelectedProduct.ProductName, String.Empty)
 
             Try
                 Dim batchId As Integer? = Nothing

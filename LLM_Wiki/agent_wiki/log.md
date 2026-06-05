@@ -4,6 +4,8 @@ Chronological record of all agent contributions to the Agent Wiki.
 
 <!-- Append new entries at the top. Format: ## [YYYY-MM-DD] agent | action | description -->
 
+## [2026-06-05] antigravity | added pattern | UX-33 implemented Destructive-Action Guardrail Parity. Routed irreversible commands (shrinkage recording, credit-account blocking, transaction voiding) through IConfirmationPresenter with typed confirmation constraints. Added time-boxed, idempotent Undo toasts on product deactivation, PO draft deletion, and credit-account state changes. Verified build 0/0. See patterns/wpf-vista-destructive-action-guard.md.
+
 ## [2026-06-05] claude-code | added pattern | UX review §2.3 / UX-35 decision: recorded the boundary convention that cross-cutting **presentation contracts** consumed by module-library ViewModels (`IFreshnessAware`, `FilterChipItem`, `NotificationAction`, `ConfirmationRequest`, `IConfirmationPresenter`) live in `SharedKernel`, not `MerchSys.App`. Consumer-graph grep proved all four module libraries reference them, so relocating to App would break the modular-monolith rule (module → App is forbidden). Decision: Option B (keep in SharedKernel); variant B-minimal (document now); the optional `SharedKernel/Presentation/` namespace tidy-up is folded into UX-31. No code change. See patterns/wpf-vista-presentation-contracts.md.
 
 ## [2026-06-05] antigravity | added pattern | UX-30 implemented POS Keyboard-First Fast Path. Designed scan-hot focus discipline, cart-scoped hotkeys (Ctrl+Q/D/T, Alt+Q/D/H/R/T), Enter-to-commit on tender, and in-memory hold/recall swap. Clean build 0/0. See patterns/wpf-vista-pos-fast-path.md.

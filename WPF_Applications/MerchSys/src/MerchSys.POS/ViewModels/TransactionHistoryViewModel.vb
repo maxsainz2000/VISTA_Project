@@ -215,6 +215,7 @@ Namespace ViewModels
         Public ReadOnly Property OpenReturnDialogCommand As AsyncRelayCommand
         Public ReadOnly Property ProcessReturnCommand As AsyncRelayCommand
         Public ReadOnly Property CancelReturnCommand As RelayCommand
+        Public ReadOnly Property VoidTransactionCommand As AsyncRelayCommand
 
         ' ── Constructor ───────────────────────────────────────────────────────────
 
@@ -264,6 +265,7 @@ Namespace ViewModels
                 Function() SelectedTransaction IsNot Nothing AndAlso Not SelectedTransaction.IsVoided)
             ProcessReturnCommand = New AsyncRelayCommand(AddressOf ProcessReturnAsync, AddressOf CanProcessReturn)
             CancelReturnCommand = New RelayCommand(Sub() IsReturnDialogVisible = False)
+            VoidTransactionCommand = New AsyncRelayCommand(AddressOf VoidTransactionAsync, Function() SelectedTransaction IsNot Nothing AndAlso Not SelectedTransaction.IsVoided)
 
             Dim initTask = SearchAsync()
         End Sub
@@ -334,6 +336,7 @@ Namespace ViewModels
                 If SetProperty(_selectedTransaction, value) Then
                     OpenReturnDialogCommand.NotifyCanExecuteChanged()
                     ViewReceiptCommand.NotifyCanExecuteChanged()
+                    If VoidTransactionCommand IsNot Nothing Then VoidTransactionCommand.NotifyCanExecuteChanged()
                 End If
             End Set
         End Property
@@ -860,6 +863,50 @@ Namespace ViewModels
 
             If generalError Then
                 StatusMessage = $"Return failed: {generalErrorMessage}"
+                IsStatusSuccess = False
+            End If
+        End Function
+
+        Private Async Function VoidTransactionAsync() As Task
+            If SelectedTransaction Is Nothing OrElse SelectedTransaction.IsVoided Then Return
+
+            Dim txNum = SelectedTransaction.TransactionNumber
+            Dim txId = SelectedTransaction.TransactionId
+
+            Dim req As New ConfirmationRequest("Void Transaction", $"This will void transaction '{txNum}'. This BIR-sensitive action is irreversible and cannot be undone.", "_Void", True, "VOID")
+            If Not Await _confirmationPresenter.PromptAsync(req) Then Return
+
+            IsBusy = True
+            Dim generalError As Boolean = False
+            Dim generalErrorMessage As String = String.Empty
+            Try
+                Dim saved = Await ConcurrencyHelper.ExecuteWithConflictPromptAsync(
+                    Async Function()
+                        Await _cartService.VoidTransactionAsync(txId, "Manager Voided")
+                    End Function,
+                    Async Function()
+                        Await SearchAsync()
+                    End Function,
+                    _conflictPresenter)
+
+                If saved Then
+                    StatusMessage = $"Transaction '{txNum}' has been voided."
+                    IsStatusSuccess = True
+                    Await SearchAsync()
+                    Dim updatedTx = _allTransactions.FirstOrDefault(Function(t) t.TransactionId = txId)
+                    If updatedTx IsNot Nothing Then
+                        Await SelectTransactionAsync(updatedTx)
+                    End If
+                End If
+            Catch ex As Exception
+                generalError = True
+                generalErrorMessage = ex.Message
+            Finally
+                IsBusy = False
+            End Try
+
+            If generalError Then
+                StatusMessage = $"Void failed: {generalErrorMessage}"
                 IsStatusSuccess = False
             End If
         End Function

@@ -307,6 +307,27 @@ Namespace Services
             Return True
         End Function
 
+        Public Async Function RestoreDraftAsync(id As Integer) As Task(Of Boolean) Implements IPurchaseOrderService.RestoreDraftAsync
+            Dim po As PurchaseOrder = Await _db.PurchaseOrders.
+                IgnoreQueryFilters().
+                Include(Function(p) p.Lines).
+                FirstOrDefaultAsync(Function(p) p.Id = id)
+
+            If po Is Nothing Then
+                Return False
+            End If
+            If Not po.IsDeleted Then
+                Return True
+            End If
+
+            po.IsDeleted = False
+            po.DeletedAt = Nothing
+            po.DeletedBy = Nothing
+
+            Await _db.SaveChangesAsync()
+            Return True
+        End Function
+
         Private Shared Sub RecalculateTotal(po As PurchaseOrder)
             po.TotalAmount = po.Lines.Sum(Function(l) l.LineTotal)
         End Sub

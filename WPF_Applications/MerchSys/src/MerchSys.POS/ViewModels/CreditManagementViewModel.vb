@@ -46,6 +46,7 @@ Namespace ViewModels
         Private ReadOnly _context As POSDbContext
         Private ReadOnly _session As ISessionService
         Private ReadOnly _conflictPresenter As IConflictPresenter
+        Private ReadOnly _confirmationPresenter As IConfirmationPresenter
         Private ReadOnly _notifications As INotificationService
 
         ' Unfiltered master list used for in-memory filtering
@@ -99,6 +100,7 @@ Namespace ViewModels
         Public ReadOnly Property OpenPaymentDialogCommand As RelayCommand(Of CreditAccount)
         Public ReadOnly Property RecordPaymentCommand As AsyncRelayCommand
         Public ReadOnly Property CancelPaymentCommand As RelayCommand
+        Public ReadOnly Property ToggleBlockCommand As AsyncRelayCommand(Of CreditAccount)
 
         ' ── Observable Properties ─────────────────────────────────────────────────
 
@@ -145,6 +147,7 @@ Namespace ViewModels
             Set(value As CreditAccount)
                 SetProperty(_selectedAccount, value)
                 OnPropertyChanged(NameOf(HasSelectedAccount))
+                If ToggleBlockCommand IsNot Nothing Then ToggleBlockCommand.NotifyCanExecuteChanged()
             End Set
         End Property
 
@@ -394,11 +397,13 @@ Namespace ViewModels
                        context As POSDbContext,
                        session As ISessionService,
                        conflictPresenter As IConflictPresenter,
+                       confirmationPresenter As IConfirmationPresenter,
                        notifications As INotificationService)
             _creditService = creditService
             _context = context
             _session = session
             _conflictPresenter = conflictPresenter
+            _confirmationPresenter = confirmationPresenter
             _notifications = notifications
 
             ' Restore session filters
@@ -427,6 +432,7 @@ Namespace ViewModels
                                                         PaymentAmount = String.Empty
                                                         StatusMessage = String.Empty
                                                     End Sub)
+            ToggleBlockCommand = New AsyncRelayCommand(Of CreditAccount)(AddressOf ToggleBlockAsync, AddressOf CanToggleBlock)
             ActiveFilterChips = New ObservableCollection(Of FilterChipItem)()
 
             Dim initTask = LoadDataAsync()
@@ -710,6 +716,111 @@ Namespace ViewModels
             If generalError Then
                 ShowError("Payment failed: " & errorMessage)
             End If
+        End Function
+
+        Private Function CanToggleBlock(account As CreditAccount) As Boolean
+            If account Is Nothing Then Return False
+            If account.IsBlocked Then
+                Return account.CurrentBalance = 0D
+            End If
+            Return True
+        End Function
+
+        Private Async Function ToggleBlockAsync(account As CreditAccount) As Task
+            If account Is Nothing Then Return
+            If Not CanToggleBlock(account) Then Return
+
+            Dim isBlocking As Boolean = Not account.IsBlocked
+            Dim actionTitle As String = If(isBlocking, "Block Credit Account", "Unblock Credit Account")
+            Dim actionMsg As String = If(isBlocking,
+                $"Are you sure you want to block credit for {account.CustomerName}? They will not be able to charge new sales to credit.",
+                $"Are you sure you want to unblock credit for {account.CustomerName}?")
+            Dim confirmBtnText As String = If(isBlocking, "_Block", "_Unblock")
+
+            Dim req As New ConfirmationRequest(actionTitle, actionMsg, confirmBtnText, True)
+            If Not Await _confirmationPresenter.PromptAsync(req) Then Return
+
+            Dim accountId = account.Id
+            Dim customerName = account.CustomerName
+
+            IsBusy = True
+            Try
+                Dim saved = Await ConcurrencyHelper.ExecuteWithConflictPromptAsync(
+                    Async Function()
+                        Dim acc = Await _context.CreditAccounts.FindAsync(accountId)
+                        If acc IsNot Nothing Then
+                            acc.IsBlocked = isBlocking
+                            Await _context.SaveChangesAsync()
+                        End If
+                    End Function,
+                    AddressOf LoadDataAsync,
+                    _conflictPresenter)
+
+                If saved Then
+                    Await LoadDataAsync()
+                    
+                    If SelectedAccount IsNot Nothing AndAlso SelectedAccount.Id = accountId Then
+                        Dim refreshed = _allAccounts.FirstOrDefault(Function(a) a.Id = accountId)
+                        If refreshed IsNot Nothing Then
+                            SelectedAccount = refreshed
+                        End If
+                    End If
+
+                    Dim hasUndone As Boolean = False
+                    Dim actionTime = DateTime.UtcNow
+                    Dim undoCallback = Async Sub()
+                                           If hasUndone Then Return
+                                           If (DateTime.UtcNow - actionTime).TotalSeconds > 8.0 Then
+                                               _notifications.ShowWarning("Undo window has expired.")
+                                               Return
+                                           End If
+                                           hasUndone = True
+
+                                           Dim success = False
+                                           Dim conflict = False
+                                           Dim errMsg = String.Empty
+                                           Try
+                                               Dim restoreSaved = Await ConcurrencyHelper.ExecuteWithConflictPromptAsync(
+                                                   Async Function()
+                                                       Dim acc = Await _context.CreditAccounts.FindAsync(accountId)
+                                                       If acc IsNot Nothing Then
+                                                           acc.IsBlocked = Not isBlocking
+                                                           Await _context.SaveChangesAsync()
+                                                           success = True
+                                                       End If
+                                                   End Function,
+                                                   AddressOf LoadDataAsync,
+                                                   _conflictPresenter)
+                                           Catch dbEx As Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException
+                                               conflict = True
+                                           Catch ex As Exception
+                                               errMsg = ex.Message
+                                           End Try
+
+                                           If conflict Then
+                                               _notifications.ShowError("Could not undo — data was changed elsewhere.")
+                                           ElseIf Not String.IsNullOrEmpty(errMsg) Then
+                                               _notifications.ShowError($"Undo failed: {errMsg}")
+                                           ElseIf success Then
+                                               Await LoadDataAsync()
+                                               If SelectedAccount IsNot Nothing AndAlso SelectedAccount.Id = accountId Then
+                                                   Dim refreshed = _allAccounts.FirstOrDefault(Function(a) a.Id = accountId)
+                                                   If refreshed IsNot Nothing Then
+                                                       SelectedAccount = refreshed
+                                                   End If
+                                               End If
+                                               _notifications.ShowSuccess(If(isBlocking, $"Credit account for '{customerName}' unblocked.", $"Credit account for '{customerName}' blocked."))
+                                           Else
+                                               _notifications.ShowError("Could not undo.")
+                                           End If
+                                       End Sub
+
+                    Dim undoAction = New NotificationAction("Undo", undoCallback)
+                    _notifications.ShowSuccess(If(isBlocking, $"Credit account for '{customerName}' blocked.", $"Credit account for '{customerName}' unblocked."), undoAction)
+                End If
+            Finally
+                IsBusy = False
+            End Try
         End Function
 
         Private Sub ShowSuccess(message As String)
