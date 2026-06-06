@@ -324,6 +324,7 @@
                               BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
                               HeadersVisibility="Column"
                               CanUserSortColumns="True"
+                              VirtualizingStackPanel.VirtualizationMode="Recycling"
                               Background="{DynamicResource SurfaceBrush}"
                               AlternatingRowBackground="{DynamicResource WindowBackgroundBrush}"
                               FontSize="{DynamicResource FontSizeBody}">

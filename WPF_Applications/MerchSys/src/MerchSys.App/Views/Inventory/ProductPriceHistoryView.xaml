@@ -48,6 +48,7 @@
                           Background="{DynamicResource SurfaceBrush}"
                           FontSize="{DynamicResource FontSizeBody}"
                           AlternatingRowBackground="{DynamicResource WindowBackgroundBrush}"
+                          VirtualizingStackPanel.VirtualizationMode="Recycling"
                           x:Name="HistoryGrid">
                     
                     <DataGrid.Columns>

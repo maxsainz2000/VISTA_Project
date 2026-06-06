@@ -182,6 +182,7 @@
                           SelectionUnit="FullRow" SelectionMode="Single"
                           HeadersVisibility="Column" GridLinesVisibility="Horizontal"
                           CanUserSortColumns="True"
+                          VirtualizingStackPanel.VirtualizationMode="Recycling"
                           FontSize="12"
                           TabIndex="7">
                     <DataGrid.Columns>

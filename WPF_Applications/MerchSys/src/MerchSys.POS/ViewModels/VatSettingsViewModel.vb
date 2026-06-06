@@ -244,12 +244,21 @@ Namespace ViewModels
             ValidateAllProperties()
             If HasErrors Then Return
 
+            ' Snapshot form values so they can be restored on a concurrency conflict.
+            Dim snapVatRegistered = IsVatRegistered
+            Dim snapTin = Tin
+            Dim snapVatRate = VatRatePercent
+            Dim snapPctTax = PercentageTaxRatePercent
+            Dim snapBizName = RegisteredBusinessName
+            Dim snapBizAddress = RegisteredAddress
+
             IsSaving = True
             _validationErrors.Clear()
-            StatusMessage = String.Empty
+            StatusMessage = "Saving…"   ' reflect the pending write immediately (optimistic)
 
             Dim result As VatConfigurationUpdateResult = Nothing
             Dim saveError As String = Nothing
+            Dim didRefresh As Boolean = False
 
             Dim request As New VatConfigurationUpdateRequest With {
                 .IsVatRegistered = IsVatRegistered,
@@ -265,7 +274,25 @@ Namespace ViewModels
                     Async Function()
                         result = Await _writer.UpdateAsync(request, CancellationToken.None)
                     End Function,
-                    AddressOf ReloadAsync,
+                    Async Function()
+                        ' Conflict: roll back the optimistic form state to the pre-save snapshot,
+                        ' then reload the current DB values so the form shows what another client wrote.
+                        didRefresh = True
+                        _isVatRegistered = snapVatRegistered
+                        _tin = snapTin
+                        _vatRatePercent = snapVatRate
+                        _percentageTaxRatePercent = snapPctTax
+                        _registeredBusinessName = snapBizName
+                        _registeredAddress = snapBizAddress
+                        OnPropertyChanged(NameOf(IsVatRegistered))
+                        OnPropertyChanged(NameOf(IsNotVatRegistered))
+                        OnPropertyChanged(NameOf(Tin))
+                        OnPropertyChanged(NameOf(VatRatePercent))
+                        OnPropertyChanged(NameOf(PercentageTaxRatePercent))
+                        OnPropertyChanged(NameOf(RegisteredBusinessName))
+                        OnPropertyChanged(NameOf(RegisteredAddress))
+                        Await ReloadAsync()
+                    End Function,
                     _conflictPresenter)
 
                 If saved AndAlso result IsNot Nothing Then
@@ -273,10 +300,15 @@ Namespace ViewModels
                         StatusMessage = "VAT settings saved."
                         _notifications.ShowSuccess("VAT settings updated — receipts will use new values immediately.")
                     Else
+                        StatusMessage = String.Empty
                         For Each errMsg In result.ValidationErrors
                             _validationErrors.Add(errMsg)
                         Next
                     End If
+                ElseIf Not saved AndAlso Not didRefresh Then
+                    ' Conflict surfaced but the operator chose Cancel: the rollback lambda never ran,
+                    ' so clear the optimistic "Saving…" status (the form keeps the edits to retry).
+                    StatusMessage = "Not saved — data changed elsewhere."
                 End If
             Catch ex As Exception
                 saveError = ex.Message

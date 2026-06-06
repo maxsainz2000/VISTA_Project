@@ -252,6 +252,7 @@
                               GridLinesVisibility="Horizontal"
                               BorderThickness="0"
                               HeadersVisibility="Column"
+                              VirtualizingStackPanel.VirtualizationMode="Recycling"
                               RowStyle="{StaticResource APRowStyle}"
                               Background="{DynamicResource SurfaceBrush}"
                               AlternatingRowBackground="{DynamicResource WindowBackgroundBrush}"

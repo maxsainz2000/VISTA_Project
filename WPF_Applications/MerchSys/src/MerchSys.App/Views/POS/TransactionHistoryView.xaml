@@ -162,6 +162,7 @@
                         <DataGrid x:Name="TransactionGrid"
                                   Style="{StaticResource ReadOnlyGrid}"
                                   ItemsSource="{Binding Transactions}"
+                                  VirtualizingStackPanel.VirtualizationMode="Recycling"
                                   BorderThickness="0"
                                   TabIndex="7">
 

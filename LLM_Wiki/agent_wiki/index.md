@@ -66,4 +66,5 @@ All engineering learnings from debugging and error-fixing sessions. Check this i
 | [wpf-vista-presentation-contracts](patterns/wpf-vista-presentation-contracts.md) | pattern | Infrastructure | vb-net, architecture, modular-monolith, sharedkernel, mvvm, presentation-contracts, boundaries | claude-code | 2026-06-05 | active |
 | [wpf-vista-destructive-action-guard](patterns/wpf-vista-destructive-action-guard.md) | pattern | MerchSys.POS | wpf, vb-net, mvvm, user-experience, confirmation, undo, guardrail | antigravity | 2026-06-05 | active |
 | [wpf-vista-accessibility](patterns/wpf-vista-accessibility.md) | pattern | Infrastructure | wpf, xaml, accessibility, wcag, mvvm, vb-net | antigravity | 2026-06-06 | active |
+| [wpf-vista-performance](patterns/wpf-vista-performance.md) | pattern | MerchSys.App | wpf, xaml, vb-net, virtualization, async-load, optimistic-ui, performance, debouncing | claude-code | 2026-06-06 | active |
 

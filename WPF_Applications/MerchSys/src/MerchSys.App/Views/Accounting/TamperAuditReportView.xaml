@@ -103,6 +103,7 @@
                           BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
                           RowStyle="{StaticResource SemanticRowStyle}"
                           SelectionMode="Single"
+                          VirtualizingStackPanel.VirtualizationMode="Recycling"
                           VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
                           ItemsSource="{Binding Entries}"
                           TabIndex="6">

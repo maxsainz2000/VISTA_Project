@@ -209,6 +209,7 @@
                                   RowBackground="{DynamicResource SurfaceBrush}" AlternatingRowBackground="{DynamicResource SidebarBackgroundBrush}"
                                   RowStyle="{StaticResource SemanticRowStyle}"
                                   FontSize="11" CanUserSortColumns="True"
+                                  VirtualizingStackPanel.VirtualizationMode="Recycling"
                                   SelectionMode="Single">
 
                             <DataGrid.Columns>

@@ -321,6 +321,7 @@
                                       RowBackground="{DynamicResource SurfaceBrush}"
                                       AlternatingRowBackground="{DynamicResource SidebarBackgroundBrush}"
                                       HeadersVisibility="Column"
+                                      VirtualizingStackPanel.VirtualizationMode="Recycling"
                                       IsReadOnly="True">
 
                                 <DataGrid.RowStyle>

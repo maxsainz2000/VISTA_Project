@@ -255,6 +255,7 @@
                                   GridLinesVisibility="Horizontal"
                                   BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
                                   HeadersVisibility="Column"
+                                  VirtualizingStackPanel.VirtualizationMode="Recycling"
                                   Background="{DynamicResource SurfaceBrush}"
                                   AlternatingRowBackground="{DynamicResource WindowBackgroundBrush}"
                                   CanUserSortColumns="True"
