@@ -113,7 +113,8 @@
       "WebSearch",
       "Read(//c/Users/Admin/**)",
       "Bash(Select-String -Pattern \"error|warning|Build succeeded|Build FAILED\")",
-      "Bash(Select-String -Pattern \"error|warning|Build succeeded|Error\\\\\\(s\\\\\\)|Warning\\\\\\(s\\\\\\)\")"
+      "Bash(Select-String -Pattern \"error|warning|Build succeeded|Error\\\\\\(s\\\\\\)|Warning\\\\\\(s\\\\\\)\")",
+      "PowerShell(New-Item *)"
     ]
   }
 }

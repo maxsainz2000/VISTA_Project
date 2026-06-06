@@ -17,6 +17,7 @@ Namespace ViewModels.Shell
 
         Private ReadOnly _services As IServiceProvider
         Private ReadOnly _mediator As IMediator
+        Private ReadOnly _prefs As Services.IUserPreferencesService
         Private _searchCts As CancellationTokenSource
 
         Private _isOpen As Boolean
@@ -88,9 +89,11 @@ Namespace ViewModels.Shell
         Public ReadOnly Property CloseCommand As RelayCommand
         Public ReadOnly Property ExecuteSelectedCommand As RelayCommand
 
-        Public Sub New(services As IServiceProvider, mediator As IMediator)
+        Public Sub New(services As IServiceProvider, mediator As IMediator,
+                       prefs As Services.IUserPreferencesService)
             _services = services
             _mediator = mediator
+            _prefs = prefs
             Results = New ObservableCollection(Of CommandPaletteItem)()
 
             OpenCommand = New RelayCommand(Sub() IsOpen = True)
@@ -150,12 +153,50 @@ Namespace ViewModels.Shell
                 Dim cashIcon = TryCast(Application.Current.TryFindResource("IconCashGeometry"), Geometry)
                 Dim chartLineIcon = TryCast(Application.Current.TryFindResource("IconChartLineGeometry"), Geometry)
                 Dim boltIcon = TryCast(Application.Current.TryFindResource("IconBoltGeometry"), Geometry)
+                Dim starIcon = TryCast(Application.Current.TryFindResource("IconStarGeometry"), Geometry)
+
+                ' 0. Zero-state accelerators: Favorites and Recents (empty query only).
+                ' Keys surfaced here are skipped in the full "Screens" list below so the same
+                ' screen is never shown twice in the zero-state palette.
+                Dim acceleratorKeys As New HashSet(Of String)()
+                If String.IsNullOrWhiteSpace(term) Then
+                    Dim lastKey = _prefs.GetLastViewKey()
+
+                    Dim favPairs = _prefs.GetFavorites(mainVm.AllNavigableItems)
+                    For Each fp In favPairs
+                        matchedItems.Add(New CommandPaletteItem With {
+                            .DisplayName = fp.Item.DisplayName,
+                            .Subtitle = "Favorite · " & GetModuleName(fp.[Module]),
+                            .Section = "Favorites",
+                            .IconData = starIcon,
+                            .TargetItem = fp.Item
+                        })
+                        acceleratorKeys.Add(fp.Item.ViewType.FullName)
+                    Next
+
+                    Dim recentPairs = _prefs.GetRecents(mainVm.AllNavigableItems)
+                    For Each rp In recentPairs
+                        ' Skip the screen the user is already on (always recents[0]) and anything
+                        ' already pinned as a favorite — no point echoing it back as "Recent".
+                        Dim recKey = rp.Item.ViewType.FullName
+                        If recKey = lastKey OrElse acceleratorKeys.Contains(recKey) Then Continue For
+                        matchedItems.Add(New CommandPaletteItem With {
+                            .DisplayName = rp.Item.DisplayName,
+                            .Subtitle = "Recent · " & GetModuleName(rp.[Module]),
+                            .Section = "Recent",
+                            .IconData = GetModuleIcon(rp.[Module]),
+                            .TargetItem = rp.Item
+                        })
+                        acceleratorKeys.Add(recKey)
+                    Next
+                End If
 
                 ' 1. Search screens from AllNavigableItems
                 For Each navigable In mainVm.AllNavigableItems
                     Dim matches = False
                     If String.IsNullOrWhiteSpace(term) Then
-                        matches = True
+                        ' Zero-state: list every screen except those already shown as a Favorite/Recent.
+                        matches = Not acceleratorKeys.Contains(navigable.Item.ViewType.FullName)
                     Else
                         Dim dispName = navigable.Item.DisplayName.ToLower()
                         Dim moduleName = GetModuleName(navigable.[Module]).ToLower()
@@ -238,6 +279,19 @@ Namespace ViewModels.Shell
                 Case AppModule.DeveloperTools : Return "Developer Tools"
                 Case Else : Return String.Empty
             End Select
+        End Function
+
+        Private Function GetModuleIcon(m As AppModule) As Geometry
+            Dim resourceKey As String
+            Select Case m
+                Case AppModule.Purchasing : resourceKey = "IconBoxGeometry"
+                Case AppModule.Inventory : resourceKey = "IconChartBarGeometry"
+                Case AppModule.POS : resourceKey = "IconCashGeometry"
+                Case AppModule.Accounting : resourceKey = "IconChartLineGeometry"
+                Case AppModule.DeveloperTools : resourceKey = "IconBoltGeometry"
+                Case Else : resourceKey = "IconBoxGeometry"
+            End Select
+            Return TryCast(Application.Current.TryFindResource(resourceKey), Geometry)
         End Function
 
         Private Sub ExecuteSelected()

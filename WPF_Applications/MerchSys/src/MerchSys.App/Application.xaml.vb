@@ -221,6 +221,9 @@ Class Application
                                        services.AddSingleton(Of UiSettingsStore)()
                                        services.AddSingleton(Of WindowPlacementService)()
 
+                                       ' ── User preferences (UX-38): last-view, favorites, recents ──
+                                       services.AddSingleton(Of IUserPreferencesService, UserPreferencesService)()
+
                                        ' ── Theming Foundation (UX-01) ────────────────────────
                                        services.AddSingleton(Of IThemeService, ThemeService)()
 
@@ -297,7 +300,7 @@ Class Application
         Dim mainVm = _host.Services.GetRequiredService(Of MainWindowViewModel)()
         mainVm.RefreshNavigation()
         _mainWindow.Show()
-        mainVm.NavigateToDefault()
+        mainVm.NavigateToLastOrDefault()
         ' Idle monitoring begins here; no clock runs while LoginView is active (DA2)
         _idleMonitor.Start()
     End Sub

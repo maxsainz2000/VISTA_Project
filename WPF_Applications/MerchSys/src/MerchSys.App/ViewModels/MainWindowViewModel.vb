@@ -18,6 +18,7 @@ Namespace ViewModels
         Private ReadOnly _session As ISessionService
         Private ReadOnly _loginSession As LoginSessionService
         Private ReadOnly _themeService As IThemeService
+        Private ReadOnly _prefs As IUserPreferencesService
 
         Private _activeNavItem As NavigationItem
         Private _currentView As Object
@@ -169,6 +170,7 @@ Namespace ViewModels
         Public ReadOnly Property SelectModuleCommand As RelayCommand(Of AppModule)
         Public ReadOnly Property LogoutCommand As RelayCommand
         Public ReadOnly Property ToggleThemeCommand As RelayCommand
+        Public ReadOnly Property ToggleFavoriteCommand As RelayCommand(Of NavigationItem)
 
         ''' <summary>Raised when the user clicks Log Out.</summary>
         Public Event LogoutRequested As EventHandler
@@ -176,11 +178,13 @@ Namespace ViewModels
         ' ── Constructor ──────────────────────────────────────────────────────────
 
         Public Sub New(services As IServiceProvider, session As ISessionService,
-                       loginSession As LoginSessionService, themeService As IThemeService)
+                       loginSession As LoginSessionService, themeService As IThemeService,
+                       prefs As IUserPreferencesService)
             _services = services
             _session = session
             _loginSession = loginSession
             _themeService = themeService
+            _prefs = prefs
 
             PurchasingItems = New ObservableCollection(Of NavigationItem)()
             InventoryItems = New ObservableCollection(Of NavigationItem)()
@@ -193,6 +197,7 @@ Namespace ViewModels
             SelectModuleCommand = New RelayCommand(Of AppModule)(AddressOf DoSelectModule, AddressOf CanSelectModule)
             LogoutCommand = New RelayCommand(AddressOf DoLogout)
             ToggleThemeCommand = New RelayCommand(AddressOf DoToggleTheme)
+            ToggleFavoriteCommand = New RelayCommand(Of NavigationItem)(AddressOf DoToggleFavorite)
 
             RebuildModuleCollections()
         End Sub
@@ -213,6 +218,27 @@ Namespace ViewModels
             _activeNavItem = item
             _activeNavItem.IsActive = True
             CurrentView = _services.GetRequiredService(item.ViewType)
+            _prefs.RecordNavigation(item)
+        End Sub
+
+        ''' <summary>
+        ''' Navigate to the last-viewed screen (restored from prefs) or fall back to the
+        ''' role-appropriate default if the saved key is absent or stale (removed/renamed view).
+        ''' </summary>
+        Public Sub NavigateToLastOrDefault()
+            Dim lastKey = _prefs.GetLastViewKey()
+            If Not String.IsNullOrEmpty(lastKey) Then
+                Dim pair = _allNavigableItems.FirstOrDefault(
+                    Function(n) n.Item IsNot Nothing AndAlso
+                                n.Item.ViewType IsNot Nothing AndAlso
+                                n.Item.ViewType.FullName = lastKey)
+                If pair.Item IsNot Nothing Then
+                    ActiveModule = pair.[Module]
+                    Navigate(pair.Item)
+                    Return
+                End If
+            End If
+            NavigateToDefault()
         End Sub
 
         ''' <summary>Navigate to the role-appropriate default landing page.</summary>
@@ -260,6 +286,11 @@ Namespace ViewModels
             RaiseEvent LogoutRequested(Me, EventArgs.Empty)
         End Sub
 
+        Private Sub DoToggleFavorite(item As NavigationItem)
+            If item Is Nothing Then Return
+            _prefs.ToggleFavorite(item)
+        End Sub
+
         ' ── Module collection builders ────────────────────────────────────────────
 
         Private Sub RebuildModuleCollections()
@@ -290,6 +321,7 @@ Namespace ViewModels
             Next
             _allNavigableItems = list
             OnPropertyChanged(NameOf(AllNavigableItems))
+            _prefs.SyncFavoriteFlagsToItems(_allNavigableItems)
         End Sub
 
         Private Sub RebuildActiveModuleItems()

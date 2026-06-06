@@ -45,7 +45,8 @@ Class MainWindow
         If _pendingMaximize Then
             WindowState = WindowState.Maximized
         End If
-        _viewModel.NavigateToDefault()
+        ' Navigation is driven by HandleLoginSucceeded in Application.xaml.vb after RefreshNavigation();
+        ' calling it here would race with that path on first login.
     End Sub
 
     Private Sub MainWindow_Closing(sender As Object, e As System.ComponentModel.CancelEventArgs) Handles Me.Closing

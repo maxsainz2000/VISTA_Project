@@ -18,6 +18,16 @@ Namespace Models
             End Set
         End Property
 
+        Private _isFavorite As Boolean
+        Public Property IsFavorite As Boolean
+            Get
+                Return _isFavorite
+            End Get
+            Set(value As Boolean)
+                SetProperty(_isFavorite, value)
+            End Set
+        End Property
+
     End Class
 
     Public Class NavigationGroup

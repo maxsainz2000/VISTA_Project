@@ -9,11 +9,33 @@
         <ItemsControl ItemsSource="{Binding DeveloperToolsItems}" Focusable="False">
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                    <Button Content="{Binding DisplayName}"
-                            Style="{DynamicResource NavItemStyle}"
-                            Command="{Binding DataContext.NavigateCommand,
-                                               RelativeSource={RelativeSource AncestorType=UserControl}}"
-                            CommandParameter="{Binding}"/>
+                    <Grid>
+                        <Button Content="{Binding DisplayName}"
+                                Style="{DynamicResource NavItemStyle}"
+                                Command="{Binding DataContext.NavigateCommand,
+                                                   RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                CommandParameter="{Binding}"/>
+                        <Button HorizontalAlignment="Right" VerticalAlignment="Center"
+                                Margin="0,0,4,0"
+                                Style="{DynamicResource FavoriteToggleButtonStyle}"
+                                Command="{Binding DataContext.ToggleFavoriteCommand,
+                                                   RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                CommandParameter="{Binding}"
+                                AutomationProperties.Name="{Binding DisplayName, StringFormat='Toggle favorite for {0}'}">
+                            <TextBlock>
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Text" Value="☆"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsFavorite}" Value="True">
+                                                <Setter Property="Text" Value="★"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Button>
+                    </Grid>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>

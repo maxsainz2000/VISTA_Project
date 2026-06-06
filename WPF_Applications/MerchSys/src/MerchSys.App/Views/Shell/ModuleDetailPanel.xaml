@@ -214,6 +214,75 @@
 
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
+        <!-- Favorite pin toggle: dim star that brightens and turns accent when favorited -->
+        <Style x:Key="FavoriteToggleButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="Padding" Value="2"/>
+            <Setter Property="Width" Value="26"/>
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Opacity" Value="0.3"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="{DynamicResource RadiusSmall}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Opacity" Value="1"/>
+                                <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsFavorite}" Value="True">
+                    <Setter Property="Opacity" Value="1"/>
+                    <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Shared nav row: full-width navigate button with the favorite pin star overlaid
+             on the trailing edge, so the active-row highlight spans the whole row. -->
+        <DataTemplate x:Key="NavItemWithFavoriteTemplate">
+            <Grid>
+                <Button Content="{Binding DisplayName}"
+                        Style="{StaticResource NavItemStyle}"
+                        Command="{Binding DataContext.NavigateCommand,
+                                          RelativeSource={RelativeSource AncestorType=UserControl}}"
+                        CommandParameter="{Binding}"/>
+                <Button HorizontalAlignment="Right" VerticalAlignment="Center"
+                        Margin="0,0,4,0"
+                        Style="{StaticResource FavoriteToggleButtonStyle}"
+                        Command="{Binding DataContext.ToggleFavoriteCommand,
+                                          RelativeSource={RelativeSource AncestorType=UserControl}}"
+                        CommandParameter="{Binding}"
+                        AutomationProperties.Name="{Binding DisplayName, StringFormat='Toggle favorite for {0}'}">
+                    <TextBlock>
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Text" Value="☆"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsFavorite}" Value="True">
+                                        <Setter Property="Text" Value="★"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Button>
+            </Grid>
+        </DataTemplate>
+
     </UserControl.Resources>
 
     <!-- Right border separator separates the sidebar panel from the content canvas -->
@@ -331,7 +400,8 @@
                 <Grid>
 
                     <!-- Purchasing panel -->
-                    <ItemsControl ItemsSource="{Binding PurchasingItems}" Focusable="False">
+                    <ItemsControl ItemsSource="{Binding PurchasingItems}" Focusable="False"
+                                  ItemTemplate="{StaticResource NavItemWithFavoriteTemplate}">
                         <ItemsControl.Style>
                             <Style TargetType="ItemsControl">
                                 <Setter Property="Visibility" Value="Collapsed"/>
@@ -343,19 +413,11 @@
                                 </Style.Triggers>
                             </Style>
                         </ItemsControl.Style>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Button Content="{Binding DisplayName}"
-                                        Style="{StaticResource NavItemStyle}"
-                                        Command="{Binding DataContext.NavigateCommand,
-                                                          RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                        CommandParameter="{Binding}"/>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
                     <!-- Inventory panel -->
-                    <ItemsControl ItemsSource="{Binding InventoryItems}" Focusable="False">
+                    <ItemsControl ItemsSource="{Binding InventoryItems}" Focusable="False"
+                                  ItemTemplate="{StaticResource NavItemWithFavoriteTemplate}">
                         <ItemsControl.Style>
                             <Style TargetType="ItemsControl">
                                 <Setter Property="Visibility" Value="Collapsed"/>
@@ -367,19 +429,11 @@
                                 </Style.Triggers>
                             </Style>
                         </ItemsControl.Style>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Button Content="{Binding DisplayName}"
-                                        Style="{StaticResource NavItemStyle}"
-                                        Command="{Binding DataContext.NavigateCommand,
-                                                          RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                        CommandParameter="{Binding}"/>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
                     <!-- POS panel -->
-                    <ItemsControl ItemsSource="{Binding PosItems}" Focusable="False">
+                    <ItemsControl ItemsSource="{Binding PosItems}" Focusable="False"
+                                  ItemTemplate="{StaticResource NavItemWithFavoriteTemplate}">
                         <ItemsControl.Style>
                             <Style TargetType="ItemsControl">
                                 <Setter Property="Visibility" Value="Collapsed"/>
@@ -391,19 +445,11 @@
                                 </Style.Triggers>
                             </Style>
                         </ItemsControl.Style>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Button Content="{Binding DisplayName}"
-                                        Style="{StaticResource NavItemStyle}"
-                                        Command="{Binding DataContext.NavigateCommand,
-                                                          RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                        CommandParameter="{Binding}"/>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
                     <!-- Accounting panel -->
-                    <ItemsControl ItemsSource="{Binding AccountingItems}" Focusable="False">
+                    <ItemsControl ItemsSource="{Binding AccountingItems}" Focusable="False"
+                                  ItemTemplate="{StaticResource NavItemWithFavoriteTemplate}">
                         <ItemsControl.Style>
                             <Style TargetType="ItemsControl">
                                 <Setter Property="Visibility" Value="Collapsed"/>
@@ -415,15 +461,6 @@
                                 </Style.Triggers>
                             </Style>
                         </ItemsControl.Style>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Button Content="{Binding DisplayName}"
-                                        Style="{StaticResource NavItemStyle}"
-                                        Command="{Binding DataContext.NavigateCommand,
-                                                          RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                        CommandParameter="{Binding}"/>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
                     <!-- Developer Tools panel (Debug builds only, Manager role only) -->
