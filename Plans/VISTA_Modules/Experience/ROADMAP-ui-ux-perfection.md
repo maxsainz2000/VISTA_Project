@@ -113,11 +113,11 @@ establishes (e.g. Pro accessibility builds on the Basic keyboard/focus floor).
 
 | Slot | Item | Depends-on | Reach |
 |------|------|-----------|-------|
-| P1 | Full Accessibility / WCAG 2.2 AA (`AutomationProperties`, SR names, focus traps, high-contrast theme) | B1 | App-wide |
+| P1 | Full Accessibility / WCAG 2.2 AA (`AutomationProperties`, SR names, focus traps) | B1 | App-wide |
 | P2 | Performance & Perceived Performance (UI virtualization, async-everywhere, optimistic UI) | UX-15 | Large lists |
-| P3 | Personalization & Workspace Memory (per-user theme/density/last-view/favorites/recents) | UX-01, B7 | App-wide |
-| P4 | System-Aware Theming (add `System`/Auto to `AppTheme`; optional scheduled dark) | UX-01 | Shell |
-| P5 | Density Modes (Comfortable/Compact spacing-token swap) | UX-01 | App-wide |
+| P3 | Personalization & Workspace Memory (per-user last-view/favorites/recents) | UX-01, B7 | App-wide |
+| ~~P4~~ | ~~System-Aware Theming~~ — dropped 2026-06-06 (adds noise; Light/Dark kept) | — | — |
+| ~~P5~~ | ~~Density Modes~~ — dropped 2026-06-06 (adds noise) | — | — |
 | P6 | Advanced Data Visualization (interactive charts, hover tooltips, drill-down, period selectors) | UX-12 | Dashboards |
 | P7 | Print & Export UX (BIR Official-Receipt template, PDF/CSV export, print preview) | — | POS, Accounting |
 | P8 | Living Design-System Gallery (token/component/state catalogue in Developer Tools) | UX-05, UX-07 | Dev Tools |

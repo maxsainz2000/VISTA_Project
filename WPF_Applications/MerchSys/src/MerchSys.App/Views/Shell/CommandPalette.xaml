@@ -4,6 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
+             xmlns:helpers="clr-namespace:MerchSys.App.Helpers"
              mc:Ignorable="d"
              d:DesignHeight="720" d:DesignWidth="1280">
 
@@ -27,7 +28,8 @@
                 BorderThickness="1"
                 CornerRadius="{DynamicResource RadiusLarge}"
                 Effect="{StaticResource CardShadow}"
-                MouseDown="SearchPanel_MouseDown">
+                MouseDown="SearchPanel_MouseDown"
+                helpers:AccessibilityHelper.IsFocusTrap="True">
             
             <Grid>
                 <Grid.RowDefinitions>

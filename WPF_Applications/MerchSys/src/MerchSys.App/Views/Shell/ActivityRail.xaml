@@ -135,7 +135,9 @@
                                 CommandParameter="{Binding ModuleId}"
                                 ToolTip="{Binding ToolTipText}"
                                 Content="{Binding Abbreviation}"
-                                Style="{StaticResource RailButtonStyle}"/>
+                                Style="{StaticResource RailButtonStyle}"
+                                AutomationProperties.Name="{Binding ToolTipText}"
+                                AutomationProperties.HelpText="{Binding ToolTipText}"/>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>

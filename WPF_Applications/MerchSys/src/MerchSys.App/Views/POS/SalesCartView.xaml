@@ -292,6 +292,12 @@
                               BorderThickness="1"
                               HeadersVisibility="Column"
                               TabIndex="5">
+                        <DataGrid.RowStyle>
+                            <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+                                <Setter Property="AutomationProperties.Name" Value="{Binding ProductName, StringFormat='Cart item: \{0\}'}"/>
+                                <Setter Property="AutomationProperties.HelpText" Value="{Binding Quantity, StringFormat='Quantity: \{0\}'}"/>
+                            </Style>
+                        </DataGrid.RowStyle>
 
                         <DataGrid.Columns>
                             <!-- Product -->
@@ -333,7 +339,9 @@
                                                 Command="{Binding DataContext.RemoveLineCommand,
                                                           RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                 CommandParameter="{Binding}"
-                                                ToolTip="Remove from cart">
+                                                ToolTip="Remove from cart"
+                                                AutomationProperties.Name="{Binding ProductName, StringFormat='Remove \{0\} from cart'}"
+                                                AutomationProperties.HelpText="Removes this item from the active transaction.">
                                             <Path Style="{StaticResource IconBase}" Data="{StaticResource IconXMarkGeometry}"
                                                   Width="11" Height="11"
                                                   Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
@@ -389,7 +397,8 @@
                         <Button Grid.Row="0" Grid.Column="0"
                                 Command="{Binding SelectPaymentMethodCommand}"
                                 CommandParameter="Cash"
-                                TabIndex="6">
+                                TabIndex="6"
+                                AutomationProperties.Name="Select Cash payment method">
                             <Button.Style>
                                 <Style TargetType="Button" BasedOn="{StaticResource PayMethodButton}">
                                     <Style.Triggers>
@@ -412,7 +421,8 @@
                         <Button Grid.Row="0" Grid.Column="1"
                                 Command="{Binding SelectPaymentMethodCommand}"
                                 CommandParameter="GCash"
-                                TabIndex="7">
+                                TabIndex="7"
+                                AutomationProperties.Name="Select GCash payment method">
                             <Button.Style>
                                 <Style TargetType="Button" BasedOn="{StaticResource PayMethodButton}">
                                     <Style.Triggers>
@@ -435,7 +445,8 @@
                         <Button Grid.Row="1" Grid.Column="0"
                                 Command="{Binding SelectPaymentMethodCommand}"
                                 CommandParameter="Bank"
-                                TabIndex="8">
+                                TabIndex="8"
+                                AutomationProperties.Name="Select Bank payment method">
                             <Button.Style>
                                 <Style TargetType="Button" BasedOn="{StaticResource PayMethodButton}">
                                     <Style.Triggers>
@@ -458,7 +469,8 @@
                         <Button Grid.Row="1" Grid.Column="1"
                                 Command="{Binding SelectPaymentMethodCommand}"
                                 CommandParameter="Credit"
-                                TabIndex="9">
+                                TabIndex="9"
+                                AutomationProperties.Name="Select Credit payment method">
                             <Button.Style>
                                 <Style TargetType="Button" BasedOn="{StaticResource PayMethodButton}">
                                     <Style.Triggers>

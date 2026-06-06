@@ -3,11 +3,13 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:helpers="clr-namespace:MerchSys.App.Helpers"
         mc:Ignorable="d"
         Title="Write Conflict" Height="180" Width="360"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False" ResizeMode="NoResize"
         Background="{DynamicResource WindowBackgroundBrush}"
-        BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1">
+        BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+        helpers:AccessibilityHelper.IsFocusTrap="True">
     
     <Grid Margin="20">
         <DockPanel>
@@ -24,7 +26,7 @@
             <!-- Buttons -->
             <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button Content="_Cancel" TabIndex="1" Style="{StaticResource SecondaryButtonStyle}" Click="CancelButton_Click" IsCancel="True" Margin="0,0,10,0"/>
-                <Button Content="_Refresh" TabIndex="2" Style="{StaticResource PrimaryButtonStyle}" Click="RefreshButton_Click" IsDefault="True"/>
+                <Button x:Name="RefreshButton" Content="_Refresh" TabIndex="2" Style="{StaticResource PrimaryButtonStyle}" Click="RefreshButton_Click" IsDefault="True"/>
             </StackPanel>
         </DockPanel>
     </Grid>

@@ -70,7 +70,9 @@
                     Margin="2,0,0,0"
                     Padding="2"
                     ToolTip="Refresh Data"
-                    x:Name="RefreshBtn">
+                    x:Name="RefreshBtn"
+                    AutomationProperties.Name="Refresh data"
+                    AutomationProperties.HelpText="Reloads the current list or grid data from the server.">
                 <Path Data="{StaticResource IconRefreshGeometry}"
                       Width="12"
                       Height="12"

@@ -33,6 +33,8 @@
         <!-- Row coloring based on overdue/paid status -->
         <Style x:Key="APRowStyle" TargetType="DataGridRow" BasedOn="{StaticResource SemanticRowStyle}">
             <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="AutomationProperties.Name" Value="{Binding VendorName, StringFormat='Invoice for \{0\}'}"/>
+            <Setter Property="AutomationProperties.HelpText" Value="{Binding OutstandingBalance, StringFormat='Outstanding balance \{0:C\}'}"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsOverdue}" Value="True">
                     <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>

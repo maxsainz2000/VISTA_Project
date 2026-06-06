@@ -12,37 +12,44 @@ estimated-files: 0
 > Level 3 is the "perfection" tier — accessibility completeness, performance at scale,
 > personalization, and the craft details that separate a good app from an exceptional one. These are
 > larger and more ambitious; each builds on a Basic/Advanced primitive (Pro accessibility extends the
-> Basic keyboard floor; density extends the spacing tokens; advanced viz extends the sparklines).
+> Basic keyboard floor; advanced viz extends the sparklines).
 > This level can be re-prioritised freely — it is the long tail of excellence, not a fixed sequence.
 
 Each entry: **What · Why · Research · Codebase grounding · Scope · Owner · Done-when.**
 
+> **Dropped 2026-06-06 (user decision — "adds noise, not an improvement"):** the high-contrast theme
+> (formerly part of P1) and three preference/polish items — **P4 System-Aware Theming (UX-39)**,
+> **P5 Density Modes (UX-40)**, and **P10 Live Motion Propagation (UX-45)** — were removed. Their plan
+> files are deleted; the P-numbers are intentionally left as gaps so the remaining plans' `item PN`
+> references (P6–P9) stay valid. Light/Dark remain the only themes.
+
 ---
 
 ## P1 — Full Accessibility / WCAG 2.2 AA
-*Proposed slot: UX-31 · Depends-on: B1*
+*Slot: **UX-36** (plan generated) · Depends-on: B1*
+
+> **Scope amended (2026-06-06):** the high-contrast theme variant was dropped at user request (judged
+> not beneficial / added UI noise). This item is now naming + modal focus traps only; Light/Dark remain
+> the only themes. The naming + focus-trap work shipped; the contrast theme was reverted.
 
 - **What.** Take accessibility from "floor" (B1's keyboard + focus) to **complete**:
   `AutomationProperties.Name`/`HelpText` on every interactive control, correct UI Automation
-  roles/labels for screen readers, focus **traps** inside modal dialogs (focus can't escape behind
-  the overlay), and a **high-contrast** theme variant alongside Light/Dark.
-- **Why.** Full operability by assistive tech and low-vision users is both an ethical baseline and a
+  roles/labels for screen readers, and focus **traps** inside modal dialogs (focus can't escape behind
+  the overlay).
+- **Why.** Full operability by assistive tech is both an ethical baseline and a
   procurement/compliance differentiator.
 - **Research.** WCAG 2.2 Level AA (full), Section 508; Microsoft UI Automation guidance.
 - **Codebase grounding.** Only ~21 `AutomationProperties`-class hits exist today (mostly
-  `Themes/Controls.xaml`). The theme system (`Themes/Light.xaml`, `Dark.xaml`, the `AppTheme` enum) is
-  the natural home for a high-contrast palette; modal overlays (`CommandPalette`,
-  `ConcurrencyConflictPrompt`, B4's confirm dialog) are where focus traps attach.
-- **Scope.** An `AutomationProperties` sweep; focus-scope/trap on modals; a `HighContrast` palette and
-  enum value. Largely additive.
+  `Themes/Controls.xaml`). Modal overlays (`CommandPalette`, `ConcurrencyConflictPrompt`, B4's confirm
+  dialog) are where focus traps attach.
+- **Scope.** An `AutomationProperties` sweep; focus-scope/trap on modals. Largely additive.
 - **Owner.** Same — Owner benefits equally.
-- **Done-when.** A screen reader announces every control meaningfully; modals trap focus; a
-  high-contrast theme passes AAA contrast where feasible.
+- **Done-when.** A screen reader announces every control meaningfully; modals trap focus.
 
 ---
 
 ## P2 — Performance & Perceived Performance
-*Proposed slot: UX-32 · Depends-on: UX-15*
+*Slot: **UX-37** (plan generated) · Depends-on: UX-15*
 
 - **What.** UI **virtualization** on long lists/grids (recycling `VirtualizingStackPanel`),
   incremental/async loading everywhere a list can grow, and **optimistic UI** on writes (reflect the
@@ -64,7 +71,7 @@ Each entry: **What · Why · Research · Codebase grounding · Scope · Owner ·
 ---
 
 ## P3 — Personalization & Workspace Memory
-*Proposed slot: UX-33 · Depends-on: UX-01, B7*
+*Slot: **UX-38** (plan generated) · Depends-on: UX-01, B7*
 
 - **What.** Remember the **user's** workspace: last-viewed screen restored on relaunch, a
   recently-viewed list, favorite/pinned screens, and persisted personal preferences (theme already;
@@ -84,44 +91,8 @@ Each entry: **What · Why · Research · Codebase grounding · Scope · Owner ·
 
 ---
 
-## P4 — System-Aware Theming
-*Proposed slot: UX-34 · Depends-on: UX-01*
-
-- **What.** Add a **System / Auto** option that follows the OS light/dark appearance, plus an optional
-  scheduled dark mode (e.g. dark after sunset).
-- **Why.** Auto-following the OS is the expected modern default; it removes a manual step and matches
-  the rest of the user's desktop.
-- **Research.** Apple HIG / Windows appearance conventions (respect the system appearance setting).
-- **Codebase grounding.** Confirmed small, well-scoped change: `Services/Theming/AppTheme.vb` is
-  currently `Enum AppTheme { Light, Dark }` — no `System`. `ThemeService` already does live swaps and
-  persistence, so adding a `System` value that subscribes to the OS appearance signal is contained.
-- **Scope.** Add `System` to the enum; have `ThemeService` resolve and watch the OS setting; expose it
-  in the toggle UI. Additive.
-- **Owner.** Same.
-- **Done-when.** Choosing "System" tracks the OS appearance live; the choice persists like the others.
-
----
-
-## P5 — Density Modes
-*Proposed slot: UX-35 · Depends-on: UX-01*
-
-- **What.** A **Comfortable / Compact** toggle that swaps row heights and spacing so power users on
-  smaller laptops can fit more on screen without losing legibility.
-- **Why.** The 4 client laptops differ in screen size; a density choice serves both the data-dense
-  power user and the comfortable default.
-- **Research.** Material/Fluent density guidance; data-density vs. legibility trade-off.
-- **Codebase grounding.** Spacing is already tokenised (`Themes/Tokens.xaml`: `SpacingXS..XL`, the
-  radii, the type ramp). A density mode swaps a spacing/row-height token set, the same mechanism the
-  light/dark swap uses for colors.
-- **Scope.** A second spacing-token set + a density toggle in `ThemeService`/prefs; grids and rows
-  reference the density tokens. Cosmetic.
-- **Owner.** Owner can pick their own density.
-- **Done-when.** Toggling density visibly re-spaces lists/grids live, in both themes, without clipping.
-
----
-
 ## P6 — Advanced Data Visualization
-*Proposed slot: UX-36 · Depends-on: UX-12*
+*Slot: **UX-41** (plan generated) · Depends-on: UX-12*
 
 - **What.** Make the dashboards' charts **interactive**: hover tooltips on sparkline/bar points,
   drill-down from a KPI to its detail view, and period selectors (7/30/90-day) on trend cards.
@@ -140,7 +111,7 @@ Each entry: **What · Why · Research · Codebase grounding · Scope · Owner ·
 ---
 
 ## P7 — Print & Export UX
-*Proposed slot: UX-37 · Depends-on: B5*
+*Slot: **UX-42** (plan generated) · Depends-on: B5*
 
 - **What.** A proper **BIR Official-Receipt** print template, plus report **export** (PDF/CSV) with a
   print-preview for the Accounting reports and POS receipts.
@@ -161,7 +132,7 @@ Each entry: **What · Why · Research · Codebase grounding · Scope · Owner ·
 ---
 
 ## P8 — Living Design-System Gallery
-*Proposed slot: UX-38 · Depends-on: UX-05, UX-07*
+*Slot: **UX-43** (plan generated) · Depends-on: UX-05, UX-07*
 
 - **What.** A Developer-Tools screen that renders **every** design token, component, and state — a
   Storybook-equivalent: all colors, the type ramp, every shared component (BusyOverlay, EmptyState,
@@ -183,7 +154,7 @@ Each entry: **What · Why · Research · Codebase grounding · Scope · Owner ·
 ---
 
 ## P9 — Localization Framework (Taglish / Filipino)
-*Proposed slot: UX-39 · Depends-on: B5*
+*Slot: **UX-44** (plan generated) · Depends-on: B5*
 
 - **What.** A resource-based internationalization layer so UI labels can switch language (English ↔
   Filipino/Taglish), with a language preference persisted per user.
@@ -204,9 +175,8 @@ Each entry: **What · Why · Research · Codebase grounding · Scope · Owner ·
 ## Exit criteria for Level 3
 
 Pro has **no hard finish line** — it is the standing tail of excellence. Practically, the app reaches
-"UI/UX perfection" for VISTA's purpose when P1 (accessibility), P2 (performance), and P3/P4/P5
-(personalization, system theming, density) are shipped; P6–P9 are high-value refinements pursued as
-appetite and need dictate. When an item here is genuinely complete and no open slot remains worth
-doing, the roadmap has served its purpose — and any new idea must be **added here, with grounding,
-before it is built.**
+"UI/UX perfection" for VISTA's purpose when P1 (accessibility), P2 (performance), and P3
+(personalization) are shipped; P6–P9 are high-value refinements pursued as appetite and need dictate.
+When an item here is genuinely complete and no open slot remains worth doing, the roadmap has served
+its purpose — and any new idea must be **added here, with grounding, before it is built.**
 </content>

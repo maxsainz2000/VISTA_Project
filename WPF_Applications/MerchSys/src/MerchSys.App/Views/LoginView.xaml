@@ -90,7 +90,9 @@
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Center"
                                 Margin="0,0,4,0"
-                                ToolTip="Show / hide password">
+                                ToolTip="Show / hide password"
+                                AutomationProperties.Name="Show or hide password"
+                                AutomationProperties.HelpText="Toggles the visibility of the password characters in the input field.">
                             <Path Width="18" Height="18" Fill="{DynamicResource TextSecondaryBrush}">
                                 <Path.Style>
                                     <Style TargetType="Path" BasedOn="{StaticResource IconBase}">
@@ -154,7 +156,9 @@
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Center"
                                 Margin="0,0,4,0"
-                                ToolTip="Show / hide new password">
+                                ToolTip="Show / hide new password"
+                                AutomationProperties.Name="Show or hide new password"
+                                AutomationProperties.HelpText="Toggles the visibility of the new password characters in the input field.">
                             <Path Width="18" Height="18" Fill="{DynamicResource TextSecondaryBrush}">
                                 <Path.Style>
                                     <Style TargetType="Path" BasedOn="{StaticResource IconBase}">

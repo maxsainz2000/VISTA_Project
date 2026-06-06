@@ -13,6 +13,23 @@ Namespace Views.Accounting.Components
 
         Public Sub New()
             InitializeComponent()
+            AddHandler Me.TileBorder.KeyDown, AddressOf OnTileKeyDown
+        End Sub
+
+        Private Sub OnTileKeyDown(sender As Object, e As Input.KeyEventArgs)
+            If e.Key = Input.Key.Enter OrElse e.Key = Input.Key.Space Then
+                Dim dc = Me.DataContext
+                If dc IsNot Nothing Then
+                    Dim cmdProp = dc.GetType().GetProperty("NavigateToVatReturnCommand")
+                    If cmdProp IsNot Nothing Then
+                        Dim cmd = TryCast(cmdProp.GetValue(dc), System.Windows.Input.ICommand)
+                        If cmd IsNot Nothing AndAlso cmd.CanExecute(Nothing) Then
+                            cmd.Execute(Nothing)
+                            e.Handled = True
+                        End If
+                    End If
+                End If
+            End If
         End Sub
 
     End Class

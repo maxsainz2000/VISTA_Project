@@ -68,7 +68,9 @@
                             Command="{Binding LoadPOsCommand}"
                             ToolTip="Reload submitted POs"
                             Margin="0,0,-30,0"
-                            TabIndex="2">
+                            TabIndex="2"
+                            AutomationProperties.Name="Reload submitted purchase orders"
+                            AutomationProperties.HelpText="Refreshes the dropdown list of submitted purchase orders from the database.">
                         <Path Style="{StaticResource IconBase}" Data="{StaticResource IconRefreshGeometry}"
                               Width="14" Height="14"
                               Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>

@@ -47,6 +47,8 @@
         <!-- Seasonal row highlight -->
         <Style x:Key="SuggestionRowStyle" TargetType="DataGridRow" BasedOn="{StaticResource SemanticRowStyle}">
             <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="AutomationProperties.Name" Value="{Binding ProductName, StringFormat='Suggestion for \{0\}'}"/>
+            <Setter Property="AutomationProperties.HelpText" Value="{Binding SuggestedQty, StringFormat='Suggested Quantity \{0\}'}"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsSeasonalAdjusted}" Value="True">
                     <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
@@ -56,6 +58,8 @@
 
         <Style x:Key="ConfigRowStyle" TargetType="DataGridRow" BasedOn="{StaticResource SemanticRowStyle}">
             <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="AutomationProperties.Name" Value="{Binding ProductName, StringFormat='Configuration for \{0\}'}"/>
+            <Setter Property="AutomationProperties.HelpText" Value="{Binding DefaultOrderQuantity, StringFormat='Default Quantity \{0\}'}"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsActive}" Value="False">
                     <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>

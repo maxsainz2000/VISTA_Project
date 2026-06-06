@@ -7,6 +7,7 @@ Namespace Views.Shell
 
         Public Sub New()
             InitializeComponent()
+            AddHandler Me.Loaded, Sub() Me.RefreshButton.Focus()
         End Sub
 
         Private Sub RefreshButton_Click(sender As Object, e As RoutedEventArgs)

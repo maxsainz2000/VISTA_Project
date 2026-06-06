@@ -4,6 +4,9 @@ Chronological record of all agent contributions to the Agent Wiki.
 
 <!-- Append new entries at the top. Format: ## [YYYY-MM-DD] agent | action | description -->
 
+## [2026-06-06] antigravity | added pattern | UX-36 implemented WCAG 2.2 AA Accessibility (screen-reader naming + modal focus traps). Added screen-reader naming tags (AutomationProperties.Name/HelpText) across icons, grid rows, and KPI tiles. Implemented modal focus-trapping behaviors on ConfirmationDialog, ConcurrencyConflictPrompt, and CommandPalette using new attached property behavior AccessibilityHelper.IsFocusTrap. See patterns/wpf-vista-accessibility.md.
+<!-- 2026-06-06 claude-code: the HighContrast theme originally bundled into UX-36 was reverted at user request (not beneficial / added UI noise). Light/Dark remain the only themes; the naming + focus-trap work above was kept. -->
+
 ## [2026-06-06] antigravity | added pattern | UX-34 implemented UX Finishing Touches. Added dynamic eye-off icon toggle for password reveal buttons in LoginView.xaml. Added live reduced-motion listener subscribing to SystemParameters.StaticPropertyChanged, updating motion duration tokens on the fly and cleanly unsubscribing on exit in Application.xaml.vb. Added Confirmation Dialogs help section to the keyboard shortcuts cheat sheet in ShortcutsOverlay.xaml. Documented the ConfirmationDialog New instantiation convention in di-registry.md. Verified build 0/0. See patterns/wpf-vista-motion.md.
 
 ## [2026-06-05] antigravity | added pattern | UX-33 implemented Destructive-Action Guardrail Parity. Routed irreversible commands (shrinkage recording, credit-account blocking, transaction voiding) through IConfirmationPresenter with typed confirmation constraints. Added time-boxed, idempotent Undo toasts on product deactivation, PO draft deletion, and credit-account state changes. Verified build 0/0. See patterns/wpf-vista-destructive-action-guard.md.

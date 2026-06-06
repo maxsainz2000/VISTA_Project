@@ -13,7 +13,11 @@
             CornerRadius="{DynamicResource RadiusSmall}"
             Padding="14,10"
             Margin="0,0,8,0"
-            Cursor="Hand">
+            Cursor="Hand"
+            Focusable="True"
+            FocusVisualStyle="{StaticResource AppFocusVisual}"
+            AutomationProperties.Name="{Binding VatPayableLabel}"
+            AutomationProperties.HelpText="Click or press Enter or Space to navigate to the VAT return screen.">
 
         <Border.InputBindings>
             <MouseBinding MouseAction="LeftClick" Command="{Binding NavigateToVatReturnCommand}"/>
