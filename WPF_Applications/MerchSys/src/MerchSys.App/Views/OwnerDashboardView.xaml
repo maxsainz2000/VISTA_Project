@@ -81,6 +81,13 @@
         <Style x:Key="AlertValue" TargetType="TextBlock" BasedOn="{StaticResource KpiValue}">
             <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
         </Style>
+
+        <Style x:Key="PeriodToggle" TargetType="RadioButton">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,6,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
     </UserControl.Resources>
 
     <Grid>
@@ -145,6 +152,7 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
             <!-- ── HERO: TODAY'S REVENUE ───────────────────────────────────────── -->
@@ -171,11 +179,17 @@
             <!-- ── PURCHASING card ─────────────────────────────────────────────── -->
             <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource SecondaryMetricCardStyle}" Margin="6">
                 <DockPanel>
-                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,12">
                         <Path Style="{StaticResource IconBase}" Data="{StaticResource IconBoxGeometry}"
                               Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"
                               Fill="{DynamicResource TextSecondaryBrush}"/>
-                        <TextBlock Style="{StaticResource CardTitle}" Text="PURCHASING"/>
+                        <TextBlock FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"
+                                   Text="PURCHASING" VerticalAlignment="Center"/>
+                        <Button Content="View →" Command="{Binding NavigateToPurchasingCommand}"
+                                Style="{StaticResource LinkButtonStyle}" FontSize="11"
+                                Margin="8,0,0,0" VerticalAlignment="Center"
+                                ToolTip="Open Purchasing Dashboard"
+                                AutomationProperties.Name="View Purchasing Dashboard"/>
                     </StackPanel>
 
                     <Border DockPanel.Dock="Bottom" Style="{StaticResource InterpretationBox}">
@@ -224,11 +238,17 @@
             <!-- ── INVENTORY card ──────────────────────────────────────────────── -->
             <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource SecondaryMetricCardStyle}" Margin="6">
                 <DockPanel>
-                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,12">
                         <Path Style="{StaticResource IconBase}" Data="{StaticResource IconChartBarGeometry}"
                               Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"
                               Fill="{DynamicResource TextSecondaryBrush}"/>
-                        <TextBlock Style="{StaticResource CardTitle}" Text="INVENTORY"/>
+                        <TextBlock FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"
+                                   Text="INVENTORY" VerticalAlignment="Center"/>
+                        <Button Content="View →" Command="{Binding NavigateToInventoryCommand}"
+                                Style="{StaticResource LinkButtonStyle}" FontSize="11"
+                                Margin="8,0,0,0" VerticalAlignment="Center"
+                                ToolTip="Open Stock Dashboard"
+                                AutomationProperties.Name="View Stock Dashboard"/>
                     </StackPanel>
 
                     <Border DockPanel.Dock="Bottom" Style="{StaticResource InterpretationBox}">
@@ -277,11 +297,17 @@
             <!-- ── SALES card ──────────────────────────────────────────────────── -->
             <Border Grid.Row="2" Grid.Column="0" Style="{StaticResource SecondaryMetricCardStyle}" Margin="6">
                 <DockPanel>
-                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,12">
                         <Path Style="{StaticResource IconBase}" Data="{StaticResource IconCashGeometry}"
                               Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"
                               Fill="{DynamicResource TextSecondaryBrush}"/>
-                        <TextBlock Style="{StaticResource CardTitle}" Text="SALES"/>
+                        <TextBlock FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"
+                                   Text="SALES" VerticalAlignment="Center"/>
+                        <Button Content="View →" Command="{Binding NavigateToSalesCommand}"
+                                Style="{StaticResource LinkButtonStyle}" FontSize="11"
+                                Margin="8,0,0,0" VerticalAlignment="Center"
+                                ToolTip="Open Sales Summary"
+                                AutomationProperties.Name="View Sales Summary"/>
                     </StackPanel>
 
                     <Border DockPanel.Dock="Bottom" Style="{StaticResource InterpretationBox}">
@@ -328,11 +354,17 @@
             <!-- ── ACCOUNTING card ────────────────────────────────────────────── -->
             <Border Grid.Row="2" Grid.Column="1" Style="{StaticResource SecondaryMetricCardStyle}" Margin="6">
                 <DockPanel>
-                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,12">
                         <Path Style="{StaticResource IconBase}" Data="{StaticResource IconChartLineGeometry}"
                               Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"
                               Fill="{DynamicResource TextSecondaryBrush}"/>
-                        <TextBlock Style="{StaticResource CardTitle}" Text="ACCOUNTING"/>
+                        <TextBlock FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"
+                                   Text="ACCOUNTING" VerticalAlignment="Center"/>
+                        <Button Content="View →" Command="{Binding NavigateToAccountingCommand}"
+                                Style="{StaticResource LinkButtonStyle}" FontSize="11"
+                                Margin="8,0,0,0" VerticalAlignment="Center"
+                                ToolTip="Open Financial Overview"
+                                AutomationProperties.Name="View Financial Overview"/>
                     </StackPanel>
 
                     <Border DockPanel.Dock="Bottom" Style="{StaticResource InterpretationBox}">
@@ -376,6 +408,37 @@
                     </Grid>
                 </DockPanel>
             </Border>
+
+            <!-- ── REVENUE TREND — period-selectable sparkline (additive, read-only) ── -->
+            <Border Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Style="{StaticResource KpiCard}" Margin="6">
+                <DockPanel>
+                    <!-- Header: title + 7/30/90-day period selector -->
+                    <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
+                        <TextBlock Text="Revenue Trend" FontSize="13" FontWeight="Bold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                   VerticalAlignment="Center" HorizontalAlignment="Left"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <TextBlock Text="Period:" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
+                                       VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <RadioButton Content="7d" IsChecked="{Binding Is7DaySelected, Mode=TwoWay}"
+                                         GroupName="TrendPeriod" Style="{StaticResource PeriodToggle}"
+                                         AutomationProperties.Name="Show 7-day revenue trend"/>
+                            <RadioButton Content="30d" IsChecked="{Binding Is30DaySelected, Mode=TwoWay}"
+                                         GroupName="TrendPeriod" Style="{StaticResource PeriodToggle}"
+                                         AutomationProperties.Name="Show 30-day revenue trend"/>
+                            <RadioButton Content="90d" IsChecked="{Binding Is90DaySelected, Mode=TwoWay}"
+                                         GroupName="TrendPeriod" Style="{StaticResource PeriodToggle}"
+                                         Margin="0" AutomationProperties.Name="Show 90-day revenue trend"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Fixed-width (3px) bars, left-anchored and bottom-aligned; bar height scales to this 40px card -->
+                    <views:Sparkline Points="{Binding TrendSparkPoints}"
+                                     Labels="{Binding TrendSparkLabels}"
+                                     Height="40" HorizontalAlignment="Left"/>
+                </DockPanel>
+            </Border>
+
         </Grid>
         </ScrollViewer>
 

@@ -68,4 +68,5 @@ All engineering learnings from debugging and error-fixing sessions. Check this i
 | [wpf-vista-accessibility](patterns/wpf-vista-accessibility.md) | pattern | Infrastructure | wpf, xaml, accessibility, wcag, mvvm, vb-net | antigravity | 2026-06-06 | active |
 | [wpf-vista-personalization](patterns/wpf-vista-personalization.md) | pattern | MerchSys.App | wpf, vb-net, persistence, personalization, favorites, recents, navigation, command-palette, ui-settings, json | claude-code | 2026-06-06 | active |
 | [wpf-vista-performance](patterns/wpf-vista-performance.md) | pattern | MerchSys.App | wpf, xaml, vb-net, virtualization, async-load, optimistic-ui, performance, debouncing | claude-code | 2026-06-06 | active |
+| [wpf-vista-interactive-charts](patterns/wpf-vista-interactive-charts.md) | pattern | MerchSys.App | wpf, xaml, vb-net, mvvm, charts, tooltips, drill-down, period-selector, sparkline, interactive | claude-code | 2026-06-06 | active |
 

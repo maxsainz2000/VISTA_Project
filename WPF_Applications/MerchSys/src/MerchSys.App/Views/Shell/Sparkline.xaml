@@ -19,7 +19,22 @@
                                Fill="{DynamicResource AccentBrush}"
                                RadiusX="0.5" RadiusY="0.5">
                         <Rectangle.ToolTip>
-                            <TextBlock Text="{Binding Value, StringFormat={StaticResource FormatCurrencyNoDecimal}}"/>
+                            <StackPanel>
+                                <TextBlock Text="{Binding Label}" FontSize="10"
+                                           Foreground="{DynamicResource TextSecondaryBrush}">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                            <Style.Triggers>
+                                                <Trigger Property="Text" Value="">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <TextBlock Text="{Binding Value, StringFormat={StaticResource FormatCurrencyNoDecimal}}"/>
+                            </StackPanel>
                         </Rectangle.ToolTip>
                     </Rectangle>
                 </Border>

@@ -1,3 +1,4 @@
+Imports System.Collections.Generic
 Imports System.Windows.Threading
 Imports CommunityToolkit.Mvvm.ComponentModel
 Imports CommunityToolkit.Mvvm.Input
@@ -8,19 +9,11 @@ Imports MerchSys.Purchasing.Services
 Imports MerchSys.SharedKernel.Enums
 Imports MerchSys.SharedKernel.Interfaces
 Imports MerchSys.SharedKernel.Presentation
+Imports Microsoft.Extensions.Configuration
+Imports MySqlConnector
 
 Namespace ViewModels
 
-    ''' <summary>
-    ''' ViewModel for the Owner KPI Dashboard (INFRA-16).
-    ''' Aggregates read-only KPIs from all four modules:
-    '''   Purchasing  — vendor count, open POs, pending deliveries, overdue AP
-    '''   Inventory   — total SKUs, stock value, low-stock item count, expiring-soon count
-    '''   Sales       — today's revenue, week revenue, transaction count, top product
-    '''   Accounting  — current-period net income, total outstanding AR, total outstanding AP
-    ''' All data is sourced exclusively from existing services (no new data-access code).
-    ''' Auto-refreshes every 60 seconds via DispatcherTimer (same pattern as SyncStatusIndicatorViewModel).
-    ''' </summary>
     Public Class OwnerDashboardViewModel
         Inherits ObservableObject
         Implements IDisposable, IFreshnessAware
@@ -46,6 +39,7 @@ Namespace ViewModels
         Private ReadOnly _financialOverview As IFinancialOverviewService
         Private ReadOnly _incomeStatement As IIncomeStatementService
         Private ReadOnly _refreshTimer As DispatcherTimer
+        Private ReadOnly _trendConnStr As String
         Private _disposed As Boolean
 
         ' ── Purchasing KPIs ──────────────────────────────────────────────────────
@@ -266,6 +260,70 @@ Namespace ViewModels
             End Set
         End Property
 
+        ' ── Revenue Trend (additive read-only, period-selectable) ────────────────
+
+        Private _selectedTrendPeriod As Integer = 30
+        Public Property SelectedTrendPeriod As Integer
+            Get
+                Return _selectedTrendPeriod
+            End Get
+            Set(value As Integer)
+                If SetProperty(_selectedTrendPeriod, value) Then
+                    OnPropertyChanged(NameOf(Is7DaySelected))
+                    OnPropertyChanged(NameOf(Is30DaySelected))
+                    OnPropertyChanged(NameOf(Is90DaySelected))
+                    Dim trendTask = LoadTrendDataAsync(value)
+                End If
+            End Set
+        End Property
+
+        Public Property Is7DaySelected As Boolean
+            Get
+                Return _selectedTrendPeriod = 7
+            End Get
+            Set(value As Boolean)
+                If value Then SelectedTrendPeriod = 7
+            End Set
+        End Property
+
+        Public Property Is30DaySelected As Boolean
+            Get
+                Return _selectedTrendPeriod = 30
+            End Get
+            Set(value As Boolean)
+                If value Then SelectedTrendPeriod = 30
+            End Set
+        End Property
+
+        Public Property Is90DaySelected As Boolean
+            Get
+                Return _selectedTrendPeriod = 90
+            End Get
+            Set(value As Boolean)
+                If value Then SelectedTrendPeriod = 90
+            End Set
+        End Property
+
+        Private _trendSparkPoints As IEnumerable(Of Double) = New List(Of Double)()
+        Public Property TrendSparkPoints As IEnumerable(Of Double)
+            Get
+                Return _trendSparkPoints
+            End Get
+            Private Set(value As IEnumerable(Of Double))
+                SetProperty(_trendSparkPoints, value)
+            End Set
+        End Property
+
+        Private _trendSparkLabels As IEnumerable(Of String) = New List(Of String)()
+        Public Property TrendSparkLabels As IEnumerable(Of String)
+            Get
+                Return _trendSparkLabels
+            End Get
+            Private Set(value As IEnumerable(Of String))
+                SetProperty(_trendSparkLabels, value)
+            End Set
+        End Property
+
         ' ── State ────────────────────────────────────────────────────────────────
 
         Private _isLoading As Boolean
@@ -318,7 +376,19 @@ Namespace ViewModels
             End Set
         End Property
 
+        ' ── Commands & Events ────────────────────────────────────────────────────
+
         Public ReadOnly Property RefreshCommand As AsyncRelayCommand
+
+        Public ReadOnly Property NavigateToPurchasingCommand As RelayCommand
+        Public ReadOnly Property NavigateToInventoryCommand As RelayCommand
+        Public ReadOnly Property NavigateToSalesCommand As RelayCommand
+        Public ReadOnly Property NavigateToAccountingCommand As RelayCommand
+
+        Public Event NavigateToPurchasingRequested As EventHandler
+        Public Event NavigateToInventoryRequested As EventHandler
+        Public Event NavigateToSalesRequested As EventHandler
+        Public Event NavigateToAccountingRequested As EventHandler
 
         Public Sub New(session As ISessionService,
                        stockDashboard As IStockDashboardService,
@@ -329,7 +399,8 @@ Namespace ViewModels
                        accountsPayable As IAccountsPayableService,
                        dailySummary As IDailySummaryService,
                        financialOverview As IFinancialOverviewService,
-                       incomeStatement As IIncomeStatementService)
+                       incomeStatement As IIncomeStatementService,
+                       configuration As IConfiguration)
             _session = session
             _stockDashboard = stockDashboard
             _lowStockAlert = lowStockAlert
@@ -340,9 +411,15 @@ Namespace ViewModels
             _dailySummary = dailySummary
             _financialOverview = financialOverview
             _incomeStatement = incomeStatement
+            _trendConnStr = configuration.GetConnectionString("MerchSysCentral")
 
             OwnerDisplayName = _session.CurrentUsername
             RefreshCommand = New AsyncRelayCommand(AddressOf RefreshAsync)
+
+            NavigateToPurchasingCommand = New RelayCommand(Sub() RaiseEvent NavigateToPurchasingRequested(Me, EventArgs.Empty))
+            NavigateToInventoryCommand = New RelayCommand(Sub() RaiseEvent NavigateToInventoryRequested(Me, EventArgs.Empty))
+            NavigateToSalesCommand = New RelayCommand(Sub() RaiseEvent NavigateToSalesRequested(Me, EventArgs.Empty))
+            NavigateToAccountingCommand = New RelayCommand(Sub() RaiseEvent NavigateToAccountingRequested(Me, EventArgs.Empty))
 
             _refreshTimer = New DispatcherTimer With {.Interval = TimeSpan.FromSeconds(60)}
             AddHandler _refreshTimer.Tick, AddressOf OnTimerTick
@@ -355,7 +432,6 @@ Namespace ViewModels
             Dim loadTask = RefreshAsync()
         End Sub
 
-        ''' <summary>Loads all KPI groups sequentially to avoid concurrent DbContext access.</summary>
         Private Async Function RefreshAsync() As Task
             If IsLoading Then Return
             IsError = False
@@ -366,6 +442,7 @@ Namespace ViewModels
                 Await LoadInventoryKpisAsync()
                 Await LoadSalesKpisAsync()
                 Await LoadAccountingKpisAsync()
+                Await LoadTrendDataAsync(_selectedTrendPeriod)
                 LastRefreshedDisplay = $"Last refreshed: {DateTime.Now:HH:mm:ss}"
                 LastLoadedAt = DateTime.Now
                 IsError = False
@@ -420,7 +497,6 @@ Namespace ViewModels
             Dim weeklyDto = Await _dailySummary.GetWeeklySummaryAsync(weekStart)
             WeekRevenue = weeklyDto.TotalSales
 
-            ' Load yesterday's sales to compute Today's Revenue Delta
             Dim yesterdayDto = Await _dailySummary.GetDailySummaryAsync(today.AddDays(-1))
             Dim yesterdayRevenue = yesterdayDto.TotalSales
             If yesterdayRevenue > 0 Then
@@ -429,7 +505,6 @@ Namespace ViewModels
                 TodayRevenueDelta = 0.0
             End If
 
-            ' Load last week's sales to compute Week's Revenue Delta
             Dim lastWeekStart = weekStart.AddDays(-7)
             Dim lastWeekDto = Await _dailySummary.GetWeeklySummaryAsync(lastWeekStart)
             Dim lastWeekRevenue = lastWeekDto.TotalSales
@@ -458,6 +533,69 @@ Namespace ViewModels
             CurrentPeriodNetIncome = statement.NetIncome
 
             AccountingInterpretation = BuildAccountingInterpretation()
+        End Function
+
+        ''' <summary>
+        ''' Loads daily revenue totals for the past <paramref name="days"/> days using a raw
+        ''' MySqlConnector reader (additive read-only; no existing VM property modified).
+        ''' The read groups by calendar day; the result is then zero-filled across the full window
+        ''' so a no-sales day reads as a zero bar and the sparkline's x-axis stays uniform
+        ''' (left-to-right old→new), rather than silently collapsing missing days.
+        ''' </summary>
+        Private Async Function LoadTrendDataAsync(days As Integer) As Task
+            If String.IsNullOrEmpty(_trendConnStr) Then
+                TrendSparkPoints = New List(Of Double)()
+                TrendSparkLabels = New List(Of String)()
+                Return
+            End If
+
+            Dim startDate = DateTime.Today.AddDays(-(days - 1)).Date
+            Dim totalsByDay As New Dictionary(Of Date, Double)()
+            Dim errMsg As String = Nothing
+
+            Try
+                Using conn As New MySqlConnection(_trendConnStr)
+                    Await conn.OpenAsync()
+                    Using cmd = conn.CreateCommand()
+                        cmd.CommandText =
+                            "SELECT DATE(TransactionDate) AS SaleDate, " &
+                            "COALESCE(SUM(TotalAmount), 0) AS DayTotal " &
+                            "FROM Pos_SalesTransactions " &
+                            "WHERE TransactionDate >= @start AND IsVoided = 0 AND IsDeleted = 0 " &
+                            "GROUP BY DATE(TransactionDate) ORDER BY SaleDate ASC"
+                        cmd.Parameters.Add(New MySqlParameter("@start", startDate.ToString("yyyy-MM-dd")))
+                        Using reader = cmd.ExecuteReader()
+                            While reader.Read()
+                                Dim saleDateVal = reader.GetDateTime(0).Date
+                                Dim dayTotalVal = reader.GetDecimal(1)
+                                totalsByDay(saleDateVal) = CDbl(dayTotalVal)
+                            End While
+                        End Using
+                    End Using
+                End Using
+            Catch ex As Exception
+                errMsg = ex.Message
+            End Try
+
+            Dim pts As New List(Of Double)()
+            Dim lbls As New List(Of String)()
+            ' Zero-fill the full window so every day in the period has a bar (missing day → 0).
+            ' On error, leave the series empty so the card shows no misleading flat-zero trend.
+            If errMsg Is Nothing Then
+                For dayOffset = 0 To days - 1
+                    Dim d = startDate.AddDays(dayOffset)
+                    Dim dayTotal As Double
+                    totalsByDay.TryGetValue(d, dayTotal)
+                    pts.Add(dayTotal)
+                    lbls.Add(d.ToString("MMM d"))
+                Next
+            End If
+
+            TrendSparkPoints = pts
+            TrendSparkLabels = lbls
+            If errMsg IsNot Nothing Then
+                System.Console.WriteLine($"[OwnerDashboard] Revenue trend load error: {errMsg}")
+            End If
         End Function
 
         Private Function BuildPurchasingInterpretation(outstandingAp As Decimal) As String

@@ -136,7 +136,7 @@ This page documents the composition root in `MerchSys.App`.
 | `MainWindowViewModel` | Singleton | Main navigation hub and state manager for the shell. Contains the `AllNavigableItems` aggregator, controls command palette visibility state, and supports workspace restoration (UX-38). |
 | `MainWindow` | Singleton | Main application window. |
 | `LoginViewModel` | Transient | VM for the standalone login window. |
-| `OwnerDashboardViewModel` | Transient | VM for the owner dashboard. |
+| `OwnerDashboardViewModel` | Transient | VM for the owner dashboard. Aggregates metrics across modules; supports KPI drill-down and revenue trend visualization (UX-41). Depends on `IConfiguration` for central database connection string (UX-41). |
 | `SessionTimeoutWarningViewModel` | Transient | VM for the inactivity warning countdown dialog. |
 | `ActivityRailViewModel` | Singleton | VM for the master activity rail module navigation. |
 | `ConnectionStatusViewModel` | Transient | VM for the connection health status indicator pill. |
