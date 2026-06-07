@@ -10,6 +10,7 @@ Namespace Startup
         <Extension>
         Public Sub AddDebugServices(services As IServiceCollection)
             services.AddTransient(Of Views.Debug.DebugMenuView)()
+            services.AddTransient(Of Views.DeveloperTools.DesignGalleryView)()
         End Sub
 
     End Module

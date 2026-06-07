@@ -424,6 +424,7 @@ Namespace ViewModels
                 Return New List(Of NavigationItem)()
             End If
             Return New List(Of NavigationItem) From {
+                New NavigationItem With {.DisplayName = "Design Gallery", .ViewType = GetType(Views.DeveloperTools.DesignGalleryView)},
                 New NavigationItem With {.DisplayName = "Run VAT Schema Harness", .ViewType = GetType(Views.Debug.DebugMenuView)}
             }
         End Function

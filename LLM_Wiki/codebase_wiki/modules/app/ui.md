@@ -111,6 +111,7 @@ This page details the WPF View implementations (XAML and code-behind) in the **M
 | File Path | Class | Description | DataContext / Injection |
 |---|---|---|---|
 | `src/MerchSys.App/Views/Debug/DebugMenuExtensions.vb` | `DebugMenuView` | Code-only `#If DEBUG`-gated UserControl that renders the developer debug panel. | (none) |
+| `src/MerchSys.App/Views/DeveloperTools/DesignGalleryView.xaml`<br>`src/MerchSys.App/Views/DeveloperTools/DesignGalleryView.xaml.vb` | `DesignGalleryView` | Living Design-System Gallery. A scrollable catalogue of all theme tokens (brushes, type ramp, spacing, radii, motion), shared component states, and iconography. Used by developers to verify token-driven recoloring and component realization across Light/Dark themes. Exclusively available to the Developer role (UX-43). | (none) |
 
 ## Themes & Styles
 

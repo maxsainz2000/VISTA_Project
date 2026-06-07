@@ -121,6 +121,8 @@ This page documents the composition root in `MerchSys.App`.
 | `VatPayableTile` | Accounting | Transient |
 | `TamperAuditReportView` | Accounting | Transient |
 | `VatReliefReportView` | Accounting | Transient |
+| `DebugMenuView` | (Shell/Dev) | Transient |
+| `DesignGalleryView` | (Shell/Dev) | Transient |
 | `LoginView` | (Shell) | Transient |
 | `OwnerDashboardView` | (Shell) | Transient |
 | `SessionTimeoutWarningView` | (Shell) | Transient |

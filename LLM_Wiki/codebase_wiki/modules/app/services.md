@@ -40,4 +40,4 @@ This page details the Service implementations specifically located within the **
 ## Debug & Utilities
 | File Path | Class | Description |
 |---|---|---|
-| `src/MerchSys.App/Startup/DebugServiceRegistration.vb` | `DebugServiceRegistration` (Module) | Registers DebugMenuView as Transient in DI for developer diagnostics. |
+| `src/MerchSys.App/Startup/DebugServiceRegistration.vb` | `DebugServiceRegistration` (Module) | Registers `DebugMenuView` and `DesignGalleryView` as Transient in DI for developer diagnostics. |
