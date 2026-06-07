@@ -1,7 +1,10 @@
 Imports System.Windows
 Imports System.Windows.Controls
+Imports System.Windows.Documents
 Imports System.Windows.Input
+Imports System.Windows.Media
 Imports System.Linq
+Imports MerchSys.POS.Entities
 Imports MerchSys.POS.ViewModels
 
 Namespace Views.POS
@@ -194,6 +197,151 @@ Namespace Views.POS
                 vm?.SearchCreditCustomerCommand.Execute(Nothing)
                 e.Handled = True
             End If
+        End Sub
+
+        ' ── Print Official Receipt ────────────────────────────────────────────────
+
+        Private Sub PrintOrButton_Click(sender As Object, e As RoutedEventArgs)
+            Dim vm = TryCast(DataContext, SalesCartViewModel)
+            If vm Is Nothing OrElse vm.CurrentReceipt Is Nothing Then Return
+
+            Dim receipt = vm.CurrentReceipt
+            Dim lineItems = vm.LastCartLines
+
+            Dim flowDoc As New FlowDocument()
+            flowDoc.PagePadding = New Thickness(60, 40, 60, 40)
+            flowDoc.FontFamily = New FontFamily("Courier New")
+            flowDoc.FontSize = 11
+            ' A5 portrait approximation — 559 WPF units ≈ 148mm; thermal receipt is narrower
+            flowDoc.PageWidth = 480
+
+            BuildOrFlowDocument(flowDoc, receipt, lineItems)
+
+            Dim dlg As New PrintDialog()
+            If dlg.ShowDialog() = True Then
+                dlg.PrintDocument(
+                    CType(flowDoc, IDocumentPaginatorSource).DocumentPaginator,
+                    $"BIR Official Receipt {receipt.ReceiptNumber}")
+            End If
+        End Sub
+
+        ''' <summary>
+        ''' Populates <paramref name="flowDoc"/> with a BIR-compliant OR layout:
+        ''' header block, line items, totals, VAT disclosure, and footer.
+        ''' Numbers are formatted with N2; peso symbol is included inline.
+        ''' </summary>
+        Private Shared Sub BuildOrFlowDocument(flowDoc As FlowDocument,
+                                               receipt As OfficialReceipt,
+                                               lineItems As IReadOnlyList(Of CartLineItem))
+            Const Sep As String = "────────────────────────────────────────────────"
+
+            ' ── Business header ────────────────────────────────────────────────
+            Dim hdr As New Paragraph() With {.TextAlignment = TextAlignment.Center, .Margin = New Thickness(0, 0, 0, 2)}
+            hdr.Inlines.Add(New Bold(New Run(receipt.BusinessName)))
+            flowDoc.Blocks.Add(hdr)
+
+            If Not String.IsNullOrWhiteSpace(receipt.BusinessAddress) Then
+                For Each addrLine In receipt.BusinessAddress.Split(
+                        New String() {Environment.NewLine, vbCrLf, vbLf},
+                        StringSplitOptions.RemoveEmptyEntries)
+                    Dim ap As New Paragraph(New Run(addrLine.Trim())) With {
+                        .TextAlignment = TextAlignment.Center,
+                        .FontSize = 10,
+                        .Margin = New Thickness(0)
+                    }
+                    flowDoc.Blocks.Add(ap)
+                Next
+            End If
+
+            Dim vatStatusLine = If(receipt.IsVatRegistered, "VAT-Registered Taxpayer", "Non-VAT Taxpayer")
+            flowDoc.Blocks.Add(New Paragraph(New Run(vatStatusLine)) With {
+                .TextAlignment = TextAlignment.Center, .FontSize = 10, .Margin = New Thickness(0)
+            })
+
+            If Not String.IsNullOrWhiteSpace(receipt.BusinessTIN) Then
+                flowDoc.Blocks.Add(New Paragraph(New Run($"TIN: {receipt.BusinessTIN}")) With {
+                    .TextAlignment = TextAlignment.Center, .FontSize = 10, .Margin = New Thickness(0, 0, 0, 2)
+                })
+            End If
+
+            flowDoc.Blocks.Add(New Paragraph(New Run(Sep)) With {.Margin = New Thickness(0, 4, 0, 4)})
+
+            ' ── OR number and issue date ────────────────────────────────────────
+            Dim orPara As New Paragraph() With {.Margin = New Thickness(0, 0, 0, 2)}
+            orPara.Inlines.Add(New Run("OR No.: "))
+            orPara.Inlines.Add(New Bold(New Run(receipt.ReceiptNumber)))
+            flowDoc.Blocks.Add(orPara)
+
+            flowDoc.Blocks.Add(New Paragraph(
+                New Run($"Date:   {receipt.IssueDate.ToLocalTime():MM/dd/yyyy HH:mm}")) With {
+                .Margin = New Thickness(0, 0, 0, 4)
+            })
+
+            flowDoc.Blocks.Add(New Paragraph(New Run(Sep)) With {.Margin = New Thickness(0, 0, 0, 4)})
+
+            ' ── Line items ─────────────────────────────────────────────────────
+            flowDoc.Blocks.Add(New Paragraph(New Run(
+                $"{"Item",-20}{"Qty",4}{"Unit Price",11}{"Total",10}")) With {
+                .Margin = New Thickness(0)
+            })
+            flowDoc.Blocks.Add(New Paragraph(New Run(Sep)) With {.Margin = New Thickness(0, 0, 0, 2)})
+
+            Dim subtotal As Decimal = 0D
+            If lineItems IsNot Nothing AndAlso lineItems.Count > 0 Then
+                For Each li In lineItems
+                    Dim nm = If(li.ProductName.Length > 20, li.ProductName.Substring(0, 20), li.ProductName)
+                    flowDoc.Blocks.Add(New Paragraph(New Run(
+                        $"{nm,-20}{li.Quantity,4}{li.UnitPrice,11:N2}{li.LineTotal,10:N2}")) With {
+                        .Margin = New Thickness(0)
+                    })
+                    If li.DiscountAmount > 0D Then
+                        flowDoc.Blocks.Add(New Paragraph(New Run(
+                            $"  Discount: -₱{li.DiscountAmount:N2}")) With {
+                            .Margin = New Thickness(0)
+                        })
+                    End If
+                    subtotal += li.LineTotal
+                Next
+            Else
+                ' No line snapshot (e.g. reprint) — fall back to the receipt total.
+                subtotal = receipt.TotalAmount
+            End If
+
+            flowDoc.Blocks.Add(New Paragraph(New Run(Sep)) With {.Margin = New Thickness(0, 4, 0, 4)})
+
+            ' ── Totals ─────────────────────────────────────────────────────────
+            flowDoc.Blocks.Add(New Paragraph(New Run(
+                $"{"Subtotal:",-38}₱{subtotal,10:N2}")) With {.Margin = New Thickness(0)})
+            flowDoc.Blocks.Add(New Paragraph(New Bold(New Run(
+                $"{"TOTAL:",-38}₱{receipt.TotalAmount,10:N2}"))) With {.Margin = New Thickness(0, 2, 0, 4)})
+
+            flowDoc.Blocks.Add(New Paragraph(New Run(Sep)) With {.Margin = New Thickness(0, 0, 0, 4)})
+
+            ' ── BIR VAT disclosure block ────────────────────────────────────────
+            If receipt.IsVatRegistered Then
+                Dim vatableSalesNet = receipt.TotalAmount - receipt.VatAmount
+                flowDoc.Blocks.Add(New Paragraph(New Run(
+                    $"{"VATable Sales:",-38}₱{vatableSalesNet,10:N2}")) With {.Margin = New Thickness(0)})
+                flowDoc.Blocks.Add(New Paragraph(New Run(
+                    $"{"VAT-Exempt Sales:",-38}₱{0D,10:N2}")) With {.Margin = New Thickness(0)})
+                flowDoc.Blocks.Add(New Paragraph(New Run(
+                    $"{"Zero-Rated Sales:",-38}₱{0D,10:N2}")) With {.Margin = New Thickness(0, 0, 0, 2)})
+                flowDoc.Blocks.Add(New Paragraph(New Run(
+                    $"{"Output VAT (12%):",-38}₱{receipt.VatAmount,10:N2}")) With {.Margin = New Thickness(0, 0, 0, 4)})
+            Else
+                flowDoc.Blocks.Add(New Paragraph(New Run(
+                    $"{"Gross Sales:",-38}₱{receipt.TotalAmount,10:N2}")) With {.Margin = New Thickness(0, 0, 0, 4)})
+            End If
+
+            flowDoc.Blocks.Add(New Paragraph(New Run(Sep)) With {.Margin = New Thickness(0, 0, 0, 8)})
+
+            ' ── Footer ─────────────────────────────────────────────────────────
+            flowDoc.Blocks.Add(New Paragraph(New Run("Thank you for your business.")) With {
+                .TextAlignment = TextAlignment.Center, .FontStyle = FontStyles.Italic, .Margin = New Thickness(0, 0, 0, 2)
+            })
+            flowDoc.Blocks.Add(New Paragraph(New Run("This serves as your Official Receipt.")) With {
+                .TextAlignment = TextAlignment.Center, .FontStyle = FontStyles.Italic, .Margin = New Thickness(0)
+            })
         End Sub
 
     End Class

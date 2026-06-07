@@ -634,6 +634,16 @@
                             <TextBlock Text="Thank you!"
                                        HorizontalAlignment="Center" FontSize="{DynamicResource FontSizeCaption}"
                                        Foreground="{DynamicResource TextSecondaryBrush}" FontStyle="Italic"/>
+
+                            <Button Content="Print Official Receipt"
+                                    x:Name="PrintOrButton"
+                                    Click="PrintOrButton_Click"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Margin="0,8,0,0" Padding="10,6"
+                                    HorizontalAlignment="Stretch"
+                                    TabIndex="15"
+                                    AutomationProperties.Name="Print Official Receipt"
+                                    ToolTip="Send this receipt to the printer"/>
                         </StackPanel>
                     </Border>
 

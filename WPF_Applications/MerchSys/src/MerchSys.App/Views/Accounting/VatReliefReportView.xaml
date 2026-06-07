@@ -46,7 +46,20 @@
 
                         <Button Content="Refresh" Command="{Binding RefreshCommand}"
                                 Style="{StaticResource PrimaryButtonStyle}"
-                                Padding="12,5" FontSize="12"/>
+                                Padding="12,5" FontSize="12" Margin="0,0,8,0"/>
+
+                        <!-- Export buttons — read-only, available to all roles -->
+                        <Button Content="Export _CSV"
+                                Style="{StaticResource PrimaryButtonStyle}" Padding="12,5" FontSize="12"
+                                Click="ExportCsv_Click"
+                                Margin="0,0,6,0"
+                                TabIndex="10"
+                                AutomationProperties.Name="Export VAT Relief Report to CSV"/>
+                        <Button Content="Export _PDF"
+                                Style="{StaticResource PrimaryButtonStyle}" Padding="12,5" FontSize="12"
+                                Click="ExportPdf_Click"
+                                TabIndex="11"
+                                AutomationProperties.Name="Export VAT Relief Report to printable report"/>
                     </StackPanel>
                 </Grid>
             </Border>

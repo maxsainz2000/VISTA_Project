@@ -116,7 +116,21 @@
                                    VerticalAlignment="Center" Margin="0,0,10,0"
                                    Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
                         <Button Content="Refresh" Command="{Binding LoadCommand}"
-                                Style="{StaticResource PrimaryButtonStyle}" Padding="14,6" FontWeight="SemiBold"/>
+                                Style="{StaticResource PrimaryButtonStyle}" Padding="14,6" FontWeight="SemiBold"
+                                Margin="0,0,8,0"/>
+
+                        <!-- Export buttons — read-only, available to all roles -->
+                        <Button Content="Export _CSV"
+                                Style="{StaticResource PrimaryButtonStyle}" Padding="12,6" FontWeight="SemiBold"
+                                Click="ExportCsv_Click"
+                                Margin="0,0,6,0"
+                                TabIndex="10"
+                                AutomationProperties.Name="Export Income Statement to CSV"/>
+                        <Button Content="Export _PDF"
+                                Style="{StaticResource PrimaryButtonStyle}" Padding="12,6" FontWeight="SemiBold"
+                                Click="ExportPdf_Click"
+                                TabIndex="11"
+                                AutomationProperties.Name="Export Income Statement to printable report"/>
 
                     </StackPanel>
                 </Grid>

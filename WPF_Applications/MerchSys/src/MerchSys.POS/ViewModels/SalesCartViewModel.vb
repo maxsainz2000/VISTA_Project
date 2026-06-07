@@ -376,6 +376,14 @@ Namespace ViewModels
 
         ' ─── Receipt ──────────────────────────────────────────────────────────────
 
+        Private _lastCartLines As New List(Of CartLineItem)()
+        ''' <summary>Snapshot of the cart lines captured at checkout — available for the OR print template.</summary>
+        Public ReadOnly Property LastCartLines As IReadOnlyList(Of CartLineItem)
+            Get
+                Return _lastCartLines.AsReadOnly()
+            End Get
+        End Property
+
         Private _currentReceipt As OfficialReceipt
         Public Property CurrentReceipt As OfficialReceipt
             Get
@@ -687,6 +695,7 @@ Namespace ViewModels
 
                         Dim nextCart = Await _cartService.CreateCartAsync()
                         _currentCartId = nextCart.CartId
+                        _lastCartLines = CartLines.ToList()
                         CartLines.Clear()
                         SubTotal = 0D
                         DiscountTotal = 0D

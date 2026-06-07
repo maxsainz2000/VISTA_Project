@@ -69,4 +69,5 @@ All engineering learnings from debugging and error-fixing sessions. Check this i
 | [wpf-vista-personalization](patterns/wpf-vista-personalization.md) | pattern | MerchSys.App | wpf, vb-net, persistence, personalization, favorites, recents, navigation, command-palette, ui-settings, json | claude-code | 2026-06-06 | active |
 | [wpf-vista-performance](patterns/wpf-vista-performance.md) | pattern | MerchSys.App | wpf, xaml, vb-net, virtualization, async-load, optimistic-ui, performance, debouncing | claude-code | 2026-06-06 | active |
 | [wpf-vista-interactive-charts](patterns/wpf-vista-interactive-charts.md) | pattern | MerchSys.App | wpf, xaml, vb-net, mvvm, charts, tooltips, drill-down, period-selector, sparkline, interactive | claude-code | 2026-06-06 | active |
+| [wpf-vista-print-export](patterns/wpf-vista-print-export.md) | pattern | MerchSys.App | wpf, xaml, vb-net, print, export, flowdocument, csv, bir, official-receipt, accounting | claude-code | 2026-06-07 | active |
 
