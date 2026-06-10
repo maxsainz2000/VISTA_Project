@@ -121,7 +121,7 @@ establishes (e.g. Pro accessibility builds on the Basic keyboard/focus floor).
 | P6 | Advanced Data Visualization (interactive charts, hover tooltips, drill-down, period selectors) | UX-12 | Dashboards |
 | P7 | Print & Export UX (BIR Official-Receipt template, PDF/CSV export, print preview) | — | POS, Accounting |
 | P8 | Living Design-System Gallery (token/component/state catalogue in Developer Tools) | UX-05, UX-07 | Dev Tools |
-| P9 | Localization Framework (resource-based i18n; Taglish/Filipino labels) | B5 | App-wide |
+| ~~P9~~ | ~~Localization Framework (resource-based i18n; Taglish/Filipino labels)~~ — dropped 2026-06-07 (descoped; English-only UI kept) | — | — |
 
 ## Research basis (binding evidence, not opinion)
 

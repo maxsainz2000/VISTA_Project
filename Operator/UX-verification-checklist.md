@@ -2,15 +2,18 @@
 module: MerchSys.App
 source: ux_review_report.md
 originally-generated: 2026-06-05
-last-synced: 2026-06-05
+last-synced: 2026-06-08
+scope-extended: 2026-06-08 (broadened beyond the report into the single UX operator checklist; UX-33 → UX-43 appended)
 ---
 
 # Operator Verification Checklist — UX (Experience)
 
-> Extracted from `ux_review_report.md` (Verification & Testing Debt, §1.1, §1.2, §1.10).
-> Only **operator / manual** verification tasks are listed here — items that need a human to boot the
-> app and look at the screen. Findings that need **code changes** are tracked as plans UX-31 → UX-35
-> in `Plans/VISTA_Modules/Experience/`, not here.
+> Originally extracted from `ux_review_report.md` (Verification & Testing Debt, §1.1, §1.2, §1.10);
+> **broadened 2026-06-08** into the single UX operator checklist — it now also covers the manual
+> verification owed by the post-report plans **UX-33 → UX-43** (their summaries each marked operator
+> verification "pending"). Only **operator / manual** verification tasks are listed here — items that
+> need a human to boot the app and look at the screen. The code for every item below is already
+> implemented; this is the realization/verification pass, not a code backlog.
 >
 > **How to use:** Do each step in order. Check the box when done. Write what you saw next to each item.
 >
@@ -25,14 +28,16 @@ last-synced: 2026-06-05
 
 | What | Path |
 |------|------|
-| UI settings (window state + theme) | `%LOCALAPPDATA%\MerchSys\ui-settings.json` |
+| UI settings (window state + theme + personalization) | `%LOCALAPPDATA%\MerchSys\ui-settings.json` — now also holds `lastViewKey`, `favoriteKeys`, `recentKeys` (UX-38) |
 | WindowPlacementService | `WPF_Applications\MerchSys\src\MerchSys.App\Services\WindowPlacementService.vb` |
 | UiSettingsStore | `WPF_Applications\MerchSys\src\MerchSys.App\Services\UiSettingsStore.vb` |
 | MainWindow (placement hook-up) | `WPF_Applications\MerchSys\src\MerchSys.App\MainWindow.xaml.vb` |
-| Reduced-motion check (startup) | `WPF_Applications\MerchSys\src\MerchSys.App\Application.xaml.vb` (`Application_Startup`, `SystemParameters.ClientAreaAnimation`) |
+| Reduced-motion (startup + live) | `WPF_Applications\MerchSys\src\MerchSys.App\Application.xaml.vb` — `Application_Startup` reads `SystemParameters.ClientAreaAnimation`; a `SystemParameters.StaticPropertyChanged` listener re-runs `UpdateMotionSettings()` mid-session (UX-34), detached in `Application_Exit` |
 | Icon dictionary | `WPF_Applications\MerchSys\src\MerchSys.App\Themes\Icons.xaml` |
 | Theme dictionaries | `WPF_Applications\MerchSys\src\MerchSys.App\Themes\Light.xaml`, `Dark.xaml` |
 | Theme toggle service | `WPF_Applications\MerchSys\src\MerchSys.App\Services\Theming\ThemeService.vb` |
+| Personalization (favorites/recents/last-view) | `WPF_Applications\MerchSys\src\MerchSys.App\Services\UserPreferencesService.vb` |
+| Design Gallery (Developer-only) | `WPF_Applications\MerchSys\src\MerchSys.App\Views\DeveloperTools\DesignGalleryView.xaml` |
 
 ---
 
@@ -144,8 +149,8 @@ last-synced: 2026-06-05
   clipped paths.
 - Icons recolor with the theme (they use the foreground token, not a baked-in color).
 
-> Note: `IconEyeOffGeometry` and `IconChevronLeftGeometry` are defined but not yet consumed — that is a
-> known code gap handled by plan **UX-34** (two-state password reveal), not a defect to file here.
+> Note: the two-state password-reveal icon (`IconEyeOffGeometry`) is now consumed and the dead
+> `IconChevronLeftGeometry` was removed (both by **UX-34**) — verify the reveal toggle in **Test 15**.
 
 - [ ] All swept icon-only controls render correctly in Light —
 - [ ] All swept icon-only controls render correctly in Dark —
@@ -188,19 +193,22 @@ last-synced: 2026-06-05
 
 - [ ] Animations are suppressed when OS reduced-motion was on at launch —
 
-### Test 10: Mid-session toggle behavior (document, don't fix here)
+### Test 10: Mid-session reduced-motion toggle (now partially live — UX-34)
 
 **What to do:**
 1. With the app **running** (and animations currently on), turn OS animation effects **off** without
-   restarting the app. Navigate between views.
+   restarting the app. Navigate between views; open a data view that fetches (to trigger a skeleton).
 
 **What you should see / record:**
-- Per current implementation the check runs only at `Application_Startup`, so the app will **keep
-  animating until restarted**. Confirm that is what happens and **record it** — this is the known
-  behavior from §1.10. Whether to add a live `SystemParameters.StaticPropertyChanged` listener is a
-  **code decision** tracked in plan **UX-34**; this test only documents the current behavior.
+- **UX-34 added a live `SystemParameters.StaticPropertyChanged` listener**, so the change is now
+  **partially live**: runtime-read consumers react immediately — the `MotionEnabled` gate and the
+  skeleton shimmer stop animating without a restart.
+- **Sealed template/trigger animations** (view-transition fades, `VisualTransition` durations) are baked
+  when their template is sealed, so they **keep their startup durations until the app restarts**. This
+  split is the expected behavior — record which interactions stopped live and which needed a restart.
 
-- [ ] Confirmed: mid-session OS reduced-motion change takes effect only after restart —
+- [ ] Skeleton shimmer / `MotionEnabled` gate stop animating immediately on the mid-session OS change —
+- [ ] Sealed template transitions keep animating until restart (expected) —
 
 ---
 
@@ -260,6 +268,249 @@ surface), then eyeball the per-view items in the last column.
 - Refresh / clear-all (reads) still work for Owner; no write affordance is exposed.
 
 - [ ] Owner sees no write CTAs on the gated views; refresh/clear-all still available —
+
+---
+
+# Post-report plans (UX-33 → UX-43) — appended 2026-06-08
+
+> The sections above cover the original `ux_review_report` debt (UX-07 … UX-32). The sections below
+> cover the manual verification owed by the plans that landed **after** the report. All code is
+> implemented; each plan's summary marked operator verification "pending." Same rules: log in as
+> `manager` unless a test says otherwise, and do each check in **both Light and Dark**.
+
+## UX-33 — Destructive-Action Guardrail Parity
+
+### Test 13: Typed-confirmation on irreversible actions
+
+**What to do:**
+1. **Void a sale:** POS → Transaction History → select a transaction → **Void Transaction**. Try
+   clicking confirm without typing; then type `VOID` exactly.
+2. **Record shrinkage:** Inventory → Shrinkage → record a shrinkage; in the dialog type `RECORD`.
+
+**What you should see:**
+- The confirm button stays **disabled** until the typed text matches exactly (`VOID` / `RECORD`);
+  wrong or partial text keeps it disabled. Esc cancels with no change.
+- After confirming, the action applies (the transaction shows voided; stock is reduced).
+
+- [ ] Void requires typing `VOID`; confirm disabled until exact match —
+- [ ] Shrinkage record requires typing `RECORD`; confirm disabled until exact match —
+
+### Test 14: Confirm + Undo on reversible actions
+
+**What to do:**
+1. **Product deactivate:** Inventory → Product Management → deactivate a product → watch for the Undo
+   toast → click **Undo** within the window.
+2. **Credit block:** POS → Credit Management → select an account → **Block Credit** (confirm) → Undo
+   toast → Undo. (Unblock requires the account balance = 0.)
+3. **PO draft delete:** Purchasing → Purchase Orders → delete a *draft* PO (confirm) → Undo toast → Undo.
+
+**What you should see:**
+- Each shows a confirmation first (block / PO) or an immediate Undo toast (deactivate); clicking
+  **Undo** within the time window restores the prior state (product re-activated, account unblocked,
+  draft restored). Letting the toast expire keeps the change.
+
+- [ ] Product deactivate → Undo restores active state —
+- [ ] Credit block → confirm, then Undo restores unblocked —
+- [ ] PO draft delete → confirm, then Undo restores the draft —
+
+---
+
+## UX-34 — Finishing Touches
+
+### Test 15: Two-state password reveal
+
+**What to do:** On the login screen, click the eye button in a password field; click it again. Repeat
+on the change-password flow's new-password field.
+
+**What you should see:** The icon toggles between the eye and eye-off glyph in sync with whether the
+password text is shown or hidden.
+
+- [ ] Reveal eye icon toggles eye ↔ eye-off in sync with visibility (both fields) —
+
+### Test 16: Shortcuts overlay — Confirmation Dialogs group
+
+**What to do:** Open the shortcuts overlay (the shortcuts hotkey / `?`). Scroll to the **Confirmation
+Dialogs** group.
+
+**What you should see:** A "Confirmation Dialogs" section explaining Enter (confirm), Esc (cancel), and
+the type-to-confirm exact-match behavior (matches Test 13).
+
+- [ ] Shortcuts overlay shows a "Confirmation Dialogs" group with Enter / Esc / type-match —
+
+> Reduced-motion mid-session behavior (also UX-34) is verified in **Test 10** above.
+
+---
+
+## UX-36 — Accessibility (WCAG 2.2 AA)
+
+### Test 17: Screen-reader naming
+
+**What to do:** Start **Narrator** (Ctrl+Win+Enter). Tab through: the activity-rail module icons, the
+login password-reveal button, the freshness Refresh chip, the SalesCart payment/remove buttons, the AP
+ledger rows, and the VAT Payable KPI tile. Turn Narrator off when done.
+
+**What you should see:** Narrator announces a **meaningful name** for each icon-only / row control — not
+just "button," not the raw glyph.
+
+- [ ] Narrator announces meaningful names on swept icon-only controls & rows —
+
+### Test 18: Modal focus traps
+
+**What to do:** Open each modal and press **Tab / Shift+Tab** repeatedly: the Command Palette (Ctrl+K),
+a Confirmation Dialog (e.g. start a void), and the Concurrency Conflict prompt (if reproducible).
+
+**What you should see:** Focus **cycles within** the modal — Tab never lands on a control behind the
+overlay. Esc still cancels. On close, focus returns to the control that opened it.
+
+- [ ] Tab cannot escape any of the 3 modals; focus restores to the invoker on close —
+
+---
+
+## UX-37 — Performance & Perceived Performance
+
+### Test 19: Virtualized smooth scrolling
+
+**What to do:** Open a long grid (Transaction History or AP Ledger with many rows) and scroll fast from
+top to bottom.
+
+**What you should see:** Scrolling is smooth — no per-row realization stutter, no blank-then-pop rows.
+
+- [ ] Long grids scroll smoothly (no virtualization stutter) —
+
+### Test 20: Optimistic VAT save + concurrency rollback
+
+**What to do:**
+1. Accounting/POS → VAT Settings → change a value → **Save**: status shows "Saving…" immediately, then
+   "VAT settings saved."
+2. **Conflict path (2 clients):** open VAT Settings on two clients; save on client A, then save a
+   different value on client B → on B, choose **Refresh** at the conflict prompt.
+
+**What you should see:** On B, the form **reverts to its pre-save values**, the conflict prompt appears
+("Data changed elsewhere…"), and Refresh loads the authoritative DB values — no silent overwrite.
+Choosing Cancel at the conflict leaves "Not saved — data changed elsewhere" (status is not stuck on
+"Saving…").
+
+- [ ] Optimistic "Saving…" appears instantly; success reconciles to "saved" —
+- [ ] Concurrency conflict → form rolls back, prompt shown, Refresh loads DB values —
+
+---
+
+## UX-38 — Personalization & Workspace Memory
+
+### Test 21: Restore last view
+
+**What to do:** Navigate to a non-default screen (e.g. AP Ledger). Close the app. Relaunch and log in.
+
+**What you should see:** After login the app reopens on the **last-viewed screen** (AP Ledger), not the
+default dashboard. If that screen is role-excluded or removed, it falls back to the default cleanly.
+
+- [ ] App restores the last-viewed screen after relaunch —
+- [ ] Stale / role-excluded last-view falls back to default without error —
+
+### Test 22: Favorites pin persistence
+
+**What to do:** Pin a couple of screens via the sidebar ☆ button. Open the command palette (empty
+query) → check the **Favorites** group. Log out and back in.
+
+**What you should see:** ★ state persists across logout/restart; favorites appear in the palette
+zero-state Favorites group and navigate correctly.
+
+- [ ] Pinned favorites persist across logout/restart and show in the palette —
+
+### Test 23: Recents
+
+**What to do:** Navigate through several screens. Open the command palette (empty query) → **Recent**
+group.
+
+**What you should see:** Recently-viewed screens, most-recent-first, de-duplicated, bounded (~10),
+excluding the screen you're currently on; survives restart.
+
+- [ ] Recent list is correct, bounded, de-duplicated, and survives restart —
+
+---
+
+## UX-41 — Advanced Data Visualization
+
+### Test 24: Sparkline hover tooltips
+
+**What to do:** Hover the sparkline bars on the Owner Dashboard **Revenue Trend** card, and on a
+Financial Overview sparkline.
+
+**What you should see:** Revenue Trend bars show a "MMM d" period label **above** the value; the
+unlabeled Financial Overview sparkline shows the value only (the label row collapses).
+
+- [ ] Revenue Trend tooltip shows date label + value; plain sparkline shows value only —
+
+### Test 25: KPI drill-down
+
+**What to do:** On the Owner Dashboard, click **View →** on each of the four secondary KPI cards
+(Purchasing, Inventory, Sales, Accounting). Test as both Owner and Manager.
+
+**What you should see:** Each navigates to the correct detail view (PurchasingDashboard / StockDashboard
+/ SalesSummary / FinancialOverview) — works in both roles.
+
+- [ ] Each "View →" navigates to the correct detail view (Owner + Manager) —
+
+### Test 26: Period selector
+
+**What to do:** On the Revenue Trend card, switch 7d / 30d / 90d.
+
+**What you should see:** The sparkline re-renders for the chosen window with daily date labels and a
+zero-filled (gap-free) x-axis; recolors correctly in both themes.
+
+- [ ] 7 / 30 / 90-day toggle re-renders the trend correctly in both themes —
+
+---
+
+## UX-42 — Print & Export
+
+### Test 27: BIR Official-Receipt print
+
+**What to do:** Complete a POS sale → in the receipt preview click **Print Official Receipt** → use the
+print dialog (a real printer, or "Microsoft Print to PDF").
+
+**What you should see:** The OR shows business name / address / TIN, VAT status, OR number, date,
+itemized lines, totals, and the VAT disclosure block (VATable / VAT-Exempt / Zero-Rated / Output VAT).
+
+- [ ] OR prints with all BIR-required fields and the correct VAT block —
+
+### Test 28: Income Statement CSV / PDF export
+
+**What to do:** Accounting → Income Statement → **Export CSV** (open in Excel/LibreOffice) and **Export
+PDF** (preview window → Print / Save As).
+
+**What you should see:** CSV opens with clean columns — a product name containing a `"` (e.g. `2" PVC
+pipe`) does not break alignment; figures match the on-screen values. The PDF/preview text matches the
+report.
+
+- [ ] Income Statement CSV opens cleanly; values match the screen —
+- [ ] Export PDF preview shows the correct report; Print / Save As work —
+
+### Test 29: VAT Relief Report preview
+
+**What to do:** Accounting → VAT Relief Report → **Export PDF** (preview) and **Export CSV**. Also try
+clicking export immediately on open, before data loads.
+
+**What you should see:** The preview shows the current-month three-bucket sales/purchases summary plus
+the trailing 12-month trend; clicking export before load is null-guarded (no crash).
+
+- [ ] VAT Relief preview / CSV show correct data; no crash when exported pre-load —
+
+---
+
+## UX-43 — Living Design-System Gallery (Developer only)
+
+### Test 30: Gallery renders and recolors
+
+**What to do:** Log in with the **Developer** account (the gallery is hidden from Manager/Owner). Open
+Developer Tools → **Design Gallery**. Toggle the theme (Ctrl+T).
+
+**What you should see:** Section A (tokens: color swatches, type ramp, spacing, radii, motion), Section
+B (shared components in their states), Section C (all 20 icons). Every swatch and component **recolors
+live** on the theme toggle — any swatch that fails to recolor flags a token-key mismatch.
+
+- [ ] Gallery is visible only to the Developer role; all three sections render —
+- [ ] Every swatch / component recolors live on the Light ↔ Dark toggle —
 
 ---
 

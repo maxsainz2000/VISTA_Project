@@ -45,8 +45,8 @@ and the UX-08 data-ink rationale first.
   cell style; align headers to match.
 
 > **Out of scope:**
-> - Full localization / i18n (translating labels, switching locale) — that is **Pro P9**, which builds
->   *on* this formatting layer.
+> - Full localization / i18n (translating labels, switching locale) — out of scope; the UI stays
+>   English-only (Pro P9 / UX-44 was dropped 2026-06-07).
 > - Changing any computed value, rounding rule, VAT math, or what a field means. Only its **display**
 >   changes. (If on-screen rounding currently differs from the stored/computed value, preserve the existing
 >   displayed result — match current output, don't "fix" it here.)
@@ -70,8 +70,7 @@ columns, the implementation summary, and a wiki update.
    `StringFormat='N2'` two-way — changing its format must not break parse-back). Identify these and use a
    converter or keep a documented exception; never break two-way input.
 3. **Culture safety.** Don't hardcode `.`/`,` separators; rely on `N2`/the converter honoring the
-   running culture (the app currently relies on the default culture's separators — preserve that). This
-   also sets up Pro P9 cleanly.
+   running culture (the app currently relies on the default culture's separators — preserve that).
 4. **Right-alignment must not break virtualization or selection.** Apply alignment via a shared
    `ElementStyle`/cell style on numeric `DataGridColumn`s; don't replace `DataGridTextColumn`s with
    custom templates that defeat the UX-03 `DataGrid` styling or virtualization. Header alignment follows

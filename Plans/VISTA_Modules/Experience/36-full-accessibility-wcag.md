@@ -46,7 +46,7 @@ Add `AutomationProperties.Name` (and `HelpText` where the control's purpose isn'
 content) to every interactive control that currently announces poorly: icon-only buttons (the
 action-button glyphs from UX-07), the activity-rail nav items, list/grid rows, KPI tiles, the password
 reveal button, and toolbar/refresh affordances. Where a control's accessible name should track a bound
-value, bind `AutomationProperties.Name`; otherwise use a literal (localization comes later in UX-44).
+value, bind `AutomationProperties.Name`; otherwise use a literal (the UI stays English-only).
 
 ### B. Modal focus traps
 On the three modal overlays, contain focus for the lifetime of the modal: move initial focus into the

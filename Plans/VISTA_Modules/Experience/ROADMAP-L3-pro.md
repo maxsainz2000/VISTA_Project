@@ -21,7 +21,10 @@ Each entry: **What · Why · Research · Codebase grounding · Scope · Owner ·
 > (formerly part of P1) and three preference/polish items — **P4 System-Aware Theming (UX-39)**,
 > **P5 Density Modes (UX-40)**, and **P10 Live Motion Propagation (UX-45)** — were removed. Their plan
 > files are deleted; the P-numbers are intentionally left as gaps so the remaining plans' `item PN`
-> references (P6–P9) stay valid. Light/Dark remain the only themes.
+> references (P6–P8) stay valid. Light/Dark remain the only themes.
+>
+> **Dropped 2026-06-07 (user decision):** **P9 Localization Framework (UX-44)** was also removed — the
+> UI stays English-only. Its plan file and implementation were deleted; the P9 number is left as a gap.
 
 ---
 
@@ -153,30 +156,11 @@ Each entry: **What · Why · Research · Codebase grounding · Scope · Owner ·
 
 ---
 
-## P9 — Localization Framework (Taglish / Filipino)
-*Slot: **UX-44** (plan generated) · Depends-on: B5*
-
-- **What.** A resource-based internationalization layer so UI labels can switch language (English ↔
-  Filipino/Taglish), with a language preference persisted per user.
-- **Why.** The store operates in the Philippines; Taglish labels can make the tool more natural for
-  staff. This is the largest lift in the roadmap and is genuinely optional — listed for completeness.
-- **Research.** .NET resource-based localization (`.resx`/`ResourceManager`) conventions; WPF
-  localization guidance.
-- **Codebase grounding.** Labels are currently inline literals throughout `Views/`; peso/date
-  formatting centralises in B5, which is the natural precursor (formatting is half of localization).
-  No i18n scaffolding exists yet.
-- **Scope.** Extract UI strings to resources; a language switcher in prefs. Broad, mechanical, and
-  best done **last** (after the UI has stabilised) to avoid re-extracting churning labels.
-- **Owner.** Owner picks their own language.
-- **Done-when.** Core screens switch language from a preference; the framework exists for the rest.
-
----
-
 ## Exit criteria for Level 3
 
 Pro has **no hard finish line** — it is the standing tail of excellence. Practically, the app reaches
 "UI/UX perfection" for VISTA's purpose when P1 (accessibility), P2 (performance), and P3
-(personalization) are shipped; P6–P9 are high-value refinements pursued as appetite and need dictate.
+(personalization) are shipped; P6–P8 are high-value refinements pursued as appetite and need dictate.
 When an item here is genuinely complete and no open slot remains worth doing, the roadmap has served
 its purpose — and any new idea must be **added here, with grounding, before it is built.**
 </content>

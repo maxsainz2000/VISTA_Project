@@ -56,7 +56,8 @@ sidebar, reusing `NavigateCommand`. Pin/unpin persists via the prefs service.
 > **Out of scope:**
 > - Any business data, query, or write-path change; this stores *navigation/preference* state only.
 > - Per-*user* server-side profiles (persistence is per-laptop, matching theme/window-state today).
-> - Language (UX-44) preferences — that plan adds its own keys to this service.
+> - Language preferences — out of scope; localization (UX-44) was dropped 2026-06-07, so no language
+>   key is added here.
 
 ## Specification
 

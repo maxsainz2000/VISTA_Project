@@ -87,7 +87,7 @@ A code review surfaced six findings; all were addressed:
 ## What's Next
 
 - [ ] Manual verification: relaunch restores last screen; stale key falls back; pin survives restart; recents update and survive restart (separate testing session)
-- [ ] UX-44 (Language preferences) can add its own keys to `UiSettingsStore` using the same extension pattern
+- ~~UX-44 (Language preferences) can add its own keys to `UiSettingsStore` using the same extension pattern~~ — voided; UX-44 / localization was dropped 2026-06-07 (UI stays English-only)
 
 ## Codebase Wiki Discrepancies
 
