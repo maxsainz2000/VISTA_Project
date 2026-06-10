@@ -2,7 +2,7 @@
 type: layer-manifest
 module: MerchSys.SharedKernel
 layer: Interfaces & Enums
-last-updated: 2026-06-05
+last-updated: 2026-06-10
 ---
 
 # MerchSys.SharedKernel — Interfaces & Enums
@@ -31,4 +31,5 @@ last-updated: 2026-06-05
 | `Enums/UserRole.vb` | `UserRole` | `Manager`, `Owner`, `Cashier`, `StockClerk` |
 | `Interfaces/IWriteContextScope.vb` | `WriteContextKind` | `User` (0), `System` (1), `AuthSelfService` (2) |
 | `Enums/VatTreatment.vb` | `VatTreatment` | `Vatable`, `Exempt`, `ZeroRated` |
+| `Enums/InsightSeverity.vb` | `InsightSeverity` | `Info` (0), `Positive` (1), `Warning` (2) — Dashboard/report callout severities (UX-47) |
 

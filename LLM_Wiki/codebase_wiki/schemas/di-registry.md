@@ -1,6 +1,6 @@
 ---
 type: schema-map
-last-updated: 2026-06-06
+last-updated: 2026-06-10
 ---
 
 # Dependency Injection Registry
@@ -121,6 +121,7 @@ This page documents the composition root in `MerchSys.App`.
 | `VatPayableTile` | Accounting | Transient |
 | `TamperAuditReportView` | Accounting | Transient |
 | `VatReliefReportView` | Accounting | Transient |
+| `InsightBanner` | (Shell) | Transient |
 | `DebugMenuView` | (Shell/Dev) | Transient |
 | `DesignGalleryView` | (Shell/Dev) | Transient |
 | `LoginView` | (Shell) | Transient |
