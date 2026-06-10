@@ -43,24 +43,9 @@
                     <!-- ═══════════════════════════════════════════════════════════
                          WHAT THIS MEANS
                          ═══════════════════════════════════════════════════════════ -->
-                    <Border Background="{DynamicResource SidebarBackgroundBrush}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1"
-                            CornerRadius="{DynamicResource RadiusSmall}" Padding="14,10" Margin="0,0,0,8">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Path Grid.Column="0" Style="{StaticResource IconBase}" Data="{StaticResource IconClipboardGeometry}"
-                                  Width="20" Height="20" VerticalAlignment="Top" Margin="0,0,10,0"
-                                  Fill="{DynamicResource TextSecondaryBrush}"/>
-                            <StackPanel Grid.Column="1">
-                                <TextBlock Text="What This Means" FontSize="12" FontWeight="Bold"
-                                           Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,2"/>
-                                <TextBlock Text="{Binding WhatThisMeansText}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"
-                                           TextWrapping="Wrap" LineHeight="18"/>
-                            </StackPanel>
-                        </Grid>
-                    </Border>
+                    <views:InsightBanner Margin="0,0,0,8"
+                                         Text="{Binding WhatThisMeansText}"
+                                         Severity="{Binding WhatThisMeansSeverity}"/>
 
                     <!-- ═══════════════════════════════════════════════════════════
                          CONTROLS PANEL

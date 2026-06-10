@@ -7,6 +7,7 @@ Imports MerchSys.Accounting.Enums
 Imports MerchSys.Accounting.Exceptions
 Imports MerchSys.Accounting.Services
 Imports MerchSys.SharedKernel.Interfaces
+Imports MerchSys.SharedKernel.Enums
 
 Namespace ViewModels
 
@@ -326,6 +327,12 @@ Namespace ViewModels
             Set(value As String)
                 SetProperty(_whatThisMeansText, value)
             End Set
+        End Property
+
+        Public ReadOnly Property WhatThisMeansSeverity As InsightSeverity
+            Get
+                Return InsightSeverity.Info
+            End Get
         End Property
 
         ' ─── Commands ────────────────────────────────────────────────────────────────

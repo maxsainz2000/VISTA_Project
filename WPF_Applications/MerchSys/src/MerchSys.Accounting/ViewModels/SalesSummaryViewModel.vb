@@ -4,6 +4,7 @@ Imports CommunityToolkit.Mvvm.Input
 Imports MerchSys.Accounting.Services
 Imports MerchSys.SharedKernel.Interfaces
 Imports MerchSys.SharedKernel.Presentation
+Imports MerchSys.SharedKernel.Enums
 
 Namespace ViewModels
 
@@ -268,6 +269,16 @@ Namespace ViewModels
             End Set
         End Property
 
+        Private _whatThisMeansSeverity As InsightSeverity = InsightSeverity.Info
+        Public Property WhatThisMeansSeverity As InsightSeverity
+            Get
+                Return _whatThisMeansSeverity
+            End Get
+            Set(value As InsightSeverity)
+                SetProperty(_whatThisMeansSeverity, value)
+            End Set
+        End Property
+
         ' ─── Collections ──────────────────────────────────────────────────────────
 
         Public Property PaymentBreakdown As ObservableCollection(Of PaymentBreakdownDto)
@@ -354,6 +365,7 @@ Namespace ViewModels
                 HasCreditWarning = creditEntry IsNot Nothing AndAlso creditEntry.Percentage >= 30D
 
                 WhatThisMeansText = _whatThisMeansService.GenerateSalesSummaryInterpretation(summary)
+                WhatThisMeansSeverity = _whatThisMeansService.GetSalesSummarySeverity(summary)
 
                 PaymentBreakdown.Clear()
                 If summary.PaymentBreakdown IsNot Nothing Then

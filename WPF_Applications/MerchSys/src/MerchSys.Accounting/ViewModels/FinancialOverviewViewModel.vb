@@ -6,6 +6,7 @@ Imports CommunityToolkit.Mvvm.Input
 Imports MerchSys.Accounting.Services
 Imports MerchSys.SharedKernel.Interfaces
 Imports MerchSys.SharedKernel.Presentation
+Imports MerchSys.SharedKernel.Enums
 
 Namespace ViewModels
 
@@ -148,6 +149,16 @@ Namespace ViewModels
             End Get
             Set(value As String)
                 SetProperty(_whatThisMeansText, value)
+            End Set
+        End Property
+
+        Private _whatThisMeansSeverity As InsightSeverity = InsightSeverity.Info
+        Public Property WhatThisMeansSeverity As InsightSeverity
+            Get
+                Return _whatThisMeansSeverity
+            End Get
+            Set(value As InsightSeverity)
+                SetProperty(_whatThisMeansSeverity, value)
             End Set
         End Property
 
@@ -303,6 +314,7 @@ Namespace ViewModels
                 LowStockAlertCount = data.LowStockAlertCount
 
                 WhatThisMeansText = _whatThisMeansService.GenerateOverviewInterpretation(data)
+                WhatThisMeansSeverity = _whatThisMeansService.GetOverviewSeverity(data)
 
                 BuildTrendBars(data.MonthlyTrend)
 

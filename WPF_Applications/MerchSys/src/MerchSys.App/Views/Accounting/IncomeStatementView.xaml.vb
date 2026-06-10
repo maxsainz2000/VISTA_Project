@@ -70,15 +70,16 @@ Namespace Views.Accounting
             sb.AppendLine($"""Income Statement"",""{EscapeCsv(vm.PeriodDescription)}""")
             sb.AppendLine($"""Generated"",""{DateTime.Now:MM/dd/yyyy HH:mm}""")
             sb.AppendLine()
-            sb.AppendLine("""Section"",""Amount""")
-            sb.AppendLine($"""Net Sales"",""{vm.NetSalesDisplay}""")
-            sb.AppendLine($"""Less: Cost of Goods Sold"",""{vm.COGSDisplay}""")
-            sb.AppendLine($"""Gross Profit"",""{vm.GrossProfitDisplay}""")
-            sb.AppendLine($"""Gross Margin %"",""{vm.GrossMarginPercent:N1}%""")
-            sb.AppendLine($"""Less: Operating Expenses"",""{vm.OperatingExpensesDisplay}""")
-            sb.AppendLine($"""Less: Shrinkage Loss"",""{vm.ShrinkageLossDisplay}""")
-            sb.AppendLine($"""Net Income"",""{vm.NetIncomeDisplay}""")
-            sb.AppendLine($"""Net Margin %"",""{vm.NetMarginPercent:N1}%""")
+            sb.AppendLine($"""Section"",""Current"",""Prior ({EscapeCsv(vm.PrevPeriodLabel)})"",""Change""")
+            sb.AppendLine($"""Net Sales"",""{vm.NetSalesDisplay}"",""{vm.PrevNetSalesDisplay}"",""{If(vm.ShowNetSalesDelta, FormatDeltaPercent(vm.NetSalesDelta), "")}""")
+            sb.AppendLine($"""Less: Cost of Goods Sold"",""{vm.COGSDisplay}"",""{vm.PrevCOGSDisplay}"",""{If(vm.ShowCOGSDelta, FormatDeltaPercent(vm.COGSDelta), "")}""")
+            sb.AppendLine($"""Gross Profit"",""{vm.GrossProfitDisplay}"",""{vm.PrevGrossProfitDisplay}"",""{If(vm.ShowGrossProfitDelta, FormatDeltaPercent(vm.GrossProfitDelta), "")}""")
+            sb.AppendLine($"""Gross Margin"",""{vm.GrossMarginPercent:N1}%"",""{vm.PrevGrossMarginPercentDisplay}"",""""")
+            sb.AppendLine($"""Other Operating Expenses"",""{vm.OtherOperatingExpensesDisplay}"",""{vm.PrevOtherOperatingExpensesDisplay}"",""{If(vm.ShowOtherOperatingExpensesDelta, FormatDeltaPercent(vm.OtherOperatingExpensesDelta), "")}""")
+            sb.AppendLine($"""Shrinkage Loss"",""{vm.ShrinkageLossDisplay}"",""{vm.PrevShrinkageLossDisplay}"",""{If(vm.ShowShrinkageLossDelta, FormatDeltaPercent(vm.ShrinkageLossDelta), "")}""")
+            sb.AppendLine($"""Total Operating Expenses"",""{vm.OperatingExpensesDisplay}"",""{vm.PrevOperatingExpensesDisplay}"",""{If(vm.ShowOperatingExpensesDelta, FormatDeltaPercent(vm.OperatingExpensesDelta), "")}""")
+            sb.AppendLine($"""Net Income"",""{vm.NetIncomeDisplay}"",""{vm.PrevNetIncomeDisplay}"",""{If(vm.ShowNetIncomeDelta, FormatDeltaPercent(vm.NetIncomeDelta), "")}""")
+            sb.AppendLine($"""Net Margin"",""{vm.NetMarginPercent:N1}%"",""{vm.PrevNetMarginPercentDisplay}"",""""")
 
             If vm.ProductMargins.Count > 0 Then
                 sb.AppendLine()
@@ -92,37 +93,42 @@ Namespace Views.Accounting
         End Function
 
         Private Shared Function BuildIncomeStatementReport(vm As IncomeStatementViewModel) As String
-            Const W As Integer = 56
+            Const W As Integer = 72
             Dim sep = New String("="c, W)
             Dim sb As New StringBuilder()
             sb.AppendLine("INCOME STATEMENT")
             sb.AppendLine(vm.PeriodDescription)
             sb.AppendLine($"Generated: {DateTime.Now:MM/dd/yyyy HH:mm}")
             sb.AppendLine(sep)
-            sb.AppendLine()
-            sb.AppendLine(PadLine("Net Sales", vm.NetSalesDisplay, W))
-            sb.AppendLine(PadLine("Less: Cost of Goods Sold", vm.COGSDisplay, W))
+            
+            Dim priorHeader = $"Prior ({vm.PrevPeriodLabel})"
+            sb.AppendLine(FormatReportLine("Section", "Current", priorHeader, "Change", W))
             sb.AppendLine(New String("-"c, W))
-            sb.AppendLine(PadLine("Gross Profit", vm.GrossProfitDisplay, W))
-            sb.AppendLine(PadLine("  Gross Margin", $"{vm.GrossMarginPercent:N1}%", W))
             sb.AppendLine()
-            sb.AppendLine(PadLine("Less: Operating Expenses", vm.OperatingExpensesDisplay, W))
-            sb.AppendLine(PadLine("Less: Shrinkage Loss", vm.ShrinkageLossDisplay, W))
+            sb.AppendLine(FormatReportLine("Net Sales", vm.NetSalesDisplay, vm.PrevNetSalesDisplay, If(vm.ShowNetSalesDelta, FormatDeltaPercent(vm.NetSalesDelta), ""), W))
+            sb.AppendLine(FormatReportLine("Less: Cost of Goods Sold", vm.COGSDisplay, vm.PrevCOGSDisplay, If(vm.ShowCOGSDelta, FormatDeltaPercent(vm.COGSDelta), ""), W))
             sb.AppendLine(New String("-"c, W))
-            sb.AppendLine(PadLine("NET INCOME", vm.NetIncomeDisplay, W))
-            sb.AppendLine(PadLine("  Net Margin", $"{vm.NetMarginPercent:N1}%", W))
+            sb.AppendLine(FormatReportLine("Gross Profit", vm.GrossProfitDisplay, vm.PrevGrossProfitDisplay, If(vm.ShowGrossProfitDelta, FormatDeltaPercent(vm.GrossProfitDelta), ""), W))
+            sb.AppendLine(FormatReportLine("  Gross Margin", $"{vm.GrossMarginPercent:N1}%", vm.PrevGrossMarginPercentDisplay, "", W))
+            sb.AppendLine()
+            sb.AppendLine(FormatReportLine("Other Operating Expenses", vm.OtherOperatingExpensesDisplay, vm.PrevOtherOperatingExpensesDisplay, If(vm.ShowOtherOperatingExpensesDelta, FormatDeltaPercent(vm.OtherOperatingExpensesDelta), ""), W))
+            sb.AppendLine(FormatReportLine("Shrinkage Loss", vm.ShrinkageLossDisplay, vm.PrevShrinkageLossDisplay, If(vm.ShowShrinkageLossDelta, FormatDeltaPercent(vm.ShrinkageLossDelta), ""), W))
+            sb.AppendLine(New String("-"c, W))
+            sb.AppendLine(FormatReportLine("Total Operating Expenses", vm.OperatingExpensesDisplay, vm.PrevOperatingExpensesDisplay, If(vm.ShowOperatingExpensesDelta, FormatDeltaPercent(vm.OperatingExpensesDelta), ""), W))
+            sb.AppendLine(New String("-"c, W))
+            sb.AppendLine(FormatReportLine("NET INCOME", vm.NetIncomeDisplay, vm.PrevNetIncomeDisplay, If(vm.ShowNetIncomeDelta, FormatDeltaPercent(vm.NetIncomeDelta), ""), W))
+            sb.AppendLine(FormatReportLine("  Net Margin", $"{vm.NetMarginPercent:N1}%", vm.PrevNetMarginPercentDisplay, "", W))
 
             If vm.ProductMargins.Count > 0 Then
                 sb.AppendLine()
                 sb.AppendLine(sep)
                 sb.AppendLine("PRODUCT BREAKDOWN")
                 sb.AppendLine(sep)
-                Const Hdr = "Product                   Revenue      COGS   Gross Profit   Margin  Units"
-                sb.AppendLine(Hdr)
+                sb.AppendLine("Product                     Revenue       COGS   Gross Profit   Margin  Units")
                 sb.AppendLine(New String("-"c, W))
                 For Each m In vm.ProductMargins
                     Dim nm = If(m.ProductName.Length > 24, m.ProductName.Substring(0, 24), m.ProductName)
-                    sb.AppendLine($"{nm,-26}₱{m.Revenue,8:N2}  ₱{m.COGS,8:N2}   ₱{m.GrossProfit,9:N2}  {m.GrossMarginPercent,5:N1}%  {m.UnitsSold,4}")
+                    sb.AppendLine($"{nm,-26}₱{m.Revenue,9:N2}  ₱{m.COGS,9:N2}   ₱{m.GrossProfit,10:N2}  {m.GrossMarginPercent,5:N1}%  {m.UnitsSold,5}")
                 Next
             End If
 
@@ -133,9 +139,20 @@ Namespace Views.Accounting
             Return sb.ToString()
         End Function
 
-        Private Shared Function PadLine(label As String, amount As String, width As Integer) As String
-            Dim remaining = width - label.Length - amount.Length
-            Return label & New String(" "c, Math.Max(1, remaining)) & amount
+        Private Shared Function FormatDeltaPercent(delta As Double) As String
+            If delta > 0.001 Then
+                Return $"+{delta:N1}%"
+            ElseIf delta < -0.001 Then
+                Return $"{delta:N1}%"
+            Else
+                Return "0.0%"
+            End If
+        End Function
+
+        Private Shared Function FormatReportLine(label As String, current As String, prior As String, delta As String, width As Integer) As String
+            Dim labelWidth = width - 40
+            Dim lbl = If(label.Length > labelWidth, label.Substring(0, labelWidth), label)
+            Return $"{lbl.PadRight(labelWidth)}{current,14}{prior,14}{delta,12}"
         End Function
 
         ''' <summary>

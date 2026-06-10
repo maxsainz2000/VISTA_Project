@@ -156,6 +156,74 @@ Each entry: **What · Why · Research · Codebase grounding · Scope · Owner ·
 
 ---
 
+## P11 — Comparative Income Statement & Report Readability
+*Slot: **UX-46** (plan generated) · Depends-on: UX-12*
+
+- **What.** Turn the single-column Income Statement into a **comparative** statement — a prior-period
+  amount column and a period-over-period Δ beside each line (reusing the UX-12 `DeltaIndicator` with
+  `InvertSemantics` so a rising COGS reads as bad) — plus a readability pass on the same screen:
+  un-mute the COGS line (today the faintest text on the page, yet it drives the whole margin story),
+  disambiguate the Operating-Expenses / Shrinkage roll-up, give the statement a centered
+  document-width layout instead of stranding it top-left, and show "June" instead of "6" in the
+  month picker.
+- **Why.** The "What This Means" narrative already asserts "lower than the previous period (14.6%)"
+  but the statement never shows that period — the reader cannot verify the claim, and ~70% of the
+  canvas is empty. A comparative P&L is the standard accounting presentation and the single
+  highest-value, lowest-cost change here: the prior-period figures are **already computed and then
+  discarded.**
+- **Research.** Comparative financial-statement convention (two-period P&L); Tufte (comparison /
+  small-multiples — a number means little without a baseline); NN/g #6 *Recognition over recall* and
+  the F-pattern (don't mute the line that carries the story).
+- **Codebase grounding.** `IncomeStatementViewModel.LoadDataAsync` already fetches the **entire**
+  prior-period `IncomeStatementDto` (`prevResult`, ~line 318/325/329) and uses only
+  `GrossMarginPercent` (~line 332), discarding the rest. The P&L grid is
+  `MaxWidth="580" HorizontalAlignment="Left"` (`IncomeStatementView.xaml:185`); COGS uses
+  `LineLabelMuted`/`LineAmountMuted` (xaml:229-234); the service rolls shrinkage **into** OpEx
+  (`IncomeStatementService.vb:129`) but the UI shows the parent total first then one child;
+  `AvailableMonths` is raw `Enumerable.Range(1,12)` (`IncomeStatementViewModel.vb:133`). UX-12's
+  `DeltaIndicator` (`Views/Shell/`) is the Δ primitive.
+- **Scope.** Additive read-only display properties for the prior column + Δ (from the already-fetched
+  `prevResult`); a derived "Other Operating = OperatingExpenses − ShrinkageLoss" line; restyle +
+  relayout in the view; friendly month labels without breaking the underlying `SelectedMonth` int
+  round-trip; export parity **if** the UX-42 export is cleanly row-driven (else defer + document). No
+  service, contract, or write change.
+- **Owner.** Owner is the primary reader of this report (read-only) and the main beneficiary of the
+  comparison.
+- **Done-when.** The statement shows current vs prior amounts with correctly-signed Δ in both themes;
+  COGS is legible; the OpEx/Shrinkage math is unambiguous; the report reads as a centered document.
+
+---
+
+## P12 — Severity-Aware Insight Banners
+*Slot: **UX-47** (plan generated) · Depends-on: UX-06, UX-07*
+
+- **What.** Make the plain-language **"What This Means"** callout change tone with the signal it is
+  reporting: calm **info** (accent) for neutral/positive narratives, **warning** (amber) when the
+  service has already detected a problem (margin drop past threshold, overdue AR, high credit %, low
+  stock). Replace the four hand-rolled banners with one reusable `InsightBanner` (icon + accent swap
+  driven by a `Severity` value) so tone is consistent and defined in one place.
+- **Why.** A 14.6%→4.0% margin collapse currently renders in the same calm blue as good news — the
+  most important signal on the screen is visually indistinguishable from reassurance. The machinery to
+  detect severity already exists; only the presentation ignores it.
+- **Research.** NN/g #1 *Visibility of system status* (status must read at a glance); WCAG **1.4.1 Use
+  of Color** (severity must also change icon/label, never hue alone) — which is why this is a
+  banner-shape change, not merely a recolor.
+- **Codebase grounding.** `WhatThisMeansService` already owns the thresholds
+  (`MarginDropWarningThreshold = 3D`, `CreditWarningThreshold = 30D`) and a `GenerateMarginAlert` with
+  a "⚠" prefix — but `GenerateIncomeStatementInterpretation` only appends a sentence and every banner
+  border is hard-wired to `AccentBrush` (e.g. `IncomeStatementView.xaml:143`). The phrase "What This
+  Means" is hand-rolled in four views (IncomeStatement, FinancialOverview, SalesSummary, VatReturn).
+  `WarningBrush`/`SuccessBrush`/`AccentBrush` tokens already exist (`Light.xaml`/`Dark.xaml` 37-39);
+  `IconBase` (UX-07) supplies the icon.
+- **Scope.** A new `InsightBanner` Shell control (DP-driven, presentation-only); an `InsightSeverity`
+  enum in **SharedKernel** (so module VMs, which reference only SharedKernel, can expose it); an
+  **additive** severity method on `IWhatThisMeansService` that reuses the existing thresholds (tone and
+  warning-sentence share one source of truth — the String methods are unchanged); migrate the four
+  banners. Default **Info** wherever no signal is computed — invent no new thresholds.
+- **Owner.** Owner reads these reports and benefits most from at-a-glance severity.
+- **Done-when.** Each "What This Means" banner renders info/positive/warning by the computed signal,
+  with a matching icon (not color alone), in both themes; a margin drop past threshold shows amber.
+
 ## Exit criteria for Level 3
 
 Pro has **no hard finish line** — it is the standing tail of excellence. Practically, the app reaches

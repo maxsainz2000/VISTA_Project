@@ -122,6 +122,8 @@ establishes (e.g. Pro accessibility builds on the Basic keyboard/focus floor).
 | P7 | Print & Export UX (BIR Official-Receipt template, PDF/CSV export, print preview) | — | POS, Accounting |
 | P8 | Living Design-System Gallery (token/component/state catalogue in Developer Tools) | UX-05, UX-07 | Dev Tools |
 | ~~P9~~ | ~~Localization Framework (resource-based i18n; Taglish/Filipino labels)~~ — dropped 2026-06-07 (descoped; English-only UI kept) | — | — |
+| P11 | Comparative Income Statement & Report Readability (prior-period column + Δ, P&L legibility) | UX-12 | Accounting |
+| P12 | Severity-Aware Insight Banners (tone the "What This Means" callout to the signal) | UX-06, UX-07 | Accounting |
 
 ## Research basis (binding evidence, not opinion)
 

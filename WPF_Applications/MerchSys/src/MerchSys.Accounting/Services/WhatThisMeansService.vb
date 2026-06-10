@@ -1,4 +1,5 @@
 Imports MerchSys.Accounting.Services.Insights
+Imports MerchSys.SharedKernel.Enums
 
 Namespace Services
 
@@ -122,6 +123,58 @@ Namespace Services
             End If
 
             Return sb.ToString().Trim()
+        End Function
+
+        Public Function GetOverviewSeverity(data As FinancialOverviewDto) As InsightSeverity _
+            Implements IWhatThisMeansService.GetOverviewSeverity
+
+            If data.OverdueARCount > 0 OrElse data.LowStockAlertCount > 0 Then
+                Return InsightSeverity.Warning
+            End If
+
+            Dim previousMonthMtd = GetPreviousMonthMtdRevenue(data.MonthlyTrend)
+            If previousMonthMtd > 0 AndAlso data.MonthToDateRevenue > 0 Then
+                Dim changePercent = Math.Round(((data.MonthToDateRevenue - previousMonthMtd) / previousMonthMtd) * 100D, 1)
+                If changePercent > 0 Then
+                    Return InsightSeverity.Positive
+                End If
+            End If
+
+            Return InsightSeverity.Info
+        End Function
+
+        Public Function GetIncomeStatementSeverity(data As IncomeStatementDto, Optional previousMargin As Decimal = -1D) As InsightSeverity _
+            Implements IWhatThisMeansService.GetIncomeStatementSeverity
+
+            ' A net loss is always a warning, regardless of margin trend.
+            If data.NetIncome < 0 Then
+                Return InsightSeverity.Warning
+            End If
+
+            ' With a prior baseline, a material margin drop warns and an improvement is positive.
+            ' Without a baseline there is nothing to compare against, so stay neutral (Info) to
+            ' match the interpretation text, which makes no claim on a first/baseline period.
+            If previousMargin >= 0 Then
+                Dim diff = Math.Round(data.GrossMarginPercent - previousMargin, 1)
+                If diff <= -MarginDropWarningThreshold Then
+                    Return InsightSeverity.Warning
+                ElseIf diff > 0 Then
+                    Return InsightSeverity.Positive
+                End If
+            End If
+
+            Return InsightSeverity.Info
+        End Function
+
+        Public Function GetSalesSummarySeverity(data As AccountingSalesSummaryDto) As InsightSeverity _
+            Implements IWhatThisMeansService.GetSalesSummarySeverity
+
+            Dim creditEntry = data.PaymentBreakdown?.Find(Function(p) p.PaymentMethod.Equals("Credit", StringComparison.OrdinalIgnoreCase))
+            If creditEntry IsNot Nothing AndAlso creditEntry.Percentage >= CreditWarningThreshold Then
+                Return InsightSeverity.Warning
+            End If
+
+            Return InsightSeverity.Info
         End Function
 
         Private Shared Function FormatPeso(amount As Decimal) As String

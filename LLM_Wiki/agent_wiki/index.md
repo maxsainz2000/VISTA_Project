@@ -72,4 +72,7 @@ All engineering learnings from debugging and error-fixing sessions. Check this i
 | [wpf-vista-print-export](patterns/wpf-vista-print-export.md) | pattern | MerchSys.App | wpf, xaml, vb-net, print, export, flowdocument, csv, bir, official-receipt, accounting | claude-code | 2026-06-07 | active |
 | [wpf-vista-design-gallery](patterns/wpf-vista-design-gallery.md) | pattern | MerchSys.App | wpf, xaml, design-system, design-tokens, gallery, realization-check, developer-tools | claude-code | 2026-06-07 | active |
 | [mariadb-keyset-pagination](patterns/mariadb-keyset-pagination.md) | pattern | Infrastructure | mariadb, mysqlconnector, vb-net, pagination, keyset, performance, raw-reader, viewmodel | claude-code | 2026-06-10 | active |
+| [wpf-vista-comparative-report](patterns/wpf-vista-comparative-report.md) | pattern | MerchSys.Accounting | wpf, xaml, vb-net, mvvm, comparative-reports, delta-indicator, reporting | antigravity | 2026-06-10 | active |
+| [wpf-vista-insight-banner](patterns/wpf-vista-insight-banner.md) | pattern | MerchSys.App | wpf, xaml, vb-net, mvvm, theming, design-tokens, wcag, accessibility, severity-banner, shared-kernel | antigravity | 2026-06-10 | active |
+
 

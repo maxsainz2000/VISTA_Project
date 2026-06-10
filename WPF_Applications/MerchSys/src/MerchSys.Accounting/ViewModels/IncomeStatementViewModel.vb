@@ -2,6 +2,7 @@ Imports System.Collections.ObjectModel
 Imports CommunityToolkit.Mvvm.ComponentModel
 Imports CommunityToolkit.Mvvm.Input
 Imports MerchSys.Accounting.Services
+Imports MerchSys.SharedKernel.Enums
 
 Namespace ViewModels
 
@@ -10,6 +11,15 @@ Namespace ViewModels
         Quarterly = 1
         Annual = 2
     End Enum
+
+    Public Class MonthOption
+        Public Property Number As Integer
+        Public Property Name As String
+        Public Sub New(num As Integer, nm As String)
+            Number = num
+            Name = nm
+        End Sub
+    End Class
 
     Public Class IncomeStatementViewModel
         Inherits ObservableObject
@@ -130,9 +140,22 @@ Namespace ViewModels
             End Get
         End Property
 
-        Public ReadOnly Property AvailableMonths As IReadOnlyList(Of Integer)
+        Public ReadOnly Property AvailableMonths As IReadOnlyList(Of MonthOption)
             Get
-                Return Enumerable.Range(1, 12).ToList()
+                Return New List(Of MonthOption) From {
+                    New MonthOption(1, "January"),
+                    New MonthOption(2, "February"),
+                    New MonthOption(3, "March"),
+                    New MonthOption(4, "April"),
+                    New MonthOption(5, "May"),
+                    New MonthOption(6, "June"),
+                    New MonthOption(7, "July"),
+                    New MonthOption(8, "August"),
+                    New MonthOption(9, "September"),
+                    New MonthOption(10, "October"),
+                    New MonthOption(11, "November"),
+                    New MonthOption(12, "December")
+                }
             End Get
         End Property
 
@@ -236,6 +259,280 @@ Namespace ViewModels
             End Set
         End Property
 
+        ' ─── Prior Period Labels & Display Strings ──────────────────────────────────
+
+        Private _prevPeriodLabel As String = "Prior Period"
+        Public Property PrevPeriodLabel As String
+            Get
+                Return _prevPeriodLabel
+            End Get
+            Set(value As String)
+                SetProperty(_prevPeriodLabel, value)
+            End Set
+        End Property
+
+        Private _prevNetSalesDisplay As String = "₱0.00"
+        Public Property PrevNetSalesDisplay As String
+            Get
+                Return _prevNetSalesDisplay
+            End Get
+            Set(value As String)
+                SetProperty(_prevNetSalesDisplay, value)
+            End Set
+        End Property
+
+        Private _prevCOGSDisplay As String = "(₱0.00)"
+        Public Property PrevCOGSDisplay As String
+            Get
+                Return _prevCOGSDisplay
+            End Get
+            Set(value As String)
+                SetProperty(_prevCOGSDisplay, value)
+            End Set
+        End Property
+
+        Private _prevGrossProfitDisplay As String = "₱0.00"
+        Public Property PrevGrossProfitDisplay As String
+            Get
+                Return _prevGrossProfitDisplay
+            End Get
+            Set(value As String)
+                SetProperty(_prevGrossProfitDisplay, value)
+            End Set
+        End Property
+
+        Private _prevOtherOperatingExpensesDisplay As String = "(₱0.00)"
+        Public Property PrevOtherOperatingExpensesDisplay As String
+            Get
+                Return _prevOtherOperatingExpensesDisplay
+            End Get
+            Set(value As String)
+                SetProperty(_prevOtherOperatingExpensesDisplay, value)
+            End Set
+        End Property
+
+        Private _prevShrinkageLossDisplay As String = "(₱0.00)"
+        Public Property PrevShrinkageLossDisplay As String
+            Get
+                Return _prevShrinkageLossDisplay
+            End Get
+            Set(value As String)
+                SetProperty(_prevShrinkageLossDisplay, value)
+            End Set
+        End Property
+
+        Private _prevOperatingExpensesDisplay As String = "(₱0.00)"
+        Public Property PrevOperatingExpensesDisplay As String
+            Get
+                Return _prevOperatingExpensesDisplay
+            End Get
+            Set(value As String)
+                SetProperty(_prevOperatingExpensesDisplay, value)
+            End Set
+        End Property
+
+        Private _prevNetIncomeDisplay As String = "₱0.00"
+        Public Property PrevNetIncomeDisplay As String
+            Get
+                Return _prevNetIncomeDisplay
+            End Get
+            Set(value As String)
+                SetProperty(_prevNetIncomeDisplay, value)
+            End Set
+        End Property
+
+        Private _otherOperatingExpensesDisplay As String = "(₱0.00)"
+        Public Property OtherOperatingExpensesDisplay As String
+            Get
+                Return _otherOperatingExpensesDisplay
+            End Get
+            Set(value As String)
+                SetProperty(_otherOperatingExpensesDisplay, value)
+            End Set
+        End Property
+
+        Private _prevGrossMarginPercentDisplay As String = ""
+        Public Property PrevGrossMarginPercentDisplay As String
+            Get
+                Return _prevGrossMarginPercentDisplay
+            End Get
+            Set(value As String)
+                SetProperty(_prevGrossMarginPercentDisplay, value)
+            End Set
+        End Property
+
+        Private _prevNetMarginPercentDisplay As String = ""
+        Public Property PrevNetMarginPercentDisplay As String
+            Get
+                Return _prevNetMarginPercentDisplay
+            End Get
+            Set(value As String)
+                SetProperty(_prevNetMarginPercentDisplay, value)
+            End Set
+        End Property
+
+        Private _prevGrossMarginPercent As Decimal = 0D
+        Public Property PrevGrossMarginPercent As Decimal
+            Get
+                Return _prevGrossMarginPercent
+            End Get
+            Set(value As Decimal)
+                SetProperty(_prevGrossMarginPercent, value)
+            End Set
+        End Property
+
+        Private _prevNetMarginPercent As Decimal = 0D
+        Public Property PrevNetMarginPercent As Decimal
+            Get
+                Return _prevNetMarginPercent
+            End Get
+            Set(value As Decimal)
+                SetProperty(_prevNetMarginPercent, value)
+            End Set
+        End Property
+
+        ' ─── Delta Properties ───────────────────────────────────────────────────────
+
+        Private _netSalesDelta As Double
+        Public Property NetSalesDelta As Double
+            Get
+                Return _netSalesDelta
+            End Get
+            Set(value As Double)
+                SetProperty(_netSalesDelta, value)
+            End Set
+        End Property
+
+        Private _showNetSalesDelta As Boolean
+        Public Property ShowNetSalesDelta As Boolean
+            Get
+                Return _showNetSalesDelta
+            End Get
+            Set(value As Boolean)
+                SetProperty(_showNetSalesDelta, value)
+            End Set
+        End Property
+
+        Private _cogsDelta As Double
+        Public Property COGSDelta As Double
+            Get
+                Return _cogsDelta
+            End Get
+            Set(value As Double)
+                SetProperty(_cogsDelta, value)
+            End Set
+        End Property
+
+        Private _showCOGSDelta As Boolean
+        Public Property ShowCOGSDelta As Boolean
+            Get
+                Return _showCOGSDelta
+            End Get
+            Set(value As Boolean)
+                SetProperty(_showCOGSDelta, value)
+            End Set
+        End Property
+
+        Private _grossProfitDelta As Double
+        Public Property GrossProfitDelta As Double
+            Get
+                Return _grossProfitDelta
+            End Get
+            Set(value As Double)
+                SetProperty(_grossProfitDelta, value)
+            End Set
+        End Property
+
+        Private _showGrossProfitDelta As Boolean
+        Public Property ShowGrossProfitDelta As Boolean
+            Get
+                Return _showGrossProfitDelta
+            End Get
+            Set(value As Boolean)
+                SetProperty(_showGrossProfitDelta, value)
+            End Set
+        End Property
+
+        Private _otherOperatingExpensesDelta As Double
+        Public Property OtherOperatingExpensesDelta As Double
+            Get
+                Return _otherOperatingExpensesDelta
+            End Get
+            Set(value As Double)
+                SetProperty(_otherOperatingExpensesDelta, value)
+            End Set
+        End Property
+
+        Private _showOtherOperatingExpensesDelta As Boolean
+        Public Property ShowOtherOperatingExpensesDelta As Boolean
+            Get
+                Return _showOtherOperatingExpensesDelta
+            End Get
+            Set(value As Boolean)
+                SetProperty(_showOtherOperatingExpensesDelta, value)
+            End Set
+        End Property
+
+        Private _shrinkageLossDelta As Double
+        Public Property ShrinkageLossDelta As Double
+            Get
+                Return _shrinkageLossDelta
+            End Get
+            Set(value As Double)
+                SetProperty(_shrinkageLossDelta, value)
+            End Set
+        End Property
+
+        Private _showShrinkageLossDelta As Boolean
+        Public Property ShowShrinkageLossDelta As Boolean
+            Get
+                Return _showShrinkageLossDelta
+            End Get
+            Set(value As Boolean)
+                SetProperty(_showShrinkageLossDelta, value)
+            End Set
+        End Property
+
+        Private _operatingExpensesDelta As Double
+        Public Property OperatingExpensesDelta As Double
+            Get
+                Return _operatingExpensesDelta
+            End Get
+            Set(value As Double)
+                SetProperty(_operatingExpensesDelta, value)
+            End Set
+        End Property
+
+        Private _showOperatingExpensesDelta As Boolean
+        Public Property ShowOperatingExpensesDelta As Boolean
+            Get
+                Return _showOperatingExpensesDelta
+            End Get
+            Set(value As Boolean)
+                SetProperty(_showOperatingExpensesDelta, value)
+            End Set
+        End Property
+
+        Private _netIncomeDelta As Double
+        Public Property NetIncomeDelta As Double
+            Get
+                Return _netIncomeDelta
+            End Get
+            Set(value As Double)
+                SetProperty(_netIncomeDelta, value)
+            End Set
+        End Property
+
+        Private _showNetIncomeDelta As Boolean
+        Public Property ShowNetIncomeDelta As Boolean
+            Get
+                Return _showNetIncomeDelta
+            End Get
+            Set(value As Boolean)
+                SetProperty(_showNetIncomeDelta, value)
+            End Set
+        End Property
+
         ' ─── What This Means ──────────────────────────────────────────────────────
 
         Private _whatThisMeansText As String = String.Empty
@@ -245,6 +542,16 @@ Namespace ViewModels
             End Get
             Set(value As String)
                 SetProperty(_whatThisMeansText, value)
+            End Set
+        End Property
+
+        Private _whatThisMeansSeverity As InsightSeverity = InsightSeverity.Info
+        Public Property WhatThisMeansSeverity As InsightSeverity
+            Get
+                Return _whatThisMeansSeverity
+            End Get
+            Set(value As InsightSeverity)
+                SetProperty(_whatThisMeansSeverity, value)
             End Set
         End Property
 
@@ -340,8 +647,70 @@ Namespace ViewModels
                 ShrinkageLossDisplay = FormatDeduction(statement.ShrinkageLoss)
                 NetIncomeDisplay = FormatAmount(statement.NetIncome)
                 NetMarginPercent = statement.NetMarginPercent
+                OtherOperatingExpensesDisplay = FormatDeduction(statement.OperatingExpenses - statement.ShrinkageLoss)
+
+                If prevResult IsNot Nothing Then
+                    PrevPeriodLabel = prevResult.PeriodDescription
+                    PrevNetSalesDisplay = FormatAmount(prevResult.NetSales)
+                    PrevCOGSDisplay = FormatDeduction(prevResult.CostOfGoodsSold)
+                    PrevGrossProfitDisplay = FormatAmount(prevResult.GrossProfit)
+                    PrevOtherOperatingExpensesDisplay = FormatDeduction(prevResult.OperatingExpenses - prevResult.ShrinkageLoss)
+                    PrevShrinkageLossDisplay = FormatDeduction(prevResult.ShrinkageLoss)
+                    PrevOperatingExpensesDisplay = FormatDeduction(prevResult.OperatingExpenses)
+                    PrevNetIncomeDisplay = FormatAmount(prevResult.NetIncome)
+                    PrevGrossMarginPercentDisplay = $"{prevResult.GrossMarginPercent:N1}%"
+                    PrevNetMarginPercentDisplay = $"{prevResult.NetMarginPercent:N1}%"
+                    PrevGrossMarginPercent = prevResult.GrossMarginPercent
+                    PrevNetMarginPercent = prevResult.NetMarginPercent
+
+                    Dim deltaVal As Double = 0.0
+                    Dim show As Boolean = False
+
+                    CalculateDelta(statement.NetSales, prevResult.NetSales, deltaVal, show)
+                    NetSalesDelta = deltaVal : ShowNetSalesDelta = show
+
+                    CalculateDelta(statement.CostOfGoodsSold, prevResult.CostOfGoodsSold, deltaVal, show)
+                    COGSDelta = deltaVal : ShowCOGSDelta = show
+
+                    CalculateDelta(statement.GrossProfit, prevResult.GrossProfit, deltaVal, show)
+                    GrossProfitDelta = deltaVal : ShowGrossProfitDelta = show
+
+                    CalculateDelta(statement.OperatingExpenses - statement.ShrinkageLoss, prevResult.OperatingExpenses - prevResult.ShrinkageLoss, deltaVal, show)
+                    OtherOperatingExpensesDelta = deltaVal : ShowOtherOperatingExpensesDelta = show
+
+                    CalculateDelta(statement.ShrinkageLoss, prevResult.ShrinkageLoss, deltaVal, show)
+                    ShrinkageLossDelta = deltaVal : ShowShrinkageLossDelta = show
+
+                    CalculateDelta(statement.OperatingExpenses, prevResult.OperatingExpenses, deltaVal, show)
+                    OperatingExpensesDelta = deltaVal : ShowOperatingExpensesDelta = show
+
+                    CalculateDelta(statement.NetIncome, prevResult.NetIncome, deltaVal, show)
+                    NetIncomeDelta = deltaVal : ShowNetIncomeDelta = show
+                Else
+                    PrevPeriodLabel = "Prior Period"
+                    PrevNetSalesDisplay = "₱0.00"
+                    PrevCOGSDisplay = "(₱0.00)"
+                    PrevGrossProfitDisplay = "₱0.00"
+                    PrevOtherOperatingExpensesDisplay = "(₱0.00)"
+                    PrevShrinkageLossDisplay = "(₱0.00)"
+                    PrevOperatingExpensesDisplay = "(₱0.00)"
+                    PrevNetIncomeDisplay = "₱0.00"
+                    PrevGrossMarginPercentDisplay = ""
+                    PrevNetMarginPercentDisplay = ""
+                    PrevGrossMarginPercent = 0D
+                    PrevNetMarginPercent = 0D
+
+                    NetSalesDelta = 0.0 : ShowNetSalesDelta = False
+                    COGSDelta = 0.0 : ShowCOGSDelta = False
+                    GrossProfitDelta = 0.0 : ShowGrossProfitDelta = False
+                    OtherOperatingExpensesDelta = 0.0 : ShowOtherOperatingExpensesDelta = False
+                    ShrinkageLossDelta = 0.0 : ShowShrinkageLossDelta = False
+                    OperatingExpensesDelta = 0.0 : ShowOperatingExpensesDelta = False
+                    NetIncomeDelta = 0.0 : ShowNetIncomeDelta = False
+                End If
 
                 WhatThisMeansText = _whatThisMeansService.GenerateIncomeStatementInterpretation(statement, previousMargin)
+                WhatThisMeansSeverity = _whatThisMeansService.GetIncomeStatementSeverity(statement, previousMargin)
 
                 Dim margins = Await _incomeService.GetPerProductMarginsAsync(statement.StartDate, statement.EndDate)
                 Dim sorted = margins.OrderBy(Function(m) m.GrossMarginPercent).ToList()
@@ -361,6 +730,16 @@ Namespace ViewModels
         End Function
 
         ' ─── Formatting Helpers ───────────────────────────────────────────────────
+
+        Private Sub CalculateDelta(currentVal As Decimal, priorVal As Decimal, ByRef deltaValue As Double, ByRef showDelta As Boolean)
+            If priorVal = 0D Then
+                deltaValue = 0.0
+                showDelta = False
+            Else
+                deltaValue = CDbl(Math.Round(((currentVal - priorVal) / Math.Abs(priorVal)) * 100D, 1))
+                showDelta = True
+            End If
+        End Sub
 
         Private Shared Function FormatAmount(amount As Decimal) As String
             If amount < 0D Then Return $"(₱{Math.Abs(amount):N2})"
