@@ -1,5 +1,6 @@
 Imports MerchSys.POS.Entities
 Imports MerchSys.SharedKernel.Enums
+Imports MerchSys.SharedKernel.Paging
 
 Namespace Services
 
@@ -31,6 +32,13 @@ Namespace Services
         Function FinalizeAsync(cartId As Guid, paymentMethod As PaymentMethod, amountTendered As Decimal, Optional customerId As Integer? = Nothing) As Task(Of SalesTransaction)
         Function VoidTransactionAsync(transactionId As Integer, reason As String) As Task
         Function GetTransactionHistoryAsync(Optional startDate As DateTime? = Nothing, Optional endDate As DateTime? = Nothing) As Task(Of List(Of SalesTransaction))
+
+        ''' <summary>
+        ''' Keyset-paged transaction history (INFRA-34). Returns one page (newest first) plus the
+        ''' cursor for the next page. Pass the prior page's NextCursor back in <paramref name="request"/>
+        ''' to load more. The optional date range in the request bounds the result set.
+        ''' </summary>
+        Function GetTransactionHistoryPageAsync(request As PageRequest) As Task(Of PagedResult(Of SalesTransaction))
     End Interface
 
 End Namespace

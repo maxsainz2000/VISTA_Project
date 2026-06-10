@@ -1,6 +1,6 @@
 ---
 type: schema-map
-last-updated: 2026-05-28
+last-updated: 2026-06-10
 ---
 
 # Database Schema Mapping
@@ -11,7 +11,7 @@ This page maps the EF Core entities across all modules to their central MariaDB 
 | Entity | DB Table | Key Constraints |
 |---|---|---|
 | `CreditAccount` | `Pos_CreditAccounts` | PK `Id`, Index on `IsBlocked` |
-| `SalesTransaction` | `Pos_SalesTransactions` | PK `Id`, Unique Index on `TransactionNumber`, Index on `TransactionDate`, Index on `CreditAccountId` |
+| `SalesTransaction` | `Pos_SalesTransactions` | PK `Id`, Unique Index on `TransactionNumber`, Index on `TransactionDate`, Index on `CreditAccountId`, Index on `(CustomerId, TransactionDate)` (INFRA-34) |
 | `SalesTransactionLine` | `Pos_SalesTransactionLines` | PK `Id`, Index on `TransactionId` |
 | `OfficialReceipt` | `Pos_OfficialReceipts` | PK `Id`, Unique Index on `ReceiptNumber`, Unique Index on `TransactionId` |
 | `CreditPayment` | `Pos_CreditPayments` | PK `Id`, Index on `CreditAccountId` |
@@ -43,10 +43,10 @@ This page maps the EF Core entities across all modules to their central MariaDB 
 | `ProductCategory` | `Inv_ProductCategories` | PK `Id`, Unique Index on `Name` |
 | `Product` | `Inv_Products` | PK `Id`, Unique Index on `Sku`, FK `CategoryId` -> `Inv_ProductCategories` |
 | `StockBatch` | `Inv_StockBatches` | PK `Id`, Index on `ProductId`+`ReceiptDate` |
-| `ShrinkageRecord` | `Inv_ShrinkageRecords` | PK `Id` |
+| `ShrinkageRecord` | `Inv_ShrinkageRecords` | PK `Id`, Index on `RecordedDate` (INFRA-34) |
 | `StockAlertConfig` | `Inv_StockAlertConfigs` | PK `Id` |
 | `StockMovement` | `Inv_StockMovements` | PK `Id`, Composite Index (`ProductId`, `OccurredAt`) |
-| `StockAuditRecord` | `Inv_StockAuditRecords` | PK `Id`, FK `ProductId` -> `Inv_Products`, Index on `AuditedAt` |
+| `StockAuditRecord` | `Inv_StockAuditRecords` | PK `Id`, FK `ProductId` -> `Inv_Products`, Index on `AuditedAt` (optimized INFRA-34) |
 | `ProductPriceHistory` | `Inv_ProductPriceHistory` | PK `Id`, Composite Index `(ProductId, ChangedAt DESC)`, FK `ProductId` |
 | `SaleCogsRecord` | `Inv_SaleCogs` | PK `Id`, Composite Index `(TransactionId, ProductId)`, Index on `BatchId`, FK `BatchId` -> `Inv_StockBatches` |
 

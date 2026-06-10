@@ -9,6 +9,7 @@ Imports MerchSys.SharedKernel.Interfaces
 Imports MerchSys.SharedKernel.Persistence
 Imports MerchSys.SharedKernel.Presentation
 Imports MerchSys.SharedKernel.Enums
+Imports MerchSys.SharedKernel.Paging
 
 Namespace ViewModels
 
@@ -68,6 +69,12 @@ Namespace ViewModels
         Private ReadOnly _reasonOptions As String() = {"Damage", "Spoilage", "Expiry", "Admin Error"}
         Private _allHistory As New List(Of ShrinkageRowItem)()
 
+        ' INFRA-34 keyset paging state: the working set accumulates pages (newest first);
+        ' date/product/reason narrowing stays client-side over the loaded window.
+        Private Const ShrinkagePageSize As Integer = 100
+        Private _nextCursorDate As DateTime?
+        Private _nextCursorId As Long?
+
         ' Session memory fields
         Private Shared _savedFilterStartDate As DateTime? = Nothing
         Private Shared _savedFilterEndDate As DateTime? = Nothing
@@ -107,6 +114,7 @@ Namespace ViewModels
             OpenDialogCommand = New RelayCommand(AddressOf OpenDialog)
             CancelDialogCommand = New RelayCommand(AddressOf CloseDialog)
             ExecuteRecordCommand = New AsyncRelayCommand(AddressOf ExecuteRecordAsync, Function() Not HasErrors)
+            LoadMoreCommand = New AsyncRelayCommand(AddressOf LoadMoreAsync, Function() HasMore)
 
             Dim t = LoadDataAsync()
         End Sub
@@ -329,6 +337,19 @@ Namespace ViewModels
             End Get
         End Property
 
+        Private _hasMore As Boolean
+        ''' <summary>True when more keyset pages remain (INFRA-34). Drives the "Load more" button.</summary>
+        Public Property HasMore As Boolean
+            Get
+                Return _hasMore
+            End Get
+            Set(value As Boolean)
+                If SetProperty(_hasMore, value) Then
+                    If LoadMoreCommand IsNot Nothing Then LoadMoreCommand.NotifyCanExecuteChanged()
+                End If
+            End Set
+        End Property
+
         Private _lastRefreshed As String = String.Empty
         Public Property LastRefreshed As String
             Get
@@ -366,6 +387,7 @@ Namespace ViewModels
         Public Property OpenDialogCommand As RelayCommand
         Public Property CancelDialogCommand As RelayCommand
         Public Property ExecuteRecordCommand As AsyncRelayCommand
+        Public Property LoadMoreCommand As AsyncRelayCommand
 
         ' ─── Validation ──────────────────────────────────────────────────────────
 
@@ -384,25 +406,20 @@ Namespace ViewModels
             IsError = False
             IsBusy = True
             Try
-                Dim histTask = _shrinkageService.GetShrinkageHistoryAsync()
+                ' INFRA-34: load the first keyset page of history (newest first). Date/product/reason
+                ' narrowing stays client-side over the loaded window; "Load more" appends older pages.
+                _nextCursorDate = Nothing
+                _nextCursorId = Nothing
+                Dim histTask = _shrinkageService.GetShrinkageHistoryPageAsync(New PageRequest(ShrinkagePageSize))
                 Dim stockTask = _stockService.GetCurrentStockAsync(Nothing)
                 Await Task.WhenAll(histTask, stockTask)
 
+                Dim historyPage = histTask.Result
                 _allHistory.Clear()
-                For Each rec In histTask.Result
-                    _allHistory.Add(New ShrinkageRowItem With {
-                        .Id = rec.Id,
-                        .ProductId = rec.ProductId,
-                        .RecordedDate = rec.RecordedDate,
-                        .ProductName = If(rec.Product IsNot Nothing, rec.Product.Name, $"Product #{rec.ProductId}"),
-                        .QuantityLost = rec.QuantityLost,
-                        .UnitCost = rec.UnitCost,
-                        .TotalValue = rec.TotalValue,
-                        .Reason = rec.Reason,
-                        .Notes = If(rec.Notes, String.Empty),
-                        .RecordedBy = If(rec.CreatedBy, String.Empty)
-                    })
-                Next
+                AppendHistoryRecords(historyPage.Items)
+                _nextCursorDate = historyPage.NextCursorDate
+                _nextCursorId = historyPage.NextCursorId
+                HasMore = historyPage.HasMore
 
                 Dim productList = stockTask.Result
 
@@ -439,6 +456,48 @@ Namespace ViewModels
                 ApplyFilters()
                 LastRefreshed = $"Refreshed {DateTime.Now:HH:mm:ss}"
                 IsError = False
+                LastLoadedAt = DateTime.Now
+            Catch ex As Exception
+                ErrorMessage = ex.Message
+                IsError = True
+            Finally
+                IsBusy = False
+            End Try
+        End Function
+
+        ''' <summary>Maps a page of shrinkage records into row items and appends them to the working set (INFRA-34).</summary>
+        Private Sub AppendHistoryRecords(records As IReadOnlyList(Of MerchSys.Inventory.Entities.ShrinkageRecord))
+            For Each rec In records
+                _allHistory.Add(New ShrinkageRowItem With {
+                    .Id = rec.Id,
+                    .ProductId = rec.ProductId,
+                    .RecordedDate = rec.RecordedDate,
+                    .ProductName = If(rec.Product IsNot Nothing, rec.Product.Name, $"Product #{rec.ProductId}"),
+                    .QuantityLost = rec.QuantityLost,
+                    .UnitCost = rec.UnitCost,
+                    .TotalValue = rec.TotalValue,
+                    .Reason = rec.Reason,
+                    .Notes = If(rec.Notes, String.Empty),
+                    .RecordedBy = If(rec.CreatedBy, String.Empty)
+                })
+            Next
+        End Sub
+
+        ''' <summary>Loads and appends the next keyset page of shrinkage history (INFRA-34), preserving client filters.</summary>
+        Private Async Function LoadMoreAsync() As Task
+            If Not HasMore Then Return
+            IsBusy = True
+            Try
+                Dim req As New PageRequest(ShrinkagePageSize) With {
+                    .CursorDate = _nextCursorDate,
+                    .CursorId = _nextCursorId
+                }
+                Dim page = Await _shrinkageService.GetShrinkageHistoryPageAsync(req)
+                AppendHistoryRecords(page.Items)
+                _nextCursorDate = page.NextCursorDate
+                _nextCursorId = page.NextCursorId
+                HasMore = page.HasMore
+                ApplyFilters()
                 LastLoadedAt = DateTime.Now
             Catch ex As Exception
                 ErrorMessage = ex.Message

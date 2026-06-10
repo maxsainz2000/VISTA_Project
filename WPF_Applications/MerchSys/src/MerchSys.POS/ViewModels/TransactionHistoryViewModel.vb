@@ -7,6 +7,7 @@ Imports MerchSys.SharedKernel.Enums
 Imports MerchSys.SharedKernel.Interfaces
 Imports MerchSys.SharedKernel.Presentation
 Imports MerchSys.SharedKernel.Persistence
+Imports MerchSys.SharedKernel.Paging
 Imports Microsoft.Extensions.Configuration
 Imports Microsoft.Extensions.Options
 Imports MerchSys.POS.Services.ReceiptRendering
@@ -131,6 +132,12 @@ Namespace ViewModels
 
         Private _allTransactions As New List(Of TransactionSummaryItem)()
 
+        ' INFRA-34 keyset paging state: the working set is the accumulated pages; the cursor is the
+        ' last loaded row's (TransactionDate, Id). Client-side filters apply over the loaded window.
+        Private Const TransactionPageSize As Integer = 100
+        Private _nextCursorDate As DateTime?
+        Private _nextCursorId As Long?
+
         ' Session memory fields
         Private Shared _savedDateFrom As DateTime? = Nothing
         Private Shared _savedDateTo As DateTime? = Nothing
@@ -216,6 +223,7 @@ Namespace ViewModels
         Public ReadOnly Property ProcessReturnCommand As AsyncRelayCommand
         Public ReadOnly Property CancelReturnCommand As RelayCommand
         Public ReadOnly Property VoidTransactionCommand As AsyncRelayCommand
+        Public ReadOnly Property LoadMoreCommand As AsyncRelayCommand
 
         ' ── Constructor ───────────────────────────────────────────────────────────
 
@@ -266,6 +274,7 @@ Namespace ViewModels
             ProcessReturnCommand = New AsyncRelayCommand(AddressOf ProcessReturnAsync, AddressOf CanProcessReturn)
             CancelReturnCommand = New RelayCommand(Sub() IsReturnDialogVisible = False)
             VoidTransactionCommand = New AsyncRelayCommand(AddressOf VoidTransactionAsync, Function() SelectedTransaction IsNot Nothing AndAlso Not SelectedTransaction.IsVoided)
+            LoadMoreCommand = New AsyncRelayCommand(AddressOf LoadMoreAsync, Function() HasMore)
 
             Dim initTask = SearchAsync()
         End Sub
@@ -538,6 +547,19 @@ Namespace ViewModels
             End Get
         End Property
 
+        Private _hasMore As Boolean
+        ''' <summary>True when more keyset pages remain (INFRA-34). Drives the "Load more" button.</summary>
+        Public Property HasMore As Boolean
+            Get
+                Return _hasMore
+            End Get
+            Set(value As Boolean)
+                If SetProperty(_hasMore, value) Then
+                    If LoadMoreCommand IsNot Nothing Then LoadMoreCommand.NotifyCanExecuteChanged()
+                End If
+            End Set
+        End Property
+
         ' ── Command implementations ────────────────────────────────────────────────
 
         Private Async Function SearchAsync() As Task
@@ -548,28 +570,20 @@ Namespace ViewModels
             Try
                 Dim endOfDay = DateTo.Date.AddDays(1).AddTicks(-1)
 
-                Dim results = Await _cartService.GetTransactionHistoryAsync(DateFrom.Date, endOfDay)
-
-                ' Query returns by the actual loaded transaction IDs so returns for old transactions
-                ' are found regardless of when the return was processed (Approach B, POS-11).
-                Dim txIds = results.Select(Function(t) t.Id).ToList()
-                Dim txIdsWithReturns = Await _returnService.GetTransactionIdsWithReturnsAsync(txIds)
+                ' INFRA-34: load the first keyset page (newest first), bounded by the date range.
+                _nextCursorDate = Nothing
+                _nextCursorId = Nothing
+                Dim req As New PageRequest(TransactionPageSize) With {
+                    .FromUtc = DateFrom.Date,
+                    .ToUtc = endOfDay
+                }
+                Dim page = Await _cartService.GetTransactionHistoryPageAsync(req)
 
                 _allTransactions.Clear()
-                For Each tx In results
-                    _allTransactions.Add(New TransactionSummaryItem() With {
-                        .TransactionId = tx.Id,
-                        .TransactionNumber = tx.TransactionNumber,
-                        .TransactionDate = tx.TransactionDate,
-                        .CustomerName = If(String.IsNullOrWhiteSpace(tx.CustomerName), "Walk-in", tx.CustomerName),
-                        .PaymentMethod = tx.PaymentMethod.ToString(),
-                        .TotalAmount = tx.TotalAmount,
-                        .ItemCount = If(tx.Lines IsNot Nothing, tx.Lines.Count, 0),
-                        .HasReturns = txIdsWithReturns.Contains(tx.Id),
-                        .IsVoided = tx.IsVoided,
-                        .Lines = tx.Lines
-                    })
-                Next
+                Await AppendTransactionsAsync(page.Items)
+                _nextCursorDate = page.NextCursorDate
+                _nextCursorId = page.NextCursorId
+                HasMore = page.HasMore
 
                 ApplyFilters()
                 LastLoadedAt = DateTime.Now
@@ -581,6 +595,61 @@ Namespace ViewModels
             Finally
                 IsBusy = False
             End Try
+        End Function
+
+        ''' <summary>
+        ''' Loads the next keyset page (INFRA-34) and appends it to the working set, preserving any
+        ''' client-side filters. Bound to the "Load more" button via <see cref="HasMore"/>.
+        ''' </summary>
+        Private Async Function LoadMoreAsync() As Task
+            If Not HasMore Then Return
+            IsBusy = True
+            Try
+                Dim endOfDay = DateTo.Date.AddDays(1).AddTicks(-1)
+                Dim req As New PageRequest(TransactionPageSize) With {
+                    .FromUtc = DateFrom.Date,
+                    .ToUtc = endOfDay,
+                    .CursorDate = _nextCursorDate,
+                    .CursorId = _nextCursorId
+                }
+                Dim page = Await _cartService.GetTransactionHistoryPageAsync(req)
+
+                Await AppendTransactionsAsync(page.Items)
+                _nextCursorDate = page.NextCursorDate
+                _nextCursorId = page.NextCursorId
+                HasMore = page.HasMore
+
+                ApplyFilters()
+                LastLoadedAt = DateTime.Now
+            Catch ex As Exception
+                StatusMessage = $"Error loading more: {ex.Message}"
+                IsStatusSuccess = False
+            Finally
+                IsBusy = False
+            End Try
+        End Function
+
+        ''' <summary>Maps a page of <see cref="SalesTransaction"/> rows into summary items and appends them.</summary>
+        Private Async Function AppendTransactionsAsync(results As IReadOnlyList(Of SalesTransaction)) As Task
+            ' Query returns by the actual loaded transaction IDs so returns for old transactions
+            ' are found regardless of when the return was processed (Approach B, POS-11).
+            Dim txIds = results.Select(Function(t) t.Id).ToList()
+            Dim txIdsWithReturns = Await _returnService.GetTransactionIdsWithReturnsAsync(txIds)
+
+            For Each tx In results
+                _allTransactions.Add(New TransactionSummaryItem() With {
+                    .TransactionId = tx.Id,
+                    .TransactionNumber = tx.TransactionNumber,
+                    .TransactionDate = tx.TransactionDate,
+                    .CustomerName = If(String.IsNullOrWhiteSpace(tx.CustomerName), "Walk-in", tx.CustomerName),
+                    .PaymentMethod = tx.PaymentMethod.ToString(),
+                    .TotalAmount = tx.TotalAmount,
+                    .ItemCount = If(tx.Lines IsNot Nothing, tx.Lines.Count, 0),
+                    .HasReturns = txIdsWithReturns.Contains(tx.Id),
+                    .IsVoided = tx.IsVoided,
+                    .Lines = tx.Lines
+                })
+            Next
         End Function
 
         Private Sub ApplyFilters()

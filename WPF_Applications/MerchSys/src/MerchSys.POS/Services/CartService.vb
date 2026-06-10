@@ -6,6 +6,7 @@ Imports MerchSys.POS.Data
 Imports MerchSys.POS.Entities
 Imports MerchSys.SharedKernel.Enums
 Imports MerchSys.SharedKernel.Persistence
+Imports MerchSys.SharedKernel.Paging
 
 Namespace Services
 
@@ -227,6 +228,116 @@ Namespace Services
                 End If
             End Using
             Return _txHistoryList
+        End Function
+
+        ''' <summary>
+        ''' Keyset-paged transaction history (INFRA-34). Same projection as
+        ''' <see cref="GetTransactionHistoryAsync"/> but bounded: it seeks past the cursor and
+        ''' fetches one page (PageSize + 1 rows to detect HasMore) ordered by
+        ''' <c>(TransactionDate DESC, Id DESC)</c>. The (date, Id) tuple is the stable cursor.
+        ''' Lines are loaded only for the page's transactions.
+        ''' </summary>
+        Public Async Function GetTransactionHistoryPageAsync(request As PageRequest) As Task(Of PagedResult(Of SalesTransaction)) Implements ICartService.GetTransactionHistoryPageAsync
+            If request Is Nothing Then request = New PageRequest()
+            ' Trusted server-side integer (VM sets PageSize); inlined to avoid driver LIMIT-parameter quirks. Not user input.
+            Dim fetchLimit As Integer = request.PageSize + 1
+            Dim pageList As New List(Of SalesTransaction)()
+            Dim thConnStr = _context.Database.GetConnectionString()
+            Using thConn As New MySqlConnection(thConnStr)
+                Await thConn.OpenAsync()
+
+                Dim thSql = "SELECT Id, TransactionNumber, TransactionDate, CustomerId, CustomerName, " &
+                             "PaymentMethod, SubTotal, DiscountAmount, VatAmount, TotalAmount, " &
+                             "AmountTendered, ChangeAmount, IsVoided, VoidReason, " &
+                             "IsDeleted, DeletedBy, DeletedAt, CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                             "FROM Pos_SalesTransactions WHERE IsDeleted = 0"
+                If request.FromUtc.HasValue Then thSql &= " AND TransactionDate >= @fromUtc"
+                If request.ToUtc.HasValue Then thSql &= " AND TransactionDate <= @toUtc"
+                If request.CursorId.HasValue Then
+                    thSql &= " AND (TransactionDate < @cursorDate OR (TransactionDate = @cursorDate AND Id < @cursorId))"
+                End If
+                thSql &= " ORDER BY TransactionDate DESC, Id DESC LIMIT " & fetchLimit.ToString()
+
+                Using thCmd = thConn.CreateCommand()
+                    thCmd.CommandText = thSql
+                    If request.FromUtc.HasValue Then thCmd.Parameters.Add(New MySqlParameter("@fromUtc", request.FromUtc.Value.ToString("o")))
+                    If request.ToUtc.HasValue Then thCmd.Parameters.Add(New MySqlParameter("@toUtc", request.ToUtc.Value.ToString("o")))
+                    If request.CursorId.HasValue Then
+                        thCmd.Parameters.Add(New MySqlParameter("@cursorDate", request.CursorDate.Value.ToString("o")))
+                        thCmd.Parameters.Add(New MySqlParameter("@cursorId", request.CursorId.Value))
+                    End If
+                    Using thReader = thCmd.ExecuteReader()
+                        While thReader.Read()
+                            pageList.Add(New SalesTransaction With {
+                                .Id = thReader.GetInt32(0),
+                                .TransactionNumber = thReader.GetString(1),
+                                .TransactionDate = thReader.GetDateTime(2),
+                                .CustomerId = If(thReader.IsDBNull(3), CType(Nothing, Integer?), thReader.GetInt32(3)),
+                                .CustomerName = If(thReader.IsDBNull(4), Nothing, thReader.GetString(4)),
+                                .PaymentMethod = CType(thReader.GetInt32(5), PaymentMethod),
+                                .SubTotal = thReader.GetDecimal(6),
+                                .DiscountAmount = thReader.GetDecimal(7),
+                                .VatAmount = thReader.GetDecimal(8),
+                                .TotalAmount = thReader.GetDecimal(9),
+                                .AmountTendered = thReader.GetDecimal(10),
+                                .ChangeAmount = thReader.GetDecimal(11),
+                                .IsVoided = thReader.GetBoolean(12),
+                                .VoidReason = If(thReader.IsDBNull(13), Nothing, thReader.GetString(13)),
+                                .IsDeleted = thReader.GetBoolean(14),
+                                .DeletedBy = If(thReader.IsDBNull(15), Nothing, thReader.GetString(15)),
+                                .DeletedAt = If(thReader.IsDBNull(16), Nothing, CType(thReader.GetDateTime(16), DateTime?)),
+                                .CreatedBy = thReader.GetString(17),
+                                .CreatedAt = thReader.GetDateTime(18),
+                                .ModifiedBy = If(thReader.IsDBNull(19), Nothing, thReader.GetString(19)),
+                                .ModifiedAt = If(thReader.IsDBNull(20), Nothing, CType(thReader.GetDateTime(20), DateTime?))
+                            })
+                        End While
+                    End Using
+                End Using
+
+                ' HasMore detection: we fetched PageSize + 1; if the extra row came back, drop it.
+                Dim hasMore As Boolean = pageList.Count > request.PageSize
+                If hasMore Then pageList.RemoveAt(pageList.Count - 1)
+
+                ' Load lines for just this page's transactions (bounded by PageSize).
+                If pageList.Count > 0 Then
+                    Dim txIds = String.Join(",", pageList.Select(Function(t) t.Id))
+                    Dim lineMap As New Dictionary(Of Integer, List(Of SalesTransactionLine))()
+                    Using lCmd = thConn.CreateCommand()
+                        lCmd.CommandText = "SELECT TransactionId, ProductId, ProductName, Quantity, UnitPrice, DiscountAmount, LineTotal " &
+                                            $"FROM Pos_SalesTransactionLines WHERE TransactionId IN ({txIds})"
+                        Using lReader = lCmd.ExecuteReader()
+                            While lReader.Read()
+                                Dim line As New SalesTransactionLine With {
+                                    .TransactionId = lReader.GetInt32(0),
+                                    .ProductId = lReader.GetInt32(1),
+                                    .ProductName = lReader.GetString(2),
+                                    .Quantity = lReader.GetInt32(3),
+                                    .UnitPrice = lReader.GetDecimal(4),
+                                    .DiscountAmount = lReader.GetDecimal(5),
+                                    .LineTotal = lReader.GetDecimal(6)
+                                }
+                                If Not lineMap.ContainsKey(line.TransactionId) Then lineMap(line.TransactionId) = New List(Of SalesTransactionLine)()
+                                lineMap(line.TransactionId).Add(line)
+                            End While
+                        End Using
+                    End Using
+                    For Each tx In pageList
+                        Dim txLines As List(Of SalesTransactionLine) = Nothing
+                        If lineMap.TryGetValue(tx.Id, txLines) Then
+                            For Each ln In txLines : tx.Lines.Add(ln) : Next
+                        End If
+                    Next
+                End If
+
+                Dim nextDate As DateTime? = Nothing
+                Dim nextId As Long? = Nothing
+                If pageList.Count > 0 Then
+                    nextDate = pageList(pageList.Count - 1).TransactionDate
+                    nextId = pageList(pageList.Count - 1).Id
+                End If
+                Return New PagedResult(Of SalesTransaction)(pageList, hasMore, nextDate, nextId)
+            End Using
         End Function
 
         ' --- Private Helpers ---

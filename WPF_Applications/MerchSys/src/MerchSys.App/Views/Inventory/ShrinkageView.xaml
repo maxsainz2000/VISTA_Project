@@ -174,8 +174,12 @@
 
             <!-- ── History DataGrid Container ─────────────────────── -->
             <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
                 <!-- ── History DataGrid ───────────────────────────────── -->
-                <DataGrid ItemsSource="{Binding HistoryItems}"
+                <DataGrid Grid.Row="0" ItemsSource="{Binding HistoryItems}"
                           AutoGenerateColumns="False"
                           CanUserAddRows="False" CanUserDeleteRows="False"
                           IsReadOnly="True" CanUserReorderColumns="False" CanUserResizeRows="False"
@@ -263,12 +267,21 @@
                     </DataGrid.Columns>
                 </DataGrid>
 
-                <views:EmptyStatePanel Title="{Binding EmptyStateTitle}"
+                <views:EmptyStatePanel Grid.Row="0" Title="{Binding EmptyStateTitle}"
                                        Description="{Binding EmptyStateDescription}"
                                        ActionCommand="{Binding EmptyStateActionCommand}"
                                        ActionText="{Binding EmptyStateActionText}"
                                        HorizontalAlignment="Center" VerticalAlignment="Center"
                                        Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}"/>
+
+                <!-- INFRA-34: incremental keyset paging — appends the next page; virtualization preserved -->
+                <Button Grid.Row="1"
+                        Content="Load more"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Command="{Binding LoadMoreCommand}"
+                        HorizontalAlignment="Center"
+                        Margin="0,8,0,8"
+                        Visibility="{Binding HasMore, Converter={StaticResource BoolToVis}}"/>
             </Grid>
 
         </DockPanel>

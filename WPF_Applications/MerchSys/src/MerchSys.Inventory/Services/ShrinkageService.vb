@@ -7,6 +7,7 @@ Imports MerchSys.Inventory.Data
 Imports MerchSys.Inventory.Entities
 Imports MerchSys.SharedKernel.Events
 Imports MerchSys.SharedKernel.Persistence
+Imports MerchSys.SharedKernel.Paging
 
 Namespace Services
 
@@ -259,6 +260,122 @@ Namespace Services
                 End If
             End Using
             Return _shrinkageHistoryList
+        End Function
+
+        ''' <summary>
+        ''' Keyset-paged shrinkage history (INFRA-34). Same projection/decoration as
+        ''' <see cref="GetShrinkageHistoryAsync"/> but bounded: seeks past the cursor and fetches one
+        ''' page (PageSize + 1 to detect HasMore) ordered by <c>(RecordedDate DESC, Id DESC)</c>.
+        ''' Product/batch decoration runs only for the page's rows.
+        ''' </summary>
+        Public Async Function GetShrinkageHistoryPageAsync(request As PageRequest, Optional productId As Integer? = Nothing) As Task(Of PagedResult(Of ShrinkageRecord)) Implements IShrinkageService.GetShrinkageHistoryPageAsync
+            If request Is Nothing Then request = New PageRequest()
+            Dim fetchLimit As Integer = request.PageSize + 1
+            Dim pageList As New List(Of ShrinkageRecord)()
+            Dim shConnStr = _db.Database.GetConnectionString()
+            Using shConn As New MySqlConnection(shConnStr)
+                Await shConn.OpenAsync()
+
+                Dim shSql = "SELECT Id, ProductId, StockBatchId, QuantityLost, UnitCost, TotalValue, " &
+                             "Reason, Notes, RecordedDate, CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                             "FROM Inv_ShrinkageRecords WHERE 1=1"
+                If productId.HasValue Then shSql &= " AND ProductId = @productId"
+                If request.FromUtc.HasValue Then shSql &= " AND RecordedDate >= @fromUtc"
+                If request.ToUtc.HasValue Then shSql &= " AND RecordedDate <= @toUtc"
+                If request.CursorId.HasValue Then
+                    shSql &= " AND (RecordedDate < @cursorDate OR (RecordedDate = @cursorDate AND Id < @cursorId))"
+                End If
+                ' Trusted server-side integer (VM sets PageSize); inlined to avoid driver LIMIT-parameter quirks.
+                shSql &= " ORDER BY RecordedDate DESC, Id DESC LIMIT " & fetchLimit.ToString()
+
+                Using shCmd = shConn.CreateCommand()
+                    shCmd.CommandText = shSql
+                    If productId.HasValue Then shCmd.Parameters.Add(New MySqlParameter("@productId", productId.Value))
+                    If request.FromUtc.HasValue Then shCmd.Parameters.Add(New MySqlParameter("@fromUtc", request.FromUtc.Value.ToString("o")))
+                    If request.ToUtc.HasValue Then shCmd.Parameters.Add(New MySqlParameter("@toUtc", request.ToUtc.Value.ToString("o")))
+                    If request.CursorId.HasValue Then
+                        shCmd.Parameters.Add(New MySqlParameter("@cursorDate", request.CursorDate.Value.ToString("o")))
+                        shCmd.Parameters.Add(New MySqlParameter("@cursorId", request.CursorId.Value))
+                    End If
+                    Using shReader = shCmd.ExecuteReader()
+                        While shReader.Read()
+                            pageList.Add(New ShrinkageRecord With {
+                                .Id = shReader.GetInt32(0),
+                                .ProductId = shReader.GetInt32(1),
+                                .StockBatchId = If(shReader.IsDBNull(2), CType(Nothing, Integer?), shReader.GetInt32(2)),
+                                .QuantityLost = shReader.GetInt32(3),
+                                .UnitCost = shReader.GetDecimal(4),
+                                .TotalValue = shReader.GetDecimal(5),
+                                .Reason = shReader.GetString(6),
+                                .Notes = If(shReader.IsDBNull(7), Nothing, shReader.GetString(7)),
+                                .RecordedDate = shReader.GetDateTime(8),
+                                .CreatedBy = shReader.GetString(9),
+                                .CreatedAt = shReader.GetDateTime(10),
+                                .ModifiedBy = If(shReader.IsDBNull(11), Nothing, shReader.GetString(11)),
+                                .ModifiedAt = If(shReader.IsDBNull(12), Nothing, CType(shReader.GetDateTime(12), DateTime?))
+                            })
+                        End While
+                    End Using
+                End Using
+
+                ' HasMore detection: we fetched PageSize + 1; if the extra row came back, drop it.
+                Dim hasMore As Boolean = pageList.Count > request.PageSize
+                If hasMore Then pageList.RemoveAt(pageList.Count - 1)
+
+                ' Decorate the page's rows with their product and batch (bounded by PageSize).
+                If pageList.Count > 0 Then
+                    Dim productIds = String.Join(",", pageList.Select(Function(s) s.ProductId).Distinct())
+                    Dim productMap As New Dictionary(Of Integer, Product)()
+                    Using pCmd = shConn.CreateCommand()
+                        pCmd.CommandText = "SELECT Id, Name, Sku, CategoryId, Description, RetailPrice, Unit, HasExpiry, " &
+                                           "MinimumThreshold, IsActive, IsDeleted, DeletedBy, DeletedAt, " &
+                                           "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                           $"FROM Inv_Products WHERE Id IN ({productIds})"
+                        Using pReader = pCmd.ExecuteReader()
+                            While pReader.Read()
+                                Dim p = StockService.ReadProduct(pReader)
+                                productMap(p.Id) = p
+                            End While
+                        End Using
+                    End Using
+
+                    Dim batchIds = pageList.Where(Function(s) s.StockBatchId.HasValue) _
+                                            .Select(Function(s) s.StockBatchId.Value).Distinct().ToList()
+                    Dim batchMap As New Dictionary(Of Integer, StockBatch)()
+                    If batchIds.Count > 0 Then
+                        Dim batchIdList = String.Join(",", batchIds)
+                        Using bCmd = shConn.CreateCommand()
+                            bCmd.CommandText = "SELECT Id, ProductId, QuantityReceived, QuantityRemaining, UnitCost, " &
+                                               "ReceiptDate, ExpiryDate, SourcePurchaseOrderId, " &
+                                               "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                               $"FROM Inv_StockBatches WHERE Id IN ({batchIdList})"
+                            Using bReader = bCmd.ExecuteReader()
+                                While bReader.Read()
+                                    Dim b = StockService.ReadStockBatch(bReader)
+                                    batchMap(b.Id) = b
+                                End While
+                            End Using
+                        End Using
+                    End If
+
+                    For Each sr In pageList
+                        Dim prod As Product = Nothing
+                        If productMap.TryGetValue(sr.ProductId, prod) Then sr.Product = prod
+                        If sr.StockBatchId.HasValue Then
+                            Dim bat As StockBatch = Nothing
+                            If batchMap.TryGetValue(sr.StockBatchId.Value, bat) Then sr.StockBatch = bat
+                        End If
+                    Next
+                End If
+
+                Dim nextDate As DateTime? = Nothing
+                Dim nextId As Long? = Nothing
+                If pageList.Count > 0 Then
+                    nextDate = pageList(pageList.Count - 1).RecordedDate
+                    nextId = pageList(pageList.Count - 1).Id
+                End If
+                Return New PagedResult(Of ShrinkageRecord)(pageList, hasMore, nextDate, nextId)
+            End Using
         End Function
 
         Public Async Function GetTotalShrinkageValueAsync(startDate As DateTime, endDate As DateTime) As Task(Of Decimal) Implements IShrinkageService.GetTotalShrinkageValueAsync
