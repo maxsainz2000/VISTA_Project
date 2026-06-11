@@ -703,14 +703,14 @@ CREATE TABLE IF NOT EXISTS `Acc_FinancialSnapshots` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `Acc_TamperAuditLog` (
-    `Id` BIGINT NOT NULL AUTO_INCREMENT,
+    `Id` INT NOT NULL AUTO_INCREMENT,
     `DetectedAt` DATETIME(6) NOT NULL,
-    `ReceiptId` BIGINT NOT NULL,
+    `ReceiptId` INT NOT NULL,
     `ReceiptNumber` VARCHAR(128) NOT NULL,
     `TamperKind` VARCHAR(128) NOT NULL,
     `DetectedByService` VARCHAR(255) NOT NULL,
-    `ExpectedValue` VARCHAR(512) NULL,
-    `ActualValue` VARCHAR(512) NULL,
+    `ExpectedValue` TEXT NULL,
+    `ActualValue` TEXT NULL,
     `AdditionalContextJson` LONGTEXT NULL,
     `MachineName` VARCHAR(255) NOT NULL,
     `OperatingUser` VARCHAR(255) NOT NULL,

@@ -61,16 +61,15 @@ This batch implements verified functional fixes to address specific defects acro
 ## Database Migration Notes
 
 > [!IMPORTANT]
-> The central DDL source of truth (`0001_initial_schema.sql`) has been aligned. However, **existing** database installations will require a manual schema migration step to update the `Acc_TamperAuditLog` column types to match the aligned EF model.
-> The following DDL updates should be run on the existing database:
-> ```sql
-> ALTER TABLE Acc_TamperAuditLog 
->   MODIFY COLUMN Id BIGINT NOT NULL AUTO_INCREMENT,
->   MODIFY COLUMN ReceiptId BIGINT NOT NULL,
->   MODIFY COLUMN ExpectedValue VARCHAR(512) NULL,
->   MODIFY COLUMN ActualValue VARCHAR(512) NULL;
-> ```
-> This manual intervention has been deferred to the schema/troubleshooting session.
+> **Superseded by the 2026-06-11 correction below.** The original implementation edited `0001_initial_schema.sql` in place. That is invalid in this codebase: `MariaDbSchemaInitializer` SHA-256-hashes every applied migration and **aborts startup on any hash drift** — so on an existing database the app crashed at launch with *"FATAL: Schema drift detected in script '0001_initial_schema.sql'"* before any manual `ALTER` could run.
+
+## Post-Review Correction (Schema Drift) — 2026-06-11 (claude-code)
+
+> `0001_initial_schema.sql` was **reverted to its original content** (hash now matches the `__SchemaMigrations` record → no drift), and the `Acc_TamperAuditLog` column-type change was moved into a **new forward migration** `0008_tamper_audit_column_types.sql` (`ALTER TABLE … MODIFY COLUMN` for `Id`/`ReceiptId` → `BIGINT` and `ExpectedValue`/`ActualValue` → `VARCHAR(512)`).
+>
+> This converges both fresh installs (0001 creates the table, 0008 aligns it) and the existing DB (0001 unchanged, 0008 applied as a pending migration) with **no manual intervention**. The EF-config change in `TamperAuditEntryConfiguration.vb` (removal of the SQLite `HasColumnType` overrides) is unaffected and remains correct.
+>
+> **Rule reinforced:** never edit an already-applied migration script — add a new numbered one. Logged as `agent_wiki/errors/schema-drift-from-editing-applied-migration.md`. Build remains 0/0.
 
 ## Cross-References
 - Domain Wiki pages: `[[bir-compliance]]`

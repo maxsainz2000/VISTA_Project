@@ -75,5 +75,6 @@ All engineering learnings from debugging and error-fixing sessions. Check this i
 | [wpf-vista-comparative-report](patterns/wpf-vista-comparative-report.md) | pattern | MerchSys.Accounting | wpf, xaml, vb-net, mvvm, comparative-reports, delta-indicator, reporting | antigravity | 2026-06-10 | active |
 | [wpf-vista-insight-banner](patterns/wpf-vista-insight-banner.md) | pattern | MerchSys.App | wpf, xaml, vb-net, mvvm, theming, design-tokens, wcag, accessibility, severity-banner, shared-kernel | antigravity | 2026-06-10 | active |
 | [immutable-receipt-post-save-mutation](errors/immutable-receipt-post-save-mutation.md) | error-fix | MerchSys.POS | ef-core, vb-net, mariadb, interceptor, immutability, official-receipt, decorator, shared-dbcontext, runtime-error | claude-code | 2026-06-11 | active |
+| [schema-drift-from-editing-applied-migration](errors/schema-drift-from-editing-applied-migration.md) | error-fix | Infrastructure | mariadb, schema-migration, schema-drift, sha256, startup, ddl, idempotent-migrations, runtime-error | claude-code | 2026-06-11 | active |
 
 
