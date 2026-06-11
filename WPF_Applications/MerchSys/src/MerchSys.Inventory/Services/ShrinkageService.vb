@@ -19,8 +19,6 @@ Namespace Services
         Private ReadOnly _db As InventoryDbContext
         Private ReadOnly _mediator As IMediator
         Private ReadOnly _logger As ILogger(Of ShrinkageService)
-        Private _batchesForShrinkage As List(Of StockBatch)
-        Private _shrinkageHistoryList As List(Of ShrinkageRecord)
 
         Public Sub New(db As InventoryDbContext,
                        mediator As IMediator,
@@ -77,7 +75,7 @@ Namespace Services
                 created.Add(record)
             Else
                 ' FIFO: consume oldest batches first regardless of expiry status
-                _batchesForShrinkage = New List(Of StockBatch)()
+                Dim batchesForShrinkage As New List(Of StockBatch)()
                 Dim shrConnStr = _db.Database.GetConnectionString()
                 Using shrConn As New MySqlConnection(shrConnStr)
                     Await shrConn.OpenAsync()
@@ -95,12 +93,12 @@ Namespace Services
                             shrCmd.Parameters.Add(New MySqlParameter("@productId", productId))
                             Using shrReader = Await shrCmd.ExecuteReaderAsync()
                                 While Await shrReader.ReadAsync()
-                                    _batchesForShrinkage.Add(StockService.ReadStockBatch(shrReader))
+                                    batchesForShrinkage.Add(StockService.ReadStockBatch(shrReader))
                                 End While
                             End Using
                         End Using
 
-                        Dim batches As List(Of StockBatch) = _batchesForShrinkage
+                        Dim batches As List(Of StockBatch) = batchesForShrinkage
                         Dim remaining As Integer = quantity
 
                         For Each batch In batches
@@ -176,7 +174,7 @@ Namespace Services
         End Function
 
         Public Async Function GetShrinkageHistoryAsync(Optional productId As Integer? = Nothing) As Task(Of List(Of ShrinkageRecord)) Implements IShrinkageService.GetShrinkageHistoryAsync
-            _shrinkageHistoryList = New List(Of ShrinkageRecord)()
+            Dim shrinkageHistoryList As New List(Of ShrinkageRecord)()
             Dim shConnStr = _db.Database.GetConnectionString()
             Using shConn As New MySqlConnection(shConnStr)
                 Await shConn.OpenAsync()
@@ -195,7 +193,7 @@ Namespace Services
                     End If
                     Using shReader = shCmd.ExecuteReader()
                         While shReader.Read()
-                            _shrinkageHistoryList.Add(New ShrinkageRecord With {
+                            shrinkageHistoryList.Add(New ShrinkageRecord With {
                                 .Id = shReader.GetInt32(0),
                                 .ProductId = shReader.GetInt32(1),
                                 .StockBatchId = If(shReader.IsDBNull(2), CType(Nothing, Integer?), shReader.GetInt32(2)),
@@ -214,8 +212,8 @@ Namespace Services
                     End Using
                 End Using
 
-                If _shrinkageHistoryList.Count > 0 Then
-                    Dim productIds = String.Join(",", _shrinkageHistoryList.Select(Function(s) s.ProductId).Distinct())
+                If shrinkageHistoryList.Count > 0 Then
+                    Dim productIds = String.Join(",", shrinkageHistoryList.Select(Function(s) s.ProductId).Distinct())
                     Dim productMap As New Dictionary(Of Integer, Product)()
                     Using pCmd = shConn.CreateCommand()
                         pCmd.CommandText = "SELECT Id, Name, Sku, CategoryId, Description, RetailPrice, Unit, HasExpiry, " &
@@ -230,7 +228,7 @@ Namespace Services
                         End Using
                     End Using
 
-                    Dim batchIds = _shrinkageHistoryList.Where(Function(s) s.StockBatchId.HasValue) _
+                    Dim batchIds = shrinkageHistoryList.Where(Function(s) s.StockBatchId.HasValue) _
                                                          .Select(Function(s) s.StockBatchId.Value).Distinct().ToList()
                     Dim batchMap As New Dictionary(Of Integer, StockBatch)()
                     If batchIds.Count > 0 Then
@@ -249,7 +247,7 @@ Namespace Services
                         End Using
                     End If
 
-                    For Each sr In _shrinkageHistoryList
+                    For Each sr In shrinkageHistoryList
                         Dim prod As Product = Nothing
                         If productMap.TryGetValue(sr.ProductId, prod) Then sr.Product = prod
                         If sr.StockBatchId.HasValue Then
@@ -259,7 +257,7 @@ Namespace Services
                     Next
                 End If
             End Using
-            Return _shrinkageHistoryList
+            Return shrinkageHistoryList
         End Function
 
         ''' <summary>
@@ -291,10 +289,10 @@ Namespace Services
                 Using shCmd = shConn.CreateCommand()
                     shCmd.CommandText = shSql
                     If productId.HasValue Then shCmd.Parameters.Add(New MySqlParameter("@productId", productId.Value))
-                    If request.FromUtc.HasValue Then shCmd.Parameters.Add(New MySqlParameter("@fromUtc", request.FromUtc.Value.ToString("o")))
-                    If request.ToUtc.HasValue Then shCmd.Parameters.Add(New MySqlParameter("@toUtc", request.ToUtc.Value.ToString("o")))
+                    If request.FromUtc.HasValue Then shCmd.Parameters.Add(New MySqlParameter("@fromUtc", request.FromUtc.Value))
+                    If request.ToUtc.HasValue Then shCmd.Parameters.Add(New MySqlParameter("@toUtc", request.ToUtc.Value))
                     If request.CursorId.HasValue Then
-                        shCmd.Parameters.Add(New MySqlParameter("@cursorDate", request.CursorDate.Value.ToString("o")))
+                        shCmd.Parameters.Add(New MySqlParameter("@cursorDate", request.CursorDate.Value))
                         shCmd.Parameters.Add(New MySqlParameter("@cursorId", request.CursorId.Value))
                     End If
                     Using shReader = shCmd.ExecuteReader()

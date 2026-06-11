@@ -2,7 +2,6 @@ Imports System.Collections.ObjectModel
 Imports System.ComponentModel.DataAnnotations
 Imports CommunityToolkit.Mvvm.ComponentModel
 Imports CommunityToolkit.Mvvm.Input
-Imports MySqlConnector
 Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.POS.Data
 Imports MerchSys.POS.Entities
@@ -14,14 +13,7 @@ Imports MerchSys.SharedKernel.Presentation
 
 Namespace ViewModels
 
-    ''' <summary>
-    ''' Lightweight DTO representing a credit-method sale in the account history panel.
-    ''' </summary>
-    Public Class CreditTransactionItem
-        Public Property TransactionDate As DateTime
-        Public Property TransactionNumber As String
-        Public Property Amount As Decimal
-    End Class
+
 
     ''' <summary>
     ''' ViewModel for the Credit Management screen.
@@ -51,7 +43,6 @@ Namespace ViewModels
 
         ' Unfiltered master list used for in-memory filtering
         Private _allAccounts As List(Of CreditAccount) = New List(Of CreditAccount)()
-        Private _historyTxList As List(Of SalesTransaction)
 
         ' Session memory
         Private Shared _savedSearchText As String = String.Empty
@@ -456,36 +447,10 @@ Namespace ViewModels
                 PaymentHistory.Add(p)
             Next
 
-            _historyTxList = New List(Of SalesTransaction)()
-            Dim htConnStr = _context.Database.GetConnectionString()
-            Using htConn As New MySqlConnection(htConnStr)
-                Await htConn.OpenAsync()
-                Using htCmd = htConn.CreateCommand()
-                    htCmd.CommandText = "SELECT TransactionDate, TransactionNumber, TotalAmount " &
-                                         "FROM Pos_SalesTransactions " &
-                                         "WHERE CustomerId = @accountId AND PaymentMethod = @creditMethod AND IsDeleted = 0 " &
-                                         "ORDER BY TransactionDate DESC"
-                    htCmd.Parameters.Add(New MySqlParameter("@accountId", account.Id))
-                    htCmd.Parameters.Add(New MySqlParameter("@creditMethod", CInt(PaymentMethod.Credit)))
-                    Using htReader = htCmd.ExecuteReader()
-                        While htReader.Read()
-                            _historyTxList.Add(New SalesTransaction With {
-                                .TransactionDate = htReader.GetDateTime(0),
-                                .TransactionNumber = htReader.GetString(1),
-                                .TotalAmount = htReader.GetDecimal(2)
-                            })
-                        End While
-                    End Using
-                End Using
-            End Using
-
+            Dim txs = Await _creditService.GetCreditTransactionsAsync(account.Id)
             CreditTransactions.Clear()
-            For Each t In _historyTxList
-                CreditTransactions.Add(New CreditTransactionItem() With {
-                    .TransactionDate = t.TransactionDate,
-                    .TransactionNumber = t.TransactionNumber,
-                    .Amount = t.TotalAmount
-                })
+            For Each t In txs
+                CreditTransactions.Add(t)
             Next
         End Function
 

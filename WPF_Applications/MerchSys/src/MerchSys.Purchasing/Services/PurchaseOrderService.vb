@@ -13,9 +13,6 @@ Namespace Services
         Implements IPurchaseOrderService
 
         Private ReadOnly _db As PurchasingDbContext
-        Private _poList As List(Of PurchaseOrder)
-        Private _poLineList As List(Of PurchaseOrderLine)
-        Private _poVendorList As List(Of Vendor)
 
         Public Sub New(db As PurchasingDbContext)
             _db = db
@@ -26,13 +23,7 @@ Namespace Services
                                                Optional notes As String = Nothing,
                                                Optional expectedDeliveryDate As DateTime? = Nothing) As Task(Of PurchaseOrder) Implements IPurchaseOrderService.CreateDraftAsync
             Dim year As Integer = DateTime.UtcNow.Year
-            ' Include soft-deleted rows: the OrderNumber unique index spans every row
-            ' (deleted included), so the sequence must not reuse a deleted PO's number.
-            Dim existingNumbers As List(Of String) = Await _db.PurchaseOrders.
-                IgnoreQueryFilters().
-                Select(Function(p) p.OrderNumber).
-                ToListAsync()
-            Dim orderNumber As String = SequentialNumberGenerator.Generate("PO", year, existingNumbers)
+            Dim orderNumber As String = Await SequentialNumberGenerator.GetNextNumberAsync(_db, "PO", year)
 
             Dim po As New PurchaseOrder With {
                 .OrderNumber = orderNumber,
@@ -70,7 +61,9 @@ Namespace Services
 
         Public Async Function GetAllAsync(Optional status As PurchaseOrderStatus? = Nothing) As Task(Of List(Of PurchaseOrder)) Implements IPurchaseOrderService.GetAllAsync
             ' Step 1: load PurchaseOrders
-            _poList = New List(Of PurchaseOrder)()
+            Dim poList As New List(Of PurchaseOrder)()
+            Dim poLineList As New List(Of PurchaseOrderLine)()
+            Dim poVendorList As New List(Of Vendor)()
             Dim connStr = _db.Database.GetConnectionString()
             Using conn As New MySqlConnection(connStr)
                 Await conn.OpenAsync()
@@ -85,7 +78,7 @@ Namespace Services
                     End If
                     Using reader = cmd.ExecuteReader()
                         While reader.Read()
-                            _poList.Add(New PurchaseOrder With {
+                            poList.Add(New PurchaseOrder With {
                                 .Id = reader.GetInt32(0),
                                 .OrderNumber = reader.GetString(1),
                                 .VendorId = reader.GetInt32(2),
@@ -99,17 +92,16 @@ Namespace Services
                     End Using
                 End Using
 
-                If Not _poList.Any() Then Return _poList
+                If Not poList.Any() Then Return poList
 
                 ' Step 2: load PurchaseOrderLines
-                _poLineList = New List(Of PurchaseOrderLine)()
-                Dim poIds As String = String.Join(",", _poList.Select(Function(po) po.Id))
+                Dim poIds As String = String.Join(",", poList.Select(Function(po) po.Id))
                 Using lnCmd = conn.CreateCommand()
                     lnCmd.CommandText = "SELECT Id, PurchaseOrderId, ProductId, ProductName, QuantityOrdered, UnitCost, LineTotal " &
                                         $"FROM Pur_PurchaseOrderLines WHERE PurchaseOrderId IN ({poIds})"
                     Using lnReader = lnCmd.ExecuteReader()
                         While lnReader.Read()
-                            _poLineList.Add(New PurchaseOrderLine With {
+                            poLineList.Add(New PurchaseOrderLine With {
                                 .Id = lnReader.GetInt32(0),
                                 .PurchaseOrderId = lnReader.GetInt32(1),
                                 .ProductId = lnReader.GetInt32(2),
@@ -123,14 +115,13 @@ Namespace Services
                 End Using
 
                 ' Step 3: load Vendors
-                _poVendorList = New List(Of Vendor)()
-                Dim vendorIds As String = String.Join(",", _poList.Select(Function(po) po.VendorId).Distinct())
+                Dim vendorIds As String = String.Join(",", poList.Select(Function(po) po.VendorId).Distinct())
                 Using vnCmd = conn.CreateCommand()
                     vnCmd.CommandText = "SELECT Id, Name, ContactPerson, Phone, Email, Address, DefaultLeadTimeDays, Notes " &
                                         $"FROM Pur_Vendors WHERE Id IN ({vendorIds})"
                     Using vnReader = vnCmd.ExecuteReader()
                         While vnReader.Read()
-                            _poVendorList.Add(New Vendor With {
+                            poVendorList.Add(New Vendor With {
                                 .Id = vnReader.GetInt32(0),
                                 .Name = vnReader.GetString(1),
                                 .ContactPerson = vnReader.GetString(2),
@@ -146,13 +137,13 @@ Namespace Services
             End Using
 
             ' Step 4: reassemble
-            Dim vendorDict = _poVendorList.ToDictionary(Function(v) v.Id)
+            Dim vendorDict = poVendorList.ToDictionary(Function(v) v.Id)
             Dim linesByPo As New Dictionary(Of Integer, List(Of PurchaseOrderLine))()
-            For Each ln In _poLineList
+            For Each ln In poLineList
                 If Not linesByPo.ContainsKey(ln.PurchaseOrderId) Then linesByPo(ln.PurchaseOrderId) = New List(Of PurchaseOrderLine)()
                 linesByPo(ln.PurchaseOrderId).Add(ln)
             Next
-            For Each po In _poList
+            For Each po In poList
                 Dim foundVendor As Vendor = Nothing
                 If vendorDict.TryGetValue(po.VendorId, foundVendor) Then po.Vendor = foundVendor
                 Dim poLines As List(Of PurchaseOrderLine) = Nothing
@@ -162,7 +153,7 @@ Namespace Services
                     Next
                 End If
             Next
-            Return _poList
+            Return poList
         End Function
 
         Public Async Function UpdateDraftAsync(id As Integer,

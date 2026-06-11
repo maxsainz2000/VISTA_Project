@@ -47,8 +47,6 @@ Namespace Services
         Private Async Function BuildSummaryAsync(year As Integer, month As Integer,
                                                   windowStart As DateTime,
                                                   windowEnd As DateTime) As Task(Of VatReliefSummary)
-            Dim wsStr = windowStart.ToString("o")
-            Dim weStr = windowEnd.ToString("o")
             Dim connStr = _db.Database.GetConnectionString()
 
             Dim vatableSales As Decimal = 0D
@@ -72,8 +70,8 @@ Namespace Services
                         "SUM(OutputVat), COUNT(*) " &
                         "FROM Acc_RevenueRecords " &
                         "WHERE RecordDate >= @ws AND RecordDate < @we"
-                    revCmd.Parameters.Add(New MySqlParameter("@ws", wsStr))
-                    revCmd.Parameters.Add(New MySqlParameter("@we", weStr))
+                    revCmd.Parameters.Add(New MySqlParameter("@ws", windowStart))
+                    revCmd.Parameters.Add(New MySqlParameter("@we", windowEnd))
                     Using revReader = revCmd.ExecuteReader()
                         If revReader.Read() Then
                             vatableSales = If(revReader.IsDBNull(0), 0D, revReader.GetDecimal(0))
@@ -91,8 +89,8 @@ Namespace Services
                         "SUM(InputVat), COUNT(*) " &
                         "FROM Acc_ExpenseRecords " &
                         "WHERE RecordDate >= @ws AND RecordDate < @we"
-                    expCmd.Parameters.Add(New MySqlParameter("@ws", wsStr))
-                    expCmd.Parameters.Add(New MySqlParameter("@we", weStr))
+                    expCmd.Parameters.Add(New MySqlParameter("@ws", windowStart))
+                    expCmd.Parameters.Add(New MySqlParameter("@we", windowEnd))
                     Using expReader = expCmd.ExecuteReader()
                         If expReader.Read() Then
                             vatablePurchases = If(expReader.IsDBNull(0), 0D, expReader.GetDecimal(0))

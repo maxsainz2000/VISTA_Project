@@ -49,9 +49,12 @@ Namespace Services
 
         ''' <summary>Clears the in-memory cache so the next call to <see cref="GetAsync"/> re-reads from the database.</summary>
         Public Sub Invalidate()
-            SyncLock _lock
+            _lock.Wait()
+            Try
                 _cached = Nothing
-            End SyncLock
+            Finally
+                _lock.Release()
+            End Try
         End Sub
 
     End Class

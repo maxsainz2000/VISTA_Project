@@ -86,11 +86,16 @@ Namespace Services
             transaction.ZeroRatedSales = totals.ZeroRatedSales
             transaction.VatRateSnapshot = config.VatRate
             transaction.IsVatRegisteredSnapshot = config.IsVatRegistered
+            transaction.VatAmount = totals.OutputVat
 
             ' Step 4 — persist VAT fields before the receipt is issued.
             Await _context.SaveChangesAsync()
 
             ' Step 5 — delegate to the inner ReceiptService to produce the OfficialReceipt.
+            ' The receipt's VatAmount is sourced from transaction.VatAmount (stamped with
+            ' totals.OutputVat and persisted in Step 4), so it is created correct on the inner
+            ' service's first save. We must NOT mutate the receipt here — OfficialReceipt is
+            ' immutable and ImmutableReceiptInterceptor throws on any UPDATE.
             Dim receipt = Await _inner.GenerateReceiptAsync(transactionId)
 
             ' Step 6 — secure the hash chain (now includes VAT totals in the canonical payload).

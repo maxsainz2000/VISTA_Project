@@ -13,7 +13,6 @@ Namespace Services
 
         Private ReadOnly _db As InventoryDbContext
         Private ReadOnly _logger As ILogger(Of InventoryAuditService)
-        Private _auditHistoryList As List(Of StockAuditRecord)
 
         Public Sub New(db As InventoryDbContext,
                        logger As ILogger(Of InventoryAuditService))
@@ -138,7 +137,7 @@ Namespace Services
         End Function
 
         Public Async Function GetAuditHistoryAsync(Optional productId As Integer? = Nothing, Optional startDate As DateTime? = Nothing, Optional endDate As DateTime? = Nothing) As Task(Of List(Of StockAuditRecord)) Implements IInventoryAuditService.GetAuditHistoryAsync
-            _auditHistoryList = New List(Of StockAuditRecord)()
+            Dim auditHistoryList As New List(Of StockAuditRecord)()
             Dim ahConnStr = _db.Database.GetConnectionString()
             Using ahConn As New MySqlConnection(ahConnStr)
                 Await ahConn.OpenAsync()
@@ -154,11 +153,11 @@ Namespace Services
                 Using ahCmd = ahConn.CreateCommand()
                     ahCmd.CommandText = ahSql
                     If productId.HasValue Then ahCmd.Parameters.Add(New MySqlParameter("@productId", productId.Value))
-                    If startDate.HasValue Then ahCmd.Parameters.Add(New MySqlParameter("@startDate", startDate.Value.ToString("o")))
-                    If endDate.HasValue Then ahCmd.Parameters.Add(New MySqlParameter("@endDate", endDate.Value.ToString("o")))
+                    If startDate.HasValue Then ahCmd.Parameters.Add(New MySqlParameter("@startDate", startDate.Value))
+                    If endDate.HasValue Then ahCmd.Parameters.Add(New MySqlParameter("@endDate", endDate.Value))
                     Using ahReader = ahCmd.ExecuteReader()
                         While ahReader.Read()
-                            _auditHistoryList.Add(New StockAuditRecord With {
+                            auditHistoryList.Add(New StockAuditRecord With {
                                 .Id = ahReader.GetInt32(0),
                                 .ProductId = ahReader.GetInt32(1),
                                 .ExpectedQuantity = ahReader.GetInt32(2),
@@ -177,8 +176,8 @@ Namespace Services
                     End Using
                 End Using
 
-                If _auditHistoryList.Count > 0 Then
-                    Dim pIds = String.Join(",", _auditHistoryList.Select(Function(a) a.ProductId).Distinct())
+                If auditHistoryList.Count > 0 Then
+                    Dim pIds = String.Join(",", auditHistoryList.Select(Function(a) a.ProductId).Distinct())
                     Dim productMap As New Dictionary(Of Integer, Product)()
                     Using pCmd = ahConn.CreateCommand()
                         pCmd.CommandText = "SELECT Id, Name, Sku, CategoryId, Description, RetailPrice, Unit, HasExpiry, " &
@@ -192,13 +191,13 @@ Namespace Services
                             End While
                         End Using
                     End Using
-                    For Each rec In _auditHistoryList
+                    For Each rec In auditHistoryList
                         Dim prod As Product = Nothing
                         If productMap.TryGetValue(rec.ProductId, prod) Then rec.Product = prod
                     Next
                 End If
             End Using
-            Return _auditHistoryList
+            Return auditHistoryList
         End Function
 
         Public Async Function GetLatestAuditPerProductAsync() As Task(Of List(Of StockAuditRecord)) Implements IInventoryAuditService.GetLatestAuditPerProductAsync

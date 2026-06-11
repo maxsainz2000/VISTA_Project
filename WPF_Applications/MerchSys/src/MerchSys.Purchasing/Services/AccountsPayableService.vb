@@ -12,8 +12,6 @@ Namespace Services
         Implements IAccountsPayableService
 
         Private ReadOnly _db As PurchasingDbContext
-        Private _apList As List(Of AccountsPayableEntry)
-        Private _grListForAp As List(Of GoodsReceipt)
 
         Public Sub New(db As PurchasingDbContext)
             _db = db
@@ -34,7 +32,7 @@ Namespace Services
                 Throw New InvalidOperationException($"An accounts payable entry already exists for purchase order {purchaseOrderId}.")
             End If
 
-            _grListForAp = New List(Of GoodsReceipt)()
+            Dim grListForAp As New List(Of GoodsReceipt)()
             Dim grConnStr = _db.Database.GetConnectionString()
             Using grConn As New MySqlConnection(grConnStr)
                 Await grConn.OpenAsync()
@@ -44,7 +42,7 @@ Namespace Services
                     grCmd.Parameters.Add(New MySqlParameter("@poId", purchaseOrderId))
                     Using grReader = grCmd.ExecuteReader()
                         While grReader.Read()
-                            _grListForAp.Add(New GoodsReceipt With {
+                            grListForAp.Add(New GoodsReceipt With {
                                 .Id = grReader.GetInt32(0),
                                 .PurchaseOrderId = grReader.GetInt32(1),
                                 .ReceiptNumber = grReader.GetString(2),
@@ -56,9 +54,9 @@ Namespace Services
                     End Using
                 End Using
 
-                If _grListForAp.Any() Then
-                    Dim grIds As String = String.Join(",", _grListForAp.Select(Function(receipt) receipt.Id))
-                    Dim grMap = _grListForAp.ToDictionary(Function(receipt) receipt.Id)
+                If grListForAp.Any() Then
+                    Dim grIds As String = String.Join(",", grListForAp.Select(Function(receipt) receipt.Id))
+                    Dim grMap = grListForAp.ToDictionary(Function(receipt) receipt.Id)
                     Using grlCmd = grConn.CreateCommand()
                         grlCmd.CommandText = "SELECT GoodsReceiptId, QuantityReceived, UnitCost " &
                                              $"FROM Pur_GoodsReceiptLines WHERE GoodsReceiptId IN ({grIds})"
@@ -79,7 +77,7 @@ Namespace Services
                     End Using
                 End If
             End Using
-            Dim receipts As List(Of GoodsReceipt) = _grListForAp
+            Dim receipts As List(Of GoodsReceipt) = grListForAp
 
             Dim totalAmount As Decimal = receipts.
                 SelectMany(Function(gr) gr.Lines).
@@ -134,7 +132,7 @@ Namespace Services
         End Function
 
         Public Async Function GetAllOutstandingAsync() As Task(Of List(Of AccountsPayableEntry)) Implements IAccountsPayableService.GetAllOutstandingAsync
-            _apList = New List(Of AccountsPayableEntry)()
+            Dim apList As New List(Of AccountsPayableEntry)()
             Dim connStr = _db.Database.GetConnectionString()
             Using conn As New MySqlConnection(connStr)
                 Await conn.OpenAsync()
@@ -144,17 +142,17 @@ Namespace Services
                                       "FROM Pur_AccountsPayable WHERE IsPaid = 0 ORDER BY DueDate ASC"
                     Using reader = cmd.ExecuteReader()
                         While reader.Read()
-                            _apList.Add(ReadApEntry(reader))
+                            apList.Add(ReadApEntry(reader))
                         End While
                     End Using
                 End Using
             End Using
-            Await PopulateApNavigationsAsync(_apList)
-            Return _apList
+            Await PopulateApNavigationsAsync(apList)
+            Return apList
         End Function
 
         Public Async Function GetByVendorAsync(vendorId As Integer) As Task(Of List(Of AccountsPayableEntry)) Implements IAccountsPayableService.GetByVendorAsync
-            _apList = New List(Of AccountsPayableEntry)()
+            Dim apList As New List(Of AccountsPayableEntry)()
             Dim byVConnStr = _db.Database.GetConnectionString()
             Using byVConn As New MySqlConnection(byVConnStr)
                 Await byVConn.OpenAsync()
@@ -165,17 +163,17 @@ Namespace Services
                     byVCmd.Parameters.Add(New MySqlParameter("@vendorId", vendorId))
                     Using byVReader = byVCmd.ExecuteReader()
                         While byVReader.Read()
-                            _apList.Add(ReadApEntry(byVReader))
+                            apList.Add(ReadApEntry(byVReader))
                         End While
                     End Using
                 End Using
             End Using
-            Await PopulateApNavigationsAsync(_apList)
-            Return _apList
+            Await PopulateApNavigationsAsync(apList)
+            Return apList
         End Function
 
         Public Async Function GetOverdueAsync() As Task(Of List(Of AccountsPayableEntry)) Implements IAccountsPayableService.GetOverdueAsync
-            _apList = New List(Of AccountsPayableEntry)()
+            Dim apList As New List(Of AccountsPayableEntry)()
             Dim odConnStr = _db.Database.GetConnectionString()
             Using odConn As New MySqlConnection(odConnStr)
                 Await odConn.OpenAsync()
@@ -183,16 +181,16 @@ Namespace Services
                     odCmd.CommandText = "SELECT Id, PurchaseOrderId, VendorId, InvoiceNumber, InvoiceDate, DueDate, " &
                                         "TotalAmount, AmountPaid, Balance, IsPaid, Notes, CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
                                         "FROM Pur_AccountsPayable WHERE DueDate < @today AND IsPaid = 0 ORDER BY DueDate ASC"
-                    odCmd.Parameters.Add(New MySqlParameter("@today", DateTime.UtcNow.Date.ToString("o")))
+                    odCmd.Parameters.Add(New MySqlParameter("@today", DateTime.UtcNow.Date))
                     Using odReader = odCmd.ExecuteReader()
                         While odReader.Read()
-                            _apList.Add(ReadApEntry(odReader))
+                            apList.Add(ReadApEntry(odReader))
                         End While
                     End Using
                 End Using
             End Using
-            Await PopulateApNavigationsAsync(_apList)
-            Return _apList
+            Await PopulateApNavigationsAsync(apList)
+            Return apList
         End Function
 
         Public Async Function GetTotalOutstandingAsync() As Task(Of Decimal) Implements IAccountsPayableService.GetTotalOutstandingAsync
@@ -209,7 +207,7 @@ Namespace Services
         End Function
 
         Public Async Function GetAllAsync() As Task(Of List(Of AccountsPayableEntry)) Implements IAccountsPayableService.GetAllAsync
-            _apList = New List(Of AccountsPayableEntry)()
+            Dim apList As New List(Of AccountsPayableEntry)()
             Dim gaConnStr = _db.Database.GetConnectionString()
             Using gaConn As New MySqlConnection(gaConnStr)
                 Await gaConn.OpenAsync()
@@ -219,13 +217,13 @@ Namespace Services
                                         "FROM Pur_AccountsPayable ORDER BY InvoiceDate DESC"
                     Using gaReader = gaCmd.ExecuteReader()
                         While gaReader.Read()
-                            _apList.Add(ReadApEntry(gaReader))
+                            apList.Add(ReadApEntry(gaReader))
                         End While
                     End Using
                 End Using
             End Using
-            Await PopulateApNavigationsAsync(_apList)
-            Return _apList
+            Await PopulateApNavigationsAsync(apList)
+            Return apList
         End Function
 
         Private Async Function GetByIdWithNavigationAsync(id As Integer) As Task(Of AccountsPayableEntry)

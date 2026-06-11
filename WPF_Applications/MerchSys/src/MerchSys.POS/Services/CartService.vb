@@ -7,6 +7,7 @@ Imports MerchSys.POS.Entities
 Imports MerchSys.SharedKernel.Enums
 Imports MerchSys.SharedKernel.Persistence
 Imports MerchSys.SharedKernel.Paging
+Imports Microsoft.Extensions.Logging
 
 Namespace Services
 
@@ -20,16 +21,18 @@ Namespace Services
         Private Shared ReadOnly _carts As New ConcurrentDictionary(Of Guid, CartDto)()
 
         Private ReadOnly _context As POSDbContext
-        Private _txHistoryList As List(Of SalesTransaction)
         Private ReadOnly _receiptService As IReceiptService
         Private ReadOnly _vatConfigLoader As VatConfigurationLoader
+        Private ReadOnly _logger As Microsoft.Extensions.Logging.ILogger(Of CartService)
 
         Public Sub New(context As POSDbContext,
                        receiptService As IReceiptService,
-                       vatConfigLoader As VatConfigurationLoader)
+                       vatConfigLoader As VatConfigurationLoader,
+                       logger As Microsoft.Extensions.Logging.ILogger(Of CartService))
             _context = context
             _receiptService = receiptService
             _vatConfigLoader = vatConfigLoader
+            _logger = logger
         End Sub
 
         Public Async Function CreateCartAsync() As Task(Of CartDto) Implements ICartService.CreateCartAsync
@@ -150,7 +153,7 @@ Namespace Services
         End Function
 
         Public Async Function GetTransactionHistoryAsync(Optional startDate As DateTime? = Nothing, Optional endDate As DateTime? = Nothing) As Task(Of List(Of SalesTransaction)) Implements ICartService.GetTransactionHistoryAsync
-            _txHistoryList = New List(Of SalesTransaction)()
+            Dim txHistoryList As New List(Of SalesTransaction)()
             Dim thConnStr = _context.Database.GetConnectionString()
             Using thConn As New MySqlConnection(thConnStr)
                 Await thConn.OpenAsync()
@@ -166,11 +169,11 @@ Namespace Services
 
                 Using thCmd = thConn.CreateCommand()
                     thCmd.CommandText = thSql
-                    If startDate.HasValue Then thCmd.Parameters.Add(New MySqlParameter("@startDate", startDate.Value.ToString("o")))
-                    If endDate.HasValue Then thCmd.Parameters.Add(New MySqlParameter("@endDate", endDate.Value.ToString("o")))
+                    If startDate.HasValue Then thCmd.Parameters.Add(New MySqlParameter("@startDate", startDate.Value))
+                    If endDate.HasValue Then thCmd.Parameters.Add(New MySqlParameter("@endDate", endDate.Value))
                     Using thReader = thCmd.ExecuteReader()
                         While thReader.Read()
-                            _txHistoryList.Add(New SalesTransaction With {
+                            txHistoryList.Add(New SalesTransaction With {
                                 .Id = thReader.GetInt32(0),
                                 .TransactionNumber = thReader.GetString(1),
                                 .TransactionDate = thReader.GetDateTime(2),
@@ -197,8 +200,8 @@ Namespace Services
                     End Using
                 End Using
 
-                If _txHistoryList.Count > 0 Then
-                    Dim txIds = String.Join(",", _txHistoryList.Select(Function(t) t.Id))
+                If txHistoryList.Count > 0 Then
+                    Dim txIds = String.Join(",", txHistoryList.Select(Function(t) t.Id))
                     Dim lineMap As New Dictionary(Of Integer, List(Of SalesTransactionLine))()
                     Using lCmd = thConn.CreateCommand()
                         lCmd.CommandText = "SELECT TransactionId, ProductId, ProductName, Quantity, UnitPrice, DiscountAmount, LineTotal " &
@@ -219,7 +222,7 @@ Namespace Services
                             End While
                         End Using
                     End Using
-                    For Each tx In _txHistoryList
+                    For Each tx In txHistoryList
                         Dim txLines As List(Of SalesTransactionLine) = Nothing
                         If lineMap.TryGetValue(tx.Id, txLines) Then
                             For Each ln In txLines : tx.Lines.Add(ln) : Next
@@ -227,7 +230,7 @@ Namespace Services
                     Next
                 End If
             End Using
-            Return _txHistoryList
+            Return txHistoryList
         End Function
 
         ''' <summary>
@@ -260,10 +263,10 @@ Namespace Services
 
                 Using thCmd = thConn.CreateCommand()
                     thCmd.CommandText = thSql
-                    If request.FromUtc.HasValue Then thCmd.Parameters.Add(New MySqlParameter("@fromUtc", request.FromUtc.Value.ToString("o")))
-                    If request.ToUtc.HasValue Then thCmd.Parameters.Add(New MySqlParameter("@toUtc", request.ToUtc.Value.ToString("o")))
+                    If request.FromUtc.HasValue Then thCmd.Parameters.Add(New MySqlParameter("@fromUtc", request.FromUtc.Value))
+                    If request.ToUtc.HasValue Then thCmd.Parameters.Add(New MySqlParameter("@toUtc", request.ToUtc.Value))
                     If request.CursorId.HasValue Then
-                        thCmd.Parameters.Add(New MySqlParameter("@cursorDate", request.CursorDate.Value.ToString("o")))
+                        thCmd.Parameters.Add(New MySqlParameter("@cursorDate", request.CursorDate.Value))
                         thCmd.Parameters.Add(New MySqlParameter("@cursorId", request.CursorId.Value))
                     End If
                     Using thReader = thCmd.ExecuteReader()
@@ -399,10 +402,60 @@ Namespace Services
         End Function
 
         Private Async Function GenerateTransactionNumberAsync() As Task(Of String)
-            Dim year = DateTime.Now.Year
-            Dim count = Await _context.SalesTransactions.
-                CountAsync(Function(t) t.TransactionDate.Year = year) + 1
-            Return $"TX-{year}-{count:D4}"
+            Dim year As Integer = DateTime.Now.Year
+            Dim nextValue As Integer = -1
+            Dim success = False
+            Dim MaxSequenceRetries As Integer = 10
+
+            For attempt = 1 To MaxSequenceRetries
+                Dim concurrencyFailed = False
+
+                Try
+                    Using txn = Await _context.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable)
+                        Dim sequence = Await _context.TransactionSequences.
+                            FirstOrDefaultAsync(Function(s) s.Year = year)
+
+                        If sequence Is Nothing Then
+                            sequence = New TransactionSequence() With {
+                                .Year = year,
+                                .NextValue = 1
+                            }
+                            _context.TransactionSequences.Add(sequence)
+                        Else
+                            sequence.NextValue += 1
+                        End If
+
+                        Await _context.SaveChangesAsync()
+                        Await txn.CommitAsync()
+                        nextValue = sequence.NextValue
+                        success = True
+                    End Using
+                Catch ex As DbUpdateConcurrencyException
+                    ' Update-path race: another client advanced the row's RowVersion. Retry.
+                    concurrencyFailed = True
+                    _context.ChangeTracker.Clear()
+                Catch ex As DbUpdateException
+                    ' First-insert race: two clients created the same Year row concurrently.
+                    ' The loser gets a duplicate-key violation (a DbUpdateException, not a
+                    ' concurrency exception). Clear the tracker and retry — the row now exists,
+                    ' so the next attempt takes the increment path.
+                    concurrencyFailed = True
+                    _context.ChangeTracker.Clear()
+                End Try
+
+                If success Then Exit For
+                If concurrencyFailed Then
+                    _logger.LogWarning("Transaction sequence concurrency conflict on attempt {Attempt}/{Max} for year {Year}",
+                        attempt, MaxSequenceRetries, year)
+                End If
+            Next
+
+            If Not success Then
+                Throw New InvalidOperationException(
+                    $"Unable to acquire transaction sequence for year {year} after {MaxSequenceRetries} attempts.")
+            End If
+
+            Return $"TX-{year}-{nextValue:D4}"
         End Function
 
     End Class

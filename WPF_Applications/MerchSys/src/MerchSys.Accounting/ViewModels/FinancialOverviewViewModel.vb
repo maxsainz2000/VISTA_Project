@@ -32,7 +32,7 @@ Namespace ViewModels
     ''' </summary>
     Public Class FinancialOverviewViewModel
         Inherits ObservableObject
-        Implements IFreshnessAware
+        Implements IFreshnessAware, IDisposable
 
         Private _lastLoadedAt As DateTime?
         Public Property LastLoadedAt As DateTime? Implements IFreshnessAware.LastLoadedAt
@@ -375,6 +375,14 @@ Namespace ViewModels
                     Sub(o)
                         Dim t = LoadDataAsync()
                     End Sub, Nothing)
+            End If
+        End Sub
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+            If _refreshTimer IsNot Nothing Then
+                _refreshTimer.Stop()
+                RemoveHandler _refreshTimer.Elapsed, AddressOf OnRefreshTick
+                _refreshTimer.Dispose()
             End If
         End Sub
 

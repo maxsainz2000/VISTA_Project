@@ -32,9 +32,6 @@ Namespace Services
 
         Private ReadOnly _db As InventoryDbContext
         Private ReadOnly _logger As ILogger(Of StockService)
-        Private _batchesForFIFO As List(Of StockBatch)
-        Private _batchesForProduct As List(Of StockBatch)
-        Private _productStockList As List(Of Product)
 
         Public Sub New(db As InventoryDbContext,
                        logger As ILogger(Of StockService))
@@ -87,7 +84,7 @@ Namespace Services
         ''' </summary>
         Public Async Function DeductStockFIFOAsync(productId As Integer, quantity As Integer) As Task(Of List(Of FIFODeductionResult)) Implements IStockService.DeductStockFIFOAsync
             Dim now As DateTime = DateTime.UtcNow
-            _batchesForFIFO = New List(Of StockBatch)()
+            Dim batchesForFIFO As New List(Of StockBatch)()
             Dim fifoConnStr = _db.Database.GetConnectionString()
             Dim results As New List(Of FIFODeductionResult)()
 
@@ -110,12 +107,12 @@ Namespace Services
                         fifoCmd.Parameters.Add(New MySqlParameter("@now", now))
                         Using fifoReader = Await fifoCmd.ExecuteReaderAsync()
                             While Await fifoReader.ReadAsync()
-                                _batchesForFIFO.Add(ReadStockBatch(fifoReader))
+                                batchesForFIFO.Add(ReadStockBatch(fifoReader))
                             End While
                         End Using
                     End Using
 
-                    Dim batches As List(Of StockBatch) = _batchesForFIFO
+                    Dim batches As List(Of StockBatch) = batchesForFIFO
                     Dim remaining As Integer = quantity
 
                     For Each batch In batches
@@ -140,9 +137,10 @@ Namespace Services
                     For Each b In batches.Where(Function(x) touchedBatchIds.Contains(x.Id))
                         Using updateCmd = fifoConn.CreateCommand()
                             updateCmd.Transaction = tx
-                            updateCmd.CommandText = "UPDATE Inv_StockBatches SET QuantityRemaining = @qty, ModifiedAt = @now WHERE Id = @id"
+                            updateCmd.CommandText = "UPDATE Inv_StockBatches SET QuantityRemaining = @qty, ModifiedAt = @now, ModifiedBy = @modifiedBy WHERE Id = @id"
                             updateCmd.Parameters.Add(New MySqlParameter("@qty", b.QuantityRemaining))
                             updateCmd.Parameters.Add(New MySqlParameter("@now", DateTime.UtcNow))
+                            updateCmd.Parameters.Add(New MySqlParameter("@modifiedBy", "System"))
                             updateCmd.Parameters.Add(New MySqlParameter("@id", b.Id))
                             Await updateCmd.ExecuteNonQueryAsync()
                         End Using
@@ -167,7 +165,7 @@ Namespace Services
 
         Public Async Function GetCurrentStockAsync(productId As Integer?) As Task(Of List(Of StockLevelDto)) Implements IStockService.GetCurrentStockAsync
             Dim now As DateTime = DateTime.UtcNow
-            _productStockList = New List(Of Product)()
+            Dim productStockList As New List(Of Product)()
             Dim csConnStr = _db.Database.GetConnectionString()
             Using csConn As New MySqlConnection(csConnStr)
                 Await csConn.OpenAsync()
@@ -185,13 +183,13 @@ Namespace Services
                     End If
                     Using csReader = csCmd.ExecuteReader()
                         While csReader.Read()
-                            _productStockList.Add(ReadProduct(csReader))
+                            productStockList.Add(ReadProduct(csReader))
                         End While
                     End Using
                 End Using
 
-                If _productStockList.Count > 0 Then
-                    Dim productIds = String.Join(",", _productStockList.Select(Function(p) p.Id))
+                If productStockList.Count > 0 Then
+                    Dim productIds = String.Join(",", productStockList.Select(Function(p) p.Id))
                     Dim batchMap As New Dictionary(Of Integer, List(Of StockBatch))()
                     Using batchCmd = csConn.CreateCommand()
                         batchCmd.CommandText = "SELECT Id, ProductId, QuantityReceived, QuantityRemaining, UnitCost, " &
@@ -206,7 +204,7 @@ Namespace Services
                             End While
                         End Using
                     End Using
-                    For Each p In _productStockList
+                    For Each p In productStockList
                         Dim batches As List(Of StockBatch) = Nothing
                         If batchMap.TryGetValue(p.Id, batches) Then
                             p.StockBatches = batches
@@ -214,7 +212,7 @@ Namespace Services
                     Next
                 End If
             End Using
-            Dim products As List(Of Product) = _productStockList
+            Dim products As List(Of Product) = productStockList
 
             Return products.Select(Function(p)
                 Dim currentQty As Integer = p.StockBatches _
@@ -232,7 +230,7 @@ Namespace Services
         End Function
 
         Public Async Function GetStockBatchesAsync(productId As Integer) As Task(Of List(Of StockBatch)) Implements IStockService.GetStockBatchesAsync
-            _batchesForProduct = New List(Of StockBatch)()
+            Dim batchesForProduct As New List(Of StockBatch)()
             Dim bpConnStr = _db.Database.GetConnectionString()
             Using bpConn As New MySqlConnection(bpConnStr)
                 Await bpConn.OpenAsync()
@@ -244,12 +242,12 @@ Namespace Services
                     bpCmd.Parameters.Add(New MySqlParameter("@productId", productId))
                     Using bpReader = bpCmd.ExecuteReader()
                         While bpReader.Read()
-                            _batchesForProduct.Add(ReadStockBatch(bpReader))
+                            batchesForProduct.Add(ReadStockBatch(bpReader))
                         End While
                     End Using
                 End Using
             End Using
-            Return _batchesForProduct
+            Return batchesForProduct
         End Function
 
         Public Async Function GetTotalValuationAsync() As Task(Of Decimal) Implements IStockService.GetTotalValuationAsync
@@ -275,6 +273,50 @@ Namespace Services
                 .ModifiedBy = If(r.IsDBNull(10), Nothing, r.GetString(10)),
                 .ModifiedAt = If(r.IsDBNull(11), Nothing, CType(r.GetDateTime(11), DateTime?))
             }
+        End Function
+
+        Public Async Function GetProductsWithCategoriesAsync() As Task(Of ProductAndCategoryData) Implements IStockService.GetProductsWithCategoriesAsync
+            Dim data As New ProductAndCategoryData With {
+                .Products = New List(Of Product)(),
+                .Categories = New List(Of ProductCategory)()
+            }
+            Dim pmConnStr = _db.Database.GetConnectionString()
+            Using pmConn As New MySqlConnection(pmConnStr)
+                Await pmConn.OpenAsync()
+                Using pmCmd = pmConn.CreateCommand()
+                    pmCmd.CommandText = "SELECT Id, Name, Sku, CategoryId, Description, RetailPrice, Unit, HasExpiry, " &
+                                         "MinimumThreshold, IsActive, IsDeleted, DeletedBy, DeletedAt, " &
+                                         "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                         "FROM Inv_Products WHERE IsDeleted = 0 ORDER BY Name"
+                    Using pmReader = Await pmCmd.ExecuteReaderAsync()
+                        While Await pmReader.ReadAsync()
+                            data.Products.Add(ReadProduct(pmReader))
+                        End While
+                    End Using
+                End Using
+                Using cCmd = pmConn.CreateCommand()
+                    cCmd.CommandText = "SELECT Id, Name, Description, IsDeleted, DeletedBy, DeletedAt, " &
+                                       "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                                       "FROM Inv_ProductCategories WHERE IsDeleted = 0 ORDER BY Name"
+                    Using cReader = Await cCmd.ExecuteReaderAsync()
+                        While Await cReader.ReadAsync()
+                            data.Categories.Add(New ProductCategory With {
+                                .Id = cReader.GetInt32(0),
+                                .Name = cReader.GetString(1),
+                                .Description = If(cReader.IsDBNull(2), Nothing, cReader.GetString(2)),
+                                .IsDeleted = cReader.GetBoolean(3),
+                                .DeletedBy = If(cReader.IsDBNull(4), Nothing, cReader.GetString(4)),
+                                .DeletedAt = If(cReader.IsDBNull(5), Nothing, CType(cReader.GetDateTime(5), DateTime?)),
+                                .CreatedBy = cReader.GetString(6),
+                                .CreatedAt = cReader.GetDateTime(7),
+                                .ModifiedBy = If(cReader.IsDBNull(8), Nothing, cReader.GetString(8)),
+                                .ModifiedAt = If(cReader.IsDBNull(9), Nothing, CType(cReader.GetDateTime(9), DateTime?))
+                            })
+                        End While
+                    End Using
+                End Using
+            End Using
+            Return data
         End Function
 
         Friend Shared Function ReadProduct(r As MySqlConnector.MySqlDataReader) As Product

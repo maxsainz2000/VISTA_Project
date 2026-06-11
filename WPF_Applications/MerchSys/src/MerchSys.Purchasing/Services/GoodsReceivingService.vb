@@ -22,7 +22,6 @@ Namespace Services
         Private ReadOnly _priceChangeService As IPriceChangeService
         Private ReadOnly _vatCalculator As GoodsReceiptVatCalculator
         Private ReadOnly _session As ISessionService
-        Private _grListForPO As List(Of GoodsReceipt)
 
         Public Sub New(db As PurchasingDbContext,
                        mediator As IMediator,
@@ -54,10 +53,7 @@ Namespace Services
             Next
 
             Dim year As Integer = DateTime.UtcNow.Year
-            Dim existingNumbers As List(Of String) = Await _db.GoodsReceipts.
-                Select(Function(r) r.ReceiptNumber).
-                ToListAsync()
-            Dim receiptNumber As String = SequentialNumberGenerator.Generate("GR", year, existingNumbers)
+            Dim receiptNumber As String = Await SequentialNumberGenerator.GetNextNumberAsync(_db, "GR", year)
 
             Dim receipt As New GoodsReceipt With {
                 .PurchaseOrderId = purchaseOrderId,
@@ -208,7 +204,7 @@ Namespace Services
         End Function
 
         Public Async Function GetReceiptsForPOAsync(purchaseOrderId As Integer) As Task(Of List(Of GoodsReceipt)) Implements IGoodsReceivingService.GetReceiptsForPOAsync
-            _grListForPO = New List(Of GoodsReceipt)()
+            Dim grListForPO As New List(Of GoodsReceipt)()
             Dim rfpConnStr = _db.Database.GetConnectionString()
             Using rfpConn As New MySqlConnection(rfpConnStr)
                 Await rfpConn.OpenAsync()
@@ -219,7 +215,7 @@ Namespace Services
                     rfpCmd.Parameters.Add(New MySqlParameter("@poId", purchaseOrderId))
                     Using rfpReader = rfpCmd.ExecuteReader()
                         While rfpReader.Read()
-                            _grListForPO.Add(New GoodsReceipt With {
+                            grListForPO.Add(New GoodsReceipt With {
                                 .Id = rfpReader.GetInt32(0),
                                 .PurchaseOrderId = rfpReader.GetInt32(1),
                                 .ReceiptNumber = rfpReader.GetString(2),
@@ -235,9 +231,9 @@ Namespace Services
                     End Using
                 End Using
 
-                If _grListForPO.Any() Then
-                    Dim grIds As String = String.Join(",", _grListForPO.Select(Function(receipt) receipt.Id))
-                    Dim grMap = _grListForPO.ToDictionary(Function(receipt) receipt.Id)
+                If grListForPO.Any() Then
+                    Dim grIds As String = String.Join(",", grListForPO.Select(Function(receipt) receipt.Id))
+                    Dim grMap = grListForPO.ToDictionary(Function(receipt) receipt.Id)
                     Using lineCmd = rfpConn.CreateCommand()
                         lineCmd.CommandText = "SELECT Id, GoodsReceiptId, ProductId, ProductName, QuantityOrdered, " &
                                               "QuantityReceived, UnitCost, ExpiryDate, HasDiscrepancy, DiscrepancyNotes, " &
@@ -271,7 +267,7 @@ Namespace Services
                     End Using
                 End If
             End Using
-            Return _grListForPO
+            Return grListForPO
         End Function
 
     End Class

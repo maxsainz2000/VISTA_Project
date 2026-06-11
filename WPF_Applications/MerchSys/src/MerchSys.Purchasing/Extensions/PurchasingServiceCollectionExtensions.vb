@@ -17,6 +17,7 @@ Namespace Extensions
             services.AddScoped(Of IVendorProductService, VendorProductService)()
             services.AddScoped(Of IAccountsPayableService, AccountsPayableService)()
             services.AddScoped(Of IReorderService, ReorderService)()
+            services.AddScoped(Of IPurchasingDashboardService, PurchasingDashboardService)()
             services.AddTransient(Of ViewModels.APLedgerViewModel)()
             services.AddTransient(Of ViewModels.ReorderSuggestionsViewModel)()
             services.AddTransient(Of ViewModels.VendorCatalogViewModel)()

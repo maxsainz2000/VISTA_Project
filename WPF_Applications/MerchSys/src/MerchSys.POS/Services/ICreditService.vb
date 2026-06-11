@@ -21,7 +21,14 @@ Namespace Services
         Function GetPaymentHistoryAsync(customerId As Integer) As Task(Of List(Of CreditPayment))
         Function GetTotalOutstandingAsync() As Task(Of Decimal)
         Function GetOverdueAccountsAsync() As Task(Of List(Of CreditAccount))
+        Function GetCreditTransactionsAsync(accountId As Integer) As Task(Of List(Of CreditTransactionItem))
 
     End Interface
+
+    Public Class CreditTransactionItem
+        Public Property TransactionDate As DateTime
+        Public Property TransactionNumber As String
+        Public Property Amount As Decimal
+    End Class
 
 End Namespace

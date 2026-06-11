@@ -8,7 +8,7 @@ Namespace Data
     ''' <summary>
     ''' EF Core DbContext for the POS module.
     ''' All tables use the <c>Pos_</c> prefix to prevent naming collisions with other modules
-    ''' in the shared <c>merchsys.db</c> SQLite file.
+    ''' in the shared centralized MariaDB database.
     ''' <para>
     ''' Registers <see cref="ImmutableReceiptInterceptor"/> to enforce NIRC §235 immutability
     ''' of <see cref="OfficialReceipt"/> and <see cref="ReceiptIntegrity"/> at the ORM layer.
@@ -25,12 +25,13 @@ Namespace Data
         Public Property SalesReturns As DbSet(Of SalesReturn)
         Public Property ReceiptIntegrities As DbSet(Of ReceiptIntegrity)
         Public Property ReceiptSequences As DbSet(Of ReceiptSequence)
+        Public Property TransactionSequences As DbSet(Of TransactionSequence)
         Public Property OfficialReceiptArchives As DbSet(Of OfficialReceiptArchive)
         Public Property ReceiptIntegrityArchives As DbSet(Of ReceiptIntegrityArchive)
         Public Property VatConfigurations As DbSet(Of VatConfiguration)
 
-        Public Sub New(options As DbContextOptions(Of POSDbContext))
-            MyBase.New(options)
+        Public Sub New(options As DbContextOptions(Of POSDbContext), session As MerchSys.SharedKernel.Interfaces.ISessionService)
+            MyBase.New(options, session)
         End Sub
 
         Protected Overrides Sub OnConfiguring(optionsBuilder As DbContextOptionsBuilder)

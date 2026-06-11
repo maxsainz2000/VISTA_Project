@@ -2,9 +2,6 @@ Imports System.Collections.ObjectModel
 Imports System.Windows.Input
 Imports CommunityToolkit.Mvvm.ComponentModel
 Imports CommunityToolkit.Mvvm.Input
-Imports MySqlConnector
-Imports Microsoft.EntityFrameworkCore
-Imports MerchSys.Purchasing.Data
 Imports MerchSys.Purchasing.Entities
 Imports MerchSys.Purchasing.Services
 Imports MerchSys.SharedKernel.Enums
@@ -50,7 +47,6 @@ Namespace ViewModels
         Private ReadOnly _session As ISessionService
         Private ReadOnly _poService As IPurchaseOrderService
         Private ReadOnly _vendorService As IVendorService
-        Private ReadOnly _db As PurchasingDbContext
         Private ReadOnly _notifications As INotificationService
         Private ReadOnly _vendorProductService As IVendorProductService
         Private ReadOnly _conflictPresenter As IConflictPresenter
@@ -122,7 +118,6 @@ Namespace ViewModels
         Public Sub New(session As ISessionService,
                        poService As IPurchaseOrderService,
                        vendorService As IVendorService,
-                       db As PurchasingDbContext,
                        notifications As INotificationService,
                        vendorProductService As IVendorProductService,
                        conflictPresenter As IConflictPresenter,
@@ -130,7 +125,6 @@ Namespace ViewModels
             _session = session
             _poService = poService
             _vendorService = vendorService
-            _db = db
             _notifications = notifications
             _vendorProductService = vendorProductService
             _conflictPresenter = conflictPresenter
@@ -327,33 +321,7 @@ Namespace ViewModels
             IsError = False
             IsBusy = True
             Try
-                ' EF Core 10 VB.NET ToListAsync() silently returns empty for full entity queries.
-                ' Load vendors via a fresh MySqlConnection to bypass EF's materializer entirely.
-                _vendorList = New List(Of Vendor)()
-                Dim connStr = _db.Database.GetConnectionString()
-                Using conn As New MySqlConnection(connStr)
-                    Await conn.OpenAsync()
-                    Using selectCmd = conn.CreateCommand()
-                        selectCmd.CommandText = "SELECT Id, Name, ContactPerson, Phone, Email, " &
-                                                "Address, DefaultLeadTimeDays, Notes " &
-                                                "FROM Pur_Vendors WHERE IsDeleted = 0 ORDER BY Name"
-                        Using reader = selectCmd.ExecuteReader()
-                            While reader.Read()
-                                _vendorList.Add(New Vendor With {
-                                    .Id = reader.GetInt32(0),
-                                    .Name = reader.GetString(1),
-                                    .ContactPerson = reader.GetString(2),
-                                    .Phone = reader.GetString(3),
-                                    .Email = If(reader.IsDBNull(4), Nothing, reader.GetString(4)),
-                                    .Address = reader.GetString(5),
-                                    .DefaultLeadTimeDays = reader.GetInt32(6),
-                                    .Notes = If(reader.IsDBNull(7), Nothing, reader.GetString(7))
-                                })
-                            End While
-                        End Using
-                    End Using
-                End Using
-
+                _vendorList = Await _vendorService.GetAllAsync()
                 Dim pos As List(Of PurchaseOrder) = Await _poService.GetAllAsync()
                 Dim vendorMap = _vendorList.ToDictionary(Function(v) v.Id, Function(v) v.Name)
 

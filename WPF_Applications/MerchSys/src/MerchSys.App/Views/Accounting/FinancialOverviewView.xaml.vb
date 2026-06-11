@@ -48,6 +48,11 @@ Namespace Views.Accounting
             End If
         End Sub
 
+        Private Sub OnUnloaded(sender As Object, e As RoutedEventArgs) Handles Me.Unloaded
+            Dim vm = TryCast(DataContext, IDisposable)
+            If vm IsNot Nothing Then vm.Dispose()
+        End Sub
+
     End Class
 
 End Namespace

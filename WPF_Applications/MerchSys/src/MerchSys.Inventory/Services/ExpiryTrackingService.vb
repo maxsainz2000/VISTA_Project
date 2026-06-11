@@ -16,8 +16,6 @@ Namespace Services
         Private ReadOnly _db As InventoryDbContext
         Private ReadOnly _mediator As IMediator
         Private ReadOnly _logger As ILogger(Of ExpiryTrackingService)
-        Private _nearExpiryBatchList As List(Of StockBatch)
-        Private _expiredBatchList As List(Of StockBatch)
 
         Public Sub New(db As InventoryDbContext,
                        mediator As IMediator,
@@ -33,7 +31,7 @@ Namespace Services
         Public Async Function GetNearExpiryBatchesAsync(daysThreshold As Integer) As Task(Of List(Of ExpiryAlertDto)) Implements IExpiryTrackingService.GetNearExpiryBatchesAsync
             Dim today As DateTime = DateTime.UtcNow.Date
             Dim thresholdDate As DateTime = today.AddDays(daysThreshold)
-            _nearExpiryBatchList = New List(Of StockBatch)()
+            Dim nearExpiryBatchList As New List(Of StockBatch)()
             Dim neConnStr = _db.Database.GetConnectionString()
             Using neConn As New MySqlConnection(neConnStr)
                 Await neConn.OpenAsync()
@@ -47,16 +45,16 @@ Namespace Services
                                         "AND b.ExpiryDate IS NOT NULL " &
                                         "AND b.ExpiryDate >= @today AND b.ExpiryDate <= @threshold " &
                                         "ORDER BY b.ExpiryDate"
-                    neCmd.Parameters.Add(New MySqlParameter("@today", today.ToString("o")))
-                    neCmd.Parameters.Add(New MySqlParameter("@threshold", thresholdDate.ToString("o")))
+                    neCmd.Parameters.Add(New MySqlParameter("@today", today))
+                    neCmd.Parameters.Add(New MySqlParameter("@threshold", thresholdDate))
                     Using neReader = neCmd.ExecuteReader()
                         While neReader.Read()
-                            _nearExpiryBatchList.Add(StockService.ReadStockBatch(neReader))
+                            nearExpiryBatchList.Add(StockService.ReadStockBatch(neReader))
                         End While
                     End Using
                 End Using
-                If _nearExpiryBatchList.Count > 0 Then
-                    Dim pIds = String.Join(",", _nearExpiryBatchList.Select(Function(b) b.ProductId).Distinct())
+                If nearExpiryBatchList.Count > 0 Then
+                    Dim pIds = String.Join(",", nearExpiryBatchList.Select(Function(b) b.ProductId).Distinct())
                     Dim productMap As New Dictionary(Of Integer, Product)()
                     Using pCmd = neConn.CreateCommand()
                         pCmd.CommandText = "SELECT Id, Name, Sku, CategoryId, Description, RetailPrice, Unit, HasExpiry, " &
@@ -70,13 +68,13 @@ Namespace Services
                             End While
                         End Using
                     End Using
-                    For Each b In _nearExpiryBatchList
+                    For Each b In nearExpiryBatchList
                         Dim prod As Product = Nothing
                         If productMap.TryGetValue(b.ProductId, prod) Then b.Product = prod
                     Next
                 End If
             End Using
-            Dim batches As List(Of StockBatch) = _nearExpiryBatchList
+            Dim batches As List(Of StockBatch) = nearExpiryBatchList
 
             Return batches.Select(Function(b)
                 Dim days As Integer = CInt((b.ExpiryDate.Value.Date - today).TotalDays)
@@ -99,7 +97,7 @@ Namespace Services
         ''' </summary>
         Public Async Function GetExpiredBatchesAsync() As Task(Of List(Of ExpiryAlertDto)) Implements IExpiryTrackingService.GetExpiredBatchesAsync
             Dim today As DateTime = DateTime.UtcNow.Date
-            _expiredBatchList = New List(Of StockBatch)()
+            Dim expiredBatchList As New List(Of StockBatch)()
             Dim expConnStr = _db.Database.GetConnectionString()
             Using expConn As New MySqlConnection(expConnStr)
                 Await expConn.OpenAsync()
@@ -112,15 +110,15 @@ Namespace Services
                                          "WHERE p.HasExpiry = 1 AND b.QuantityRemaining > 0 " &
                                          "AND b.ExpiryDate IS NOT NULL AND b.ExpiryDate < @today " &
                                          "ORDER BY b.ExpiryDate"
-                    expCmd.Parameters.Add(New MySqlParameter("@today", today.ToString("o")))
+                    expCmd.Parameters.Add(New MySqlParameter("@today", today))
                     Using expReader = expCmd.ExecuteReader()
                         While expReader.Read()
-                            _expiredBatchList.Add(StockService.ReadStockBatch(expReader))
+                            expiredBatchList.Add(StockService.ReadStockBatch(expReader))
                         End While
                     End Using
                 End Using
-                If _expiredBatchList.Count > 0 Then
-                    Dim pIds = String.Join(",", _expiredBatchList.Select(Function(b) b.ProductId).Distinct())
+                If expiredBatchList.Count > 0 Then
+                    Dim pIds = String.Join(",", expiredBatchList.Select(Function(b) b.ProductId).Distinct())
                     Dim productMap As New Dictionary(Of Integer, Product)()
                     Using pCmd = expConn.CreateCommand()
                         pCmd.CommandText = "SELECT Id, Name, Sku, CategoryId, Description, RetailPrice, Unit, HasExpiry, " &
@@ -134,13 +132,13 @@ Namespace Services
                             End While
                         End Using
                     End Using
-                    For Each b In _expiredBatchList
+                    For Each b In expiredBatchList
                         Dim prod As Product = Nothing
                         If productMap.TryGetValue(b.ProductId, prod) Then b.Product = prod
                     Next
                 End If
             End Using
-            Dim batches As List(Of StockBatch) = _expiredBatchList
+            Dim batches As List(Of StockBatch) = expiredBatchList
 
             Return batches.Select(Function(b)
                 Dim days As Integer = CInt((b.ExpiryDate.Value.Date - today).TotalDays)

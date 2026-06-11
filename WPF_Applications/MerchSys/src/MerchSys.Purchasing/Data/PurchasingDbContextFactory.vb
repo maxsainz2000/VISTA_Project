@@ -11,7 +11,7 @@ Namespace Data
 
             Dim optionsBuilder = New DbContextOptionsBuilder(Of PurchasingDbContext)()
             optionsBuilder.UseMySQL("Server=localhost;Database=design_time;User Id=root;Password=;")
-            Return New PurchasingDbContext(optionsBuilder.Options)
+            Return New PurchasingDbContext(optionsBuilder.Options, Nothing)
         End Function
 
     End Class

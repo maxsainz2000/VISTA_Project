@@ -60,14 +60,11 @@ Namespace Services
             Dim vatConfig = Await _vatConfigLoader.GetAsync()
             Dim isVatRegistered = vatConfig IsNot Nothing AndAlso vatConfig.IsVatRegistered
 
-            Dim vatableAmount As Decimal = 0D
-            Dim vatAmount As Decimal = 0D
-            If isVatRegistered Then
-                Dim vatRate = vatConfig.VatRate
-                vatableAmount = Math.Round(transaction.TotalAmount / (1D + vatRate), 2, MidpointRounding.ToEven)
-                vatAmount = transaction.TotalAmount - vatableAmount
-            End If
-
+            ' The BIR-correct VAT amount is authoritative on the SalesTransaction:
+            ' VatAwareReceiptService stamps transaction.VatAmount with the three-bucket OutputVat
+            ' and persists it (Step 4) before this inner service runs. Source the receipt's
+            ' VatAmount from there so the OfficialReceipt is created correct on its first save and
+            ' is never mutated afterward (it is immutable — see ImmutableReceiptInterceptor).
             Dim receipt As New OfficialReceipt() With {
                 .TransactionId = transactionId,
                 .ReceiptNumber = receiptNumber,
@@ -76,7 +73,7 @@ Namespace Services
                 .BusinessTIN = If(vatConfig?.BusinessTIN, ""),
                 .IssueDate = now,
                 .TotalAmount = transaction.TotalAmount,
-                .VatAmount = vatAmount,
+                .VatAmount = transaction.VatAmount,
                 .IsVatRegistered = isVatRegistered
             }
 

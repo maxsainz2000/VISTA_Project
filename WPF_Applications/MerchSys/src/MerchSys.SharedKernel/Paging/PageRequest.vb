@@ -15,8 +15,17 @@ Namespace Paging
     ''' </summary>
     Public Class PageRequest
 
+        Private _pageSize As Integer = 100
+
         ''' <summary>Maximum rows to return for this page. Defaults to 100.</summary>
-        Public Property PageSize As Integer = 100
+        Public Property PageSize As Integer
+            Get
+                Return _pageSize
+            End Get
+            Set(value As Integer)
+                _pageSize = If(value <= 0, 100, If(value > 1000, 1000, value))
+            End Set
+        End Property
 
         ''' <summary>
         ''' Keyset cursor — the ordered-date value of the last row already shown. Nothing on the

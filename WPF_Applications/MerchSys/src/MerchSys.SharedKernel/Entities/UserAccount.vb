@@ -1,8 +1,10 @@
 Imports MerchSys.SharedKernel.Enums
+Imports MerchSys.SharedKernel.Interfaces
 
 Namespace Entities
 
     Public Class UserAccount
+        Implements IAuditable
 
         Public Property Id As Integer
         Public Property Username As String
@@ -15,8 +17,11 @@ Namespace Entities
         Public Property LockedUntil As DateTime?
         ''' <summary>Null signals first-login state — triggers mandatory password change (DA6).</summary>
         Public Property LastPasswordChangeAt As DateTime?
-        Public Property CreatedAt As DateTime
-        Public Property ModifiedAt As DateTime?
+        
+        Public Property CreatedBy As String Implements IAuditable.CreatedBy
+        Public Property CreatedAt As DateTime Implements IAuditable.CreatedAt
+        Public Property ModifiedBy As String Implements IAuditable.ModifiedBy
+        Public Property ModifiedAt As DateTime? Implements IAuditable.ModifiedAt
 
     End Class
 

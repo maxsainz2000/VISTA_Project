@@ -15,8 +15,6 @@ Namespace Services
 
         Private ReadOnly _context As POSDbContext
         Private ReadOnly _eventBus As IEventBus
-        Private _returnsForTxList As List(Of SalesReturn)
-        Private _returnHistoryList As List(Of SalesReturn)
 
         Public Sub New(context As POSDbContext,
                        eventBus As IEventBus)
@@ -109,7 +107,7 @@ Namespace Services
         End Function
 
         Public Async Function GetReturnsForTransactionAsync(transactionId As Integer) As Task(Of List(Of SalesReturn)) Implements ISalesReturnService.GetReturnsForTransactionAsync
-            _returnsForTxList = New List(Of SalesReturn)()
+            Dim returnsForTxList As New List(Of SalesReturn)()
             Dim rftConnStr = _context.Database.GetConnectionString()
             Using rftConn As New MySqlConnection(rftConnStr)
                 Await rftConn.OpenAsync()
@@ -122,17 +120,17 @@ Namespace Services
                     rftCmd.Parameters.Add(New MySqlParameter("@txId", transactionId))
                     Using rftReader = rftCmd.ExecuteReader()
                         While rftReader.Read()
-                            _returnsForTxList.Add(ReadSalesReturn(rftReader))
+                            returnsForTxList.Add(ReadSalesReturn(rftReader))
                         End While
                     End Using
                 End Using
             End Using
-            Return _returnsForTxList
+            Return returnsForTxList
         End Function
 
         Public Async Function GetReturnHistoryAsync(startDate As DateTime, endDate As DateTime) As Task(Of List(Of SalesReturn)) Implements ISalesReturnService.GetReturnHistoryAsync
             Dim endOfDay = endDate.Date.AddDays(1).AddTicks(-1)
-            _returnHistoryList = New List(Of SalesReturn)()
+            Dim returnHistoryList As New List(Of SalesReturn)()
             Dim rhConnStr = _context.Database.GetConnectionString()
             Using rhConn As New MySqlConnection(rhConnStr)
                 Await rhConn.OpenAsync()
@@ -143,16 +141,16 @@ Namespace Services
                                          "FROM Pos_SalesReturns " &
                                          "WHERE ReturnDate >= @startDate AND ReturnDate <= @endOfDay " &
                                          "ORDER BY ReturnDate DESC"
-                    rhCmd.Parameters.Add(New MySqlParameter("@startDate", startDate.ToString("o")))
-                    rhCmd.Parameters.Add(New MySqlParameter("@endOfDay", endOfDay.ToString("o")))
+                    rhCmd.Parameters.Add(New MySqlParameter("@startDate", startDate))
+                    rhCmd.Parameters.Add(New MySqlParameter("@endOfDay", endOfDay))
                     Using rhReader = rhCmd.ExecuteReader()
                         While rhReader.Read()
-                            _returnHistoryList.Add(ReadSalesReturn(rhReader))
+                            returnHistoryList.Add(ReadSalesReturn(rhReader))
                         End While
                     End Using
                 End Using
             End Using
-            Return _returnHistoryList
+            Return returnHistoryList
         End Function
 
         Public Async Function GetTransactionIdsWithReturnsAsync(transactionIds As List(Of Integer)) As Task(Of HashSet(Of Integer)) Implements ISalesReturnService.GetTransactionIdsWithReturnsAsync

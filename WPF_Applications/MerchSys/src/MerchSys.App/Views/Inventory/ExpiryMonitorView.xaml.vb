@@ -1,3 +1,4 @@
+Imports System.Windows
 Imports System.Text.RegularExpressions
 Imports System.Windows.Controls
 Imports System.Windows.Input
@@ -56,6 +57,11 @@ Namespace Views.Inventory
         Private Sub ThresholdDown_Click(sender As Object, e As RoutedEventArgs)
             Dim vm = TryCast(DataContext, ExpiryMonitorViewModel)
             If vm IsNot Nothing Then vm.DaysThreshold -= 1
+        End Sub
+
+        Private Sub OnUnloaded(sender As Object, e As RoutedEventArgs) Handles Me.Unloaded
+            Dim vm = TryCast(DataContext, IDisposable)
+            If vm IsNot Nothing Then vm.Dispose()
         End Sub
 
     End Class

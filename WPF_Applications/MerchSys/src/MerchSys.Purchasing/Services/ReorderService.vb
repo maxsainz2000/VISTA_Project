@@ -16,8 +16,6 @@ Namespace Services
 
         Private ReadOnly _db As PurchasingDbContext
         Private ReadOnly _mediator As IMediator
-        Private _reorderSuggestionList As List(Of ReorderSuggestion)
-        Private _reorderConfigList As List(Of ReorderConfig)
 
         Public Sub New(db As PurchasingDbContext,
                        mediator As IMediator)
@@ -248,7 +246,7 @@ Namespace Services
         End Class
 
         Public Async Function GetPendingSuggestionsAsync() As Task(Of List(Of ReorderSuggestion)) Implements IReorderService.GetPendingSuggestionsAsync
-            _reorderSuggestionList = New List(Of ReorderSuggestion)()
+            Dim reorderSuggestionList As New List(Of ReorderSuggestion)()
             Dim psConnStr = _db.Database.GetConnectionString()
             Using psConn As New MySqlConnection(psConnStr)
                 Await psConn.OpenAsync()
@@ -259,12 +257,12 @@ Namespace Services
                                         "FROM Pur_ReorderSuggestions WHERE Status = 'Pending' ORDER BY CreatedAt DESC"
                     Using psReader = psCmd.ExecuteReader()
                         While psReader.Read()
-                            _reorderSuggestionList.Add(ReadReorderSuggestion(psReader))
+                            reorderSuggestionList.Add(ReadReorderSuggestion(psReader))
                         End While
                     End Using
                 End Using
             End Using
-            Return _reorderSuggestionList
+            Return reorderSuggestionList
         End Function
 
         Public Async Function AcceptSuggestionAsync(id As Integer) As Task(Of PurchaseOrder) Implements IReorderService.AcceptSuggestionAsync
@@ -282,13 +280,7 @@ Namespace Services
             End If
 
             Dim year As Integer = DateTime.UtcNow.Year
-            ' Include soft-deleted rows: the OrderNumber unique index spans every row
-            ' (deleted included), so the sequence must not reuse a deleted PO's number.
-            Dim existingNumbers As List(Of String) = Await _db.PurchaseOrders.
-                IgnoreQueryFilters().
-                Select(Function(p) p.OrderNumber).
-                ToListAsync()
-            Dim orderNumber As String = SequentialNumberGenerator.Generate("PO", year, existingNumbers)
+            Dim orderNumber As String = Await SequentialNumberGenerator.GetNextNumberAsync(_db, "PO", year)
 
             Dim po As New PurchaseOrder With {
                 .OrderNumber = orderNumber,
@@ -360,9 +352,8 @@ Namespace Services
                 Include(Function(c) c.PreferredVendor).
                 FirstOrDefaultAsync(Function(c) c.ProductId = config.ProductId)
         End Function
-
         Public Async Function GetAllConfigsAsync() As Task(Of List(Of ReorderConfig)) Implements IReorderService.GetAllConfigsAsync
-            _reorderConfigList = New List(Of ReorderConfig)()
+            Dim reorderConfigList As New List(Of ReorderConfig)()
             Dim acConnStr = _db.Database.GetConnectionString()
             Using acConn As New MySqlConnection(acConnStr)
                 Await acConn.OpenAsync()
@@ -373,7 +364,7 @@ Namespace Services
                                         "FROM Pur_ReorderConfigs ORDER BY ProductName ASC"
                     Using acReader = acCmd.ExecuteReader()
                         While acReader.Read()
-                            _reorderConfigList.Add(New ReorderConfig With {
+                            reorderConfigList.Add(New ReorderConfig With {
                                 .Id = acReader.GetInt32(0),
                                 .ProductId = acReader.GetInt32(1),
                                 .ProductName = acReader.GetString(2),
@@ -390,7 +381,7 @@ Namespace Services
                     End Using
                 End Using
 
-                Dim acVendorSet = _reorderConfigList.
+                Dim acVendorSet = reorderConfigList.
                     Where(Function(cfg) cfg.PreferredVendorId.HasValue).
                     Select(Function(cfg) cfg.PreferredVendorId.Value).Distinct().ToList()
 
@@ -416,7 +407,7 @@ Namespace Services
                             End While
                         End Using
                     End Using
-                    For Each cfg In _reorderConfigList
+                    For Each cfg In reorderConfigList
                         Dim acV As Vendor = Nothing
                         If cfg.PreferredVendorId.HasValue AndAlso acVendorDict.TryGetValue(cfg.PreferredVendorId.Value, acV) Then
                             cfg.PreferredVendor = acV
@@ -424,11 +415,11 @@ Namespace Services
                     Next
                 End If
             End Using
-            Return _reorderConfigList
+            Return reorderConfigList
         End Function
 
         Public Async Function GetAllSuggestionsAsync() As Task(Of List(Of ReorderSuggestion)) Implements IReorderService.GetAllSuggestionsAsync
-            _reorderSuggestionList = New List(Of ReorderSuggestion)()
+            Dim reorderSuggestionList As New List(Of ReorderSuggestion)()
             Dim asConnStr = _db.Database.GetConnectionString()
             Using asConn As New MySqlConnection(asConnStr)
                 Await asConn.OpenAsync()
@@ -439,12 +430,12 @@ Namespace Services
                                         "FROM Pur_ReorderSuggestions ORDER BY CreatedAt DESC"
                     Using asReader = asCmd.ExecuteReader()
                         While asReader.Read()
-                            _reorderSuggestionList.Add(ReadReorderSuggestion(asReader))
+                            reorderSuggestionList.Add(ReadReorderSuggestion(asReader))
                         End While
                     End Using
                 End Using
             End Using
-            Return _reorderSuggestionList
+            Return reorderSuggestionList
         End Function
 
         Private Shared Function ReadReorderSuggestion(r As MySqlDataReader) As ReorderSuggestion

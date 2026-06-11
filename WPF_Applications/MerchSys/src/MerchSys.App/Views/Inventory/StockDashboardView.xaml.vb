@@ -1,3 +1,4 @@
+Imports System.Windows
 Imports System.Windows.Controls
 Imports MerchSys.Inventory.ViewModels
 
@@ -37,6 +38,11 @@ Namespace Views.Inventory
                 Dim vm = TryCast(DataContext, StockDashboardViewModel)
                 If vm IsNot Nothing Then vm.SearchText = String.Empty
             End If
+        End Sub
+
+        Private Sub OnUnloaded(sender As Object, e As RoutedEventArgs) Handles Me.Unloaded
+            Dim vm = TryCast(DataContext, IDisposable)
+            If vm IsNot Nothing Then vm.Dispose()
         End Sub
 
     End Class

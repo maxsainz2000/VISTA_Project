@@ -44,6 +44,7 @@ Namespace Services
         Function GetDailySummaryAsync(targetDate As DateTime) As Task(Of DailySummaryDto)
         Function GetWeeklySummaryAsync(weekStartDate As DateTime) As Task(Of PeriodSummaryDto)
         Function GetMonthlySummaryAsync(year As Integer, month As Integer) As Task(Of PeriodSummaryDto)
+        Function GetDailySalesTrendAsync(startDate As DateTime) As Task(Of Dictionary(Of DateTime, Decimal))
     End Interface
 
 End Namespace

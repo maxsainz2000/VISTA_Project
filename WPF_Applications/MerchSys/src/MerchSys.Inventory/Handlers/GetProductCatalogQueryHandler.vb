@@ -19,7 +19,6 @@ Namespace Handlers
 
         Private ReadOnly _db As InventoryDbContext
         Private ReadOnly _logger As ILogger(Of GetProductCatalogQueryHandler)
-        Private _catalogProductList As List(Of Product)
 
         Public Sub New(db As InventoryDbContext, logger As ILogger(Of GetProductCatalogQueryHandler))
             _db = db
@@ -31,7 +30,7 @@ Namespace Handlers
                 request.SearchTerm, request.ProductId)
 
             Dim now As DateTime = DateTime.UtcNow
-            _catalogProductList = New List(Of Product)()
+            Dim catalogProductList As New List(Of Product)()
             Dim catConnStr = _db.Database.GetConnectionString()
             Using catConn As New MySqlConnection(catConnStr)
                 Await catConn.OpenAsync()
@@ -52,13 +51,13 @@ Namespace Handlers
                     End If
                     Using catReader = catCmd.ExecuteReader()
                         While catReader.Read()
-                            _catalogProductList.Add(StockService.ReadProduct(catReader))
+                            catalogProductList.Add(StockService.ReadProduct(catReader))
                         End While
                     End Using
                 End Using
 
-                If _catalogProductList.Count > 0 Then
-                    Dim pIds = String.Join(",", _catalogProductList.Select(Function(p) p.Id))
+                If catalogProductList.Count > 0 Then
+                    Dim pIds = String.Join(",", catalogProductList.Select(Function(p) p.Id))
                     Dim batchMap As New Dictionary(Of Integer, List(Of StockBatch))()
                     Using bCmd = catConn.CreateCommand()
                         bCmd.CommandText = "SELECT Id, ProductId, QuantityReceived, QuantityRemaining, UnitCost, " &
@@ -73,13 +72,13 @@ Namespace Handlers
                             End While
                         End Using
                     End Using
-                    For Each p In _catalogProductList
+                    For Each p In catalogProductList
                         Dim pBatches As List(Of StockBatch) = Nothing
                         p.StockBatches = If(batchMap.TryGetValue(p.Id, pBatches), pBatches, New List(Of StockBatch)())
                     Next
                 End If
             End Using
-            Dim products As List(Of Product) = _catalogProductList
+            Dim products As List(Of Product) = catalogProductList
 
             Dim result As New GetProductCatalogResult()
 

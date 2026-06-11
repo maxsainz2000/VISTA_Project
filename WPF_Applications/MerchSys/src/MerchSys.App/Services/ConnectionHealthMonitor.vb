@@ -50,8 +50,11 @@ Namespace Services
         End Sub
 
         Public Sub [Stop]() Implements IConnectionHealthMonitor.[Stop]
-            _cts?.Cancel()
-            _cts = Nothing
+            If _cts IsNot Nothing Then
+                _cts.Cancel()
+                _cts.Dispose()
+                _cts = Nothing
+            End If
         End Sub
 
         Public Function RetryNowAsync() As Task Implements IConnectionHealthMonitor.RetryNowAsync
@@ -183,7 +186,6 @@ Namespace Services
 
         Public Sub Dispose() Implements IDisposable.Dispose
             [Stop]()
-            _cts?.Dispose()
             _retrySignal.Dispose()
         End Sub
 

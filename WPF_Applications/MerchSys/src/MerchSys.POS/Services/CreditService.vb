@@ -24,8 +24,6 @@ Namespace Services
 
         Private ReadOnly _context As POSDbContext
         Private ReadOnly _eventBus As IEventBus
-        Private _creditAccountList As List(Of CreditAccount)
-        Private _creditPaymentList As List(Of CreditPayment)
 
         Public Sub New(context As POSDbContext,
                        eventBus As IEventBus)
@@ -56,7 +54,7 @@ Namespace Services
         End Function
 
         Public Async Function GetAllAccountsAsync() As Task(Of List(Of CreditAccount)) Implements ICreditService.GetAllAccountsAsync
-            _creditAccountList = New List(Of CreditAccount)()
+            Dim creditAccountList As New List(Of CreditAccount)()
             Dim gaConnStr = _context.Database.GetConnectionString()
             Using gaConn As New MySqlConnection(gaConnStr)
                 Await gaConn.OpenAsync()
@@ -67,16 +65,16 @@ Namespace Services
                                         "FROM Pos_CreditAccounts WHERE IsDeleted = 0 ORDER BY CustomerName"
                     Using gaReader = gaCmd.ExecuteReader()
                         While gaReader.Read()
-                            _creditAccountList.Add(ReadCreditAccount(gaReader))
+                            creditAccountList.Add(ReadCreditAccount(gaReader))
                         End While
                     End Using
                 End Using
             End Using
-            Return _creditAccountList
+            Return creditAccountList
         End Function
 
         Public Async Function SearchAccountsAsync(searchTerm As String) As Task(Of List(Of CreditAccount)) Implements ICreditService.SearchAccountsAsync
-            _creditAccountList = New List(Of CreditAccount)()
+            Dim creditAccountList As New List(Of CreditAccount)()
             Dim saConnStr = _context.Database.GetConnectionString()
             Using saConn As New MySqlConnection(saConnStr)
                 Await saConn.OpenAsync()
@@ -90,12 +88,12 @@ Namespace Services
                     saCmd.Parameters.Add(New MySqlParameter("@term", "%" & searchTerm.ToLower() & "%"))
                     Using saReader = saCmd.ExecuteReader()
                         While saReader.Read()
-                            _creditAccountList.Add(ReadCreditAccount(saReader))
+                            creditAccountList.Add(ReadCreditAccount(saReader))
                         End While
                     End Using
                 End Using
             End Using
-            Return _creditAccountList
+            Return creditAccountList
         End Function
 
         ''' <summary>
@@ -169,7 +167,7 @@ Namespace Services
         End Function
 
         Public Async Function GetPaymentHistoryAsync(customerId As Integer) As Task(Of List(Of CreditPayment)) Implements ICreditService.GetPaymentHistoryAsync
-            _creditPaymentList = New List(Of CreditPayment)()
+            Dim creditPaymentList As New List(Of CreditPayment)()
             Dim phConnStr = _context.Database.GetConnectionString()
             Using phConn As New MySqlConnection(phConnStr)
                 Await phConn.OpenAsync()
@@ -181,7 +179,7 @@ Namespace Services
                     phCmd.Parameters.Add(New MySqlParameter("@customerId", customerId))
                     Using phReader = phCmd.ExecuteReader()
                         While phReader.Read()
-                            _creditPaymentList.Add(New CreditPayment With {
+                            creditPaymentList.Add(New CreditPayment With {
                                 .Id = phReader.GetInt32(0),
                                 .CreditAccountId = phReader.GetInt32(1),
                                 .PaymentAmount = phReader.GetDecimal(2),
@@ -198,7 +196,7 @@ Namespace Services
                     End Using
                 End Using
             End Using
-            Return _creditPaymentList
+            Return creditPaymentList
         End Function
 
         Public Async Function GetTotalOutstandingAsync() As Task(Of Decimal) Implements ICreditService.GetTotalOutstandingAsync
@@ -213,7 +211,7 @@ Namespace Services
         ''' </summary>
         Public Async Function GetOverdueAccountsAsync() As Task(Of List(Of CreditAccount)) Implements ICreditService.GetOverdueAccountsAsync
             Dim cutoff = DateTime.UtcNow.AddDays(-30)
-            _creditAccountList = New List(Of CreditAccount)()
+            Dim creditAccountList As New List(Of CreditAccount)()
             Dim odConnStr = _context.Database.GetConnectionString()
             Using odConn As New MySqlConnection(odConnStr)
                 Await odConn.OpenAsync()
@@ -225,15 +223,41 @@ Namespace Services
                                         "WHERE IsDeleted = 0 AND CurrentBalance > 0 " &
                                         "AND (LastTransactionDate IS NULL OR LastTransactionDate < @cutoff) " &
                                         "ORDER BY CurrentBalance DESC"
-                    odCmd.Parameters.Add(New MySqlParameter("@cutoff", cutoff.ToString("o")))
+                    odCmd.Parameters.Add(New MySqlParameter("@cutoff", cutoff))
                     Using odReader = odCmd.ExecuteReader()
                         While odReader.Read()
-                            _creditAccountList.Add(ReadCreditAccount(odReader))
+                            creditAccountList.Add(ReadCreditAccount(odReader))
                         End While
                     End Using
                 End Using
             End Using
-            Return _creditAccountList
+            Return creditAccountList
+        End Function
+
+        Public Async Function GetCreditTransactionsAsync(accountId As Integer) As Task(Of List(Of CreditTransactionItem)) Implements ICreditService.GetCreditTransactionsAsync
+            Dim list As New List(Of CreditTransactionItem)()
+            Dim htConnStr = _context.Database.GetConnectionString()
+            Using htConn As New MySqlConnection(htConnStr)
+                Await htConn.OpenAsync()
+                Using htCmd = htConn.CreateCommand()
+                    htCmd.CommandText = "SELECT TransactionDate, TransactionNumber, TotalAmount " &
+                                         "FROM Pos_SalesTransactions " &
+                                         "WHERE CustomerId = @accountId AND PaymentMethod = @creditMethod AND IsDeleted = 0 " &
+                                         "ORDER BY TransactionDate DESC"
+                    htCmd.Parameters.Add(New MySqlParameter("@accountId", accountId))
+                    htCmd.Parameters.Add(New MySqlParameter("@creditMethod", CInt(PaymentMethod.Credit)))
+                    Using htReader = Await htCmd.ExecuteReaderAsync()
+                        While Await htReader.ReadAsync()
+                            list.Add(New CreditTransactionItem With {
+                                .TransactionDate = htReader.GetDateTime(0),
+                                .TransactionNumber = htReader.GetString(1),
+                                .Amount = htReader.GetDecimal(2)
+                            })
+                        End While
+                    End Using
+                End Using
+            End Using
+            Return list
         End Function
 
         Private Shared Function ReadCreditAccount(r As MySqlConnector.MySqlDataReader) As CreditAccount

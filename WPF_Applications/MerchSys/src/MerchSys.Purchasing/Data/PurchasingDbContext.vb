@@ -7,7 +7,7 @@ Namespace Data
     ''' <summary>
     ''' EF Core DbContext for the Purchasing module.
     ''' All tables in this context use the <c>Pur_</c> prefix to prevent naming collisions
-    ''' with other modules in the shared <c>merchsys.db</c> SQLite file.
+    ''' with other modules in the shared centralized MariaDB database.
     ''' </summary>
     Public Class PurchasingDbContext
         Inherits BaseDbContext
@@ -22,9 +22,10 @@ Namespace Data
         Public Property ReorderSuggestions As DbSet(Of ReorderSuggestion)
         Public Property PriceChangeAlerts As DbSet(Of PriceChangeAlert)
         Public Property VendorProducts As DbSet(Of VendorProduct)
+        Public Property OrderSequences As DbSet(Of OrderSequence)
 
-        Public Sub New(options As DbContextOptions(Of PurchasingDbContext))
-            MyBase.New(options)
+        Public Sub New(options As DbContextOptions(Of PurchasingDbContext), session As MerchSys.SharedKernel.Interfaces.ISessionService)
+            MyBase.New(options, session)
         End Sub
 
         Protected Overrides Sub OnModelCreating(modelBuilder As ModelBuilder)

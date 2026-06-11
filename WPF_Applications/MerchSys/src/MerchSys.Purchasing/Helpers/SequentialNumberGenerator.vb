@@ -1,28 +1,69 @@
+Imports Microsoft.EntityFrameworkCore
+Imports MerchSys.Purchasing.Data
+Imports MerchSys.Purchasing.Entities
+
 Namespace Helpers
 
     ''' <summary>
     ''' Generates sequential identifiers in PREFIX-YYYY-XXXX format.
-    ''' Used for PO numbers (PO-YYYY-XXXX) and reusable for GR numbers (GR-YYYY-XXXX).
+    ''' Concurrency-safe sequence generation backed by Pur_OrderSequences table.
     ''' </summary>
     Public Class SequentialNumberGenerator
 
         ''' <summary>
-        ''' Returns the next sequential number for the given prefix and year, derived from
-        ''' the current maximum sequence found in <paramref name="existingNumbers"/>.
-        ''' The DB unique index is the authoritative collision guard.
+        ''' Generates the next sequential number for the given prefix and year in a serialized transaction with retries.
         ''' </summary>
-        Public Shared Function Generate(prefix As String, year As Integer, existingNumbers As IEnumerable(Of String)) As String
-            Dim pattern As String = $"{prefix}-{year}-"
-            Dim maxSeq As Integer = existingNumbers.
-                Where(Function(n) n IsNot Nothing AndAlso n.StartsWith(pattern, StringComparison.Ordinal)).
-                Select(Function(n)
-                           Dim seq As Integer = 0
-                           Integer.TryParse(n.Substring(pattern.Length), seq)
-                           Return seq
-                       End Function).
-                DefaultIfEmpty(0).
-                Max()
-            Return $"{prefix}-{year}-{(maxSeq + 1).ToString("D4")}"
+        Public Shared Async Function GetNextNumberAsync(db As PurchasingDbContext, prefix As String, year As Integer) As Task(Of String)
+            Dim seqKey As String = $"{prefix}-{year}"
+            Dim nextValue As Integer = -1
+            Dim success = False
+            Dim MaxSequenceRetries As Integer = 10
+
+            For attempt = 1 To MaxSequenceRetries
+                Dim concurrencyFailed = False
+
+                Try
+                    Using txn = Await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable)
+                        Dim sequence = Await db.OrderSequences.
+                            FirstOrDefaultAsync(Function(s) s.SeqKey = seqKey)
+
+                        If sequence Is Nothing Then
+                            sequence = New OrderSequence() With {
+                                .SeqKey = seqKey,
+                                .NextValue = 1
+                            }
+                            db.OrderSequences.Add(sequence)
+                        Else
+                            sequence.NextValue += 1
+                        End If
+
+                        Await db.SaveChangesAsync()
+                        Await txn.CommitAsync()
+                        nextValue = sequence.NextValue
+                        success = True
+                    End Using
+                Catch ex As DbUpdateConcurrencyException
+                    ' Update-path race: another client advanced the row's RowVersion. Retry.
+                    concurrencyFailed = True
+                    db.ChangeTracker.Clear()
+                Catch ex As DbUpdateException
+                    ' First-insert race: two clients created the same SeqKey row concurrently.
+                    ' The loser gets a duplicate-key violation (a DbUpdateException, not a
+                    ' concurrency exception). Clear the tracker and retry — the row now exists,
+                    ' so the next attempt takes the increment path.
+                    concurrencyFailed = True
+                    db.ChangeTracker.Clear()
+                End Try
+
+                If success Then Exit For
+            Next
+
+            If Not success Then
+                Throw New InvalidOperationException(
+                    $"Unable to acquire purchasing sequence for key {seqKey} after {MaxSequenceRetries} attempts.")
+            End If
+
+            Return $"{prefix}-{year}-{nextValue:D4}"
         End Function
 
     End Class

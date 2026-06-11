@@ -11,7 +11,6 @@ Namespace Services
         Implements IPriceChangeService
 
         Private ReadOnly _db As PurchasingDbContext
-        Private _priceAlertList As List(Of PriceChangeAlert)
 
         Public Sub New(db As PurchasingDbContext)
             _db = db
@@ -76,7 +75,7 @@ Namespace Services
         End Function
 
         Public Async Function GetUnacknowledgedAsync() As Task(Of List(Of PriceChangeAlert)) Implements IPriceChangeService.GetUnacknowledgedAsync
-            _priceAlertList = New List(Of PriceChangeAlert)()
+            Dim priceAlertList As New List(Of PriceChangeAlert)()
             Dim uaConnStr = _db.Database.GetConnectionString()
             Using uaConn As New MySqlConnection(uaConnStr)
                 Await uaConn.OpenAsync()
@@ -87,12 +86,12 @@ Namespace Services
                                         "FROM Pur_PriceChangeAlerts WHERE IsAcknowledged = 0 ORDER BY CreatedAt DESC"
                     Using uaReader = uaCmd.ExecuteReader()
                         While uaReader.Read()
-                            _priceAlertList.Add(ReadPriceChangeAlert(uaReader))
+                            priceAlertList.Add(ReadPriceChangeAlert(uaReader))
                         End While
                     End Using
                 End Using
             End Using
-            Return _priceAlertList
+            Return priceAlertList
         End Function
 
         Public Async Function AcknowledgeAsync(alertId As Integer) As Task Implements IPriceChangeService.AcknowledgeAsync
@@ -109,7 +108,7 @@ Namespace Services
         End Function
 
         Public Async Function GetHistoryForProductAsync(productId As Integer) As Task(Of List(Of PriceChangeAlert)) Implements IPriceChangeService.GetHistoryForProductAsync
-            _priceAlertList = New List(Of PriceChangeAlert)()
+            Dim priceAlertList As New List(Of PriceChangeAlert)()
             Dim hpConnStr = _db.Database.GetConnectionString()
             Using hpConn As New MySqlConnection(hpConnStr)
                 Await hpConn.OpenAsync()
@@ -121,12 +120,12 @@ Namespace Services
                     hpCmd.Parameters.Add(New MySqlParameter("@productId", productId))
                     Using hpReader = hpCmd.ExecuteReader()
                         While hpReader.Read()
-                            _priceAlertList.Add(ReadPriceChangeAlert(hpReader))
+                            priceAlertList.Add(ReadPriceChangeAlert(hpReader))
                         End While
                     End Using
                 End Using
             End Using
-            Return _priceAlertList
+            Return priceAlertList
         End Function
 
         Private Shared Function ReadPriceChangeAlert(r As MySqlDataReader) As PriceChangeAlert

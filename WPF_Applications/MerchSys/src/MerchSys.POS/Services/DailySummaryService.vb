@@ -10,10 +10,6 @@ Namespace Services
         Implements IDailySummaryService
 
         Private ReadOnly _context As POSDbContext
-        Private _buildDailyTxList As List(Of SalesTransaction)
-        Private _buildDailyRetList As List(Of SalesReturn)
-        Private _buildPeriodTxList As List(Of SalesTransaction)
-        Private _buildPeriodRetList As List(Of SalesReturn)
 
         Public Sub New(context As POSDbContext)
             _context = context
@@ -38,8 +34,8 @@ Namespace Services
         End Function
 
         Private Async Function BuildDailySummaryAsync(dayStart As DateTime, dayEnd As DateTime) As Task(Of DailySummaryDto)
-            _buildDailyTxList = New List(Of SalesTransaction)()
-            _buildDailyRetList = New List(Of SalesReturn)()
+            Dim buildDailyTxList As New List(Of SalesTransaction)()
+            Dim buildDailyRetList As New List(Of SalesReturn)()
             Dim dsConnStr = _context.Database.GetConnectionString()
             Using dsConn As New MySqlConnection(dsConnStr)
                 Await dsConn.OpenAsync()
@@ -48,11 +44,11 @@ Namespace Services
                                          "FROM Pos_SalesTransactions " &
                                          "WHERE TransactionDate >= @start AND TransactionDate <= @end " &
                                          "AND IsVoided = 0 AND IsDeleted = 0"
-                    dsCmd.Parameters.Add(New MySqlParameter("@start", dayStart.ToString("o")))
-                    dsCmd.Parameters.Add(New MySqlParameter("@end", dayEnd.ToString("o")))
+                    dsCmd.Parameters.Add(New MySqlParameter("@start", dayStart))
+                    dsCmd.Parameters.Add(New MySqlParameter("@end", dayEnd))
                     Using dsReader = dsCmd.ExecuteReader()
                         While dsReader.Read()
-                            _buildDailyTxList.Add(New SalesTransaction With {
+                            buildDailyTxList.Add(New SalesTransaction With {
                                 .Id = dsReader.GetInt32(0),
                                 .TransactionDate = dsReader.GetDateTime(1),
                                 .PaymentMethod = CType(dsReader.GetInt32(2), PaymentMethod),
@@ -61,8 +57,8 @@ Namespace Services
                         End While
                     End Using
                 End Using
-                If _buildDailyTxList.Count > 0 Then
-                    Dim txIds = String.Join(",", _buildDailyTxList.Select(Function(t) t.Id))
+                If buildDailyTxList.Count > 0 Then
+                    Dim txIds = String.Join(",", buildDailyTxList.Select(Function(t) t.Id))
                     Dim lineMap As New Dictionary(Of Integer, List(Of SalesTransactionLine))()
                     Using lCmd = dsConn.CreateCommand()
                         lCmd.CommandText = "SELECT TransactionId, ProductId, ProductName, Quantity, LineTotal " &
@@ -81,7 +77,7 @@ Namespace Services
                             End While
                         End Using
                     End Using
-                    For Each tx In _buildDailyTxList
+                    For Each tx In buildDailyTxList
                         Dim txLines As List(Of SalesTransactionLine) = Nothing
                         If lineMap.TryGetValue(tx.Id, txLines) Then
                             For Each ln In txLines : tx.Lines.Add(ln) : Next
@@ -91,11 +87,11 @@ Namespace Services
                 Using retCmd = dsConn.CreateCommand()
                     retCmd.CommandText = "SELECT ReturnDate, RefundAmount FROM Pos_SalesReturns " &
                                           "WHERE ReturnDate >= @start AND ReturnDate <= @end"
-                    retCmd.Parameters.Add(New MySqlParameter("@start", dayStart.ToString("o")))
-                    retCmd.Parameters.Add(New MySqlParameter("@end", dayEnd.ToString("o")))
+                    retCmd.Parameters.Add(New MySqlParameter("@start", dayStart))
+                    retCmd.Parameters.Add(New MySqlParameter("@end", dayEnd))
                     Using retReader = retCmd.ExecuteReader()
                         While retReader.Read()
-                            _buildDailyRetList.Add(New SalesReturn With {
+                            buildDailyRetList.Add(New SalesReturn With {
                                 .ReturnDate = retReader.GetDateTime(0),
                                 .RefundAmount = retReader.GetDecimal(1)
                             })
@@ -103,8 +99,8 @@ Namespace Services
                     End Using
                 End Using
             End Using
-            Dim transactions As List(Of SalesTransaction) = _buildDailyTxList
-            Dim returns As List(Of SalesReturn) = _buildDailyRetList
+            Dim transactions As List(Of SalesTransaction) = buildDailyTxList
+            Dim returns As List(Of SalesReturn) = buildDailyRetList
 
             Dim totalSales = transactions.Sum(Function(t) t.TotalAmount)
             Dim txCount = transactions.Count
@@ -150,8 +146,8 @@ Namespace Services
         End Function
 
         Private Async Function BuildPeriodSummaryAsync(periodStart As DateTime, periodEnd As DateTime) As Task(Of PeriodSummaryDto)
-            _buildPeriodTxList = New List(Of SalesTransaction)()
-            _buildPeriodRetList = New List(Of SalesReturn)()
+            Dim buildPeriodTxList As New List(Of SalesTransaction)()
+            Dim buildPeriodRetList As New List(Of SalesReturn)()
             Dim psConnStr = _context.Database.GetConnectionString()
             Using psConn As New MySqlConnection(psConnStr)
                 Await psConn.OpenAsync()
@@ -160,11 +156,11 @@ Namespace Services
                                          "FROM Pos_SalesTransactions " &
                                          "WHERE TransactionDate >= @start AND TransactionDate <= @end " &
                                          "AND IsVoided = 0 AND IsDeleted = 0"
-                    psCmd.Parameters.Add(New MySqlParameter("@start", periodStart.ToString("o")))
-                    psCmd.Parameters.Add(New MySqlParameter("@end", periodEnd.ToString("o")))
+                    psCmd.Parameters.Add(New MySqlParameter("@start", periodStart))
+                    psCmd.Parameters.Add(New MySqlParameter("@end", periodEnd))
                     Using psReader = psCmd.ExecuteReader()
                         While psReader.Read()
-                            _buildPeriodTxList.Add(New SalesTransaction With {
+                            buildPeriodTxList.Add(New SalesTransaction With {
                                 .Id = psReader.GetInt32(0),
                                 .TransactionDate = psReader.GetDateTime(1),
                                 .PaymentMethod = CType(psReader.GetInt32(2), PaymentMethod),
@@ -173,8 +169,8 @@ Namespace Services
                         End While
                     End Using
                 End Using
-                If _buildPeriodTxList.Count > 0 Then
-                    Dim txIds = String.Join(",", _buildPeriodTxList.Select(Function(t) t.Id))
+                If buildPeriodTxList.Count > 0 Then
+                    Dim txIds = String.Join(",", buildPeriodTxList.Select(Function(t) t.Id))
                     Dim lineMap As New Dictionary(Of Integer, List(Of SalesTransactionLine))()
                     Using lCmd = psConn.CreateCommand()
                         lCmd.CommandText = "SELECT TransactionId, ProductId, ProductName, Quantity, LineTotal " &
@@ -193,7 +189,7 @@ Namespace Services
                             End While
                         End Using
                     End Using
-                    For Each tx In _buildPeriodTxList
+                    For Each tx In buildPeriodTxList
                         Dim txLines As List(Of SalesTransactionLine) = Nothing
                         If lineMap.TryGetValue(tx.Id, txLines) Then
                             For Each ln In txLines : tx.Lines.Add(ln) : Next
@@ -203,11 +199,11 @@ Namespace Services
                 Using retCmd = psConn.CreateCommand()
                     retCmd.CommandText = "SELECT ReturnDate, RefundAmount FROM Pos_SalesReturns " &
                                           "WHERE ReturnDate >= @start AND ReturnDate <= @end"
-                    retCmd.Parameters.Add(New MySqlParameter("@start", periodStart.ToString("o")))
-                    retCmd.Parameters.Add(New MySqlParameter("@end", periodEnd.ToString("o")))
+                    retCmd.Parameters.Add(New MySqlParameter("@start", periodStart))
+                    retCmd.Parameters.Add(New MySqlParameter("@end", periodEnd))
                     Using retReader = retCmd.ExecuteReader()
                         While retReader.Read()
-                            _buildPeriodRetList.Add(New SalesReturn With {
+                            buildPeriodRetList.Add(New SalesReturn With {
                                 .ReturnDate = retReader.GetDateTime(0),
                                 .RefundAmount = retReader.GetDecimal(1)
                             })
@@ -215,8 +211,8 @@ Namespace Services
                     End Using
                 End Using
             End Using
-            Dim transactions As List(Of SalesTransaction) = _buildPeriodTxList
-            Dim returns As List(Of SalesReturn) = _buildPeriodRetList
+            Dim transactions As List(Of SalesTransaction) = buildPeriodTxList
+            Dim returns As List(Of SalesReturn) = buildPeriodRetList
 
             Dim totalSales = transactions.Sum(Function(t) t.TotalAmount)
             Dim txCount = transactions.Count
@@ -314,6 +310,31 @@ Namespace Services
                 .ReturnValue = returns.Sum(Function(r) r.RefundAmount),
                 .DailyBreakdown = dailyBreakdown
             }
+        End Function
+
+        Public Async Function GetDailySalesTrendAsync(startDate As DateTime) As Task(Of Dictionary(Of DateTime, Decimal)) Implements IDailySummaryService.GetDailySalesTrendAsync
+            Dim totalsByDay As New Dictionary(Of DateTime, Decimal)()
+            Dim connStr = _context.Database.GetConnectionString()
+            Using conn As New MySqlConnection(connStr)
+                Await conn.OpenAsync()
+                Using cmd = conn.CreateCommand()
+                    cmd.CommandText =
+                        "SELECT DATE(TransactionDate) AS SaleDate, " &
+                        "COALESCE(SUM(TotalAmount), 0) AS DayTotal " &
+                        "FROM Pos_SalesTransactions " &
+                        "WHERE TransactionDate >= @start AND IsVoided = 0 AND IsDeleted = 0 " &
+                        "GROUP BY DATE(TransactionDate) ORDER BY SaleDate ASC"
+                    cmd.Parameters.Add(New MySqlParameter("@start", startDate.Date))
+                    Using reader = Await cmd.ExecuteReaderAsync()
+                        While Await reader.ReadAsync()
+                            Dim saleDateVal = reader.GetDateTime(0).Date
+                            Dim dayTotalVal = reader.GetDecimal(1)
+                            totalsByDay(saleDateVal) = dayTotalVal
+                        End While
+                    End Using
+                End Using
+            End Using
+            Return totalsByDay
         End Function
 
     End Class

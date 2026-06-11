@@ -74,5 +74,6 @@ All engineering learnings from debugging and error-fixing sessions. Check this i
 | [mariadb-keyset-pagination](patterns/mariadb-keyset-pagination.md) | pattern | Infrastructure | mariadb, mysqlconnector, vb-net, pagination, keyset, performance, raw-reader, viewmodel | claude-code | 2026-06-10 | active |
 | [wpf-vista-comparative-report](patterns/wpf-vista-comparative-report.md) | pattern | MerchSys.Accounting | wpf, xaml, vb-net, mvvm, comparative-reports, delta-indicator, reporting | antigravity | 2026-06-10 | active |
 | [wpf-vista-insight-banner](patterns/wpf-vista-insight-banner.md) | pattern | MerchSys.App | wpf, xaml, vb-net, mvvm, theming, design-tokens, wcag, accessibility, severity-banner, shared-kernel | antigravity | 2026-06-10 | active |
+| [immutable-receipt-post-save-mutation](errors/immutable-receipt-post-save-mutation.md) | error-fix | MerchSys.POS | ef-core, vb-net, mariadb, interceptor, immutability, official-receipt, decorator, shared-dbcontext, runtime-error | claude-code | 2026-06-11 | active |
 
 

@@ -8,7 +8,13 @@ Namespace Services
         Function GetCurrentStockAsync(productId As Integer?) As Task(Of List(Of StockLevelDto))
         Function GetStockBatchesAsync(productId As Integer) As Task(Of List(Of StockBatch))
         Function GetTotalValuationAsync() As Task(Of Decimal)
+        Function GetProductsWithCategoriesAsync() As Task(Of ProductAndCategoryData)
     End Interface
+
+    Public Class ProductAndCategoryData
+        Public Property Products As List(Of Product)
+        Public Property Categories As List(Of ProductCategory)
+    End Class
 
     Public Class FIFODeductionResult
         Public Property BatchId As Integer

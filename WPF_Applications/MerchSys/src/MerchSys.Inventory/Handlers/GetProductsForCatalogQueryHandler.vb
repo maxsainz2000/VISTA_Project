@@ -9,7 +9,7 @@ Namespace Handlers
 
     ''' <summary>
     ''' Handles GetProductsForCatalogQuery sent from cross-module catalog editors.
-    ''' Queries active products directly from SQLite database to avoid EF Core VB.NET discovery bugs.
+    ''' Queries active products directly from MariaDB database to avoid EF Core VB.NET discovery bugs.
     ''' </summary>
     Public Class GetProductsForCatalogQueryHandler
         Implements IRequestHandler(Of GetProductsForCatalogQuery, IReadOnlyList(Of ProductLookupDto))

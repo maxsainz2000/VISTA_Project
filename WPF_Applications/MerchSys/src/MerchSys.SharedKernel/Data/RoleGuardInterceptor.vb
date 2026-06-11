@@ -7,6 +7,7 @@ Imports Microsoft.EntityFrameworkCore.Diagnostics
 Imports MerchSys.SharedKernel.Enums
 Imports MerchSys.SharedKernel.Interfaces
 Imports MerchSys.SharedKernel.Exceptions
+Imports MerchSys.SharedKernel.Entities
 
 Namespace Data
 
@@ -62,55 +63,45 @@ Namespace Data
                 Return
             End If
 
-            ' 4. If the user is an Owner, restrict writes.
-            If _session.CurrentRole = UserRole.Owner Then
-                Dim modifiedEntries = context.ChangeTracker.Entries().
-                    Where(Function(e) e.State = EntityState.Added OrElse
-                                      e.State = EntityState.Modified OrElse
-                                      e.State = EntityState.Deleted).
-                    ToList()
+            ' 4. Fail-closed: restrict writes for any other role (Owner, uninitialised, or future roles).
+            Dim modifiedEntries = context.ChangeTracker.Entries().
+                Where(Function(e) e.State = EntityState.Added OrElse
+                                  e.State = EntityState.Modified OrElse
+                                  e.State = EntityState.Deleted).
+                ToList()
 
-                ' No actual changes to persist, allow.
-                If modifiedEntries.Count = 0 Then
-                    Return
-                End If
+            ' No actual changes to persist, allow.
+            If modifiedEntries.Count = 0 Then
+                Return
+            End If
 
-                ' AuthSelfService special case: Owner updating their own credentials.
-                If _writeContext.Current = WriteContextKind.AuthSelfService Then
-                    ' Exactly one entry of type UserAccount must be tracked.
-                    If modifiedEntries.Count = 1 Then
-                        Dim singleEntry = modifiedEntries(0)
-                        Dim entityType = singleEntry.Entity.GetType()
-                        Dim isUserAccount = entityType.Name = "UserAccount" OrElse entityType.FullName.EndsWith(".UserAccount")
-
-                        If isUserAccount Then
-                            ' The UserAccount being modified must match the asserted SelfServiceUsername.
-                            Dim usernameProp = entityType.GetProperty("Username")
-                            If usernameProp IsNot Nothing Then
-                                Dim usernameValue = CStr(usernameProp.GetValue(singleEntry.Entity))
-                                If String.Equals(usernameValue, _writeContext.SelfServiceUsername, StringComparison.OrdinalIgnoreCase) Then
-                                    ' Allowed.
-                                    Return
-                                End If
-                            End If
+            ' AuthSelfService special case: user updating their own credentials.
+            If _writeContext.Current = WriteContextKind.AuthSelfService Then
+                ' Exactly one entry of type UserAccount must be tracked.
+                If modifiedEntries.Count = 1 Then
+                    Dim singleEntry = modifiedEntries(0)
+                    If TypeOf singleEntry.Entity Is UserAccount Then
+                        Dim userAcc = DirectCast(singleEntry.Entity, UserAccount)
+                        If String.Equals(userAcc.Username, _writeContext.SelfServiceUsername, StringComparison.OrdinalIgnoreCase) Then
+                            Return   ' allowed self-service password change
                         End If
                     End If
                 End If
-
-                ' Extract distinct table names to report in the exception.
-                Dim distinctTables As New List(Of String)()
-                For Each entry In modifiedEntries
-                    Dim tableName = entry.Metadata.GetTableName()
-                    If String.IsNullOrWhiteSpace(tableName) Then
-                        tableName = entry.Entity.GetType().Name
-                    End If
-                    If Not distinctTables.Contains(tableName) Then
-                        distinctTables.Add(tableName)
-                    End If
-                Next
-
-                Throw New UnauthorizedWriteException(UserRole.Owner, distinctTables)
             End If
+
+            ' Extract distinct table names to report in the exception.
+            Dim distinctTables As New List(Of String)()
+            For Each entry In modifiedEntries
+                Dim tableName = entry.Metadata.GetTableName()
+                If String.IsNullOrWhiteSpace(tableName) Then
+                    tableName = entry.Entity.GetType().Name
+                End If
+                If Not distinctTables.Contains(tableName) Then
+                    distinctTables.Add(tableName)
+                End If
+            Next
+
+            Throw New UnauthorizedWriteException(_session.CurrentRole, distinctTables)
         End Sub
 
     End Class

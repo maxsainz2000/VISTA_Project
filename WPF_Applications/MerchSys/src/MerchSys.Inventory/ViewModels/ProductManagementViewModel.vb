@@ -3,7 +3,6 @@ Imports System.ComponentModel.DataAnnotations
 Imports System.Windows.Input
 Imports CommunityToolkit.Mvvm.ComponentModel
 Imports CommunityToolkit.Mvvm.Input
-Imports MySqlConnector
 Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.Inventory.Data
 Imports MerchSys.Inventory.Entities
@@ -53,6 +52,7 @@ Namespace ViewModels
         End Property
 
         Private ReadOnly _db As InventoryDbContext
+        Private ReadOnly _stockService As IStockService
         Private ReadOnly _session As ISessionService
         Private ReadOnly _conflictPresenter As IConflictPresenter
         Private ReadOnly _confirmationPresenter As IConfirmationPresenter
@@ -115,8 +115,9 @@ Namespace ViewModels
             End Get
         End Property
 
-        Public Sub New(db As InventoryDbContext, session As ISessionService, conflictPresenter As IConflictPresenter, confirmationPresenter As IConfirmationPresenter, notifications As INotificationService)
+        Public Sub New(db As InventoryDbContext, stockService As IStockService, session As ISessionService, conflictPresenter As IConflictPresenter, confirmationPresenter As IConfirmationPresenter, notifications As INotificationService)
             _db = db
+            _stockService = stockService
             _session = session
             _conflictPresenter = conflictPresenter
             _confirmationPresenter = confirmationPresenter
@@ -558,44 +559,9 @@ Namespace ViewModels
             IsError = False
             IsBusy = True
             Try
-                _loadedProducts = New List(Of Product)()
-                _loadedCategories = New List(Of ProductCategory)()
-                Dim pmConnStr = _db.Database.GetConnectionString()
-                Using pmConn As New MySqlConnection(pmConnStr)
-                    Await pmConn.OpenAsync()
-                    Using pmCmd = pmConn.CreateCommand()
-                        pmCmd.CommandText = "SELECT Id, Name, Sku, CategoryId, Description, RetailPrice, Unit, HasExpiry, " &
-                                             "MinimumThreshold, IsActive, IsDeleted, DeletedBy, DeletedAt, " &
-                                             "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
-                                             "FROM Inv_Products WHERE IsDeleted = 0 ORDER BY Name"
-                        Using pmReader = pmCmd.ExecuteReader()
-                            While pmReader.Read()
-                                _loadedProducts.Add(StockService.ReadProduct(pmReader))
-                            End While
-                        End Using
-                    End Using
-                    Using cCmd = pmConn.CreateCommand()
-                        cCmd.CommandText = "SELECT Id, Name, Description, IsDeleted, DeletedBy, DeletedAt, " &
-                                           "CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
-                                           "FROM Inv_ProductCategories WHERE IsDeleted = 0 ORDER BY Name"
-                        Using cReader = cCmd.ExecuteReader()
-                            While cReader.Read()
-                                _loadedCategories.Add(New ProductCategory With {
-                                    .Id = cReader.GetInt32(0),
-                                    .Name = cReader.GetString(1),
-                                    .Description = If(cReader.IsDBNull(2), Nothing, cReader.GetString(2)),
-                                    .IsDeleted = cReader.GetBoolean(3),
-                                    .DeletedBy = If(cReader.IsDBNull(4), Nothing, cReader.GetString(4)),
-                                    .DeletedAt = If(cReader.IsDBNull(5), Nothing, CType(cReader.GetDateTime(5), DateTime?)),
-                                    .CreatedBy = cReader.GetString(6),
-                                    .CreatedAt = cReader.GetDateTime(7),
-                                    .ModifiedBy = If(cReader.IsDBNull(8), Nothing, cReader.GetString(8)),
-                                    .ModifiedAt = If(cReader.IsDBNull(9), Nothing, CType(cReader.GetDateTime(9), DateTime?))
-                                })
-                            End While
-                        End Using
-                    End Using
-                End Using
+                Dim data = Await _stockService.GetProductsWithCategoriesAsync()
+                _loadedProducts = data.Products
+                _loadedCategories = data.Categories
                 Dim categoryLookup = _loadedCategories.ToDictionary(Function(c) c.Id)
                 For Each p In _loadedProducts
                     Dim cat As ProductCategory = Nothing

@@ -2,35 +2,12 @@ Imports System.Collections.ObjectModel
 Imports System.Threading.Tasks
 Imports CommunityToolkit.Mvvm.ComponentModel
 Imports CommunityToolkit.Mvvm.Input
-Imports MerchSys.Purchasing.Data
 Imports MerchSys.Purchasing.Services
 Imports MerchSys.SharedKernel.Enums
-Imports MySqlConnector
-Imports Microsoft.EntityFrameworkCore
 Imports MerchSys.SharedKernel.Interfaces
 Imports MerchSys.SharedKernel.Presentation
 
 Namespace ViewModels
-
-    ''' <summary>
-    ''' Flat item for the 6-month purchasing spend trend bar chart.
-    ''' Bar heights are pre-computed relative to the period's maximum spend (max = 120px).
-    ''' </summary>
-    Public Class TrendBarItem
-        Public Property Month As String
-        Public Property Spend As Decimal
-        Public Property SpendBarHeight As Double
-    End Class
-
-    ''' <summary>
-    ''' Flat item for the top vendors by spend table.
-    ''' </summary>
-    Public Class TopVendorItem
-        Public Property VendorId As Integer
-        Public Property VendorName As String
-        Public Property POCount As Integer
-        Public Property TotalSpend As Decimal
-    End Class
 
     ''' <summary>
     ''' Flat display row for pending and overdue purchase orders.
@@ -68,25 +45,25 @@ Namespace ViewModels
             End Set
         End Property
 
-        Private ReadOnly _db As PurchasingDbContext
         Private ReadOnly _poService As IPurchaseOrderService
         Private ReadOnly _apService As IAccountsPayableService
         Private ReadOnly _vendorService As IVendorService
         Private ReadOnly _reorderService As IReorderService
+        Private ReadOnly _dashboardService As IPurchasingDashboardService
 
         Public Event NavigateToViewRequested As EventHandler(Of String)
 
-        Public Sub New(db As PurchasingDbContext,
-                       poService As IPurchaseOrderService,
+        Public Sub New(poService As IPurchaseOrderService,
                        apService As IAccountsPayableService,
                        vendorService As IVendorService,
-                       reorderService As IReorderService)
+                       reorderService As IReorderService,
+                       dashboardService As IPurchasingDashboardService)
 
-            _db = db
             _poService = poService
             _apService = apService
             _vendorService = vendorService
             _reorderService = reorderService
+            _dashboardService = dashboardService
 
             MonthlyTrend = New ObservableCollection(Of TrendBarItem)()
             TopVendors = New ObservableCollection(Of TopVendorItem)()
@@ -305,7 +282,6 @@ Namespace ViewModels
         Private Async Function LoadDataAsync() As Task
             IsError = False
             IsBusy = True
-            Dim connStr As String = _db.Database.GetConnectionString()
             Dim errMessage As String = Nothing
 
             Try
@@ -352,15 +328,17 @@ Namespace ViewModels
                     })
                 Next
 
-                ' 5. Load 6-Month Spend Trend via raw SQL query reader loop
-                Dim trendList = Await LoadMonthlyTrendAsync(connStr)
+                ' 5. Load 6-Month Spend Trend via dashboard service
+                Dim today = DateTime.UtcNow.Date
+                Dim trendStart As DateTime = New DateTime(today.Year, today.Month, 1).AddMonths(-5)
+                Dim trendList = Await _dashboardService.GetMonthlyTrendAsync(trendStart)
                 MonthlyTrend.Clear()
                 For Each item In trendList
                     MonthlyTrend.Add(item)
                 Next
 
-                ' 6. Load Top Vendors by Spend via raw SQL query reader loop
-                Dim topVendorsList = Await LoadTopVendorsAsync(connStr)
+                ' 6. Load Top Vendors by Spend via dashboard service
+                Dim topVendorsList = Await _dashboardService.GetTopVendorsAsync()
                 TopVendors.Clear()
                 For Each item In topVendorsList
                     TopVendors.Add(item)
@@ -383,81 +361,6 @@ Namespace ViewModels
                 ErrorMessage = errMessage
                 IsError = True
             End If
-        End Function
-
-        Private Async Function LoadMonthlyTrendAsync(connStr As String) As Task(Of List(Of TrendBarItem))
-            Dim trendList As New List(Of TrendBarItem)()
-            Dim today = DateTime.UtcNow.Date
-            Dim trendStart As DateTime = New DateTime(today.Year, today.Month, 1).AddMonths(-5)
-
-            Using conn As New MySqlConnection(connStr)
-                Await conn.OpenAsync()
-                Using cmd = conn.CreateCommand()
-                    cmd.CommandText = "SELECT YEAR(OrderDate) as Yr, MONTH(OrderDate) as Mth, SUM(TotalAmount) as Total " &
-                                      "FROM Pur_PurchaseOrders " &
-                                      "WHERE IsDeleted = 0 AND Status IN (2,3,4,5) AND OrderDate >= @trendStart " &
-                                      "GROUP BY YEAR(OrderDate), MONTH(OrderDate) " &
-                                      "ORDER BY Yr ASC, Mth ASC"
-                    cmd.Parameters.Add(New MySqlParameter("@trendStart", trendStart))
-                    Using reader = Await cmd.ExecuteReaderAsync()
-                        Dim dbResults As New Dictionary(Of String, Decimal)()
-                        While Await reader.ReadAsync()
-                            Dim yr = reader.GetInt32(0)
-                            Dim mth = reader.GetInt32(1)
-                            Dim total = reader.GetDecimal(2)
-                            Dim key = $"{yr}-{mth:D2}"
-                            dbResults(key) = total
-                        End While
-
-                        For i As Integer = 5 To 0 Step -1
-                            Dim targetMonth = today.AddMonths(-i)
-                            Dim key = $"{targetMonth.Year}-{targetMonth.Month:D2}"
-                            Dim totalAmount = If(dbResults.ContainsKey(key), dbResults(key), 0D)
-                            trendList.Add(New TrendBarItem With {
-                                .Month = targetMonth.ToString("MMM yyyy"),
-                                .Spend = totalAmount
-                            })
-                        Next
-                    End Using
-                End Using
-            End Using
-
-            ' Pre-compute bar heights relative to max spend (max = 120px)
-            Const MaxBarPx As Double = 120.0
-            Dim maxSpend As Decimal = trendList.Select(Function(t) t.Spend).DefaultIfEmpty(1D).Max()
-            If maxSpend <= 0 Then maxSpend = 1D
-            For Each item In trendList
-                item.SpendBarHeight = Math.Max(2.0, CDbl(item.Spend / maxSpend) * MaxBarPx)
-            Next
-
-            Return trendList
-        End Function
-
-        Private Async Function LoadTopVendorsAsync(connStr As String) As Task(Of List(Of TopVendorItem))
-            Dim list As New List(Of TopVendorItem)()
-            Using conn As New MySqlConnection(connStr)
-                Await conn.OpenAsync()
-                Using cmd = conn.CreateCommand()
-                    cmd.CommandText = "SELECT v.Id, v.Name, COUNT(po.Id) as POCount, SUM(po.TotalAmount) as TotalSpend " &
-                                      "FROM Pur_Vendors v " &
-                                      "JOIN Pur_PurchaseOrders po ON v.Id = po.VendorId " &
-                                      "WHERE v.IsDeleted = 0 AND po.IsDeleted = 0 AND po.Status IN (2,3,4,5) " &
-                                      "GROUP BY v.Id, v.Name " &
-                                      "ORDER BY TotalSpend DESC " &
-                                      "LIMIT 5"
-                    Using reader = Await cmd.ExecuteReaderAsync()
-                        While Await reader.ReadAsync()
-                            list.Add(New TopVendorItem With {
-                                .VendorId = reader.GetInt32(0),
-                                .VendorName = reader.GetString(1),
-                                .POCount = reader.GetInt32(2),
-                                .TotalSpend = reader.GetDecimal(3)
-                            })
-                        End While
-                    End Using
-                End Using
-            End Using
-            Return list
         End Function
 
         Private Function BuildWhatThisMeansText() As String

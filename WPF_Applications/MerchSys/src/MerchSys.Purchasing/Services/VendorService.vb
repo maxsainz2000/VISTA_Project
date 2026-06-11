@@ -11,8 +11,6 @@ Namespace Services
         Implements IVendorService
 
         Private ReadOnly _db As PurchasingDbContext
-        Private _vendorList As List(Of Vendor)
-        Private _grListVendorHistory As List(Of GoodsReceipt)
 
         Public Sub New(db As PurchasingDbContext)
             _db = db
@@ -62,7 +60,7 @@ Namespace Services
         End Function
 
         Public Async Function GetAllAsync() As Task(Of List(Of Vendor)) Implements IVendorService.GetAllAsync
-            _vendorList = New List(Of Vendor)()
+            Dim vendorList As New List(Of Vendor)()
             Dim connStr = _db.Database.GetConnectionString()
             Using conn As New MySqlConnection(connStr)
                 Await conn.OpenAsync()
@@ -71,7 +69,7 @@ Namespace Services
                                       "FROM Pur_Vendors WHERE IsDeleted = 0 ORDER BY Name"
                     Using reader = cmd.ExecuteReader()
                         While reader.Read()
-                            _vendorList.Add(New Vendor With {
+                            vendorList.Add(New Vendor With {
                                 .Id = reader.GetInt32(0),
                                 .Name = reader.GetString(1),
                                 .ContactPerson = reader.GetString(2),
@@ -85,7 +83,7 @@ Namespace Services
                     End Using
                 End Using
             End Using
-            Return _vendorList
+            Return vendorList
         End Function
 
         Public Async Function UpdateAsync(id As Integer, dto As UpdateVendorDto) As Task(Of Vendor) Implements IVendorService.UpdateAsync
@@ -167,7 +165,7 @@ Namespace Services
                 Return Await GetAllAsync()
             End If
 
-            _vendorList = New List(Of Vendor)()
+            Dim vendorList As New List(Of Vendor)()
             Dim saConnStr = _db.Database.GetConnectionString()
             Using saConn As New MySqlConnection(saConnStr)
                 Await saConn.OpenAsync()
@@ -179,7 +177,7 @@ Namespace Services
                     saCmd.Parameters.Add(New MySqlParameter("@term", "%" & searchTerm.ToLower() & "%"))
                     Using saReader = saCmd.ExecuteReader()
                         While saReader.Read()
-                            _vendorList.Add(New Vendor With {
+                            vendorList.Add(New Vendor With {
                                 .Id = saReader.GetInt32(0),
                                 .Name = saReader.GetString(1),
                                 .ContactPerson = saReader.GetString(2),
@@ -193,7 +191,7 @@ Namespace Services
                     End Using
                 End Using
             End Using
-            Return _vendorList
+            Return vendorList
         End Function
 
         Public Async Function GetVendorWithPurchaseHistoryAsync(id As Integer) As Task(Of VendorDetailDto) Implements IVendorService.GetVendorWithPurchaseHistoryAsync
@@ -210,7 +208,7 @@ Namespace Services
             Dim totalSpent As Decimal = orders.Sum(Function(po) po.TotalAmount)
             Dim lastOrderDate As DateTime? = If(orders.Any(), orders.Max(Function(po) po.OrderDate), CType(Nothing, DateTime?))
 
-            _grListVendorHistory = New List(Of GoodsReceipt)()
+            Dim grListVendorHistory As New List(Of GoodsReceipt)()
             If orders.Any() Then
                 Dim poIdList As String = String.Join(",", orders.Select(Function(po) po.Id))
                 Dim ghConnStr = _db.Database.GetConnectionString()
@@ -221,7 +219,7 @@ Namespace Services
                                             "FROM Pur_GoodsReceipts WHERE PurchaseOrderId IN (" & poIdList & ")"
                         Using ghReader = ghCmd.ExecuteReader()
                             While ghReader.Read()
-                                _grListVendorHistory.Add(New GoodsReceipt With {
+                                grListVendorHistory.Add(New GoodsReceipt With {
                                     .Id = ghReader.GetInt32(0),
                                     .PurchaseOrderId = ghReader.GetInt32(1),
                                     .ReceiptNumber = ghReader.GetString(2),
@@ -234,7 +232,7 @@ Namespace Services
                     End Using
                 End Using
             End If
-            Dim receipts = _grListVendorHistory
+            Dim receipts = grListVendorHistory
 
             Dim averageLeadTimeDays As Double = 0
             If receipts.Any() Then

@@ -21,7 +21,6 @@ Namespace Services
         Private ReadOnly _context As POSDbContext
         Private ReadOnly _mediator As IMediator
         Private ReadOnly _logger As ILogger(Of ReceiptIntegrityService)
-        Private _integrityChainList As List(Of ReceiptIntegrity)
 
         Public Sub New(context As POSDbContext, mediator As IMediator, logger As ILogger(Of ReceiptIntegrityService))
             _context = context
@@ -103,7 +102,7 @@ Namespace Services
 
         ''' <inheritdoc/>
         Public Async Function ValidateChainAsync(year As Integer) As Task(Of ChainValidationResult) Implements IReceiptIntegrityService.ValidateChainAsync
-            _integrityChainList = New List(Of ReceiptIntegrity)()
+            Dim integrityChainList As New List(Of ReceiptIntegrity)()
             Dim vcConnStr = _context.Database.GetConnectionString()
             Using vcConn As New MySqlConnection(vcConnStr)
                 Await vcConn.OpenAsync()
@@ -112,12 +111,12 @@ Namespace Services
                     vcCmd.CommandText = "SELECT ri.Id, ri.ReceiptId, ri.IntegrityHash, ri.PreviousHash " &
                                          "FROM Pos_ReceiptIntegrity ri " &
                                          "INNER JOIN Pos_OfficialReceipts r ON r.Id = ri.ReceiptId " &
-                                         "WHERE CAST(strftime('%Y', r.IssueDate) AS INTEGER) = @year " &
+                                         "WHERE YEAR(r.IssueDate) = @year " &
                                          "ORDER BY ri.ReceiptId"
                     vcCmd.Parameters.Add(New MySqlParameter("@year", year))
                     Using vcReader = vcCmd.ExecuteReader()
                         While vcReader.Read()
-                            _integrityChainList.Add(New ReceiptIntegrity With {
+                            integrityChainList.Add(New ReceiptIntegrity With {
                                 .Id = vcReader.GetInt32(0),
                                 .ReceiptId = vcReader.GetInt32(1),
                                 .IntegrityHash = vcReader.GetString(2),
@@ -127,8 +126,8 @@ Namespace Services
                     End Using
                 End Using
 
-                If _integrityChainList.Count > 0 Then
-                    Dim receiptIds = String.Join(",", _integrityChainList.Select(Function(i) i.ReceiptId))
+                If integrityChainList.Count > 0 Then
+                    Dim receiptIds = String.Join(",", integrityChainList.Select(Function(i) i.ReceiptId))
                     Dim receiptMap As New Dictionary(Of Integer, OfficialReceipt)()
                     Using rCmd = vcConn.CreateCommand()
                         rCmd.CommandText = "SELECT Id, TransactionId, ReceiptNumber, BusinessTIN, IssueDate, TotalAmount, VatAmount " &
@@ -177,13 +176,13 @@ Namespace Services
                         receipt.Transaction = tx
                     Next
 
-                    For Each integrity In _integrityChainList
+                    For Each integrity In integrityChainList
                         Dim receipt As OfficialReceipt = Nothing
                         If receiptMap.TryGetValue(integrity.ReceiptId, receipt) Then integrity.Receipt = receipt
                     Next
                 End If
             End Using
-            Dim integrities As List(Of ReceiptIntegrity) = _integrityChainList
+            Dim integrities As List(Of ReceiptIntegrity) = integrityChainList
 
             Dim result As New ChainValidationResult() With {
                 .Year = year,

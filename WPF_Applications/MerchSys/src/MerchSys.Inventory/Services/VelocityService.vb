@@ -132,7 +132,7 @@ Namespace Services
                         "FROM Inv_StockMovements " &
                         "WHERE MovementType = 'Sale' AND OccurredAt >= @windowStart " &
                         "GROUP BY ProductId"
-                    movCmd.Parameters.AddWithValue("@windowStart", windowStart.ToString("yyyy-MM-dd HH:mm:ss"))
+                    movCmd.Parameters.AddWithValue("@windowStart", windowStart)
                     Using movReader = movCmd.ExecuteReader()
                         While movReader.Read()
                             movementLookup(movReader.GetInt32(0)) = Convert.ToInt32(movReader.GetInt64(1))

@@ -5,6 +5,8 @@ Imports Microsoft.EntityFrameworkCore
 Imports Microsoft.EntityFrameworkCore.Metadata.Builders
 Imports Microsoft.EntityFrameworkCore.Metadata.Conventions
 Imports MerchSys.SharedKernel.Interfaces
+Imports MerchSys.SharedKernel.Entities
+Imports System.Collections.Concurrent
 
 Namespace Data
 
@@ -28,10 +30,17 @@ Namespace Data
 
         ''' <summary>Hardcoded identity placeholder until the auth module is implemented.</summary>
         Friend Const DefaultUser As String = "Manager"
+        Private ReadOnly _session As ISessionService
 
-        Protected Sub New(options As DbContextOptions)
+        Protected Sub New(options As DbContextOptions, session As ISessionService)
             MyBase.New(options)
+            _session = session
         End Sub
+
+        Private Function CurrentUser() As String
+            Dim u = _session?.CurrentUsername
+            Return If(String.IsNullOrWhiteSpace(u), DefaultUser, u)
+        End Function
 
         ''' <summary>Sets a default max-length of 256 for all string columns and ignores non-token RowVersion properties.</summary>
         Protected Overrides Sub ConfigureConventions(configurationBuilder As ModelConfigurationBuilder)
@@ -66,13 +75,9 @@ Namespace Data
             Return Function(e) Not e.IsDeleted
         End Function
 
-        ''' <summary>
-        ''' Populates audit columns and converts hard deletes to soft deletes before
-        ''' delegating to the base EF Core persistence logic.
-        ''' </summary>
-        Public Overrides Async Function SaveChangesAsync(
-            Optional cancellationToken As CancellationToken = Nothing) As Task(Of Integer)
+        Public Shared ReadOnly UnconfiguredRowVersionEntities As New ConcurrentBag(Of String)()
 
+        Private Sub ApplyAuditAndSoftDelete()
             Dim now = DateTime.UtcNow
 
             For Each dbEntry In ChangeTracker.Entries().ToList()
@@ -82,16 +87,16 @@ Namespace Data
                         If TypeOf dbEntry.Entity Is IAuditable Then
                             Dim auditable = DirectCast(dbEntry.Entity, IAuditable)
                             auditable.CreatedAt = now
-                            auditable.CreatedBy = DefaultUser
+                            auditable.CreatedBy = If(String.IsNullOrWhiteSpace(auditable.CreatedBy), CurrentUser(), auditable.CreatedBy)
                             auditable.ModifiedAt = now
-                            auditable.ModifiedBy = DefaultUser
+                            auditable.ModifiedBy = CurrentUser()
                         End If
 
                     Case EntityState.Modified
                         If TypeOf dbEntry.Entity Is IAuditable Then
                             Dim auditable = DirectCast(dbEntry.Entity, IAuditable)
                             auditable.ModifiedAt = now
-                            auditable.ModifiedBy = DefaultUser
+                            auditable.ModifiedBy = CurrentUser()
                         End If
 
                     Case EntityState.Deleted
@@ -101,17 +106,35 @@ Namespace Data
                             Dim softDel = DirectCast(dbEntry.Entity, ISoftDeletable)
                             softDel.IsDeleted = True
                             softDel.DeletedAt = now
-                            softDel.DeletedBy = DefaultUser
+                            softDel.DeletedBy = CurrentUser()
                             If TypeOf dbEntry.Entity Is IAuditable Then
                                 Dim auditable = DirectCast(dbEntry.Entity, IAuditable)
                                 auditable.ModifiedAt = now
-                                auditable.ModifiedBy = DefaultUser
+                                auditable.ModifiedBy = CurrentUser()
                             End If
                         End If
 
                 End Select
             Next
+        End Sub
 
+        ''' <summary>
+        ''' Populates audit columns and converts hard deletes to soft deletes before
+        ''' delegating to the base EF Core persistence logic.
+        ''' </summary>
+        Public Overrides Function SaveChanges() As Integer
+            ApplyAuditAndSoftDelete()
+            Return MyBase.SaveChanges()
+        End Function
+
+        ''' <summary>
+        ''' Populates audit columns and converts hard deletes to soft deletes before
+        ''' delegating to the base EF Core persistence logic.
+        ''' </summary>
+        Public Overrides Async Function SaveChangesAsync(
+            Optional cancellationToken As CancellationToken = Nothing) As Task(Of Integer)
+
+            ApplyAuditAndSoftDelete()
             Return Await MyBase.SaveChangesAsync(cancellationToken)
         End Function
 
@@ -125,12 +148,24 @@ Namespace Data
             Public Sub ProcessModelFinalizing(modelBuilder As IConventionModelBuilder,
                                               context As IConventionContext(Of IConventionModelBuilder)) _
                                               Implements IModelFinalizingConvention.ProcessModelFinalizing
+                Dim ignoredList As New List(Of String)()
                 For Each et In modelBuilder.Metadata.GetEntityTypes()
-                    Dim rv = et.FindProperty("RowVersion")
-                    If rv IsNot Nothing AndAlso Not rv.IsConcurrencyToken() Then
-                        et.Builder.Ignore("RowVersion", fromDataAnnotation:=False)
+                    If GetType(ConcurrencyAwareEntity).IsAssignableFrom(et.ClrType) Then
+                        Dim rv = et.FindProperty("RowVersion")
+                        If rv IsNot Nothing AndAlso Not rv.IsConcurrencyToken() Then
+                            ignoredList.Add(et.ClrType.Name)
+                            et.Builder.Ignore("RowVersion", fromDataAnnotation:=False)
+                        End If
                     End If
                 Next
+                If ignoredList.Count > 0 Then
+                    Dim warningMsg As String = "WARNING: The following entities inherit ConcurrencyAwareEntity but do not have RowVersion configured as a concurrency token: " & String.Join(", ", ignoredList)
+                    System.Diagnostics.Debug.WriteLine(warningMsg)
+                    System.Console.WriteLine(warningMsg)
+                    For Each name In ignoredList
+                        BaseDbContext.UnconfiguredRowVersionEntities.Add(name)
+                    Next
+                End If
             End Sub
         End Class
 

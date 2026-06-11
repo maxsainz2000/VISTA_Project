@@ -10,7 +10,6 @@ Imports MerchSys.SharedKernel.Enums
 Imports MerchSys.SharedKernel.Interfaces
 Imports MerchSys.SharedKernel.Presentation
 Imports Microsoft.Extensions.Configuration
-Imports MySqlConnector
 
 Namespace ViewModels
 
@@ -39,7 +38,6 @@ Namespace ViewModels
         Private ReadOnly _financialOverview As IFinancialOverviewService
         Private ReadOnly _incomeStatement As IIncomeStatementService
         Private ReadOnly _refreshTimer As DispatcherTimer
-        Private ReadOnly _trendConnStr As String
         Private _disposed As Boolean
 
         ' ── Purchasing KPIs ──────────────────────────────────────────────────────
@@ -399,8 +397,7 @@ Namespace ViewModels
                        accountsPayable As IAccountsPayableService,
                        dailySummary As IDailySummaryService,
                        financialOverview As IFinancialOverviewService,
-                       incomeStatement As IIncomeStatementService,
-                       configuration As IConfiguration)
+                       incomeStatement As IIncomeStatementService)
             _session = session
             _stockDashboard = stockDashboard
             _lowStockAlert = lowStockAlert
@@ -411,7 +408,6 @@ Namespace ViewModels
             _dailySummary = dailySummary
             _financialOverview = financialOverview
             _incomeStatement = incomeStatement
-            _trendConnStr = configuration.GetConnectionString("MerchSysCentral")
 
             OwnerDisplayName = _session.CurrentUsername
             RefreshCommand = New AsyncRelayCommand(AddressOf RefreshAsync)
@@ -543,36 +539,12 @@ Namespace ViewModels
         ''' (left-to-right old→new), rather than silently collapsing missing days.
         ''' </summary>
         Private Async Function LoadTrendDataAsync(days As Integer) As Task
-            If String.IsNullOrEmpty(_trendConnStr) Then
-                TrendSparkPoints = New List(Of Double)()
-                TrendSparkLabels = New List(Of String)()
-                Return
-            End If
-
             Dim startDate = DateTime.Today.AddDays(-(days - 1)).Date
-            Dim totalsByDay As New Dictionary(Of Date, Double)()
+            Dim totalsByDay As Dictionary(Of DateTime, Decimal) = Nothing
             Dim errMsg As String = Nothing
 
             Try
-                Using conn As New MySqlConnection(_trendConnStr)
-                    Await conn.OpenAsync()
-                    Using cmd = conn.CreateCommand()
-                        cmd.CommandText =
-                            "SELECT DATE(TransactionDate) AS SaleDate, " &
-                            "COALESCE(SUM(TotalAmount), 0) AS DayTotal " &
-                            "FROM Pos_SalesTransactions " &
-                            "WHERE TransactionDate >= @start AND IsVoided = 0 AND IsDeleted = 0 " &
-                            "GROUP BY DATE(TransactionDate) ORDER BY SaleDate ASC"
-                        cmd.Parameters.Add(New MySqlParameter("@start", startDate.ToString("yyyy-MM-dd")))
-                        Using reader = cmd.ExecuteReader()
-                            While reader.Read()
-                                Dim saleDateVal = reader.GetDateTime(0).Date
-                                Dim dayTotalVal = reader.GetDecimal(1)
-                                totalsByDay(saleDateVal) = CDbl(dayTotalVal)
-                            End While
-                        End Using
-                    End Using
-                End Using
+                totalsByDay = Await _dailySummary.GetDailySalesTrendAsync(startDate)
             Catch ex As Exception
                 errMsg = ex.Message
             End Try
@@ -581,12 +553,12 @@ Namespace ViewModels
             Dim lbls As New List(Of String)()
             ' Zero-fill the full window so every day in the period has a bar (missing day → 0).
             ' On error, leave the series empty so the card shows no misleading flat-zero trend.
-            If errMsg Is Nothing Then
+            If errMsg Is Nothing AndAlso totalsByDay IsNot Nothing Then
                 For dayOffset = 0 To days - 1
                     Dim d = startDate.AddDays(dayOffset)
-                    Dim dayTotal As Double
-                    totalsByDay.TryGetValue(d, dayTotal)
-                    pts.Add(dayTotal)
+                    Dim dayTotalVal As Decimal = 0D
+                    totalsByDay.TryGetValue(d, dayTotalVal)
+                    pts.Add(CDbl(dayTotalVal))
                     lbls.Add(d.ToString("MMM d"))
                 Next
             End If

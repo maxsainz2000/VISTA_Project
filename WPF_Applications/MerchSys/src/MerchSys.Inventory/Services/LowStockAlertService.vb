@@ -15,7 +15,6 @@ Namespace Services
         Private ReadOnly _stockService As IStockService
         Private ReadOnly _notifier As ILowStockNotifier
         Private ReadOnly _logger As ILogger(Of LowStockAlertService)
-        Private _alertConfigList As List(Of StockAlertConfig)
 
         Public Sub New(db As InventoryDbContext,
                        stockService As IStockService,
@@ -75,7 +74,7 @@ Namespace Services
         Private Async Function BuildAlertsAsync() As Task(Of List(Of LowStockAlertDto))
             Dim stockLevels As List(Of StockLevelDto) = Await _stockService.GetCurrentStockAsync(Nothing)
 
-            _alertConfigList = New List(Of StockAlertConfig)()
+            Dim alertConfigList As New List(Of StockAlertConfig)()
             Dim acConnStr = _db.Database.GetConnectionString()
             Using acConn As New MySqlConnection(acConnStr)
                 Await acConn.OpenAsync()
@@ -85,7 +84,7 @@ Namespace Services
                                         "FROM Inv_StockAlertConfigs WHERE IsAlertEnabled = 1"
                     Using acReader = acCmd.ExecuteReader()
                         While acReader.Read()
-                            _alertConfigList.Add(New StockAlertConfig With {
+                            alertConfigList.Add(New StockAlertConfig With {
                                 .Id = acReader.GetInt32(0),
                                 .ProductId = acReader.GetInt32(1),
                                 .MinimumThreshold = acReader.GetInt32(2),
@@ -100,7 +99,7 @@ Namespace Services
                     End Using
                 End Using
             End Using
-            Dim alertConfigs As Dictionary(Of Integer, StockAlertConfig) = _alertConfigList.ToDictionary(Function(c) c.ProductId)
+            Dim alertConfigs As Dictionary(Of Integer, StockAlertConfig) = alertConfigList.ToDictionary(Function(c) c.ProductId)
 
             Dim lastRestockLookup As Dictionary(Of Integer, DateTime) =
                 (Await _db.StockBatches.

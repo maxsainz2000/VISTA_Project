@@ -8,7 +8,7 @@ Namespace Data
     ''' <summary>
     ''' EF Core DbContext for the Inventory module.
     ''' All tables in this context use the <c>Inv_</c> prefix to prevent naming collisions
-    ''' with other modules in the shared <c>merchsys.db</c> SQLite file.
+    ''' with other modules in the shared centralized MariaDB database.
     ''' </summary>
     Public Class InventoryDbContext
         Inherits BaseDbContext
@@ -24,8 +24,8 @@ Namespace Data
         Public Property SaleCogsRecords As DbSet(Of SaleCogsRecord)
 
 
-        Public Sub New(options As DbContextOptions(Of InventoryDbContext))
-            MyBase.New(options)
+        Public Sub New(options As DbContextOptions(Of InventoryDbContext), session As MerchSys.SharedKernel.Interfaces.ISessionService)
+            MyBase.New(options, session)
         End Sub
 
         Protected Overrides Sub OnModelCreating(modelBuilder As ModelBuilder)

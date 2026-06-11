@@ -25,9 +25,6 @@ Namespace Services
         Private ReadOnly _db As AccountingDbContext
         Private ReadOnly _mediator As IMediator
         Private ReadOnly _logger As ILogger(Of VatReportingService)
-        Private _vatReturnList As List(Of VatReturn)
-        Private _revenueRecordList As List(Of RevenueRecord)
-        Private _expenseRecordList As List(Of ExpenseRecord)
 
         Public Sub New(db As AccountingDbContext,
                        mediator As IMediator,
@@ -227,7 +224,7 @@ Namespace Services
         Public Async Function ListReturnsAsync(year As Integer?) As Task(Of IReadOnlyList(Of VatReturn)) _
             Implements IVatReportingService.ListReturnsAsync
 
-            _vatReturnList = New List(Of VatReturn)()
+            Dim vatReturnList As New List(Of VatReturn)()
             Dim lrConnStr = _db.Database.GetConnectionString()
             Using lrConn As New MySqlConnection(lrConnStr)
                 Await lrConn.OpenAsync()
@@ -248,7 +245,7 @@ Namespace Services
                     End If
                     Using lrReader = lrCmd.ExecuteReader()
                         While lrReader.Read()
-                            _vatReturnList.Add(New VatReturn With {
+                            vatReturnList.Add(New VatReturn With {
                                 .Id = lrReader.GetInt32(0),
                                 .Year = lrReader.GetInt32(1),
                                 .Period = lrReader.GetInt32(2),
@@ -275,7 +272,7 @@ Namespace Services
                     End Using
                 End Using
             End Using
-            Return _vatReturnList.AsReadOnly()
+            Return vatReturnList.AsReadOnly()
         End Function
 
         ''' <summary>
@@ -373,10 +370,8 @@ Namespace Services
         ' ─── Private Helpers ────────────────────────────────────────────────────────
 
         Private Async Function CollectLedgerDataAsync(windowStart As DateTime, windowEnd As DateTime) As Task(Of LedgerData)
-            _revenueRecordList = New List(Of RevenueRecord)()
-            _expenseRecordList = New List(Of ExpenseRecord)()
-            Dim wsStr = windowStart.ToString("o")
-            Dim weStr = windowEnd.ToString("o")
+            Dim revenueRecordList As New List(Of RevenueRecord)()
+            Dim expenseRecordList As New List(Of ExpenseRecord)()
             Dim ldConnStr = _db.Database.GetConnectionString()
             Using ldConn As New MySqlConnection(ldConnStr)
                 Await ldConn.OpenAsync()
@@ -385,11 +380,11 @@ Namespace Services
                     revCmd.CommandText = "SELECT Id, RecordDate, VatableAmount, VatExemptAmount, ZeroRatedAmount, " &
                                          "OutputVat, InputVat, VatTreatment " &
                                          "FROM Acc_RevenueRecords WHERE RecordDate >= @ws AND RecordDate < @we"
-                    revCmd.Parameters.Add(New MySqlParameter("@ws", wsStr))
-                    revCmd.Parameters.Add(New MySqlParameter("@we", weStr))
+                    revCmd.Parameters.Add(New MySqlParameter("@ws", windowStart))
+                    revCmd.Parameters.Add(New MySqlParameter("@we", windowEnd))
                     Using revReader = revCmd.ExecuteReader()
                         While revReader.Read()
-                            _revenueRecordList.Add(New RevenueRecord With {
+                            revenueRecordList.Add(New RevenueRecord With {
                                 .Id = revReader.GetInt32(0),
                                 .RecordDate = revReader.GetDateTime(1),
                                 .VatableAmount = revReader.GetDecimal(2),
@@ -407,11 +402,11 @@ Namespace Services
                     expCmd.CommandText = "SELECT Id, RecordDate, VatableAmount, VatExemptAmount, ZeroRatedAmount, " &
                                          "OutputVat, InputVat, VatTreatment " &
                                          "FROM Acc_ExpenseRecords WHERE RecordDate >= @ws AND RecordDate < @we AND SourceModule = 'Purchasing'"
-                    expCmd.Parameters.Add(New MySqlParameter("@ws", wsStr))
-                    expCmd.Parameters.Add(New MySqlParameter("@we", weStr))
+                    expCmd.Parameters.Add(New MySqlParameter("@ws", windowStart))
+                    expCmd.Parameters.Add(New MySqlParameter("@we", windowEnd))
                     Using expReader = expCmd.ExecuteReader()
                         While expReader.Read()
-                            _expenseRecordList.Add(New ExpenseRecord With {
+                            expenseRecordList.Add(New ExpenseRecord With {
                                 .Id = expReader.GetInt32(0),
                                 .RecordDate = expReader.GetDateTime(1),
                                 .VatableAmount = expReader.GetDecimal(2),
@@ -427,14 +422,14 @@ Namespace Services
             End Using
 
             Return New LedgerData With {
-                .TotalVatableSales = _revenueRecordList.Sum(Function(r) r.VatableAmount),
-                .TotalVatExemptSales = _revenueRecordList.Sum(Function(r) r.VatExemptAmount),
-                .TotalZeroRatedSales = _revenueRecordList.Sum(Function(r) r.ZeroRatedAmount),
-                .TotalOutputVat = _revenueRecordList.Sum(Function(r) r.OutputVat),
-                .TotalVatablePurchases = _expenseRecordList.Sum(Function(e) e.VatableAmount),
-                .TotalInputVat = _expenseRecordList.Sum(Function(e) e.InputVat),
-                .RevenueRecords = _revenueRecordList,
-                .ExpenseRecords = _expenseRecordList
+                .TotalVatableSales = revenueRecordList.Sum(Function(r) r.VatableAmount),
+                .TotalVatExemptSales = revenueRecordList.Sum(Function(r) r.VatExemptAmount),
+                .TotalZeroRatedSales = revenueRecordList.Sum(Function(r) r.ZeroRatedAmount),
+                .TotalOutputVat = revenueRecordList.Sum(Function(r) r.OutputVat),
+                .TotalVatablePurchases = expenseRecordList.Sum(Function(e) e.VatableAmount),
+                .TotalInputVat = expenseRecordList.Sum(Function(e) e.InputVat),
+                .RevenueRecords = revenueRecordList,
+                .ExpenseRecords = expenseRecordList
             }
         End Function
 

@@ -180,7 +180,7 @@ Namespace Services
                         cmd.CommandText =
                             "UPDATE Sys_UserAccounts SET PasswordHash=@h, LastPasswordChangeAt=@t, ModifiedAt=@t WHERE Id=@id"
                         cmd.Parameters.AddWithValue("@h", newHash)
-                        cmd.Parameters.AddWithValue("@t", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"))
+                        cmd.Parameters.AddWithValue("@t", DateTime.UtcNow)
                         cmd.Parameters.AddWithValue("@id", userId)
                         cmd.ExecuteNonQuery()
                     End Using
@@ -208,13 +208,10 @@ Namespace Services
                     u.Role = CType(Convert.ToInt32(rdr("Role")), UserRole)
                     u.IsActive = Convert.ToBoolean(rdr("IsActive"))
                     u.FailedLoginAttempts = Convert.ToInt32(rdr("FailedLoginAttempts"))
-                    u.LockedUntil = If(IsDBNull(rdr("LockedUntil")), Nothing,
-                                       CType(DateTime.Parse(CStr(rdr("LockedUntil"))), DateTime?))
-                    u.LastPasswordChangeAt = If(IsDBNull(rdr("LastPasswordChangeAt")), Nothing,
-                                                CType(DateTime.Parse(CStr(rdr("LastPasswordChangeAt"))), DateTime?))
-                    u.CreatedAt = DateTime.Parse(CStr(rdr("CreatedAt")))
-                    u.ModifiedAt = If(IsDBNull(rdr("ModifiedAt")), Nothing,
-                                      CType(DateTime.Parse(CStr(rdr("ModifiedAt"))), DateTime?))
+                    u.LockedUntil = If(IsDBNull(rdr("LockedUntil")), Nothing, CType(rdr("LockedUntil"), DateTime?))
+                    u.LastPasswordChangeAt = If(IsDBNull(rdr("LastPasswordChangeAt")), Nothing, CType(rdr("LastPasswordChangeAt"), DateTime?))
+                    u.CreatedAt = CType(rdr("CreatedAt"), DateTime)
+                    u.ModifiedAt = If(IsDBNull(rdr("ModifiedAt")), Nothing, CType(rdr("ModifiedAt"), DateTime?))
                     Return u
                 End Using
             End Using
@@ -224,7 +221,7 @@ Namespace Services
             Using cmd = conn.CreateCommand()
                 cmd.CommandText =
                     "UPDATE Sys_UserAccounts SET FailedLoginAttempts=0, LockedUntil=NULL, ModifiedAt=@now WHERE Id=@id"
-                cmd.Parameters.AddWithValue("@now", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"))
+                cmd.Parameters.AddWithValue("@now", DateTime.UtcNow)
                 cmd.Parameters.AddWithValue("@id", userId)
                 cmd.ExecuteNonQuery()
             End Using
@@ -236,13 +233,13 @@ Namespace Services
                 If next_ >= 5 Then
                     cmd.CommandText =
                         "UPDATE Sys_UserAccounts SET FailedLoginAttempts=@a, LockedUntil=@l, ModifiedAt=@now WHERE Id=@id"
-                    cmd.Parameters.AddWithValue("@l", DateTime.UtcNow.AddMinutes(15).ToString("yyyy-MM-dd HH:mm:ss"))
+                    cmd.Parameters.AddWithValue("@l", DateTime.UtcNow.AddMinutes(15))
                 Else
                     cmd.CommandText =
                         "UPDATE Sys_UserAccounts SET FailedLoginAttempts=@a, LockedUntil=NULL, ModifiedAt=@now WHERE Id=@id"
                 End If
                 cmd.Parameters.AddWithValue("@a", next_)
-                cmd.Parameters.AddWithValue("@now", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"))
+                cmd.Parameters.AddWithValue("@now", DateTime.UtcNow)
                 cmd.Parameters.AddWithValue("@id", userId)
                 cmd.ExecuteNonQuery()
             End Using

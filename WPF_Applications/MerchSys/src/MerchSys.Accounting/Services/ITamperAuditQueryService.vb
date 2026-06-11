@@ -24,7 +24,6 @@ Namespace Services
         Implements ITamperAuditQueryService
 
         Private ReadOnly _db As AccountingDbContext
-        Private _tamperAuditList As List(Of TamperAuditEntry)
 
         Public Sub New(db As AccountingDbContext)
             _db = db
@@ -35,7 +34,7 @@ Namespace Services
             toUtc As DateTime
         ) As Task(Of IReadOnlyList(Of TamperAuditEntry)) Implements ITamperAuditQueryService.GetIncidentsAsync
 
-            _tamperAuditList = New List(Of TamperAuditEntry)()
+            Dim tamperAuditList As New List(Of TamperAuditEntry)()
             Dim giConnStr = _db.Database.GetConnectionString()
             Using giConn As New MySqlConnection(giConnStr)
                 Await giConn.OpenAsync()
@@ -46,11 +45,11 @@ Namespace Services
                                         "FROM Acc_TamperAuditLog " &
                                         "WHERE DetectedAt >= @fromUtc AND DetectedAt <= @toUtc " &
                                         "ORDER BY DetectedAt DESC"
-                    giCmd.Parameters.Add(New MySqlParameter("@fromUtc", fromUtc.ToString("o")))
-                    giCmd.Parameters.Add(New MySqlParameter("@toUtc", toUtc.ToString("o")))
+                    giCmd.Parameters.Add(New MySqlParameter("@fromUtc", fromUtc))
+                    giCmd.Parameters.Add(New MySqlParameter("@toUtc", toUtc))
                     Using giReader = giCmd.ExecuteReader()
                         While giReader.Read()
-                            _tamperAuditList.Add(New TamperAuditEntry With {
+                            tamperAuditList.Add(New TamperAuditEntry With {
                                 .Id = giReader.GetInt64(0),
                                 .DetectedAt = giReader.GetDateTime(1),
                                 .ReceiptId = giReader.GetInt64(2),
@@ -69,7 +68,7 @@ Namespace Services
                     End Using
                 End Using
             End Using
-            Return _tamperAuditList
+            Return tamperAuditList
 
         End Function
 

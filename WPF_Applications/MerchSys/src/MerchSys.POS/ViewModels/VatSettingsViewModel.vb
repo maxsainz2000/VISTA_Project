@@ -45,7 +45,8 @@ Namespace ViewModels
 
         Private _tin As String = String.Empty
         <Required(ErrorMessage:="TIN is required.")>
-        <RegularExpression("^\d{3}-\d{3}-\d{3}-\d{3}$|^\d{9}$|^\d{12}$", ErrorMessage:="TIN must be 9 or 12 digits, or formatted as XXX-XXX-XXX-XXX.")>
+        <RegularExpression("^\d{3}-\d{3}-\d{3}(-\d{3}|-\d{5})?$",
+            ErrorMessage:="TIN must match BIR format: 999-999-999, 999-999-999-000, or 999-999-999-00000.")>
         Public Property Tin As String
             Get
                 Return _tin
