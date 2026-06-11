@@ -165,6 +165,8 @@ Class Application
 
                                       services.AddOptions(Of TamperReportExportOptions)().BindConfiguration("Accounting:TamperReport:Export")
                                       services.AddScoped(Of ITamperReportExporter, TamperReportExporter)()
+                                      services.AddScoped(Of IIncomeStatementPdfExporter, IncomeStatementPdfExporter)()
+                                      services.AddScoped(Of IVatReliefPdfExporter, VatReliefPdfExporter)()
                                       services.AddTransient(Of FinancialOverviewViewModel)()
                                       services.AddTransient(Of IncomeStatementViewModel)()
                                       services.AddTransient(Of SalesSummaryViewModel)()

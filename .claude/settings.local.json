@@ -114,7 +114,9 @@
       "Read(//c/Users/Admin/**)",
       "Bash(Select-String -Pattern \"error|warning|Build succeeded|Build FAILED\")",
       "Bash(Select-String -Pattern \"error|warning|Build succeeded|Error\\\\\\(s\\\\\\)|Warning\\\\\\(s\\\\\\)\")",
-      "PowerShell(New-Item *)"
+      "PowerShell(New-Item *)",
+      "Bash(grep -rn \"InvertSemantics\\\\|x:Key=\\\\\"Percent\\\\\"\\\\|Public Property Percent\\\\|PercentProperty\" WPF_Applications/MerchSys/src/MerchSys.App/Views/Shell/DeltaIndicator.xaml.vb)",
+      "Bash(grep -rn \"IconLightbulbGeometry\\\\|IconCheckGeometry\\\\|IconWarningGeometry\\\\|x:Key=\\\\\"IconBase\\\\\"\" WPF_Applications/MerchSys/src/MerchSys.App/Themes/Icons.xaml)"
     ]
   }
 }

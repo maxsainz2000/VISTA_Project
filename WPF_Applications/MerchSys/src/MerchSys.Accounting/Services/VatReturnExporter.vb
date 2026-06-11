@@ -5,6 +5,9 @@ Imports MerchSys.Accounting.Data
 Imports MerchSys.Accounting.Enums
 Imports Microsoft.EntityFrameworkCore
 Imports Microsoft.Extensions.Logging
+Imports QuestPDF.Fluent
+Imports QuestPDF.Helpers
+Imports QuestPDF.Infrastructure
 
 Namespace Services
 
@@ -73,10 +76,76 @@ Namespace Services
                 Throw New InvalidOperationException($"VAT return #{returnId} not found.")
             End If
 
-            Dim templateText = LoadTemplate(vatReturn.FormType)
-            Dim rendered = ApplyTemplate(templateText, vatReturn)
-            Dim bytes = Encoding.UTF8.GetBytes(rendered)
-            Return New MemoryStream(bytes)
+            Dim csvLines = BuildCsvLineItems(vatReturn)
+            Dim periodDesc = PeriodDescription(vatReturn)
+            Dim deadline = FilingDeadlineText(vatReturn)
+            Dim whatMeans = WhatThisMeansText(vatReturn)
+
+            Dim doc = Document.Create(
+                Sub(container)
+                    container.Page(
+                        Sub(pg)
+                            pg.Size(PageSizes.A4)
+                            pg.Margin(30)
+                            pg.DefaultTextStyle(Function(s) s.FontFamily("Consolas").FontSize(9))
+
+                            pg.Header().Column(
+                                Sub(col)
+                                    col.Item().Text("Villon Farm Supply").Bold().FontSize(12)
+                                    col.Item().PaddingTop(10).Text($"BIR {vatReturn.FormType} — VAT RETURN").Bold().FontSize(14)
+                                    col.Item().Text(periodDesc).FontSize(10)
+                                    col.Item().Text($"Filing Status: {vatReturn.FilingStatus}").FontSize(9)
+                                    col.Item().Text($"Generated: {vatReturn.GeneratedAt:yyyy-MM-dd HH:mm:ss} UTC").FontSize(8)
+                                    col.Item().PaddingBottom(10)
+                                End Sub)
+
+                            pg.Content().PaddingTop(5).Column(
+                                Sub(col)
+                                    col.Item().Table(
+                                        Sub(tbl)
+                                            tbl.ColumnsDefinition(
+                                                Sub(cols)
+                                                    cols.RelativeColumn(1)   ' Line No
+                                                    cols.RelativeColumn(6)   ' Description
+                                                    cols.RelativeColumn(2.5) ' Amount
+                                                End Sub)
+
+                                            tbl.Header(
+                                                Sub(h)
+                                                    h.Cell().Background(Colors.Grey.Lighten3).Padding(3).Text("Line").Bold()
+                                                    h.Cell().Background(Colors.Grey.Lighten3).Padding(3).Text("Description").Bold()
+                                                    h.Cell().Background(Colors.Grey.Lighten3).Padding(3).AlignRight().Text("Amount (₱)").Bold()
+                                                End Sub)
+
+                                            For Each item In csvLines
+                                                tbl.Cell().BorderBottom(0.5, QuestPDF.Infrastructure.Unit.Point).BorderColor(Colors.Grey.Lighten2).Padding(3).Text(item.LineNo)
+                                                tbl.Cell().BorderBottom(0.5, QuestPDF.Infrastructure.Unit.Point).BorderColor(Colors.Grey.Lighten2).Padding(3).Text(item.Description)
+                                                tbl.Cell().BorderBottom(0.5, QuestPDF.Infrastructure.Unit.Point).BorderColor(Colors.Grey.Lighten2).Padding(3).AlignRight().Text(item.Amount)
+                                            Next
+                                        End Sub)
+
+                                    ' Filing deadline
+                                    col.Item().PaddingTop(15).Text($"Filing Deadline: {deadline}").FontSize(9)
+
+                                    ' What this means
+                                    col.Item().PaddingTop(10).Text("INTERPRETATION").Bold().FontSize(10)
+                                    col.Item().PaddingTop(4).Text(whatMeans).FontSize(9)
+                                End Sub)
+
+                            pg.Footer().AlignCenter().PaddingTop(10).Text(
+                                Sub(txt)
+                                    txt.Span("Villon Farm Supply — VISTA VAT Return — page ")
+                                    txt.CurrentPageNumber()
+                                    txt.Span(" of ")
+                                    txt.TotalPages()
+                                End Sub)
+                        End Sub)
+                End Sub)
+
+            Dim ms As New MemoryStream()
+            Await Task.Run(Sub() doc.GeneratePdf(ms))
+            ms.Position = 0
+            Return ms
         End Function
 
         ' ─── CSV Builder ────────────────────────────────────────────────────────────
@@ -152,6 +221,59 @@ Namespace Services
             End Select
 
             Return sb.ToString()
+        End Function
+
+        ' ─── PDF Line Item Builder ──────────────────────────────────────────────────
+
+        Private Class VatReturnLineItem
+            Public Property LineNo As String
+            Public Property Description As String
+            Public Property Amount As String
+        End Class
+
+        Private Shared Function BuildCsvLineItems(vatReturn As Entities.VatReturn) As List(Of VatReturnLineItem)
+            Dim items As New List(Of VatReturnLineItem)()
+            Dim totalGross = vatReturn.TotalVatableSales + vatReturn.TotalVatExemptSales + vatReturn.TotalZeroRatedSales
+
+            Select Case vatReturn.FormType
+                Case VatReturnFormType.Form2550M
+                    items.Add(New VatReturnLineItem With {.LineNo = "1", .Description = "Taxable Sales/Receipts (Net of VAT)", .Amount = vatReturn.TotalVatableSales.ToString("N2")})
+                    items.Add(New VatReturnLineItem With {.LineNo = "2", .Description = "Zero-Rated Sales/Receipts", .Amount = vatReturn.TotalZeroRatedSales.ToString("N2")})
+                    items.Add(New VatReturnLineItem With {.LineNo = "3", .Description = "Exempt Sales/Receipts", .Amount = vatReturn.TotalVatExemptSales.ToString("N2")})
+                    items.Add(New VatReturnLineItem With {.LineNo = "4", .Description = "Total Gross Sales/Receipts", .Amount = totalGross.ToString("N2")})
+                    items.Add(New VatReturnLineItem With {.LineNo = "5", .Description = "Output Tax (12% of Line 1)", .Amount = vatReturn.TotalOutputVat.ToString("N2")})
+                    items.Add(New VatReturnLineItem With {.LineNo = "6", .Description = "Adjustments to Output Tax", .Amount = "0.00"})
+                    items.Add(New VatReturnLineItem With {.LineNo = "7", .Description = "Total Output Tax", .Amount = vatReturn.TotalOutputVat.ToString("N2")})
+                    items.Add(New VatReturnLineItem With {.LineNo = "8", .Description = "Input Tax Carried Over from Previous Period", .Amount = "0.00"})
+                    items.Add(New VatReturnLineItem With {.LineNo = "9", .Description = "Input Tax on Domestic Purchases", .Amount = vatReturn.TotalInputVat.ToString("N2")})
+                    items.Add(New VatReturnLineItem With {.LineNo = "10", .Description = "Total Allowable Input Tax", .Amount = vatReturn.TotalInputVat.ToString("N2")})
+                    items.Add(New VatReturnLineItem With {.LineNo = "11", .Description = "VAT Payable/(Creditable)", .Amount = vatReturn.VatPayable.ToString("N2")})
+                    items.Add(New VatReturnLineItem With {.LineNo = "23", .Description = "Total Amount Due", .Amount = vatReturn.VatPayable.ToString("N2")})
+
+                Case VatReturnFormType.Form2550Q
+                    items.Add(New VatReturnLineItem With {.LineNo = "1", .Description = "Taxable Sales Q1 Month 1", .Amount = vatReturn.TotalVatableSales.ToString("N2")})
+                    items.Add(New VatReturnLineItem With {.LineNo = "4", .Description = "Total Taxable Sales for the Quarter", .Amount = vatReturn.TotalVatableSales.ToString("N2")})
+                    items.Add(New VatReturnLineItem With {.LineNo = "5", .Description = "Zero-Rated Sales", .Amount = vatReturn.TotalZeroRatedSales.ToString("N2")})
+                    items.Add(New VatReturnLineItem With {.LineNo = "6", .Description = "Exempt Sales", .Amount = vatReturn.TotalVatExemptSales.ToString("N2")})
+                    items.Add(New VatReturnLineItem With {.LineNo = "7", .Description = "Total Gross Sales/Receipts", .Amount = totalGross.ToString("N2")})
+                    items.Add(New VatReturnLineItem With {.LineNo = "8", .Description = "Output Tax (12% of Line 4)", .Amount = vatReturn.TotalOutputVat.ToString("N2")})
+                    items.Add(New VatReturnLineItem With {.LineNo = "10", .Description = "Total Output Tax", .Amount = vatReturn.TotalOutputVat.ToString("N2")})
+                    items.Add(New VatReturnLineItem With {.LineNo = "12", .Description = "Input Tax on Domestic Purchases", .Amount = vatReturn.TotalInputVat.ToString("N2")})
+                    items.Add(New VatReturnLineItem With {.LineNo = "13", .Description = "Total Allowable Input Tax", .Amount = vatReturn.TotalInputVat.ToString("N2")})
+                    items.Add(New VatReturnLineItem With {.LineNo = "14", .Description = "VAT Payable/(Creditable)", .Amount = vatReturn.VatPayable.ToString("N2")})
+                    items.Add(New VatReturnLineItem With {.LineNo = "17", .Description = "Net VAT Payable for the Quarter", .Amount = vatReturn.VatPayable.ToString("N2")})
+                    items.Add(New VatReturnLineItem With {.LineNo = "28", .Description = "Total Amount Due", .Amount = vatReturn.VatPayable.ToString("N2")})
+
+                Case VatReturnFormType.Form2551Q
+                    items.Add(New VatReturnLineItem With {.LineNo = "1", .Description = "Gross Taxable Receipts Month 1", .Amount = vatReturn.TotalVatableSales.ToString("N2")})
+                    items.Add(New VatReturnLineItem With {.LineNo = "4", .Description = "Total Gross Taxable Receipts", .Amount = vatReturn.TotalVatableSales.ToString("N2")})
+                    items.Add(New VatReturnLineItem With {.LineNo = "5", .Description = "Rate of Tax (3%)", .Amount = "0.03"})
+                    items.Add(New VatReturnLineItem With {.LineNo = "6", .Description = "Tax Due (Line 4 × Line 5)", .Amount = vatReturn.VatPayable.ToString("N2")})
+                    items.Add(New VatReturnLineItem With {.LineNo = "8", .Description = "Tax Still Due", .Amount = vatReturn.VatPayable.ToString("N2")})
+                    items.Add(New VatReturnLineItem With {.LineNo = "14", .Description = "Total Amount Due", .Amount = vatReturn.VatPayable.ToString("N2")})
+            End Select
+
+            Return items
         End Function
 
         ' ─── Template Engine ────────────────────────────────────────────────────────

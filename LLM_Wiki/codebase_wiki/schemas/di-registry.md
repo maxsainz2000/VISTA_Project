@@ -86,6 +86,8 @@ This page documents the composition root in `MerchSys.App`.
 | `ITamperAuditQueryService` | `TamperAuditQueryService` | Scoped |
 | `ITamperReportExporter` | `TamperReportExporter` | Scoped |
 | `IOptions(Of TamperReportExportOptions)` | (Configuration) | Singleton |
+| `IIncomeStatementPdfExporter` | `IncomeStatementPdfExporter` | Scoped |
+| `IVatReliefPdfExporter` | `VatReliefPdfExporter` | Scoped |
 | `IVatReliefReportService` | `VatReliefReportService` | Scoped |
 | (none) | `FinancialOverviewViewModel` | Transient |
 | (none) | `IncomeStatementViewModel` | Transient |

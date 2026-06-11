@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="Report Preview" Width="740" Height="580"
+        Title="Report Preview" Width="740" Height="680"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
         Background="{DynamicResource WindowBackgroundBrush}"
         BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1">
@@ -22,23 +22,30 @@
                    Foreground="{DynamicResource TextPrimaryBrush}"
                    Margin="0,0,0,10"/>
 
-        <!-- Content area -->
+        <!-- PDF Page Preview Area -->
         <Border Grid.Row="1"
                 BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
                 Background="{DynamicResource SurfaceBrush}"
                 Margin="0,0,0,12">
             <ScrollViewer VerticalScrollBarVisibility="Auto"
-                          HorizontalScrollBarVisibility="Auto">
-                <TextBox x:Name="PreviewTextBox"
-                         IsReadOnly="True"
-                         FontFamily="Courier New" FontSize="11"
-                         Padding="12"
-                         BorderThickness="0"
-                         TextWrapping="NoWrap"
-                         Background="Transparent"
-                         Foreground="{DynamicResource TextPrimaryBrush}"
-                         VerticalScrollBarVisibility="Disabled"
-                         HorizontalScrollBarVisibility="Disabled"/>
+                          HorizontalScrollBarVisibility="Auto"
+                          x:Name="PreviewScrollViewer">
+                <ItemsControl x:Name="PageItemsControl">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="8" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                                    Background="White"
+                                    HorizontalAlignment="Center">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.2" Color="Black"/>
+                                </Border.Effect>
+                                <Image Source="{Binding}"
+                                       Stretch="Uniform"
+                                       RenderOptions.BitmapScalingMode="HighQuality"/>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
             </ScrollViewer>
         </Border>
 
@@ -49,7 +56,7 @@
                     Padding="14,6" Margin="0,0,8,0"
                     Click="PrintButton_Click"
                     TabIndex="1"/>
-            <Button Content="Save As..." x:Name="SaveButton"
+            <Button Content="Save As PDF..." x:Name="SaveButton"
                     Style="{StaticResource PrimaryButtonStyle}"
                     Padding="14,6" Margin="0,0,8,0"
                     Click="SaveButton_Click"

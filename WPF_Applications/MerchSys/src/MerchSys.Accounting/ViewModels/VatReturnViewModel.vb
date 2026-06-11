@@ -435,8 +435,8 @@ Namespace ViewModels
             Dim capturedError As String = Nothing
             Try
                 Dim stream = Await _exporter.ExportPdfAsync(_currentReturnId.Value)
-                Dim fileName = $"VATReturn_{_selectedFormType}_{_selectedYear}_P{_selectedPeriod}.pdf.txt"
-                RaiseEvent ExportReady(Me, New ExportReadyEventArgs With {.FileName = fileName, .Data = stream, .Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*"})
+                Dim fileName = $"VATReturn_{_selectedFormType}_{_selectedYear}_P{_selectedPeriod}.pdf"
+                RaiseEvent ExportReady(Me, New ExportReadyEventArgs With {.FileName = fileName, .Data = stream, .Filter = "PDF files (*.pdf)|*.pdf"})
             Catch ex As Exception
                 capturedError = $"Export error: {ex.Message}"
             Finally
