@@ -51,6 +51,14 @@ Namespace ViewModels
         ''' </summary>
         Public Event LoginSucceeded As EventHandler
 
+        ''' <summary>
+        ''' UX-48 (additive, presentation-only): raised on every rejected attempt — wrong
+        ''' credentials, auth exception, or a rejected password change. NOT raised for the DA6
+        ''' redirect ("set a new password"), which is guidance, not a failure. LoginView uses
+        ''' this for the reject shake + mascot beat; keying off ErrorMessage would misfire on DA6.
+        ''' </summary>
+        Public Event LoginAttemptFailed As EventHandler
+
         ' ── Observable properties ─────────────────────────────────────────────
 
         Private _username As String = String.Empty
@@ -231,6 +239,7 @@ Namespace ViewModels
             If capturedEx IsNot Nothing Then
                 ErrorMessage = "An unexpected error occurred. Please try again."
                 IsLoggingIn = False
+                RaiseEvent LoginAttemptFailed(Me, EventArgs.Empty)
                 Return
             End If
 
@@ -238,6 +247,7 @@ Namespace ViewModels
                 ErrorMessage = result.FailureReason
                 Password = String.Empty
                 IsLoggingIn = False
+                RaiseEvent LoginAttemptFailed(Me, EventArgs.Empty)
                 Return
             End If
 
@@ -263,11 +273,13 @@ Namespace ViewModels
             If IsLoggingIn Then Return
             If NewPassword <> ConfirmNewPassword Then
                 ErrorMessage = "Passwords do not match."
+                RaiseEvent LoginAttemptFailed(Me, EventArgs.Empty)
                 Return
             End If
             If _pendingUser Is Nothing Then
                 ErrorMessage = "Session error. Please log in again."
                 ShowPasswordChange = False
+                RaiseEvent LoginAttemptFailed(Me, EventArgs.Empty)
                 Return
             End If
 
@@ -285,12 +297,14 @@ Namespace ViewModels
             If capturedEx IsNot Nothing Then
                 ErrorMessage = "An unexpected error occurred. Please try again."
                 IsLoggingIn = False
+                RaiseEvent LoginAttemptFailed(Me, EventArgs.Empty)
                 Return
             End If
 
             If Not changeResult.Success Then
                 ErrorMessage = String.Join(Environment.NewLine, changeResult.ValidationErrors)
                 IsLoggingIn = False
+                RaiseEvent LoginAttemptFailed(Me, EventArgs.Empty)
                 Return
             End If
 

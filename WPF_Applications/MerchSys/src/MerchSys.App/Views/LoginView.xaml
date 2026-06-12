@@ -4,9 +4,10 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:helpers="clr-namespace:MerchSys.App.Helpers"
+        xmlns:login="clr-namespace:MerchSys.App.Views.Login"
         mc:Ignorable="d"
         Title="VISTA — Login"
-        Width="420" SizeToContent="Height"
+        Width="900" Height="700"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource WindowBackgroundBrush}"
@@ -37,162 +38,216 @@
 
     </Window.Resources>
 
-    <Grid Margin="24">
-        <Border Style="{StaticResource CardStyle}" Padding="32,28">
-            <StackPanel>
+    <Grid>
 
-                <!-- ── Branding ──────────────────────────────────────── -->
-                <TextBlock Text="VISTA"
-                           Style="{StaticResource MetricValueLargeStyle}"
-                           HorizontalAlignment="Center"/>
-                <TextBlock Text="Villon Integrated Supply and Trade Application"
-                           Foreground="{DynamicResource TextSecondaryBrush}"
-                           FontFamily="{DynamicResource AppFontFamily}"
-                           FontSize="{DynamicResource FontSizeCaption}"
-                           TextAlignment="Center"
-                           HorizontalAlignment="Center"
-                           Margin="0,4,0,28"
-                           TextWrapping="Wrap"/>
+        <!-- ── UX-48: living time-of-day panorama (decorative; never interactive) ── -->
+        <login:DynamicSceneCanvas x:Name="SceneCanvas"/>
 
-                <!-- ── Credentials panel ──────────────────────────────── -->
+        <!-- Dark theme lays a subtle scrim over the scene; transparent in Light -->
+        <Rectangle Fill="{DynamicResource LoginSceneScrimBrush}" IsHitTestVisible="False"/>
+
+        <!-- ── Centered card + mascot badge ──────────────────────────────────── -->
+        <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Margin="24,12">
+
+            <Border Style="{StaticResource CardStyle}" Width="384" Padding="32,60,32,24" Margin="0,48,0,0">
+                <Border.RenderTransform>
+                    <TranslateTransform x:Name="CardShakeTr"/>
+                </Border.RenderTransform>
                 <StackPanel>
 
-                    <!-- Username -->
-                    <TextBlock Text="Username" Style="{StaticResource FieldLabelStyle}"/>
-                    <TextBox x:Name="UsernameTextBox"
-                             Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
-                             TabIndex="1"
-                             Margin="0,0,0,14"/>
-
-                    <!-- Password with eye toggle -->
-                    <!-- HidePassword=True  → PasswordBox visible, TextBox hidden (normal) -->
-                    <!-- HidePassword=False → TextBox visible, PasswordBox hidden (reveal)  -->
-                    <TextBlock Text="Password" Style="{StaticResource FieldLabelStyle}"/>
-                    <Grid Margin="0,0,0,14">
-                        <PasswordBox helpers:PasswordBoxHelper.IsMonitoring="True"
-                                     helpers:PasswordBoxHelper.BoundPassword="{Binding Password, Mode=TwoWay}"
-                                     Visibility="{Binding HidePassword, Converter={StaticResource BoolToVis}}"
-                                     TabIndex="2">
-                            <PasswordBox.InputBindings>
-                                <KeyBinding Key="Return" Command="{Binding LoginCommand}"/>
-                            </PasswordBox.InputBindings>
-                        </PasswordBox>
-                        <TextBox Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}"
-                                 Visibility="{Binding ShowPassword, Converter={StaticResource BoolToVis}}"
-                                 TabIndex="2">
-                            <TextBox.InputBindings>
-                                <KeyBinding Key="Return" Command="{Binding LoginCommand}"/>
-                            </TextBox.InputBindings>
-                        </TextBox>
-                        <Button Style="{StaticResource EyeButton}"
-                                Command="{Binding ToggleShowPasswordCommand}"
-                                IsTabStop="False"
-                                HorizontalAlignment="Right"
-                                VerticalAlignment="Center"
-                                Margin="0,0,4,0"
-                                ToolTip="Show / hide password"
-                                AutomationProperties.Name="Show or hide password"
-                                AutomationProperties.HelpText="Toggles the visibility of the password characters in the input field.">
-                            <Path Width="18" Height="18" Fill="{DynamicResource TextSecondaryBrush}">
-                                <Path.Style>
-                                    <Style TargetType="Path" BasedOn="{StaticResource IconBase}">
-                                        <Setter Property="Data" Value="{StaticResource IconEyeGeometry}"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding ShowPassword}" Value="True">
-                                                <Setter Property="Data" Value="{StaticResource IconEyeOffGeometry}"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Path.Style>
-                            </Path>
-                        </Button>
-                    </Grid>
-
-                    <!-- Error message -->
-                    <TextBlock Text="{Binding ErrorMessage}"
-                               Foreground="{DynamicResource DangerBrush}"
-                               FontSize="{DynamicResource FontSizeCaption}"
-                               TextWrapping="Wrap"
-                               Margin="0,0,0,12"
-                               Visibility="{Binding HasError, Converter={StaticResource BoolToVis}}"/>
-
-                    <!-- Log In button (hidden when password-change panel is shown) -->
-                    <Button Content="_LOG IN"
-                            Command="{Binding LoginCommand}"
-                            Style="{StaticResource PrimaryButtonStyle}"
-                            Height="38"
-                            IsEnabled="{Binding IsNotLoggingIn}"
-                            Visibility="{Binding HidePasswordChange, Converter={StaticResource BoolToVis}}"
-                            TabIndex="3"
-                            IsDefault="True"/>
-
-                </StackPanel>
-
-                <!-- ── First-login password change panel (DA6) ──────── -->
-                <StackPanel Margin="0,20,0,0"
-                            Visibility="{Binding ShowPasswordChange, Converter={StaticResource BoolToVis}}">
-
-                    <Border Height="1" Background="{DynamicResource SeparatorBrush}" Margin="0,0,0,16"/>
-
-                    <TextBlock Text="Set a new password to continue"
-                               Foreground="{DynamicResource WarningBrush}"
-                               FontSize="{DynamicResource FontSizeCaption}"
+                    <!-- ── Branding ──────────────────────────────────────── -->
+                    <TextBlock Text="VISTA"
+                               FontFamily="{DynamicResource AppFontFamily}"
+                               FontSize="{DynamicResource FontSizeTitle}"
                                FontWeight="SemiBold"
-                               Margin="0,0,0,14"/>
+                               Foreground="{DynamicResource TextPrimaryBrush}"
+                               HorizontalAlignment="Center"/>
+                    <TextBlock Text="Villon Integrated Supply and Trade Application"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               FontFamily="{DynamicResource AppFontFamily}"
+                               FontSize="{DynamicResource FontSizeCaption}"
+                               TextAlignment="Center"
+                               HorizontalAlignment="Center"
+                               Margin="0,4,0,24"
+                               TextWrapping="Wrap"/>
 
-                    <!-- New Password -->
-                    <TextBlock Text="New Password" Style="{StaticResource FieldLabelStyle}"/>
-                    <Grid Margin="0,0,0,14">
-                        <PasswordBox helpers:PasswordBoxHelper.IsMonitoring="True"
-                                     helpers:PasswordBoxHelper.BoundPassword="{Binding NewPassword, Mode=TwoWay}"
-                                     Visibility="{Binding HideNewPassword, Converter={StaticResource BoolToVis}}"
+                    <!-- ── Credentials panel ──────────────────────────────── -->
+                    <StackPanel>
+
+                        <!-- Username -->
+                        <TextBlock Text="Username" Style="{StaticResource FieldLabelStyle}"/>
+                        <TextBox x:Name="UsernameTextBox"
+                                 Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
+                                 TabIndex="1"
+                                 Margin="0,0,0,14"/>
+
+                        <!-- Password label + CapsLock badge (UX-48: first CapsLock affordance in the app) -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Password" Style="{StaticResource FieldLabelStyle}"/>
+                            <StackPanel x:Name="CapsLockBadge"
+                                        Grid.Column="1"
+                                        Orientation="Horizontal"
+                                        Visibility="Collapsed"
+                                        Margin="0,0,0,4"
+                                        AutomationProperties.LiveSetting="Assertive">
+                                <Path Width="13" Height="13"
+                                      Style="{StaticResource IconBase}"
+                                      Data="{StaticResource IconWarningGeometry}"
+                                      Fill="{DynamicResource WarningBrush}"/>
+                                <TextBlock Text="Caps Lock is on"
+                                           Foreground="{DynamicResource WarningBrush}"
+                                           FontFamily="{DynamicResource AppFontFamily}"
+                                           FontSize="{DynamicResource FontSizeCaption}"
+                                           Margin="5,0,0,0"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Password with eye toggle -->
+                        <!-- HidePassword=True  → PasswordBox visible, TextBox hidden (normal) -->
+                        <!-- HidePassword=False → TextBox visible, PasswordBox hidden (reveal)  -->
+                        <Grid Margin="0,0,0,14">
+                            <PasswordBox x:Name="PasswordBoxHidden"
+                                         helpers:PasswordBoxHelper.IsMonitoring="True"
+                                         helpers:PasswordBoxHelper.BoundPassword="{Binding Password, Mode=TwoWay}"
+                                         Visibility="{Binding HidePassword, Converter={StaticResource BoolToVis}}"
+                                         TabIndex="2">
+                                <PasswordBox.InputBindings>
+                                    <KeyBinding Key="Return" Command="{Binding LoginCommand}"/>
+                                </PasswordBox.InputBindings>
+                            </PasswordBox>
+                            <TextBox x:Name="PasswordRevealBox"
+                                     Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}"
+                                     Visibility="{Binding ShowPassword, Converter={StaticResource BoolToVis}}"
+                                     TabIndex="2">
+                                <TextBox.InputBindings>
+                                    <KeyBinding Key="Return" Command="{Binding LoginCommand}"/>
+                                </TextBox.InputBindings>
+                            </TextBox>
+                            <Button Style="{StaticResource EyeButton}"
+                                    Command="{Binding ToggleShowPasswordCommand}"
+                                    IsTabStop="False"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center"
+                                    Margin="0,0,4,0"
+                                    ToolTip="Show / hide password"
+                                    AutomationProperties.Name="Show or hide password"
+                                    AutomationProperties.HelpText="Toggles the visibility of the password characters in the input field.">
+                                <Path Width="18" Height="18" Fill="{DynamicResource TextSecondaryBrush}">
+                                    <Path.Style>
+                                        <Style TargetType="Path" BasedOn="{StaticResource IconBase}">
+                                            <Setter Property="Data" Value="{StaticResource IconEyeGeometry}"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ShowPassword}" Value="True">
+                                                    <Setter Property="Data" Value="{StaticResource IconEyeOffGeometry}"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Path.Style>
+                                </Path>
+                            </Button>
+                        </Grid>
+
+                        <!-- Error message -->
+                        <TextBlock Text="{Binding ErrorMessage}"
+                                   Foreground="{DynamicResource DangerBrush}"
+                                   FontSize="{DynamicResource FontSizeCaption}"
+                                   TextWrapping="Wrap"
+                                   Margin="0,0,0,12"
+                                   AutomationProperties.LiveSetting="Assertive"
+                                   Visibility="{Binding HasError, Converter={StaticResource BoolToVis}}"/>
+
+                        <!-- Log In button (hidden when password-change panel is shown) -->
+                        <Button Content="_LOG IN"
+                                Command="{Binding LoginCommand}"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Height="38"
+                                IsEnabled="{Binding IsNotLoggingIn}"
+                                Visibility="{Binding HidePasswordChange, Converter={StaticResource BoolToVis}}"
+                                TabIndex="3"
+                                IsDefault="True"/>
+
+                    </StackPanel>
+
+                    <!-- ── First-login password change panel (DA6) ──────── -->
+                    <StackPanel Margin="0,16,0,0"
+                                Visibility="{Binding ShowPasswordChange, Converter={StaticResource BoolToVis}}">
+
+                        <Border Height="1" Background="{DynamicResource SeparatorBrush}" Margin="0,0,0,14"/>
+
+                        <TextBlock Text="Set a new password to continue"
+                                   Foreground="{DynamicResource WarningBrush}"
+                                   FontSize="{DynamicResource FontSizeCaption}"
+                                   FontWeight="SemiBold"
+                                   Margin="0,0,0,12"/>
+
+                        <!-- New Password -->
+                        <TextBlock Text="New Password" Style="{StaticResource FieldLabelStyle}"/>
+                        <Grid Margin="0,0,0,12">
+                            <PasswordBox x:Name="NewPasswordBox"
+                                         helpers:PasswordBoxHelper.IsMonitoring="True"
+                                         helpers:PasswordBoxHelper.BoundPassword="{Binding NewPassword, Mode=TwoWay}"
+                                         Visibility="{Binding HideNewPassword, Converter={StaticResource BoolToVis}}"
+                                         TabIndex="4"/>
+                            <TextBox x:Name="NewPasswordRevealBox"
+                                     Text="{Binding NewPassword, UpdateSourceTrigger=PropertyChanged}"
+                                     Visibility="{Binding ShowNewPassword, Converter={StaticResource BoolToVis}}"
                                      TabIndex="4"/>
-                        <TextBox Text="{Binding NewPassword, UpdateSourceTrigger=PropertyChanged}"
-                                 Visibility="{Binding ShowNewPassword, Converter={StaticResource BoolToVis}}"
-                                 TabIndex="4"/>
-                        <Button Style="{StaticResource EyeButton}"
-                                Command="{Binding ToggleShowNewPasswordCommand}"
-                                IsTabStop="False"
-                                HorizontalAlignment="Right"
-                                VerticalAlignment="Center"
-                                Margin="0,0,4,0"
-                                ToolTip="Show / hide new password"
-                                AutomationProperties.Name="Show or hide new password"
-                                AutomationProperties.HelpText="Toggles the visibility of the new password characters in the input field.">
-                            <Path Width="18" Height="18" Fill="{DynamicResource TextSecondaryBrush}">
-                                <Path.Style>
-                                    <Style TargetType="Path" BasedOn="{StaticResource IconBase}">
-                                        <Setter Property="Data" Value="{StaticResource IconEyeGeometry}"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding ShowNewPassword}" Value="True">
-                                                <Setter Property="Data" Value="{StaticResource IconEyeOffGeometry}"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Path.Style>
-                            </Path>
-                        </Button>
-                    </Grid>
+                            <Button Style="{StaticResource EyeButton}"
+                                    Command="{Binding ToggleShowNewPasswordCommand}"
+                                    IsTabStop="False"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center"
+                                    Margin="0,0,4,0"
+                                    ToolTip="Show / hide new password"
+                                    AutomationProperties.Name="Show or hide new password"
+                                    AutomationProperties.HelpText="Toggles the visibility of the new password characters in the input field.">
+                                <Path Width="18" Height="18" Fill="{DynamicResource TextSecondaryBrush}">
+                                    <Path.Style>
+                                        <Style TargetType="Path" BasedOn="{StaticResource IconBase}">
+                                            <Setter Property="Data" Value="{StaticResource IconEyeGeometry}"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ShowNewPassword}" Value="True">
+                                                    <Setter Property="Data" Value="{StaticResource IconEyeOffGeometry}"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Path.Style>
+                                </Path>
+                            </Button>
+                        </Grid>
 
-                    <!-- Confirm New Password -->
-                    <TextBlock Text="Confirm New Password" Style="{StaticResource FieldLabelStyle}"/>
-                    <PasswordBox helpers:PasswordBoxHelper.IsMonitoring="True"
-                                 helpers:PasswordBoxHelper.BoundPassword="{Binding ConfirmNewPassword, Mode=TwoWay}"
-                                 Margin="0,0,0,20"
-                                 TabIndex="5"/>
+                        <!-- Confirm New Password -->
+                        <TextBlock Text="Confirm New Password" Style="{StaticResource FieldLabelStyle}"/>
+                        <PasswordBox x:Name="ConfirmNewPasswordBox"
+                                     helpers:PasswordBoxHelper.IsMonitoring="True"
+                                     helpers:PasswordBoxHelper.BoundPassword="{Binding ConfirmNewPassword, Mode=TwoWay}"
+                                     Margin="0,0,0,16"
+                                     TabIndex="5"/>
 
-                    <Button Content="_SET PASSWORD AND CONTINUE"
-                            Command="{Binding ChangePasswordCommand}"
-                            Style="{StaticResource PrimaryButtonStyle}"
-                            Height="38"
-                            IsEnabled="{Binding IsNotLoggingIn}"
-                            TabIndex="6"
-                            IsDefault="True"/>
+                        <Button Content="_SET PASSWORD AND CONTINUE"
+                                Command="{Binding ChangePasswordCommand}"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Height="38"
+                                IsEnabled="{Binding IsNotLoggingIn}"
+                                TabIndex="6"
+                                IsDefault="True"/>
+
+                    </StackPanel>
 
                 </StackPanel>
+            </Border>
 
-            </StackPanel>
-        </Border>
+            <!-- Tanod the carabao, perched on the card (macOS-login avatar circle) -->
+            <login:CarabaoAvatar x:Name="Avatar"
+                                 Width="96" Height="96"
+                                 HorizontalAlignment="Center"
+                                 VerticalAlignment="Top"
+                                 Panel.ZIndex="2"/>
+        </Grid>
     </Grid>
 </Window>
-

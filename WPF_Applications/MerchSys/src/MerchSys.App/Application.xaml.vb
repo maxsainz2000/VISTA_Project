@@ -289,9 +289,19 @@ Class Application
         _loginView.Show()
     End Sub
 
-    Private Sub HandleLoginSucceeded(sender As Object, e As EventArgs)
+    Private Async Sub HandleLoginSucceeded(sender As Object, e As EventArgs)
         RemoveHandler _loginView.ViewModel.LoginSucceeded, AddressOf HandleLoginSucceeded
         RemoveHandler _loginView.Closed, AddressOf HandleLoginViewClosed
+
+        ' UX-48: let the mascot's ~450ms success beat play before the swap.
+        ' Hard-capped at 700ms so a broken storyboard can never wedge login;
+        ' static mode (reduced motion / low render tier) completes instantly.
+        Try
+            Await Task.WhenAny(_loginView.PlaySuccessBeatAsync(), Task.Delay(700))
+        Catch
+            ' Presentation-only beat — login proceeds regardless.
+        End Try
+
         _loginView.Hide()
 
         If _mainWindow Is Nothing Then

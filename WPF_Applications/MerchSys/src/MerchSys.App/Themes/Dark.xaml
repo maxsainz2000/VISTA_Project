@@ -42,4 +42,7 @@
     <SolidColorBrush x:Key="SkeletonBaseBrush"           Color="#2A2A2C"/>
     <Color x:Key="SkeletonShimmerHighlightColor">#3A3A3C</Color>
 
+    <!-- Login scene scrim (UX-48) — dims the panorama slightly so the dark card holds contrast -->
+    <SolidColorBrush x:Key="LoginSceneScrimBrush"        Color="#000000" Opacity="0.12"/>
+
 </ResourceDictionary>

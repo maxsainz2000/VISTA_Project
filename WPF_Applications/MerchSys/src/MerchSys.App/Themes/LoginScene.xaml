@@ -1,0 +1,113 @@
+<!--
+    VISTA Login Scene Palette & Assets (UX-48)
+    Time-of-day palette for the animated login panorama + carabao mascot colors.
+    These tokens are TIME-driven, not theme-driven: they are identical in Light and Dark
+    (the Dark theme applies LoginSceneScrimBrush over the scene instead).
+    Merged ONLY by Views/Login/DynamicSceneCanvas.xaml, Views/Login/CarabaoAvatar.xaml and
+    Views/LoginView.xaml - never into App resources.
+
+    Naming: Scene{Phase}{Element}Color   (phases: Dawn, Day, Golden, Dusk, Night)
+    Color tokens are animation seeds consumed in code (never fed into Brush properties);
+    Brush tokens are static fills for XAML.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ── Dawn (05:00-06:29) ──────────────────────────────────────────── -->
+    <Color x:Key="SceneDawnSkyTopColor">#34406B</Color>
+    <Color x:Key="SceneDawnSkyMidColor">#8C6E9E</Color>
+    <Color x:Key="SceneDawnSkyHorizonColor">#E8927C</Color>
+    <Color x:Key="SceneDawnMountainColor">#5A5E7E</Color>
+    <Color x:Key="SceneDawnFieldFarColor">#6F7E55</Color>
+    <Color x:Key="SceneDawnFieldNearColor">#5C6F49</Color>
+    <Color x:Key="SceneDawnFoliageColor">#6B8456</Color>
+    <Color x:Key="SceneDawnRoadColor">#8A7B66</Color>
+    <Color x:Key="SceneDawnStoreColor">#4E4A5A</Color>
+    <Color x:Key="SceneDawnCloudColor">#E8C9C2</Color>
+    <Color x:Key="SceneDawnSignPlateColor">#C9AE9C</Color>
+
+    <!-- ── Day (06:30-16:29) ───────────────────────────────────────────── -->
+    <Color x:Key="SceneDaySkyTopColor">#4A8FD4</Color>
+    <Color x:Key="SceneDaySkyMidColor">#8FC3E8</Color>
+    <Color x:Key="SceneDaySkyHorizonColor">#C9E8F5</Color>
+    <Color x:Key="SceneDayMountainColor">#7B92A8</Color>
+    <Color x:Key="SceneDayFieldFarColor">#7FA862</Color>
+    <Color x:Key="SceneDayFieldNearColor">#6B9A52</Color>
+    <Color x:Key="SceneDayFoliageColor">#79A85E</Color>
+    <Color x:Key="SceneDayRoadColor">#B59E7E</Color>
+    <Color x:Key="SceneDayStoreColor">#8A6E55</Color>
+    <Color x:Key="SceneDayCloudColor">#FFFFFF</Color>
+    <Color x:Key="SceneDaySignPlateColor">#E8DCC8</Color>
+
+    <!-- ── Golden hour (16:30-17:59) ───────────────────────────────────── -->
+    <Color x:Key="SceneGoldenSkyTopColor">#6E5A86</Color>
+    <Color x:Key="SceneGoldenSkyMidColor">#D8855A</Color>
+    <Color x:Key="SceneGoldenSkyHorizonColor">#F5D9A8</Color>
+    <Color x:Key="SceneGoldenMountainColor">#8A6E78</Color>
+    <Color x:Key="SceneGoldenFieldFarColor">#9C9050</Color>
+    <Color x:Key="SceneGoldenFieldNearColor">#87804A</Color>
+    <Color x:Key="SceneGoldenFoliageColor">#97914F</Color>
+    <Color x:Key="SceneGoldenRoadColor">#B08A62</Color>
+    <Color x:Key="SceneGoldenStoreColor">#74584E</Color>
+    <Color x:Key="SceneGoldenCloudColor">#F2C9A0</Color>
+    <Color x:Key="SceneGoldenSignPlateColor">#F2D9A8</Color>
+
+    <!-- ── Dusk (18:00-19:29) ──────────────────────────────────────────── -->
+    <Color x:Key="SceneDuskSkyTopColor">#3A2D63</Color>
+    <Color x:Key="SceneDuskSkyMidColor">#7E4A78</Color>
+    <Color x:Key="SceneDuskSkyHorizonColor">#C76B8E</Color>
+    <Color x:Key="SceneDuskMountainColor">#4A4062</Color>
+    <Color x:Key="SceneDuskFieldFarColor">#57614A</Color>
+    <Color x:Key="SceneDuskFieldNearColor">#475440</Color>
+    <Color x:Key="SceneDuskFoliageColor">#4F5C44</Color>
+    <Color x:Key="SceneDuskRoadColor">#6E6258</Color>
+    <Color x:Key="SceneDuskStoreColor">#3E3850</Color>
+    <Color x:Key="SceneDuskCloudColor">#9C7E96</Color>
+    <Color x:Key="SceneDuskSignPlateColor">#FFC868</Color>
+
+    <!-- ── Night (19:30-04:59) ─────────────────────────────────────────── -->
+    <Color x:Key="SceneNightSkyTopColor">#0B1230</Color>
+    <Color x:Key="SceneNightSkyMidColor">#1B2A4A</Color>
+    <Color x:Key="SceneNightSkyHorizonColor">#2A3B5E</Color>
+    <Color x:Key="SceneNightMountainColor">#232A40</Color>
+    <Color x:Key="SceneNightFieldFarColor">#2A3828</Color>
+    <Color x:Key="SceneNightFieldNearColor">#232E22</Color>
+    <Color x:Key="SceneNightFoliageColor">#2C3A28</Color>
+    <Color x:Key="SceneNightRoadColor">#3A3A42</Color>
+    <Color x:Key="SceneNightStoreColor">#1E2334</Color>
+    <Color x:Key="SceneNightCloudColor">#2E3A52</Color>
+    <Color x:Key="SceneNightSignPlateColor">#FFC868</Color>
+
+    <!-- ── Phase-independent scene colors ──────────────────────────────── -->
+    <Color x:Key="SceneSunGlowColor">#B3FFE9A8</Color>
+    <Color x:Key="SceneSunGlowFadeColor">#00FFE9A8</Color>
+    <Color x:Key="SceneSignHaloColor">#66FFC868</Color>
+    <Color x:Key="SceneSignHaloFadeColor">#00FFC868</Color>
+
+    <SolidColorBrush x:Key="SceneSunCoreBrush" Color="#FFF8E1"/>
+    <SolidColorBrush x:Key="SceneMoonBrush" Color="#E8ECF4"/>
+    <SolidColorBrush x:Key="SceneStarBrush" Color="#DCE4F2"/>
+    <SolidColorBrush x:Key="SceneFireflyBrush" Color="#FFE9A8"/>
+    <SolidColorBrush x:Key="SceneBirdBrush" Color="#3A3F47"/>
+    <SolidColorBrush x:Key="SceneSignTextBrush" Color="#2E2A22"/>
+    <SolidColorBrush x:Key="SceneDimBrush" Color="#000000"/>
+
+    <!-- ── Carabao mascot (Tanod) ──────────────────────────────────────── -->
+    <Color x:Key="AvatarBadgeTopColor">#8FB8DC</Color>
+    <Color x:Key="AvatarBadgeBottomColor">#6E96C4</Color>
+
+    <SolidColorBrush x:Key="AvatarHideBrush" Color="#7A828F"/>
+    <SolidColorBrush x:Key="AvatarHideShadowBrush" Color="#646B78"/>
+    <SolidColorBrush x:Key="AvatarMuzzleBrush" Color="#9AA1AC"/>
+    <SolidColorBrush x:Key="AvatarNostrilBrush" Color="#4A505C"/>
+    <SolidColorBrush x:Key="AvatarHornBrush" Color="#C9CDD4"/>
+    <SolidColorBrush x:Key="AvatarSalakotBrush" Color="#D9B36C"/>
+    <SolidColorBrush x:Key="AvatarSalakotDarkBrush" Color="#B8924E"/>
+    <SolidColorBrush x:Key="AvatarSalakotBandBrush" Color="#8A6E3E"/>
+    <SolidColorBrush x:Key="AvatarEyeWhiteBrush" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="AvatarPupilBrush" Color="#2E3440"/>
+    <SolidColorBrush x:Key="AvatarLidBrush" Color="#6E7682"/>
+    <SolidColorBrush x:Key="AvatarDetailBrush" Color="#4A505C"/>
+    <SolidColorBrush x:Key="AvatarZzzBrush" Color="#8A93A0"/>
+
+</ResourceDictionary>

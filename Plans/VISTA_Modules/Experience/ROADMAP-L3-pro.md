@@ -224,6 +224,45 @@ Each entry: **What · Why · Research · Codebase grounding · Scope · Owner ·
 - **Done-when.** Each "What This Means" banner renders info/positive/warning by the computed signal,
   with a matching icon (not color alone), in both themes; a margin drop past threshold shows amber.
 
+## P13 — Animated Login Experience
+*Slot: **UX-48** (plan generated) · Depends-on: UX-01, UX-07, UX-25*
+
+- **What.** Turn the static login card into VISTA's signature moment: a pure-vector **Philippine
+  farm panorama that follows the real local time of day** (five fixed bands — dawn/day/golden/
+  dusk/night, crossfaded; equatorial PH makes fixed bands honest), with ambient motion (drifting
+  clouds, swaying palay, fireflies at night, a glowing Villon storefront sign) and parallax; plus a
+  **reactive carabao mascot** ("Tanod", wearing a salakot) on the card that watches the username
+  caret, tips its hat over its eyes for the password, peeks on reveal, thinks while authenticating,
+  celebrates success, and shakes off rejection — alongside two functional wins: the app's **first
+  CapsLock warning** and the macOS-style **wrong-password card shake**.
+- **Why.** Every prior level is shipped; the usability floor is paid for. Emotional-design research
+  places exactly one well-crafted delight feature above that floor, and the login — first
+  touchpoint of every session (peak-end rule) — is its highest-leverage surface. The brand fit
+  (carabao + salakot + rice fields for an agri-retail store) makes it identity, not decoration.
+- **Research.** Aarron Walter's hierarchy of user needs (pleasurable atop usable); Don Norman,
+  visceral level of emotional design; Darin Senneff's "Yeti" sign-in form (canonical reactive-avatar
+  login, adapted); Apple macOS *dynamic desktop* (time-of-day environment precedent) + HIG motion
+  restraint; NN/g animation-usability guidance; WCAG 2.2.2 / 2.3.3 honored via the existing UX-25
+  OS reduced-motion mechanism (no in-app toggle, per the lean decision record).
+- **Codebase grounding.** `Views/LoginView.xaml` is a static 420px card; `LoginViewModel` already
+  exposes every needed hook (`Username` with `PropertyChanged`, `IsLoggingIn`, `ShowPassword`,
+  `ShowPasswordChange`, `LoginSucceeded`) — the only VM delta is one additive `LoginAttemptFailed`
+  event. UX-25's `MotionEnabled` propagation (`Application.xaml.vb → UpdateMotionSettings`) is the
+  static-mode switch; `CardStyle`/tokens (UX-01) and `Icons.xaml` (UX-07) carry the card and badge.
+  Grep confirms **no CapsLock handling exists anywhere**. `LoginView` is DI-transient and *hidden*
+  (not closed) on success — animation lifecycle teardown is therefore a hard requirement, specced.
+- **Scope.** New `Views/Login/` controls (`DynamicSceneCanvas`, `CarabaoAvatar`,
+  `LoginScenePhase`) + `Themes/LoginScene.xaml` (all scene hex tokenized there); LoginView
+  recomposition to a fixed ~900×660 stage; view-side wiring; capped ≤700ms success beat in
+  `Application.xaml.vb`. Stock WPF only — no NuGet, no bitmaps, no new settings; auth flow and DA6
+  semantics byte-identical.
+- **Owner.** Pre-auth surface — identical for Manager, Owner, and Developer.
+- **Done-when.** All five phases render with ambient motion in both themes; the nine avatar states
+  fire per the wiring matrix; CapsLock badge + reject shake work; reduced-motion/low-tier yields a
+  fully functional static login; no storyboard or timer survives on a hidden login instance.
+
+---
+
 ## Exit criteria for Level 3
 
 Pro has **no hard finish line** — it is the standing tail of excellence. Practically, the app reaches

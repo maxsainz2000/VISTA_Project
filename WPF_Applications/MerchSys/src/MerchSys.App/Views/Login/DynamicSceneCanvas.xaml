@@ -1,0 +1,288 @@
+<UserControl x:Class="Views.Login.DynamicSceneCanvas"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Focusable="False"
+             IsHitTestVisible="False">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/Themes/LoginScene.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <!-- Design canvas is 1600x900; UniformToFill keeps the panorama edge-to-edge.
+         Animated fills (sky stops, silhouettes, sign plate, clouds, foliage strokes)
+         are assigned in code-behind from unfrozen brushes - see BuildAnimatedBrushes(). -->
+    <Viewbox Stretch="UniformToFill">
+        <Canvas x:Name="SceneRoot" Width="1600" Height="900" ClipToBounds="True">
+
+            <!-- L0 · Sky -->
+            <Rectangle x:Name="SkyRect" Width="1600" Height="900"/>
+
+            <!-- L1 · Celestial -->
+            <Canvas x:Name="SunGroup" Opacity="0">
+                <Canvas.RenderTransform>
+                    <TranslateTransform x:Name="SunTranslate" X="820" Y="180"/>
+                </Canvas.RenderTransform>
+                <Ellipse Width="220" Height="220" Canvas.Left="-110" Canvas.Top="-110">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Color="{StaticResource SceneSunGlowColor}" Offset="0"/>
+                            <GradientStop Color="{StaticResource SceneSunGlowFadeColor}" Offset="1"/>
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                </Ellipse>
+                <Ellipse Width="84" Height="84" Canvas.Left="-42" Canvas.Top="-42"
+                         Fill="{StaticResource SceneSunCoreBrush}"/>
+            </Canvas>
+
+            <Canvas x:Name="MoonGroup" Canvas.Left="1180" Canvas.Top="160" Opacity="0">
+                <Path Fill="{StaticResource SceneMoonBrush}">
+                    <Path.Data>
+                        <CombinedGeometry GeometryCombineMode="Exclude">
+                            <CombinedGeometry.Geometry1>
+                                <EllipseGeometry Center="0,0" RadiusX="42" RadiusY="42"/>
+                            </CombinedGeometry.Geometry1>
+                            <CombinedGeometry.Geometry2>
+                                <EllipseGeometry Center="15,-9" RadiusX="38" RadiusY="38"/>
+                            </CombinedGeometry.Geometry2>
+                        </CombinedGeometry>
+                    </Path.Data>
+                </Path>
+            </Canvas>
+
+            <!-- ~18 stars; code starts a twinkle loop on every second one (cap: 8 twinkling) -->
+            <Canvas x:Name="StarsLayer" Opacity="0">
+                <Ellipse Canvas.Left="120" Canvas.Top="90" Width="3" Height="3" Fill="{StaticResource SceneStarBrush}"/>
+                <Ellipse Canvas.Left="260" Canvas.Top="180" Width="2.5" Height="2.5" Fill="{StaticResource SceneStarBrush}"/>
+                <Ellipse Canvas.Left="350" Canvas.Top="60" Width="3.5" Height="3.5" Fill="{StaticResource SceneStarBrush}"/>
+                <Ellipse Canvas.Left="470" Canvas.Top="220" Width="2.5" Height="2.5" Fill="{StaticResource SceneStarBrush}"/>
+                <Ellipse Canvas.Left="560" Canvas.Top="120" Width="3" Height="3" Fill="{StaticResource SceneStarBrush}"/>
+                <Ellipse Canvas.Left="680" Canvas.Top="40" Width="2.5" Height="2.5" Fill="{StaticResource SceneStarBrush}"/>
+                <Ellipse Canvas.Left="760" Canvas.Top="250" Width="3" Height="3" Fill="{StaticResource SceneStarBrush}"/>
+                <Ellipse Canvas.Left="880" Canvas.Top="140" Width="2.5" Height="2.5" Fill="{StaticResource SceneStarBrush}"/>
+                <Ellipse Canvas.Left="960" Canvas.Top="70" Width="3.5" Height="3.5" Fill="{StaticResource SceneStarBrush}"/>
+                <Ellipse Canvas.Left="1050" Canvas.Top="240" Width="2.5" Height="2.5" Fill="{StaticResource SceneStarBrush}"/>
+                <Ellipse Canvas.Left="1120" Canvas.Top="60" Width="3" Height="3" Fill="{StaticResource SceneStarBrush}"/>
+                <Ellipse Canvas.Left="1310" Canvas.Top="120" Width="2.5" Height="2.5" Fill="{StaticResource SceneStarBrush}"/>
+                <Ellipse Canvas.Left="1400" Canvas.Top="40" Width="3" Height="3" Fill="{StaticResource SceneStarBrush}"/>
+                <Ellipse Canvas.Left="1480" Canvas.Top="200" Width="2.5" Height="2.5" Fill="{StaticResource SceneStarBrush}"/>
+                <Ellipse Canvas.Left="200" Canvas.Top="300" Width="2.5" Height="2.5" Fill="{StaticResource SceneStarBrush}"/>
+                <Ellipse Canvas.Left="640" Canvas.Top="320" Width="2.5" Height="2.5" Fill="{StaticResource SceneStarBrush}"/>
+                <Ellipse Canvas.Left="1230" Canvas.Top="300" Width="3" Height="3" Fill="{StaticResource SceneStarBrush}"/>
+                <Ellipse Canvas.Left="1550" Canvas.Top="90" Width="2.5" Height="2.5" Fill="{StaticResource SceneStarBrush}"/>
+            </Canvas>
+
+            <!-- L2 · Clouds (3 groups; drift loops + parallax ±4px) -->
+            <Canvas x:Name="CloudsLayer" Opacity="0.95">
+                <Canvas.RenderTransform>
+                    <TranslateTransform x:Name="CloudsParallaxTr"/>
+                </Canvas.RenderTransform>
+                <Path x:Name="Cloud1" Canvas.Top="110">
+                    <Path.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform ScaleX="1" ScaleY="1"/>
+                            <TranslateTransform/>
+                        </TransformGroup>
+                    </Path.RenderTransform>
+                    <Path.Data>
+                        <GeometryGroup>
+                            <EllipseGeometry Center="0,22" RadiusX="56" RadiusY="26"/>
+                            <EllipseGeometry Center="50,8" RadiusX="46" RadiusY="24"/>
+                            <EllipseGeometry Center="100,24" RadiusX="52" RadiusY="22"/>
+                        </GeometryGroup>
+                    </Path.Data>
+                </Path>
+                <Path x:Name="Cloud2" Canvas.Top="205">
+                    <Path.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform ScaleX="1.25" ScaleY="1.2"/>
+                            <TranslateTransform/>
+                        </TransformGroup>
+                    </Path.RenderTransform>
+                    <Path.Data>
+                        <GeometryGroup>
+                            <EllipseGeometry Center="0,20" RadiusX="50" RadiusY="22"/>
+                            <EllipseGeometry Center="46,6" RadiusX="42" RadiusY="22"/>
+                            <EllipseGeometry Center="92,22" RadiusX="48" RadiusY="20"/>
+                        </GeometryGroup>
+                    </Path.Data>
+                </Path>
+                <Path x:Name="Cloud3" Canvas.Top="55">
+                    <Path.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform ScaleX="0.8" ScaleY="0.8"/>
+                            <TranslateTransform/>
+                        </TransformGroup>
+                    </Path.RenderTransform>
+                    <Path.Data>
+                        <GeometryGroup>
+                            <EllipseGeometry Center="0,22" RadiusX="54" RadiusY="24"/>
+                            <EllipseGeometry Center="52,8" RadiusX="44" RadiusY="24"/>
+                            <EllipseGeometry Center="102,24" RadiusX="50" RadiusY="20"/>
+                        </GeometryGroup>
+                    </Path.Data>
+                </Path>
+            </Canvas>
+
+            <!-- L3 · Mountain ridge (parallax ±7px) -->
+            <Path x:Name="MountainPath"
+                  Data="M-40,560 L120,468 L300,540 L470,438 L660,532 L830,458 L1010,544 L1190,468 L1350,540 L1500,486 L1640,548 L1640,720 L-40,720 Z">
+                <Path.RenderTransform>
+                    <TranslateTransform x:Name="MountainParallaxTr"/>
+                </Path.RenderTransform>
+            </Path>
+
+            <!-- L4/L5 · Paddies + foreground (parallax ±12px) -->
+            <Canvas x:Name="NearGroup">
+                <Canvas.RenderTransform>
+                    <TranslateTransform x:Name="NearParallaxTr"/>
+                </Canvas.RenderTransform>
+
+                <Path x:Name="FieldFarPath"
+                      Data="M-40,600 C300,585 700,592 1640,588 L1640,724 L-40,724 Z"/>
+                <Path x:Name="FieldNearPath"
+                      Data="M-40,712 C400,700 1100,706 1640,698 L1640,900 L-40,900 Z"/>
+                <Path x:Name="RoadPath"
+                      Data="M840,900 L1060,900 L1000,756 L920,756 Z"/>
+
+                <!-- Villon Farm Supply storefront; sign + windows glow warm at dusk/night -->
+                <Canvas x:Name="StoreGroup" Canvas.Left="1020" Canvas.Top="510">
+                    <Path x:Name="StorePath"
+                          Data="M60,120 L60,260 L420,260 L420,120 Z M38,122 L240,42 L442,122 Z M84,168 L228,168 L216,196 L96,196 Z M-150,260 L-150,216 L-138,216 L-138,260 Z M-92,260 L-92,216 L-80,216 L-80,260 Z M-34,260 L-34,216 L-22,216 L-22,260 Z M-160,230 L-12,230 L-12,239 L-160,239 Z"/>
+                    <Ellipse x:Name="SignHalo" Canvas.Left="80" Canvas.Top="24" Width="320" Height="130" Opacity="0">
+                        <Ellipse.Fill>
+                            <RadialGradientBrush>
+                                <GradientStop Color="{StaticResource SceneSignHaloColor}" Offset="0"/>
+                                <GradientStop Color="{StaticResource SceneSignHaloFadeColor}" Offset="1"/>
+                            </RadialGradientBrush>
+                        </Ellipse.Fill>
+                    </Ellipse>
+                    <Rectangle x:Name="SignPlate" Canvas.Left="120" Canvas.Top="70" Width="240" Height="42" RadiusX="6" RadiusY="6"/>
+                    <TextBlock Canvas.Left="134" Canvas.Top="81"
+                               Text="VILLON FARM SUPPLY"
+                               FontFamily="{StaticResource AppFontFamily}"
+                               FontSize="16" FontWeight="SemiBold"
+                               Foreground="{StaticResource SceneSignTextBrush}"/>
+                    <Rectangle x:Name="WindowGlow1" Canvas.Left="110" Canvas.Top="204" Width="52" Height="40" RadiusX="3" RadiusY="3"/>
+                    <Rectangle x:Name="WindowGlow2" Canvas.Left="186" Canvas.Top="204" Width="52" Height="40" RadiusX="3" RadiusY="3"/>
+                    <Rectangle x:Name="WindowGlow3" Canvas.Left="330" Canvas.Top="196" Width="52" Height="64" RadiusX="3" RadiusY="3"/>
+                </Canvas>
+
+                <!-- 6 palay clusters; Stroke assigned in code; sway rotates around the base (0,0) -->
+                <Path Canvas.Left="140" Canvas.Top="828" Tag="Palay" StrokeThickness="3" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                      Data="M0,0 C-2,-12 -5,-22 -9,-32 M0,0 C-1,-14 0,-26 1,-38 M0,0 C2,-11 5,-21 9,-30 M-6,0 C-8,-10 -11,-18 -16,-26 M6,0 C9,-10 12,-18 16,-25">
+                    <Path.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform ScaleX="1.1" ScaleY="1.1"/>
+                            <RotateTransform x:Name="Sway1"/>
+                        </TransformGroup>
+                    </Path.RenderTransform>
+                </Path>
+                <Path Canvas.Left="330" Canvas.Top="856" Tag="Palay" StrokeThickness="3" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                      Data="M0,0 C-2,-12 -5,-22 -9,-32 M0,0 C-1,-14 0,-26 1,-38 M0,0 C2,-11 5,-21 9,-30 M-6,0 C-8,-10 -11,-18 -16,-26 M6,0 C9,-10 12,-18 16,-25">
+                    <Path.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform ScaleX="1.3" ScaleY="1.3"/>
+                            <RotateTransform x:Name="Sway2"/>
+                        </TransformGroup>
+                    </Path.RenderTransform>
+                </Path>
+                <Path Canvas.Left="520" Canvas.Top="812" Tag="Palay" StrokeThickness="3" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                      Data="M0,0 C-2,-12 -5,-22 -9,-32 M0,0 C-1,-14 0,-26 1,-38 M0,0 C2,-11 5,-21 9,-30 M-6,0 C-8,-10 -11,-18 -16,-26 M6,0 C9,-10 12,-18 16,-25">
+                    <Path.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform ScaleX="0.9" ScaleY="0.9"/>
+                            <RotateTransform x:Name="Sway3"/>
+                        </TransformGroup>
+                    </Path.RenderTransform>
+                </Path>
+                <Path Canvas.Left="700" Canvas.Top="848" Tag="Palay" StrokeThickness="3" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                      Data="M0,0 C-2,-12 -5,-22 -9,-32 M0,0 C-1,-14 0,-26 1,-38 M0,0 C2,-11 5,-21 9,-30 M-6,0 C-8,-10 -11,-18 -16,-26 M6,0 C9,-10 12,-18 16,-25">
+                    <Path.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform ScaleX="1.2" ScaleY="1.15"/>
+                            <RotateTransform x:Name="Sway4"/>
+                        </TransformGroup>
+                    </Path.RenderTransform>
+                </Path>
+                <Path Canvas.Left="1150" Canvas.Top="806" Tag="Palay" StrokeThickness="3" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                      Data="M0,0 C-2,-12 -5,-22 -9,-32 M0,0 C-1,-14 0,-26 1,-38 M0,0 C2,-11 5,-21 9,-30 M-6,0 C-8,-10 -11,-18 -16,-26 M6,0 C9,-10 12,-18 16,-25">
+                    <Path.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform ScaleX="0.85" ScaleY="0.85"/>
+                            <RotateTransform x:Name="Sway5"/>
+                        </TransformGroup>
+                    </Path.RenderTransform>
+                </Path>
+                <Path Canvas.Left="1480" Canvas.Top="846" Tag="Palay" StrokeThickness="3" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                      Data="M0,0 C-2,-12 -5,-22 -9,-32 M0,0 C-1,-14 0,-26 1,-38 M0,0 C2,-11 5,-21 9,-30 M-6,0 C-8,-10 -11,-18 -16,-26 M6,0 C9,-10 12,-18 16,-25">
+                    <Path.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform ScaleX="1.15" ScaleY="1.2"/>
+                            <RotateTransform x:Name="Sway6"/>
+                        </TransformGroup>
+                    </Path.RenderTransform>
+                </Path>
+
+                <!-- ≤10 fireflies (dusk/night only; pulse + float loops started in code) -->
+                <Canvas x:Name="FirefliesLayer" Opacity="0">
+                    <Ellipse Canvas.Left="110" Canvas.Top="760" Width="4" Height="4" Opacity="0" Fill="{StaticResource SceneFireflyBrush}">
+                        <Ellipse.RenderTransform><TranslateTransform/></Ellipse.RenderTransform>
+                    </Ellipse>
+                    <Ellipse Canvas.Left="230" Canvas.Top="820" Width="4" Height="4" Opacity="0" Fill="{StaticResource SceneFireflyBrush}">
+                        <Ellipse.RenderTransform><TranslateTransform/></Ellipse.RenderTransform>
+                    </Ellipse>
+                    <Ellipse Canvas.Left="340" Canvas.Top="742" Width="3.5" Height="3.5" Opacity="0" Fill="{StaticResource SceneFireflyBrush}">
+                        <Ellipse.RenderTransform><TranslateTransform/></Ellipse.RenderTransform>
+                    </Ellipse>
+                    <Ellipse Canvas.Left="450" Canvas.Top="800" Width="4" Height="4" Opacity="0" Fill="{StaticResource SceneFireflyBrush}">
+                        <Ellipse.RenderTransform><TranslateTransform/></Ellipse.RenderTransform>
+                    </Ellipse>
+                    <Ellipse Canvas.Left="560" Canvas.Top="758" Width="3.5" Height="3.5" Opacity="0" Fill="{StaticResource SceneFireflyBrush}">
+                        <Ellipse.RenderTransform><TranslateTransform/></Ellipse.RenderTransform>
+                    </Ellipse>
+                    <Ellipse Canvas.Left="660" Canvas.Top="828" Width="4" Height="4" Opacity="0" Fill="{StaticResource SceneFireflyBrush}">
+                        <Ellipse.RenderTransform><TranslateTransform/></Ellipse.RenderTransform>
+                    </Ellipse>
+                    <Ellipse Canvas.Left="770" Canvas.Top="770" Width="3.5" Height="3.5" Opacity="0" Fill="{StaticResource SceneFireflyBrush}">
+                        <Ellipse.RenderTransform><TranslateTransform/></Ellipse.RenderTransform>
+                    </Ellipse>
+                    <Ellipse Canvas.Left="880" Canvas.Top="812" Width="4" Height="4" Opacity="0" Fill="{StaticResource SceneFireflyBrush}">
+                        <Ellipse.RenderTransform><TranslateTransform/></Ellipse.RenderTransform>
+                    </Ellipse>
+                    <Ellipse Canvas.Left="960" Canvas.Top="752" Width="3.5" Height="3.5" Opacity="0" Fill="{StaticResource SceneFireflyBrush}">
+                        <Ellipse.RenderTransform><TranslateTransform/></Ellipse.RenderTransform>
+                    </Ellipse>
+                    <Ellipse Canvas.Left="600" Canvas.Top="792" Width="3" Height="3" Opacity="0" Fill="{StaticResource SceneFireflyBrush}">
+                        <Ellipse.RenderTransform><TranslateTransform/></Ellipse.RenderTransform>
+                    </Ellipse>
+                </Canvas>
+
+                <!-- 2 maya birds (day/golden; flight + flap loops started in code) -->
+                <Canvas x:Name="BirdsLayer" Opacity="0">
+                    <Canvas Canvas.Top="240">
+                        <Canvas.RenderTransform><TranslateTransform X="-160"/></Canvas.RenderTransform>
+                        <Path Fill="{StaticResource SceneBirdBrush}" RenderTransformOrigin="0.5,0.5"
+                              Data="M0,8 C4,2 8,2 12,7 C16,2 20,2 24,8 C20,5 16,5 12,9 C8,5 4,5 0,8 Z">
+                            <Path.RenderTransform><ScaleTransform/></Path.RenderTransform>
+                        </Path>
+                    </Canvas>
+                    <Canvas Canvas.Top="320">
+                        <Canvas.RenderTransform><TranslateTransform X="-160"/></Canvas.RenderTransform>
+                        <Path Fill="{StaticResource SceneBirdBrush}" RenderTransformOrigin="0.5,0.5"
+                              Data="M0,6 C3,1.5 6,1.5 9,5.5 C12,1.5 15,1.5 18,6 C15,4 12,4 9,7 C6,4 3,4 0,6 Z">
+                            <Path.RenderTransform><ScaleTransform/></Path.RenderTransform>
+                        </Path>
+                    </Canvas>
+                </Canvas>
+            </Canvas>
+
+            <!-- Sleep dim overlay (0 → 0.10 while the mascot sleeps) -->
+            <Rectangle x:Name="DimOverlay" Width="1600" Height="900"
+                       Fill="{StaticResource SceneDimBrush}" Opacity="0"/>
+        </Canvas>
+    </Viewbox>
+</UserControl>
