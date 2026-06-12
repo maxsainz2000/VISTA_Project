@@ -45,4 +45,8 @@
     <!-- Login scene scrim (UX-48) — transparent in Light; Dark dims the panorama for card contrast -->
     <SolidColorBrush x:Key="LoginSceneScrimBrush"        Color="#000000" Opacity="0"/>
 
+    <!-- Frosted-glass login card (UX-49) — tint over the blurred scene + 1px edge light -->
+    <SolidColorBrush x:Key="LoginGlassTintBrush"         Color="#FFFFFF" Opacity="0.78"/>
+    <SolidColorBrush x:Key="LoginGlassHighlightBrush"    Color="#FFFFFF" Opacity="0.65"/>
+
 </ResourceDictionary>

@@ -6,16 +6,19 @@ date: 2026-06-12
 tags: [wpf, xaml, vb-net, animation, visual-state-manager, animation-clock, lifecycle, reduced-motion, login, delight]
 ---
 
-# WPF Ambient Scene + Reactive Avatar (UX-48 Animated Login)
+# WPF Ambient Scene + Reactive Avatar (UX-48 Animated Login; artwork replaced by UX-49)
 
 ## Context
 
 UX-48 put a living time-of-day panorama (`Views/Login/DynamicSceneCanvas`) and a reactive mascot
-(`Views/Login/CarabaoAvatar`) behind/on the login card. The feature is presentation-only, but it
-concentrates four WPF mechanics that any future ambient/animated surface in VISTA will hit again:
-animating brushes without tripping the frozen-Freezable rules, VSM on a `UserControl`, animation
-lifecycle in windows that are *hidden rather than closed*, and honoring the UX-25 reduced-motion
-contract from a self-contained control. This entry records the working recipe.
+behind/on the login card. **UX-49 replaced every pixel of that artwork** (dusk storefront hero
+shot, `TinderaAvatar` instead of `CarabaoAvatar`, frosted-glass card, entrance choreography) while
+keeping this engineering recipe byte-compatible — which is itself the proof of the pattern: the
+re-skin touched geometry and palettes, not the lifecycle/clock machinery. The feature is
+presentation-only, but it concentrates the WPF mechanics any future ambient/animated surface in
+VISTA will hit again: animating brushes without tripping the frozen-Freezable rules, VSM on a
+`UserControl`, animation lifecycle in windows that are *hidden rather than closed*, honoring the
+UX-25 reduced-motion contract from a self-contained control, and (UX-49) live frosted glass.
 
 ## The Pattern
 
@@ -102,6 +105,63 @@ Eye tracking needs no `CompositionTarget.Rendering`: `TextChanged`/`SelectionCha
 `CaretIndex / 24.0` → a 120 ms eased `DoubleAnimation` on the gaze transforms. Privacy rule baked
 in: gaze reads the **username** caret only; the Shy pose is one fixed value regardless of password
 input; the reject animation is identical (shape *and* duration) for every failure reason.
+
+### 7. Live frosted glass: VisualBrush (absolute viewbox) + BlurEffect + static fallback (UX-49)
+
+The login card's backdrop is the live scene, blurred — pure in-app WPF, no DWM Acrylic/Mica:
+
+```vb
+_glassBrush = New VisualBrush With {
+    .Visual = SceneCanvas.SceneVisual,          ' the scene's root Canvas — NEVER an ancestor
+    .ViewboxUnits = BrushMappingMode.Absolute,  ' sample exactly the card's region
+    .Stretch = Stretch.Fill
+}
+GlassBackdrop.Fill = _glassBrush                ' Rectangle with BlurEffect Radius=18 (Performance)
+' Map card → scene coordinates on Loaded/SizeChanged (DA6 panel changes card height):
+Dim toScene = GlassBackdrop.TransformToVisual(SceneCanvas.SceneVisual)
+_glassBrush.Viewbox = New Rect(toScene.Transform(New Point(0, 0)),
+                               toScene.Transform(New Point(GlassBackdrop.ActualWidth, GlassBackdrop.ActualHeight)))
+```
+
+Rules that make it safe: sample a visual that is **not an ancestor** of the brush's host
+(self-reference is illegal); recompute the `Viewbox` on `SizeChanged`, never per-frame (the brush
+re-renders moving content by itself); a theme-token tint rectangle (`LoginGlassTintBrush`,
+Light/Dark parity) sits over the blur to guarantee text contrast; static mode collapses the
+backdrop and swaps the tint to `SurfaceBrush` — the solid card returns with zero blur cost.
+
+### 8. One-shot effects over crossfaded values: always re-set the base
+
+`FillBehavior.Stop` one-shots (door-glow pulse, entrance pops, blink) revert to the property's
+**base** value — but a 4s crossfade clock holds its end value *above* the base forever. If the base
+is stale, the one-shot ends on a visible snap. Recipe: after starting the crossfade clocks for a
+mood change, immediately write the same final values as local base values (`SetBaseValues(p)`).
+The clock wins while attached; the base is correct the moment any one-shot replaces it.
+
+### 9. Vector-art quality gates (the UX-48 → UX-49 defect record)
+
+The UX-48 artwork failed visually for reasons that are mechanical, not aesthetic — encode them:
+
+- **`FillRule`/`F1`:** `GeometryGroup` and path mini-language default to EvenOdd — overlapping
+  figures punch holes (UX-48's clouds rendered as four-leaf clovers). Multi-figure filled geometry
+  sets `FillRule="Nonzero"` / a leading `F1`.
+- **Safe area under `UniformToFill`:** a 1600×900 canvas in a 900×700 window crops to ~x∈[193,1407]
+  — UX-48's storefront sign was clipped mid-word. Readable/narrative elements live in x∈[260,1340].
+- **Light contract:** every light source ships four artifacts — halo, the gradient it casts on
+  nearby surfaces, a ground pool, and a (wet-surface) reflection. A pasted bright shape reads flat.
+- **Silhouette-first props:** near-black shapes + ≤2 warm rim-light strokes, zero mid-tone interior
+  detail — complex objects (tricycle, hanging scale) stay credible in pure vector.
+- **No flat fill on any large surface; far depth bands lighter than near ones.**
+- Faces: big wide-set eyes **with catchlight dots**; no skin shading (flat-illustration bar).
+
+### 10. XAML/VB traps hit during UX-49 (build-verified)
+
+- **MC3093:** you cannot `x:Name` an element placed inside another control's namescope from
+  consuming XAML (e.g. a `ScaleTransform` in `<login:TinderaAvatar.RenderTransform>`). Leave it
+  unnamed and fetch by cast: `CType(Avatar.RenderTransform, ScaleTransform)`.
+- **BC30105 local-shadows-method:** `Dim bulbGroups() As Canvas = BulbGroups()` — VB.NET is
+  case-insensitive, so the local array shadows the method and the initializer parses as indexing
+  the (unassigned) local. Same family as `[[vbnet-lambda-param-shadows-local-variable]]` /
+  `[[vbnet-parameter-shadows-property]]`: never name a local after any method in scope.
 
 ## Why It Works
 

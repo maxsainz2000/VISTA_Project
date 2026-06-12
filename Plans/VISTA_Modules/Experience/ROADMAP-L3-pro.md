@@ -261,6 +261,35 @@ Each entry: **What · Why · Research · Codebase grounding · Scope · Owner ·
   fire per the wiring matrix; CapsLock badge + reject shake work; reduced-motion/low-tier yields a
   fully functional static login; no storyboard or timer survives on a hidden login instance.
 
+## P13a — Login Scene Redesign (storefront hero shot)
+*Slot: **UX-49** (plan generated) · Depends-on: UX-48*
+
+- **What.** Replace UX-48's artwork wholesale while keeping its engineering: a **dusk storefront
+  hero shot** (the Villon facade at blue hour — lit bracket sign, glowing doorway and display
+  window, scalloped awning, bulb string, tricycle/sack/cat silhouettes, wet-pavement reflections)
+  rendered as three lighting moods (Dusk hero / Evening / LateNight) instead of five literal time
+  bands; a **Filipina tindera avatar** ("Aling Vi") replacing the carabao with the identical pose
+  API (hands-over-eyes for the password); and a **frosted-glass login card** (in-app
+  VisualBrush + blur — not the OS Acrylic/Mica declined for the shell) with a one-shot entrance
+  choreography ("the store lights up for you").
+- **Why.** Owner review of UX-48 (2026-06-12, with screenshot): no "wow" — flat single-color
+  layers, EvenOdd-holed clouds, a crop-clipped sign, a mascot that reads childish. The login is
+  being graded as a design showpiece; the artwork must match the quality of the machinery.
+- **Research.** Same emotional-design basis as P13, plus: atmospheric/value-grouped silhouette
+  illustration practice; game title-screen art direction (fixed hero hour beats honest-but-bland
+  hours); glassmorphism-with-fallback per the existing UX-25 reduced-motion contract.
+- **Codebase grounding.** UX-48's phase timer, crossfade pipeline, tracked-clock lifecycle,
+  parallax, static mode, CapsLock badge, and shake all carry over byte-compatible;
+  `LoginViewModel` / `Application.xaml.vb` are untouched. Defect record D1–D8 in the plan binds
+  the quality gates (FillRule=Nonzero, safe-area x∈[260,1340], light contracts, silhouette-first
+  props, eye catchlights).
+- **Scope.** Rewrite `LoginScene.xaml`, `LoginScenePhase.vb`, `DynamicSceneCanvas.xaml(.vb)`;
+  new `TinderaAvatar.xaml(.vb)` (delete `CarabaoAvatar`); glass-card surgery in `LoginView`;
+  two new theme tokens. No NuGet, no bitmaps, no settings, no VM/auth change.
+- **Owner.** Pre-auth surface — identical for Manager, Owner, Developer.
+- **Done-when.** Plan UX-49 acceptance criteria 1–9 (three moods each demo-grade, glass card with
+  contrast + static fallback, 8 tindera poses on the UX-48 wiring matrix, teardown clean).
+
 ---
 
 ## Exit criteria for Level 3

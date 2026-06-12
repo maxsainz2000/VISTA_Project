@@ -125,6 +125,7 @@ establishes (e.g. Pro accessibility builds on the Basic keyboard/focus floor).
 | P11 | Comparative Income Statement & Report Readability (prior-period column + Δ, P&L legibility) | UX-12 | Accounting |
 | P12 | Severity-Aware Insight Banners (tone the "What This Means" callout to the signal) | UX-06, UX-07 | Accounting |
 | P13 | Animated Login Experience (time-of-day farm scene + reactive carabao mascot + CapsLock/shake feedback) | UX-01, UX-07, UX-25 | Login (every user, every session) |
+| P13a | Login Scene Redesign — dusk storefront hero shot + tindera avatar + frosted-glass card (replaces P13's artwork; keeps its machinery) | UX-48 | Login (every user, every session) |
 
 ## Research basis (binding evidence, not opinion)
 

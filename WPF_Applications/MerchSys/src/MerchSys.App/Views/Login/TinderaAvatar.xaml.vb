@@ -3,7 +3,7 @@ Imports System.Windows.Threading
 
 Namespace Views.Login
 
-    ''' <summary>Mutually exclusive mascot poses; names match the VSM states in CarabaoAvatar.xaml.</summary>
+    ''' <summary>Mutually exclusive avatar poses; names match the VSM states in TinderaAvatar.xaml.</summary>
     Public Enum AvatarPose
         Idle = 0
         Watching = 1
@@ -16,12 +16,14 @@ Namespace Views.Login
     End Enum
 
     ''' <summary>
-    ''' Tanod the carabao (UX-48). Pose changes go through VSM (GoToElementState — GoToState
-    ''' silently no-ops on a UserControl); idle loops are code-managed clocks so static mode
-    ''' runs zero animations/timers. Gaze tracks the USERNAME caret only — never password
-    ''' input; the Shy pose is fixed regardless of what is typed.
+    ''' Aling Vi the tindera (UX-49 — same public API and pose contract as the UX-48 carabao she
+    ''' replaces, so LoginView wiring is unchanged). Pose changes go through VSM
+    ''' (GoToElementState — GoToState silently no-ops on a UserControl); idle loops are
+    ''' code-managed clocks so static mode runs zero animations/timers. Gaze tracks the USERNAME
+    ''' caret only — never password input; the Shy pose (hands over the eyes) is fixed regardless
+    ''' of what is typed.
     ''' </summary>
-    Partial Public Class CarabaoAvatar
+    Partial Public Class TinderaAvatar
         Inherits UserControl
 
         Private ReadOnly _blinkTimer As DispatcherTimer
@@ -30,12 +32,13 @@ Namespace Views.Login
 
         Private _staticMode As Boolean
         Private _initialized As Boolean
+        Private _capsAlertOn As Boolean
         Private _pose As AvatarPose = AvatarPose.Idle
         Private _rejectThenPose As AvatarPose = AvatarPose.Idle
         Private _blinkCounter As Integer
 
         Private _breathClock As AnimationClock
-        Private _chewClock As AnimationClock
+        Private _headBobClock As AnimationClock
         Private _zzzClock As AnimationClock
 
         Public Sub New()
@@ -65,13 +68,14 @@ Namespace Views.Login
             _blinkTimer.Stop()
             _rejectRecoverTimer.Stop()
             StopLoop(_breathClock, BreathScale, ScaleTransform.ScaleYProperty)
-            StopLoop(_chewClock, MuzzleTr, TranslateTransform.YProperty)
+            StopLoop(_headBobClock, HeadBobRotate, RotateTransform.AngleProperty)
             StopLoop(_zzzClock, ZzzFloatTr, TranslateTransform.YProperty)
             GazePupilL.BeginAnimation(TranslateTransform.XProperty, Nothing)
             GazePupilR.BeginAnimation(TranslateTransform.XProperty, Nothing)
             GazeHeadRotate.BeginAnimation(RotateTransform.AngleProperty, Nothing)
             BrowAlertTr.BeginAnimation(TranslateTransform.YProperty, Nothing)
             BounceTr.BeginAnimation(TranslateTransform.YProperty, Nothing)
+            _capsAlertOn = False
             _initialized = False
         End Sub
 
@@ -79,7 +83,7 @@ Namespace Views.Login
             If _staticMode OrElse Not _initialized Then Return
             _blinkTimer.Stop()
             _breathClock?.Controller?.Pause()
-            _chewClock?.Controller?.Pause()
+            _headBobClock?.Controller?.Pause()
             _zzzClock?.Controller?.Pause()
         End Sub
 
@@ -87,7 +91,7 @@ Namespace Views.Login
             If _staticMode OrElse Not _initialized Then Return
             _blinkTimer.Start()
             _breathClock?.Controller?.Resume()
-            _chewClock?.Controller?.Resume()
+            _headBobClock?.Controller?.Resume()
             _zzzClock?.Controller?.Resume()
         End Sub
 
@@ -120,6 +124,7 @@ Namespace Views.Login
         ''' <summary>Subtle brow raise while CapsLock is on (the functional warning is the badge in the card).</summary>
         Public Sub SetCapsAlert(isOn As Boolean)
             If _staticMode Then Return
+            _capsAlertOn = isOn
             Dim alertAnim As New DoubleAnimation(If(isOn, -3.0, 0.0), New Duration(TimeSpan.FromMilliseconds(150))) With {
                 .EasingFunction = New CubicEase With {.EasingMode = EasingMode.EaseOut}
             }
@@ -177,20 +182,20 @@ Namespace Views.Login
         End Sub
 
         Private Sub UpdateLoopClocks()
-            ' Cud-chewing only while Thinking.
+            ' Pondering head-bob only while Thinking (the tindera's "hmm" — replaces the carabao chew).
             If _pose = AvatarPose.Thinking AndAlso Not _staticMode Then
-                If _chewClock Is Nothing Then
-                    Dim chewAnim As New DoubleAnimation(0, 1.6, New Duration(TimeSpan.FromSeconds(0.55))) With {
+                If _headBobClock Is Nothing Then
+                    Dim bobAnim As New DoubleAnimation(-1.2, 1.2, New Duration(TimeSpan.FromSeconds(1.9))) With {
                         .AutoReverse = True,
                         .RepeatBehavior = RepeatBehavior.Forever,
                         .EasingFunction = New CubicEase With {.EasingMode = EasingMode.EaseInOut}
                     }
-                    Timeline.SetDesiredFrameRate(chewAnim, 30)
-                    _chewClock = chewAnim.CreateClock()
-                    MuzzleTr.ApplyAnimationClock(TranslateTransform.YProperty, _chewClock)
+                    Timeline.SetDesiredFrameRate(bobAnim, 30)
+                    _headBobClock = bobAnim.CreateClock()
+                    HeadBobRotate.ApplyAnimationClock(RotateTransform.AngleProperty, _headBobClock)
                 End If
             Else
-                StopLoop(_chewClock, MuzzleTr, TranslateTransform.YProperty)
+                StopLoop(_headBobClock, HeadBobRotate, RotateTransform.AngleProperty)
             End If
 
             ' Zzz float only while Sleeping.
@@ -217,7 +222,7 @@ Namespace Views.Login
             loopClock = Nothing
         End Sub
 
-        ' ── Blink / ear flick ──────────────────────────────────────────────────
+        ' ── Blink / brow bounce ────────────────────────────────────────────────
 
         Private Sub ScheduleNextBlink()
             _blinkTimer.Interval = TimeSpan.FromSeconds(4 + _rng.NextDouble() * 3)
@@ -231,10 +236,11 @@ Namespace Views.Login
             RunBlinkAnimation(LidLScale)
             RunBlinkAnimation(LidRScale)
 
+            ' Every third blink: a small brow bounce (replaces the carabao ear flick) —
+            ' suppressed while the CapsLock alert holds the brows raised.
             _blinkCounter += 1
-            If _blinkCounter Mod 3 = 0 Then
-                RunEarFlick(EarFlickL, -6)
-                RunEarFlick(EarFlickR, 6)
+            If _blinkCounter Mod 3 = 0 AndAlso Not _capsAlertOn Then
+                RunBrowBounce()
             End If
         End Sub
 
@@ -247,12 +253,12 @@ Namespace Views.Login
             lidScale.BeginAnimation(ScaleTransform.ScaleYProperty, blink)
         End Sub
 
-        Private Shared Sub RunEarFlick(flickTransform As RotateTransform, flickAngle As Double)
-            Dim flick As New DoubleAnimationUsingKeyFrames With {.FillBehavior = FillBehavior.Stop}
-            flick.KeyFrames.Add(New LinearDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.Zero)))
-            flick.KeyFrames.Add(New LinearDoubleKeyFrame(flickAngle, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(90))))
-            flick.KeyFrames.Add(New LinearDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(240))))
-            flickTransform.BeginAnimation(RotateTransform.AngleProperty, flick)
+        Private Sub RunBrowBounce()
+            Dim bounce As New DoubleAnimationUsingKeyFrames With {.FillBehavior = FillBehavior.Stop}
+            bounce.KeyFrames.Add(New LinearDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.Zero)))
+            bounce.KeyFrames.Add(New LinearDoubleKeyFrame(-2.5, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(90))))
+            bounce.KeyFrames.Add(New LinearDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(240))))
+            BrowAlertTr.BeginAnimation(TranslateTransform.YProperty, bounce)
         End Sub
 
         ' ── Helpers ────────────────────────────────────────────────────────────

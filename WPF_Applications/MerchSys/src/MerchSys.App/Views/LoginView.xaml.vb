@@ -26,6 +26,7 @@ Namespace Views
         Private ReadOnly _viewModel As LoginViewModel
         Private ReadOnly _sleepTimer As DispatcherTimer
 
+        Private _glassBrush As VisualBrush
         Private _staticMode As Boolean
         Private _sceneStarted As Boolean
         Private _isAsleep As Boolean
@@ -59,6 +60,10 @@ Namespace Views
             AddHandler Me.PreviewKeyUp, AddressOf OnWindowPreviewKey
             AddHandler Me.PreviewMouseDown, AddressOf OnWindowPreviewPointer
             AddHandler Me.PreviewMouseMove, AddressOf OnWindowPreviewPointer
+
+            ' Frosted-glass card (UX-49): remap the backdrop sample region whenever the card
+            ' lays out — including the DA6 panel growing the card.
+            AddHandler CardChrome.SizeChanged, AddressOf OnCardChromeSizeChanged
 
             ' Username gaze tracking (username ONLY — never password input).
             AddHandler UsernameTextBox.GotFocus, AddressOf OnUsernameGotFocus
@@ -95,9 +100,97 @@ Namespace Views
             _staticMode = ComputeStaticMode()
             SceneCanvas.Start(_staticMode)
             Avatar.Initialize(_staticMode)
+            SetupGlassCard()
             _isAsleep = False
             UpdateCapsBadge()
-            If Not _staticMode Then _sleepTimer.Start()
+            If Not _staticMode Then
+                SceneCanvas.PlayEntrance()
+                PlayCardEntrance()
+                _sleepTimer.Start()
+            End If
+        End Sub
+
+        ' ── Frosted-glass card (UX-49) ─────────────────────────────────────────
+
+        ''' <summary>
+        ''' Glass = a live VisualBrush of the scene's root visual (never an ancestor of the
+        ''' card — VisualBrush self-reference is illegal), blurred, under a theme tint.
+        ''' Static mode collapses the backdrop and swaps the tint to SurfaceBrush, restoring
+        ''' the solid card with zero blur cost.
+        ''' </summary>
+        Private Sub SetupGlassCard()
+            If _staticMode Then
+                GlassBackdrop.Visibility = Visibility.Collapsed
+                GlassTint.SetResourceReference(Shape.FillProperty, "SurfaceBrush")
+                CardChrome.SetResourceReference(Border.BorderBrushProperty, "SeparatorBrush")
+                Return
+            End If
+
+            GlassTint.SetResourceReference(Shape.FillProperty, "LoginGlassTintBrush")
+            If _glassBrush Is Nothing Then
+                _glassBrush = New VisualBrush With {
+                    .Visual = SceneCanvas.SceneVisual,
+                    .ViewboxUnits = BrushMappingMode.Absolute,
+                    .Stretch = Stretch.Fill
+                }
+                GlassBackdrop.Fill = _glassBrush
+            End If
+            GlassBackdrop.Visibility = Visibility.Visible
+            UpdateGlassViewbox()
+        End Sub
+
+        Private Sub OnCardChromeSizeChanged(sender As Object, e As SizeChangedEventArgs)
+            UpdateGlassViewbox()
+        End Sub
+
+        Private Sub UpdateGlassViewbox()
+            If _glassBrush Is Nothing OrElse _staticMode Then Return
+            If GlassBackdrop.ActualWidth <= 0 OrElse GlassBackdrop.ActualHeight <= 0 Then Return
+            Try
+                Dim toScene As GeneralTransform = GlassBackdrop.TransformToVisual(SceneCanvas.SceneVisual)
+                Dim topLeft As Point = toScene.Transform(New Point(0, 0))
+                Dim bottomRight As Point = toScene.Transform(New Point(GlassBackdrop.ActualWidth, GlassBackdrop.ActualHeight))
+                _glassBrush.Viewbox = New Rect(topLeft, bottomRight)
+            Catch ex As InvalidOperationException
+                ' Visuals not connected yet — the next SizeChanged retries the mapping.
+            End Try
+        End Sub
+
+        ''' <summary>
+        ''' Entrance choreography (UX-49): card rises and fades in, badge pops with a slight
+        ''' overshoot. One-shot; FillBehavior.Stop reverts every property to its (final) base.
+        ''' The scene-side beat (bulbs lighting up) is SceneCanvas.PlayEntrance.
+        ''' </summary>
+        Private Sub PlayCardEntrance()
+            Dim cardFade As New DoubleAnimationUsingKeyFrames With {.FillBehavior = FillBehavior.Stop}
+            cardFade.KeyFrames.Add(New DiscreteDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.Zero)))
+            cardFade.KeyFrames.Add(New LinearDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(200))))
+            cardFade.KeyFrames.Add(New EasingDoubleKeyFrame(1, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(620)),
+                                                            New CubicEase With {.EasingMode = EasingMode.EaseOut}))
+            CardChrome.BeginAnimation(OpacityProperty, cardFade)
+
+            Dim cardRise As New DoubleAnimationUsingKeyFrames With {.FillBehavior = FillBehavior.Stop}
+            cardRise.KeyFrames.Add(New DiscreteDoubleKeyFrame(14, KeyTime.FromTimeSpan(TimeSpan.Zero)))
+            cardRise.KeyFrames.Add(New LinearDoubleKeyFrame(14, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(200))))
+            cardRise.KeyFrames.Add(New EasingDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(620)),
+                                                            New CubicEase With {.EasingMode = EasingMode.EaseOut}))
+            CardEntranceTr.BeginAnimation(TranslateTransform.YProperty, cardRise)
+
+            Dim badgeFade As New DoubleAnimationUsingKeyFrames With {.FillBehavior = FillBehavior.Stop}
+            badgeFade.KeyFrames.Add(New DiscreteDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.Zero)))
+            badgeFade.KeyFrames.Add(New LinearDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(380))))
+            badgeFade.KeyFrames.Add(New EasingDoubleKeyFrame(1, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(560)),
+                                                             New CubicEase With {.EasingMode = EasingMode.EaseOut}))
+            Avatar.BeginAnimation(OpacityProperty, badgeFade)
+
+            Dim badgePop As New DoubleAnimationUsingKeyFrames With {.FillBehavior = FillBehavior.Stop}
+            badgePop.KeyFrames.Add(New DiscreteDoubleKeyFrame(0.86, KeyTime.FromTimeSpan(TimeSpan.Zero)))
+            badgePop.KeyFrames.Add(New LinearDoubleKeyFrame(0.86, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(380))))
+            badgePop.KeyFrames.Add(New EasingDoubleKeyFrame(1, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(740)),
+                                                            New BackEase With {.EasingMode = EasingMode.EaseOut, .Amplitude = 0.5}))
+            Dim badgeScale = CType(Avatar.RenderTransform, ScaleTransform)
+            badgeScale.BeginAnimation(ScaleTransform.ScaleXProperty, badgePop)
+            badgeScale.BeginAnimation(ScaleTransform.ScaleYProperty, badgePop.Clone())
         End Sub
 
         Private Sub FullStop()
@@ -146,6 +239,7 @@ Namespace Views
         ''' </summary>
         Public Async Function PlaySuccessBeatAsync() As Task
             _sleepTimer.Stop()
+            SceneCanvas.PulseDoorGlow()
             Try
                 Await Avatar.PlaySuccessBeatAsync()
             Finally

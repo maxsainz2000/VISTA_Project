@@ -4,15 +4,18 @@ Imports System.Windows.Threading
 Namespace Views.Login
 
     ''' <summary>
-    ''' The animated time-of-day farm panorama behind the login card (UX-48).
-    ''' Owns the 60s phase clock, the 4s palette crossfade, all ambient animation clocks,
-    ''' and the cursor parallax. Lifecycle: <see cref="Start"/> / <see cref="Pause"/> /
-    ''' <see cref="[Resume]"/> / <see cref="StopAll"/> — the host view MUST call StopAll when
-    ''' it becomes invisible (LoginView instances are transient and are hidden, not closed).
+    ''' The dusk storefront hero shot behind the login card (UX-49; machinery inherited from UX-48).
+    ''' Owns the 60s mood clock, the 4s palette crossfade, all ambient animation clocks, the
+    ''' entrance choreography, and the cursor parallax. Lifecycle: <see cref="Start"/> /
+    ''' <see cref="Pause"/> / <see cref="[Resume]"/> / <see cref="StopAll"/> — the host view MUST
+    ''' call StopAll when it becomes invisible (LoginView instances are transient and are hidden,
+    ''' not closed).
     '''
     ''' All animated fills are local unfrozen brushes built in code (never resource brushes —
-    ''' resource Freezables may be shared/frozen and cannot be animated safely).
-    ''' Every animated property is a transform, a color on a local brush, or an opacity.
+    ''' resource Freezables may be shared/frozen and cannot be animated safely). Every animated
+    ''' property is a transform, a color on a local brush, or an opacity. After each crossfade is
+    ''' started, the same values are also written as local BASE values so one-shot effects
+    ''' (door-glow pulse, entrance) can use FillBehavior.Stop without snapping to a stale base.
     ''' </summary>
     Partial Public Class DynamicSceneCanvas
         Inherits UserControl
@@ -26,65 +29,88 @@ Namespace Views.Login
         ' Phase-independent timing/extent constants
         Private Const CrossfadeSeconds As Double = 4.0
         Private Const AmbientFrameRate As Integer = 30
+        Private Const TwinkleFrameRate As Integer = 24
         Private Const ParallaxThrottleMs As Integer = 33
 
         Private ReadOnly _ambientClocks As New List(Of ClockEntry)
-        Private ReadOnly _fireflyClocks As New List(Of ClockEntry)
-        Private ReadOnly _birdClocks As New List(Of ClockEntry)
         Private ReadOnly _crossfadeClocks As New List(Of ClockEntry)
+        Private ReadOnly _entranceClocks As New List(Of ClockEntry)
 
         Private ReadOnly _phaseTimer As DispatcherTimer
+        Private ReadOnly _catTimer As DispatcherTimer
         Private ReadOnly _rng As New Random()
 
         Private _currentPhase As LoginScenePhase
         Private _started As Boolean
         Private _paused As Boolean
         Private _staticMode As Boolean
-        Private _firefliesRunning As Boolean
-        Private _birdsRunning As Boolean
 
         Private _hostWindow As Window
         Private _lastParallaxTick As Integer
 
         ' Animated brushes — created unfrozen in code, assigned to scene shapes once.
         Private _skyBrush As LinearGradientBrush
-        Private _mountainBrush As SolidColorBrush
-        Private _fieldFarBrush As SolidColorBrush
-        Private _fieldNearBrush As SolidColorBrush
-        Private _foliageBrush As SolidColorBrush
-        Private _roadBrush As SolidColorBrush
-        Private _storeBrush As SolidColorBrush
         Private _cloudBrush As SolidColorBrush
+        Private _townBrush As SolidColorBrush
+        Private _wallBrush As LinearGradientBrush
+        Private _facadeBaseBrush As SolidColorBrush
+        Private _awningGreenBrush As SolidColorBrush
+        Private _awningCreamBrush As SolidColorBrush
         Private _signPlateBrush As SolidColorBrush
+        Private _glowBrush As LinearGradientBrush
+        Private _poolBrush As RadialGradientBrush
+        Private _reflectionBrush As LinearGradientBrush
+        Private _spillBrush As RadialGradientBrush
+        Private _signHaloBrush As RadialGradientBrush
+        Private _pavementBrush As LinearGradientBrush
 
         Private Structure ScenePalette
             Public SkyTop As Color
-            Public SkyMid As Color
+            Public SkyUpper As Color
+            Public SkyLower As Color
             Public SkyHorizon As Color
-            Public Mountain As Color
-            Public FieldFar As Color
-            Public FieldNear As Color
-            Public Foliage As Color
-            Public Road As Color
-            Public Store As Color
-            Public Cloud As Color
+            Public CloudStreak As Color
+            Public Town As Color
+            Public FacadeWall As Color
+            Public FacadeBase As Color
+            Public AwningGreen As Color
+            Public AwningCream As Color
             Public SignPlate As Color
-            Public CloudOpacity As Double
+            Public GlowCore As Color
+            Public GlowWarm As Color
+            Public Pavement As Color
+            Public PavementFar As Color
+            Public Reflection As Color
             Public StarOpacity As Double
             Public MoonOpacity As Double
-            Public SunOpacity As Double
-            Public HaloOpacity As Double
-            Public SunX As Double
-            Public SunY As Double
-            Public FirefliesOn As Boolean
-            Public BirdsOn As Boolean
+            Public CloudOpacity As Double
+            Public SignHaloOpacity As Double
+            Public DoorLightOpacity As Double
+            Public WindowLightOpacity As Double
+            Public BulbLayerOpacity As Double
+            Public BulbEvenOpacity As Double
+            Public BulbOddOpacity As Double
+            Public FireflyOpacity As Double
+            Public CatSittingOpacity As Double
         End Structure
+
+        Private _currentScalars As ScenePalette
+
+        ''' <summary>The scene visual sampled by the frosted-glass card. Never hand the card an
+        ''' ancestor of itself — VisualBrush self-reference is illegal.</summary>
+        Public ReadOnly Property SceneVisual As Visual
+            Get
+                Return SceneRoot
+            End Get
+        End Property
 
         Public Sub New()
             InitializeComponent()
             BuildAnimatedBrushes()
             _phaseTimer = New DispatcherTimer With {.Interval = TimeSpan.FromSeconds(60)}
             AddHandler _phaseTimer.Tick, AddressOf OnPhaseTimerTick
+            _catTimer = New DispatcherTimer()
+            AddHandler _catTimer.Tick, AddressOf OnCatTick
         End Sub
 
         ' ── Public lifecycle API ───────────────────────────────────────────────
@@ -100,6 +126,8 @@ Namespace Views.Login
             StartAmbientLoops()
             HookParallax()
             _phaseTimer.Start()
+            ScheduleNextCatFlick()
+            _catTimer.Start()
         End Sub
 
         ''' <summary>Pauses ambient loops (window deactivated). Phase crossfades are short-lived and unaffected.</summary>
@@ -107,41 +135,91 @@ Namespace Views.Login
             If Not _started OrElse _staticMode OrElse _paused Then Return
             _paused = True
             PauseClocks(_ambientClocks)
-            PauseClocks(_fireflyClocks)
-            PauseClocks(_birdClocks)
+            PauseClocks(_entranceClocks)
+            _catTimer.Stop()
         End Sub
 
         Public Sub [Resume]()
             If Not _started OrElse _staticMode OrElse Not _paused Then Return
             _paused = False
             ResumeClocks(_ambientClocks)
-            ResumeClocks(_fireflyClocks)
-            ResumeClocks(_birdClocks)
+            ResumeClocks(_entranceClocks)
+            _catTimer.Start()
         End Sub
 
         ''' <summary>
-        ''' Hard teardown: every clock detached, the phase timer stopped, parallax unhooked.
+        ''' Hard teardown: every clock detached, timers stopped, parallax unhooked.
         ''' Idempotent — called on hide, on close, and after the success beat.
         ''' </summary>
         Public Sub StopAll()
             _phaseTimer.Stop()
+            _catTimer.Stop()
             StopClocks(_ambientClocks)
-            StopClocks(_fireflyClocks)
-            StopClocks(_birdClocks)
             StopClocks(_crossfadeClocks)
-            _firefliesRunning = False
-            _birdsRunning = False
+            StopClocks(_entranceClocks)
+            CatTailRotate.BeginAnimation(RotateTransform.AngleProperty, Nothing)
+            DoorGlowRect.BeginAnimation(OpacityProperty, Nothing)
+            DoorSpill.BeginAnimation(OpacityProperty, Nothing)
             DimOverlay.BeginAnimation(OpacityProperty, Nothing)
             DimOverlay.Opacity = 0
             UnhookParallax()
+            CelestialParallaxTr.X = 0 : CelestialParallaxTr.Y = 0
             CloudsParallaxTr.X = 0 : CloudsParallaxTr.Y = 0
-            MountainParallaxTr.X = 0 : MountainParallaxTr.Y = 0
-            NearParallaxTr.X = 0 : NearParallaxTr.Y = 0
+            TownParallaxTr.X = 0 : TownParallaxTr.Y = 0
+            FacadeParallaxTr.X = 0 : FacadeParallaxTr.Y = 0
+            PropsParallaxTr.X = 0 : PropsParallaxTr.Y = 0
             _paused = False
             _started = False
         End Sub
 
-        ''' <summary>Dims the scene slightly while the mascot sleeps.</summary>
+        ''' <summary>
+        ''' Entrance choreography (UX-49): the scene brightens and the bulb string lights up
+        ''' left-to-right, sign halo last — "the store turns on for you." One-shot, ~1.1s,
+        ''' never in static mode. Call after <see cref="Start"/>.
+        ''' </summary>
+        Public Sub PlayEntrance()
+            If Not _started OrElse _staticMode Then Return
+            StopClocks(_entranceClocks)
+
+            SceneRoot.Opacity = 0.55
+            Dim sceneFade As New DoubleAnimation(1.0, New Duration(TimeSpan.FromMilliseconds(600))) With {
+                .EasingFunction = New CubicEase With {.EasingMode = EasingMode.EaseOut}
+            }
+            StartClockTracked(SceneRoot, OpacityProperty, sceneFade, _entranceClocks)
+
+            Dim bulbGroupArr() As Canvas = BulbGroups()
+            For i As Integer = 0 To bulbGroupArr.Length - 1
+                Dim bulbTarget As Double = If(i Mod 2 = 0, _currentScalars.BulbEvenOpacity, _currentScalars.BulbOddOpacity)
+                bulbGroupArr(i).Opacity = 0
+                Dim popAnim As New DoubleAnimation(bulbTarget, New Duration(TimeSpan.FromMilliseconds(180))) With {
+                    .BeginTime = TimeSpan.FromMilliseconds(120 + 70 * i),
+                    .EasingFunction = New CubicEase With {.EasingMode = EasingMode.EaseOut}
+                }
+                StartClockTracked(bulbGroupArr(i), OpacityProperty, popAnim, _entranceClocks)
+            Next
+
+            SignHalo.Opacity = 0
+            Dim haloAnim As New DoubleAnimation(_currentScalars.SignHaloOpacity, New Duration(TimeSpan.FromMilliseconds(300))) With {
+                .BeginTime = TimeSpan.FromMilliseconds(800),
+                .EasingFunction = New CubicEase With {.EasingMode = EasingMode.EaseOut}
+            }
+            StartClockTracked(SignHalo, OpacityProperty, haloAnim, _entranceClocks)
+        End Sub
+
+        ''' <summary>Success beat: the doorway glow pulses once — "welcome in."</summary>
+        Public Sub PulseDoorGlow()
+            If Not _started OrElse _staticMode Then Return
+            Dim glowPulse As New DoubleAnimation(Math.Min(1.0, _currentScalars.DoorLightOpacity + 0.22),
+                                                 New Duration(TimeSpan.FromMilliseconds(320))) With {
+                .AutoReverse = True,
+                .FillBehavior = FillBehavior.Stop,
+                .EasingFunction = New CubicEase With {.EasingMode = EasingMode.EaseInOut}
+            }
+            DoorGlowRect.BeginAnimation(OpacityProperty, glowPulse)
+            DoorSpill.BeginAnimation(OpacityProperty, glowPulse.Clone())
+        End Sub
+
+        ''' <summary>Dims the scene slightly while the avatar sleeps.</summary>
         Public Sub SetDimmed(dimmed As Boolean)
             If _staticMode Then Return
             Dim dimAnim As New DoubleAnimation(If(dimmed, 0.1, 0.0), New Duration(TimeSpan.FromMilliseconds(600))) With {
@@ -153,94 +231,139 @@ Namespace Views.Login
         ' ── Brushes & palette ──────────────────────────────────────────────────
 
         Private Sub BuildAnimatedBrushes()
-            Dim dayPalette As ScenePalette = GetPalette(LoginScenePhase.Day)
+            Dim p As ScenePalette = GetPalette(LoginScenePhase.Dusk)
 
             _skyBrush = New LinearGradientBrush With {
                 .StartPoint = New Point(0.5, 0),
                 .EndPoint = New Point(0.5, 1)
             }
-            _skyBrush.GradientStops.Add(New GradientStop(dayPalette.SkyTop, 0.0))
-            _skyBrush.GradientStops.Add(New GradientStop(dayPalette.SkyMid, 0.55))
-            _skyBrush.GradientStops.Add(New GradientStop(dayPalette.SkyHorizon, 1.0))
+            _skyBrush.GradientStops.Add(New GradientStop(p.SkyTop, 0.0))
+            _skyBrush.GradientStops.Add(New GradientStop(p.SkyUpper, 0.18))
+            _skyBrush.GradientStops.Add(New GradientStop(p.SkyLower, 0.33))
+            _skyBrush.GradientStops.Add(New GradientStop(p.SkyHorizon, 0.46))
             SkyRect.Fill = _skyBrush
 
-            _mountainBrush = New SolidColorBrush(dayPalette.Mountain)
-            MountainPath.Fill = _mountainBrush
+            _cloudBrush = New SolidColorBrush(p.CloudStreak)
+            CloudA.Fill = _cloudBrush
+            CloudB.Fill = _cloudBrush
+            CloudC.Fill = _cloudBrush
 
-            _fieldFarBrush = New SolidColorBrush(dayPalette.FieldFar)
-            FieldFarPath.Fill = _fieldFarBrush
+            _townBrush = New SolidColorBrush(p.Town)
+            TownPath.Fill = _townBrush
+            PalmLeft.Fill = _townBrush
+            PalmRight.Fill = _townBrush
 
-            _fieldNearBrush = New SolidColorBrush(dayPalette.FieldNear)
-            FieldNearPath.Fill = _fieldNearBrush
+            _wallBrush = New LinearGradientBrush With {
+                .StartPoint = New Point(0.5, 0),
+                .EndPoint = New Point(0.5, 1)
+            }
+            _wallBrush.GradientStops.Add(New GradientStop(p.FacadeWall, 0.0))
+            _wallBrush.GradientStops.Add(New GradientStop(p.FacadeBase, 1.0))
+            WallRect.Fill = _wallBrush
 
-            _roadBrush = New SolidColorBrush(dayPalette.Road)
-            RoadPath.Fill = _roadBrush
+            _facadeBaseBrush = New SolidColorBrush(p.FacadeBase)
+            FasciaRect.Fill = _facadeBaseBrush
+            PlankSeam1.Fill = _facadeBaseBrush
+            PlankSeam2.Fill = _facadeBaseBrush
+            PlankSeam3.Fill = _facadeBaseBrush
+            BaseStrip.Fill = _facadeBaseBrush
+            DoorSurroundRect.Fill = _facadeBaseBrush
+            WindowFrameRect.Fill = _facadeBaseBrush
+            WindowSillRect.Fill = _facadeBaseBrush
+            AwningBarRect.Fill = _facadeBaseBrush
 
-            _storeBrush = New SolidColorBrush(dayPalette.Store)
-            StorePath.Fill = _storeBrush
+            _awningGreenBrush = New SolidColorBrush(p.AwningGreen)
+            AwningGreenPath.Fill = _awningGreenBrush
+            _awningCreamBrush = New SolidColorBrush(p.AwningCream)
+            AwningCreamPath.Fill = _awningCreamBrush
 
-            _cloudBrush = New SolidColorBrush(dayPalette.Cloud)
-            Cloud1.Fill = _cloudBrush
-            Cloud2.Fill = _cloudBrush
-            Cloud3.Fill = _cloudBrush
+            _signPlateBrush = New SolidColorBrush(p.SignPlate)
+            SignPlateRect.Fill = _signPlateBrush
 
-            _signPlateBrush = New SolidColorBrush(dayPalette.SignPlate)
-            SignPlate.Fill = _signPlateBrush
-            WindowGlow1.Fill = _signPlateBrush
-            WindowGlow2.Fill = _signPlateBrush
-            WindowGlow3.Fill = _signPlateBrush
+            ' Door + display window share one interior-glow gradient (brighter toward the floor).
+            _glowBrush = New LinearGradientBrush With {
+                .StartPoint = New Point(0.5, 0),
+                .EndPoint = New Point(0.5, 1)
+            }
+            _glowBrush.GradientStops.Add(New GradientStop(p.GlowWarm, 0.0))
+            _glowBrush.GradientStops.Add(New GradientStop(p.GlowCore, 0.62))
+            DoorGlowRect.Fill = _glowBrush
+            WindowGlowRect.Fill = _glowBrush
 
-            _foliageBrush = New SolidColorBrush(dayPalette.Foliage)
-            For Each nearChild As UIElement In NearGroup.Children
-                Dim palayPath = TryCast(nearChild, Path)
-                If palayPath IsNot Nothing AndAlso "Palay".Equals(TryCast(palayPath.Tag, String), StringComparison.Ordinal) Then
-                    palayPath.Stroke = _foliageBrush
-                End If
-            Next
+            _poolBrush = New RadialGradientBrush()
+            _poolBrush.GradientStops.Add(New GradientStop(WithAlpha(p.GlowCore, &H55), 0.0))
+            _poolBrush.GradientStops.Add(New GradientStop(WithAlpha(p.GlowCore, 0), 1.0))
+            DoorPool.Fill = _poolBrush
+            WindowPool.Fill = _poolBrush
+
+            _reflectionBrush = New LinearGradientBrush With {
+                .StartPoint = New Point(0.5, 0),
+                .EndPoint = New Point(0.5, 1)
+            }
+            _reflectionBrush.GradientStops.Add(New GradientStop(WithAlpha(p.Reflection, &H4A), 0.0))
+            _reflectionBrush.GradientStops.Add(New GradientStop(WithAlpha(p.Reflection, 0), 1.0))
+            SignReflection.Fill = _reflectionBrush
+            WindowReflection.Fill = _reflectionBrush
+            DoorReflection.Fill = _reflectionBrush
+
+            _spillBrush = New RadialGradientBrush()
+            _spillBrush.GradientStops.Add(New GradientStop(WithAlpha(p.GlowWarm, &H30), 0.0))
+            _spillBrush.GradientStops.Add(New GradientStop(WithAlpha(p.GlowWarm, 0), 1.0))
+            DoorSpill.Fill = _spillBrush
+
+            _signHaloBrush = New RadialGradientBrush()
+            _signHaloBrush.GradientStops.Add(New GradientStop(WithAlpha(p.GlowWarm, &H52), 0.0))
+            _signHaloBrush.GradientStops.Add(New GradientStop(WithAlpha(p.GlowWarm, 0), 1.0))
+            SignHalo.Fill = _signHaloBrush
+
+            _pavementBrush = New LinearGradientBrush With {
+                .StartPoint = New Point(0.5, 0),
+                .EndPoint = New Point(0.5, 1)
+            }
+            _pavementBrush.GradientStops.Add(New GradientStop(p.PavementFar, 0.0))
+            _pavementBrush.GradientStops.Add(New GradientStop(p.Pavement, 1.0))
+            PavementRect.Fill = _pavementBrush
+
+            _currentScalars = p
         End Sub
 
         Private Function GetPalette(phase As LoginScenePhase) As ScenePalette
             Dim prefix As String = "Scene" & phase.ToString()
             Dim p As New ScenePalette With {
                 .SkyTop = Col(prefix & "SkyTopColor"),
-                .SkyMid = Col(prefix & "SkyMidColor"),
+                .SkyUpper = Col(prefix & "SkyUpperColor"),
+                .SkyLower = Col(prefix & "SkyLowerColor"),
                 .SkyHorizon = Col(prefix & "SkyHorizonColor"),
-                .Mountain = Col(prefix & "MountainColor"),
-                .FieldFar = Col(prefix & "FieldFarColor"),
-                .FieldNear = Col(prefix & "FieldNearColor"),
-                .Foliage = Col(prefix & "FoliageColor"),
-                .Road = Col(prefix & "RoadColor"),
-                .Store = Col(prefix & "StoreColor"),
-                .Cloud = Col(prefix & "CloudColor"),
-                .SignPlate = Col(prefix & "SignPlateColor")
+                .CloudStreak = Col(prefix & "CloudStreakColor"),
+                .Town = Col(prefix & "TownColor"),
+                .FacadeWall = Col(prefix & "FacadeWallColor"),
+                .FacadeBase = Col(prefix & "FacadeBaseColor"),
+                .AwningGreen = Col(prefix & "AwningGreenColor"),
+                .AwningCream = Col(prefix & "AwningCreamColor"),
+                .SignPlate = Col(prefix & "SignPlateColor"),
+                .GlowCore = Col(prefix & "GlowCoreColor"),
+                .GlowWarm = Col(prefix & "GlowWarmColor"),
+                .Pavement = Col(prefix & "PavementColor"),
+                .PavementFar = Col(prefix & "PavementFarColor"),
+                .Reflection = Col(prefix & "ReflectionColor")
             }
 
             Select Case phase
-                Case LoginScenePhase.Dawn
-                    p.CloudOpacity = 0.7 : p.StarOpacity = 0 : p.MoonOpacity = 0
-                    p.SunOpacity = 0.95 : p.HaloOpacity = 0
-                    p.SunX = 300 : p.SunY = 610
-                    p.FirefliesOn = False : p.BirdsOn = False
-                Case LoginScenePhase.Day
-                    p.CloudOpacity = 0.95 : p.StarOpacity = 0 : p.MoonOpacity = 0
-                    p.SunOpacity = 1 : p.HaloOpacity = 0
-                    p.SunX = 820 : p.SunY = 180
-                    p.FirefliesOn = False : p.BirdsOn = True
-                Case LoginScenePhase.Golden
-                    p.CloudOpacity = 0.8 : p.StarOpacity = 0 : p.MoonOpacity = 0
-                    p.SunOpacity = 0.95 : p.HaloOpacity = 0
-                    p.SunX = 1270 : p.SunY = 540
-                    p.FirefliesOn = False : p.BirdsOn = True
                 Case LoginScenePhase.Dusk
-                    p.CloudOpacity = 0.5 : p.StarOpacity = 0.5 : p.MoonOpacity = 0.35
-                    p.SunOpacity = 0 : p.HaloOpacity = 0.6
-                    p.SunX = 1270 : p.SunY = 560
-                    p.FirefliesOn = True : p.BirdsOn = False
-                Case Else ' Night
-                    p.CloudOpacity = 0.3 : p.StarOpacity = 1 : p.MoonOpacity = 1
-                    p.SunOpacity = 0 : p.HaloOpacity = 0.85
-                    p.SunX = 1270 : p.SunY = 560
-                    p.FirefliesOn = True : p.BirdsOn = False
+                    p.StarOpacity = 0.35 : p.MoonOpacity = 0.55 : p.CloudOpacity = 0.8
+                    p.SignHaloOpacity = 0.6 : p.DoorLightOpacity = 1.0 : p.WindowLightOpacity = 0.85
+                    p.BulbLayerOpacity = 0.8 : p.BulbEvenOpacity = 1.0 : p.BulbOddOpacity = 1.0
+                    p.FireflyOpacity = 0.75 : p.CatSittingOpacity = 1.0
+                Case LoginScenePhase.Evening
+                    p.StarOpacity = 1.0 : p.MoonOpacity = 1.0 : p.CloudOpacity = 0.45
+                    p.SignHaloOpacity = 0.85 : p.DoorLightOpacity = 1.0 : p.WindowLightOpacity = 1.0
+                    p.BulbLayerOpacity = 0.95 : p.BulbEvenOpacity = 1.0 : p.BulbOddOpacity = 1.0
+                    p.FireflyOpacity = 1.0 : p.CatSittingOpacity = 1.0
+                Case Else ' LateNight — closing time: interior dimmed, every other bulb off, cat asleep
+                    p.StarOpacity = 1.0 : p.MoonOpacity = 1.0 : p.CloudOpacity = 0.3
+                    p.SignHaloOpacity = 0.5 : p.DoorLightOpacity = 0.45 : p.WindowLightOpacity = 0.3
+                    p.BulbLayerOpacity = 0.8 : p.BulbEvenOpacity = 0.0 : p.BulbOddOpacity = 0.55
+                    p.FireflyOpacity = 0.6 : p.CatSittingOpacity = 0.0
             End Select
 
             Return p
@@ -248,6 +371,14 @@ Namespace Views.Login
 
         Private Function Col(resourceKey As String) As Color
             Return CType(FindResource(resourceKey), Color)
+        End Function
+
+        Private Shared Function WithAlpha(c As Color, a As Byte) As Color
+            Return Color.FromArgb(a, c.R, c.G, c.B)
+        End Function
+
+        Private Function BulbGroups() As Canvas()
+            Return New Canvas() {Bulb0, Bulb1, Bulb2, Bulb3, Bulb4, Bulb5, Bulb6, Bulb7, Bulb8}
         End Function
 
         ' ── Phase application & crossfade ──────────────────────────────────────
@@ -268,62 +399,105 @@ Namespace Views.Login
 
             If animate AndAlso Not _staticMode Then
                 CrossfadeColor(_skyBrush.GradientStops(0), p.SkyTop)
-                CrossfadeColor(_skyBrush.GradientStops(1), p.SkyMid)
-                CrossfadeColor(_skyBrush.GradientStops(2), p.SkyHorizon)
-                CrossfadeColor(_mountainBrush, p.Mountain)
-                CrossfadeColor(_fieldFarBrush, p.FieldFar)
-                CrossfadeColor(_fieldNearBrush, p.FieldNear)
-                CrossfadeColor(_foliageBrush, p.Foliage)
-                CrossfadeColor(_roadBrush, p.Road)
-                CrossfadeColor(_storeBrush, p.Store)
-                CrossfadeColor(_cloudBrush, p.Cloud)
+                CrossfadeColor(_skyBrush.GradientStops(1), p.SkyUpper)
+                CrossfadeColor(_skyBrush.GradientStops(2), p.SkyLower)
+                CrossfadeColor(_skyBrush.GradientStops(3), p.SkyHorizon)
+                CrossfadeColor(_cloudBrush, p.CloudStreak)
+                CrossfadeColor(_townBrush, p.Town)
+                CrossfadeColor(_wallBrush.GradientStops(0), p.FacadeWall)
+                CrossfadeColor(_wallBrush.GradientStops(1), p.FacadeBase)
+                CrossfadeColor(_facadeBaseBrush, p.FacadeBase)
+                CrossfadeColor(_awningGreenBrush, p.AwningGreen)
+                CrossfadeColor(_awningCreamBrush, p.AwningCream)
                 CrossfadeColor(_signPlateBrush, p.SignPlate)
+                CrossfadeColor(_glowBrush.GradientStops(0), p.GlowWarm)
+                CrossfadeColor(_glowBrush.GradientStops(1), p.GlowCore)
+                CrossfadeColor(_poolBrush.GradientStops(0), WithAlpha(p.GlowCore, &H55))
+                CrossfadeColor(_poolBrush.GradientStops(1), WithAlpha(p.GlowCore, 0))
+                CrossfadeColor(_reflectionBrush.GradientStops(0), WithAlpha(p.Reflection, &H4A))
+                CrossfadeColor(_reflectionBrush.GradientStops(1), WithAlpha(p.Reflection, 0))
+                CrossfadeColor(_spillBrush.GradientStops(0), WithAlpha(p.GlowWarm, &H30))
+                CrossfadeColor(_spillBrush.GradientStops(1), WithAlpha(p.GlowWarm, 0))
+                CrossfadeColor(_signHaloBrush.GradientStops(0), WithAlpha(p.GlowWarm, &H52))
+                CrossfadeColor(_signHaloBrush.GradientStops(1), WithAlpha(p.GlowWarm, 0))
+                CrossfadeColor(_pavementBrush.GradientStops(0), p.PavementFar)
+                CrossfadeColor(_pavementBrush.GradientStops(1), p.Pavement)
 
-                CrossfadeDouble(CloudsLayer, OpacityProperty, p.CloudOpacity)
                 CrossfadeDouble(StarsLayer, OpacityProperty, p.StarOpacity)
                 CrossfadeDouble(MoonGroup, OpacityProperty, p.MoonOpacity)
-                CrossfadeDouble(SunGroup, OpacityProperty, p.SunOpacity)
-                CrossfadeDouble(SignHalo, OpacityProperty, p.HaloOpacity)
-                CrossfadeDouble(FirefliesLayer, OpacityProperty, If(p.FirefliesOn, 1.0, 0.0))
-                CrossfadeDouble(BirdsLayer, OpacityProperty, If(p.BirdsOn, 1.0, 0.0))
-                CrossfadeDouble(SunTranslate, TranslateTransform.XProperty, p.SunX)
-                CrossfadeDouble(SunTranslate, TranslateTransform.YProperty, p.SunY)
-            Else
-                _skyBrush.GradientStops(0).Color = p.SkyTop
-                _skyBrush.GradientStops(1).Color = p.SkyMid
-                _skyBrush.GradientStops(2).Color = p.SkyHorizon
-                _mountainBrush.Color = p.Mountain
-                _fieldFarBrush.Color = p.FieldFar
-                _fieldNearBrush.Color = p.FieldNear
-                _foliageBrush.Color = p.Foliage
-                _roadBrush.Color = p.Road
-                _storeBrush.Color = p.Store
-                _cloudBrush.Color = p.Cloud
-                _signPlateBrush.Color = p.SignPlate
-
-                CloudsLayer.Opacity = p.CloudOpacity
-                StarsLayer.Opacity = p.StarOpacity
-                MoonGroup.Opacity = p.MoonOpacity
-                SunGroup.Opacity = p.SunOpacity
-                SignHalo.Opacity = p.HaloOpacity
-                FirefliesLayer.Opacity = If(p.FirefliesOn, 1.0, 0.0)
-                BirdsLayer.Opacity = If(p.BirdsOn, 1.0, 0.0)
-                SunTranslate.X = p.SunX
-                SunTranslate.Y = p.SunY
+                CrossfadeDouble(CloudsLayer, OpacityProperty, p.CloudOpacity)
+                CrossfadeDouble(SignHalo, OpacityProperty, p.SignHaloOpacity)
+                CrossfadeDouble(DoorGlowRect, OpacityProperty, p.DoorLightOpacity)
+                CrossfadeDouble(DoorSpill, OpacityProperty, p.DoorLightOpacity)
+                CrossfadeDouble(DoorPool, OpacityProperty, p.DoorLightOpacity)
+                CrossfadeDouble(DoorReflection, OpacityProperty, p.DoorLightOpacity)
+                CrossfadeDouble(WindowGlowRect, OpacityProperty, p.WindowLightOpacity)
+                CrossfadeDouble(WindowPool, OpacityProperty, p.WindowLightOpacity)
+                CrossfadeDouble(WindowReflection, OpacityProperty, p.WindowLightOpacity)
+                CrossfadeDouble(SignReflection, OpacityProperty, p.SignHaloOpacity * 0.5)
+                CrossfadeDouble(BulbsLayer, OpacityProperty, p.BulbLayerOpacity)
+                Dim bulbGroupArr() As Canvas = BulbGroups()
+                For i As Integer = 0 To bulbGroupArr.Length - 1
+                    CrossfadeDouble(bulbGroupArr(i), OpacityProperty,
+                                    If(i Mod 2 = 0, p.BulbEvenOpacity, p.BulbOddOpacity))
+                Next
+                CrossfadeDouble(FirefliesLayer, OpacityProperty, p.FireflyOpacity)
+                CrossfadeDouble(CatSitting, OpacityProperty, p.CatSittingOpacity)
+                CrossfadeDouble(CatAsleep, OpacityProperty, 1.0 - p.CatSittingOpacity)
             End If
 
-            ' Critter loops only run while their phase needs them (and never in static mode).
-            If _staticMode Then Return
-            If p.FirefliesOn AndAlso Not _firefliesRunning Then StartFireflies()
-            If Not p.FirefliesOn AndAlso _firefliesRunning Then
-                StopClocks(_fireflyClocks)
-                _firefliesRunning = False
-            End If
-            If p.BirdsOn AndAlso Not _birdsRunning Then StartBirds()
-            If Not p.BirdsOn AndAlso _birdsRunning Then
-                StopClocks(_birdClocks)
-                _birdsRunning = False
-            End If
+            ' Base values always end up correct (under any clock) so FillBehavior.Stop
+            ' one-shots (entrance, door pulse) never snap to a stale base.
+            SetBaseValues(p)
+            _currentScalars = p
+        End Sub
+
+        Private Sub SetBaseValues(p As ScenePalette)
+            _skyBrush.GradientStops(0).Color = p.SkyTop
+            _skyBrush.GradientStops(1).Color = p.SkyUpper
+            _skyBrush.GradientStops(2).Color = p.SkyLower
+            _skyBrush.GradientStops(3).Color = p.SkyHorizon
+            _cloudBrush.Color = p.CloudStreak
+            _townBrush.Color = p.Town
+            _wallBrush.GradientStops(0).Color = p.FacadeWall
+            _wallBrush.GradientStops(1).Color = p.FacadeBase
+            _facadeBaseBrush.Color = p.FacadeBase
+            _awningGreenBrush.Color = p.AwningGreen
+            _awningCreamBrush.Color = p.AwningCream
+            _signPlateBrush.Color = p.SignPlate
+            _glowBrush.GradientStops(0).Color = p.GlowWarm
+            _glowBrush.GradientStops(1).Color = p.GlowCore
+            _poolBrush.GradientStops(0).Color = WithAlpha(p.GlowCore, &H55)
+            _poolBrush.GradientStops(1).Color = WithAlpha(p.GlowCore, 0)
+            _reflectionBrush.GradientStops(0).Color = WithAlpha(p.Reflection, &H4A)
+            _reflectionBrush.GradientStops(1).Color = WithAlpha(p.Reflection, 0)
+            _spillBrush.GradientStops(0).Color = WithAlpha(p.GlowWarm, &H30)
+            _spillBrush.GradientStops(1).Color = WithAlpha(p.GlowWarm, 0)
+            _signHaloBrush.GradientStops(0).Color = WithAlpha(p.GlowWarm, &H52)
+            _signHaloBrush.GradientStops(1).Color = WithAlpha(p.GlowWarm, 0)
+            _pavementBrush.GradientStops(0).Color = p.PavementFar
+            _pavementBrush.GradientStops(1).Color = p.Pavement
+
+            StarsLayer.Opacity = p.StarOpacity
+            MoonGroup.Opacity = p.MoonOpacity
+            CloudsLayer.Opacity = p.CloudOpacity
+            SignHalo.Opacity = p.SignHaloOpacity
+            DoorGlowRect.Opacity = p.DoorLightOpacity
+            DoorSpill.Opacity = p.DoorLightOpacity
+            DoorPool.Opacity = p.DoorLightOpacity
+            DoorReflection.Opacity = p.DoorLightOpacity
+            WindowGlowRect.Opacity = p.WindowLightOpacity
+            WindowPool.Opacity = p.WindowLightOpacity
+            WindowReflection.Opacity = p.WindowLightOpacity
+            SignReflection.Opacity = p.SignHaloOpacity * 0.5
+            BulbsLayer.Opacity = p.BulbLayerOpacity
+            Dim bulbGroupArr() As Canvas = BulbGroups()
+            For i As Integer = 0 To bulbGroupArr.Length - 1
+                bulbGroupArr(i).Opacity = If(i Mod 2 = 0, p.BulbEvenOpacity, p.BulbOddOpacity)
+            Next
+            FirefliesLayer.Opacity = p.FireflyOpacity
+            CatSitting.Opacity = p.CatSittingOpacity
+            CatAsleep.Opacity = 1.0 - p.CatSittingOpacity
         End Sub
 
         Private Sub CrossfadeColor(target As IAnimatable, toColor As Color)
@@ -349,50 +523,77 @@ Namespace Views.Login
         ' ── Ambient loops ──────────────────────────────────────────────────────
 
         Private Sub StartAmbientLoops()
-            ' Cloud drift: enter stage-left, exit stage-right, seamless wrap offscreen.
-            Dim cloudDurations() As Double = {240, 180, 150}
-            Dim cloudOffsets() As Double = {-60, -120, -30}
-            Dim cloudPaths() As Path = {Cloud1, Cloud2, Cloud3}
+            ' Dusk cloud streaks: gentle ±28px oscillation — no wrap traversal needed.
+            Dim cloudTransforms() As TranslateTransform = {CloudATr, CloudBTr, CloudCTr}
+            Dim cloudDurations() As Double = {110, 90, 135}
             For i As Integer = 0 To 2
-                Dim driftAnim As New DoubleAnimation(-400, 1950, New Duration(TimeSpan.FromSeconds(cloudDurations(i)))) With {
-                    .RepeatBehavior = RepeatBehavior.Forever,
-                    .BeginTime = TimeSpan.FromSeconds(cloudOffsets(i))
-                }
-                Timeline.SetDesiredFrameRate(driftAnim, AmbientFrameRate)
-                StartClockTracked(DriftTransformOf(cloudPaths(i)), TranslateTransform.XProperty, driftAnim, _ambientClocks)
-            Next
-
-            ' Palay sway: ±1.8°, staggered.
-            Dim swayTransforms() As RotateTransform = {Sway1, Sway2, Sway3, Sway4, Sway5, Sway6}
-            For Each swayTr As RotateTransform In swayTransforms
-                Dim swayAnim As New DoubleAnimation(-1.8, 1.8, New Duration(TimeSpan.FromSeconds(4 + _rng.NextDouble() * 2))) With {
+                Dim driftAnim As New DoubleAnimation(-28, 28, New Duration(TimeSpan.FromSeconds(cloudDurations(i)))) With {
                     .AutoReverse = True,
                     .RepeatBehavior = RepeatBehavior.Forever,
-                    .BeginTime = TimeSpan.FromSeconds(-_rng.NextDouble() * 4),
+                    .BeginTime = TimeSpan.FromSeconds(-_rng.NextDouble() * 40),
                     .EasingFunction = New CubicEase With {.EasingMode = EasingMode.EaseInOut}
                 }
-                Timeline.SetDesiredFrameRate(swayAnim, AmbientFrameRate)
-                StartClockTracked(swayTr, RotateTransform.AngleProperty, swayAnim, _ambientClocks)
+                Timeline.SetDesiredFrameRate(driftAnim, AmbientFrameRate)
+                StartClockTracked(cloudTransforms(i), TranslateTransform.XProperty, driftAnim, _ambientClocks)
             Next
 
-            ' Star twinkle: every second star, capped at 8.
-            Dim twinkleCount As Integer = 0
-            For starIndex As Integer = 0 To StarsLayer.Children.Count - 1 Step 2
-                If twinkleCount >= 8 Then Exit For
-                Dim star As UIElement = StarsLayer.Children(starIndex)
-                Dim twinkleAnim As New DoubleAnimation(0.35, 0.95, New Duration(TimeSpan.FromSeconds(2.2 + _rng.NextDouble() * 1.6))) With {
+            ' Hanging sign sway: ±1.2° around its hang point.
+            Dim swayAnim As New DoubleAnimation(-1.2, 1.2, New Duration(TimeSpan.FromSeconds(5.5))) With {
+                .AutoReverse = True,
+                .RepeatBehavior = RepeatBehavior.Forever,
+                .BeginTime = TimeSpan.FromSeconds(-2),
+                .EasingFunction = New CubicEase With {.EasingMode = EasingMode.EaseInOut}
+            }
+            Timeline.SetDesiredFrameRate(swayAnim, AmbientFrameRate)
+            StartClockTracked(SignSway, RotateTransform.AngleProperty, swayAnim, _ambientClocks)
+
+            ' Bulb twinkle: six of the nine halos breathe gently (cap 6).
+            Dim bulbGroupArr() As Canvas = BulbGroups()
+            Dim twinkleIndices() As Integer = {0, 2, 4, 5, 7, 8}
+            For Each bulbIndex As Integer In twinkleIndices
+                Dim halo = CType(bulbGroupArr(bulbIndex).Children(1), Ellipse)
+                Dim twinkleAnim As New DoubleAnimation(0.7, 1.0, New Duration(TimeSpan.FromSeconds(2.8 + _rng.NextDouble() * 1.7))) With {
                     .AutoReverse = True,
                     .RepeatBehavior = RepeatBehavior.Forever,
                     .BeginTime = TimeSpan.FromSeconds(-_rng.NextDouble() * 3)
                 }
-                Timeline.SetDesiredFrameRate(twinkleAnim, AmbientFrameRate)
-                StartClockTracked(star, OpacityProperty, twinkleAnim, _ambientClocks)
+                Timeline.SetDesiredFrameRate(twinkleAnim, TwinkleFrameRate)
+                StartClockTracked(halo, OpacityProperty, twinkleAnim, _ambientClocks)
+            Next
+
+            ' Star twinkle: every third star, capped at 6.
+            Dim twinkleCount As Integer = 0
+            For starIndex As Integer = 0 To StarsLayer.Children.Count - 1 Step 3
+                If twinkleCount >= 6 Then Exit For
+                Dim star As UIElement = StarsLayer.Children(starIndex)
+                Dim starAnim As New DoubleAnimation(0.35, 0.95, New Duration(TimeSpan.FromSeconds(2.2 + _rng.NextDouble() * 1.6))) With {
+                    .AutoReverse = True,
+                    .RepeatBehavior = RepeatBehavior.Forever,
+                    .BeginTime = TimeSpan.FromSeconds(-_rng.NextDouble() * 3)
+                }
+                Timeline.SetDesiredFrameRate(starAnim, TwinkleFrameRate)
+                StartClockTracked(star, OpacityProperty, starAnim, _ambientClocks)
                 twinkleCount += 1
             Next
-        End Sub
 
-        Private Sub StartFireflies()
-            _firefliesRunning = True
+            ' Wet-pavement sheen: two slow overlapping shimmer bands.
+            Dim sheen1Anim As New DoubleAnimation(0.22, 0.42, New Duration(TimeSpan.FromSeconds(9))) With {
+                .AutoReverse = True,
+                .RepeatBehavior = RepeatBehavior.Forever,
+                .EasingFunction = New CubicEase With {.EasingMode = EasingMode.EaseInOut}
+            }
+            Timeline.SetDesiredFrameRate(sheen1Anim, TwinkleFrameRate)
+            StartClockTracked(Sheen1, OpacityProperty, sheen1Anim, _ambientClocks)
+            Dim sheen2Anim As New DoubleAnimation(0.2, 0.38, New Duration(TimeSpan.FromSeconds(13))) With {
+                .AutoReverse = True,
+                .RepeatBehavior = RepeatBehavior.Forever,
+                .BeginTime = TimeSpan.FromSeconds(-5),
+                .EasingFunction = New CubicEase With {.EasingMode = EasingMode.EaseInOut}
+            }
+            Timeline.SetDesiredFrameRate(sheen2Anim, TwinkleFrameRate)
+            StartClockTracked(Sheen2, OpacityProperty, sheen2Anim, _ambientClocks)
+
+            ' Fireflies: pulse + drift (all moods here are dusk/night, so they always run).
             For Each fireflyElement As UIElement In FirefliesLayer.Children
                 Dim firefly = TryCast(fireflyElement, Ellipse)
                 If firefly Is Nothing Then Continue For
@@ -404,7 +605,7 @@ Namespace Views.Login
                     .BeginTime = TimeSpan.FromSeconds(-_rng.NextDouble() * 4)
                 }
                 Timeline.SetDesiredFrameRate(pulseAnim, AmbientFrameRate)
-                StartClockTracked(firefly, OpacityProperty, pulseAnim, _fireflyClocks)
+                StartClockTracked(firefly, OpacityProperty, pulseAnim, _ambientClocks)
 
                 Dim driftXAnim As New DoubleAnimation(-14, 14, New Duration(TimeSpan.FromSeconds(7 + _rng.NextDouble() * 4))) With {
                     .AutoReverse = True,
@@ -413,7 +614,7 @@ Namespace Views.Login
                     .EasingFunction = New CubicEase With {.EasingMode = EasingMode.EaseInOut}
                 }
                 Timeline.SetDesiredFrameRate(driftXAnim, AmbientFrameRate)
-                StartClockTracked(floatTr, TranslateTransform.XProperty, driftXAnim, _fireflyClocks)
+                StartClockTracked(floatTr, TranslateTransform.XProperty, driftXAnim, _ambientClocks)
 
                 Dim driftYAnim As New DoubleAnimation(-8, 8, New Duration(TimeSpan.FromSeconds(5 + _rng.NextDouble() * 3))) With {
                     .AutoReverse = True,
@@ -422,51 +623,25 @@ Namespace Views.Login
                     .EasingFunction = New CubicEase With {.EasingMode = EasingMode.EaseInOut}
                 }
                 Timeline.SetDesiredFrameRate(driftYAnim, AmbientFrameRate)
-                StartClockTracked(floatTr, TranslateTransform.YProperty, driftYAnim, _fireflyClocks)
+                StartClockTracked(floatTr, TranslateTransform.YProperty, driftYAnim, _ambientClocks)
             Next
         End Sub
 
-        Private Sub StartBirds()
-            _birdsRunning = True
-            Dim flightDurations() As Double = {19, 24}
-            Dim birdIndex As Integer = 0
-            For Each birdElement As UIElement In BirdsLayer.Children
-                Dim birdCanvas = TryCast(birdElement, Canvas)
-                If birdCanvas Is Nothing Then Continue For
-                Dim flightTr = CType(birdCanvas.RenderTransform, TranslateTransform)
-                Dim wingPath = CType(birdCanvas.Children(0), Path)
-                Dim wingScale = CType(wingPath.RenderTransform, ScaleTransform)
+        ' ── Cat tail flick (one-shot every 12-21s; asleep cats don't flick) ────
 
-                Dim flightAnim As New DoubleAnimation(-160, 1760, New Duration(TimeSpan.FromSeconds(flightDurations(birdIndex Mod 2)))) With {
-                    .RepeatBehavior = RepeatBehavior.Forever,
-                    .BeginTime = TimeSpan.FromSeconds(birdIndex * 9)
-                }
-                Timeline.SetDesiredFrameRate(flightAnim, AmbientFrameRate)
-                StartClockTracked(flightTr, TranslateTransform.XProperty, flightAnim, _birdClocks)
-
-                Dim bobAnim As New DoubleAnimation(-10, 10, New Duration(TimeSpan.FromSeconds(2.8))) With {
-                    .AutoReverse = True,
-                    .RepeatBehavior = RepeatBehavior.Forever,
-                    .BeginTime = TimeSpan.FromSeconds(-_rng.NextDouble() * 2),
-                    .EasingFunction = New CubicEase With {.EasingMode = EasingMode.EaseInOut}
-                }
-                Timeline.SetDesiredFrameRate(bobAnim, AmbientFrameRate)
-                StartClockTracked(flightTr, TranslateTransform.YProperty, bobAnim, _birdClocks)
-
-                Dim flapAnim As New DoubleAnimation(1.0, 0.55, New Duration(TimeSpan.FromSeconds(0.32))) With {
-                    .AutoReverse = True,
-                    .RepeatBehavior = RepeatBehavior.Forever
-                }
-                StartClockTracked(wingScale, ScaleTransform.ScaleYProperty, flapAnim, _birdClocks)
-
-                birdIndex += 1
-            Next
+        Private Sub ScheduleNextCatFlick()
+            _catTimer.Interval = TimeSpan.FromSeconds(12 + _rng.NextDouble() * 9)
         End Sub
 
-        Private Shared Function DriftTransformOf(cloudPath As Path) As TranslateTransform
-            Dim group = CType(cloudPath.RenderTransform, TransformGroup)
-            Return CType(group.Children(1), TranslateTransform)
-        End Function
+        Private Sub OnCatTick(sender As Object, e As EventArgs)
+            ScheduleNextCatFlick()
+            If _staticMode OrElse _paused OrElse _currentPhase = LoginScenePhase.LateNight Then Return
+            Dim flick As New DoubleAnimationUsingKeyFrames With {.FillBehavior = FillBehavior.Stop}
+            flick.KeyFrames.Add(New LinearDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.Zero)))
+            flick.KeyFrames.Add(New LinearDoubleKeyFrame(-16, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(180))))
+            flick.KeyFrames.Add(New LinearDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(460))))
+            CatTailRotate.BeginAnimation(RotateTransform.AngleProperty, flick)
+        End Sub
 
         ' ── Clock bookkeeping ──────────────────────────────────────────────────
 
@@ -526,16 +701,18 @@ Namespace Views.Login
             Dim ny As Double = Math.Clamp((cursorPos.Y / hostHeight - 0.5) * 2.0, -1.0, 1.0)
 
             ' Camera-pan illusion: nearer layers shift more, all against the cursor.
-            CloudsParallaxTr.X = -4 * nx : CloudsParallaxTr.Y = -1.6 * ny
-            MountainParallaxTr.X = -7 * nx : MountainParallaxTr.Y = -2.8 * ny
-            NearParallaxTr.X = -12 * nx : NearParallaxTr.Y = -4.8 * ny
+            CelestialParallaxTr.X = -2 * nx : CelestialParallaxTr.Y = -0.8 * ny
+            CloudsParallaxTr.X = -2 * nx : CloudsParallaxTr.Y = -0.8 * ny
+            TownParallaxTr.X = -4 * nx : TownParallaxTr.Y = -1.6 * ny
+            FacadeParallaxTr.X = -7 * nx : FacadeParallaxTr.Y = -2.8 * ny
+            PropsParallaxTr.X = -13 * nx : PropsParallaxTr.Y = -5.2 * ny
         End Sub
 
         ' ── Clock source ───────────────────────────────────────────────────────
 
         Private Shared Function CurrentTimeOfDay() As TimeSpan
 #If DEBUG Then
-            ' Verification affordance (mirrors VISTA_BYPASS_LOGIN): force a phase without waiting for sunset.
+            ' Verification affordance (mirrors VISTA_BYPASS_LOGIN): force a mood without waiting for sunset.
             Dim overrideValue As String = Environment.GetEnvironmentVariable("VISTA_LOGIN_SCENE_HOUR")
             Dim overrideHour As Integer
             If Integer.TryParse(overrideValue, overrideHour) AndAlso overrideHour >= 0 AndAlso overrideHour <= 23 Then
