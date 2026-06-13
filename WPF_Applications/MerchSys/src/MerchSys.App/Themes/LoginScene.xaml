@@ -1,108 +1,37 @@
 <!--
-    VISTA Login Scene Palette & Assets (UX-49 — dusk storefront hero shot)
-    Lighting-mood palette for the storefront scene + tindera avatar colors.
-    These tokens are TIME-driven, not theme-driven: identical in Light and Dark
-    (the Dark theme applies LoginSceneScrimBrush over the scene instead).
+    VISTA Login Scene Palette (UX-50 — painterly raster hero)
+    Static fills for the login backdrop + the tindera avatar ("Aling Vi").
+    Theme-independent (identical in Light and Dark; the Dark theme applies LoginSceneScrimBrush).
     Merged ONLY by Views/Login/DynamicSceneCanvas.xaml, Views/Login/TinderaAvatar.xaml and
     Views/LoginView.xaml - never into App resources.
 
-    Naming: Scene{Mood}{Element}Color   (moods: Dusk, Evening, LateNight)
-    Color tokens are animation seeds consumed in code (never fed into Brush properties);
-    Brush tokens are static fills for XAML.
+    NOTE: the UX-48/49 procedural-scene mood palette (Scene{Dusk|Evening|LateNight}{Element}Color)
+    and the vector-scene brushes (sky/star/moon/bulb/cloud/town/facade/awning/pavement/tricycle/
+    cat/plant/sheen/sign, etc.) were removed in UX-50 when the hand-drawn scene was replaced by the
+    raster hero. What remains: the hero glow + time-of-day grade, the sleep-dim overlay, and the
+    avatar palette.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <!-- ── Dusk (05:00-18:59 — the hero mood; blue hour, every store light warm) ── -->
-    <Color x:Key="SceneDuskSkyTopColor">#1C2547</Color>
-    <Color x:Key="SceneDuskSkyUpperColor">#33305E</Color>
-    <Color x:Key="SceneDuskSkyLowerColor">#7A4A6B</Color>
-    <Color x:Key="SceneDuskSkyHorizonColor">#C96F5A</Color>
-    <Color x:Key="SceneDuskCloudStreakColor">#3A3458</Color>
-    <Color x:Key="SceneDuskTownColor">#221F38</Color>
-    <Color x:Key="SceneDuskFacadeWallColor">#4A3D52</Color>
-    <Color x:Key="SceneDuskFacadeBaseColor">#382F46</Color>
-    <Color x:Key="SceneDuskAwningGreenColor">#3E6B4F</Color>
-    <Color x:Key="SceneDuskAwningCreamColor">#D8CDB4</Color>
-    <Color x:Key="SceneDuskSignPlateColor">#2E2840</Color>
-    <Color x:Key="SceneDuskGlowCoreColor">#FFD98A</Color>
-    <Color x:Key="SceneDuskGlowWarmColor">#E8923A</Color>
-    <Color x:Key="SceneDuskPavementColor">#211E2C</Color>
-    <Color x:Key="SceneDuskPavementFarColor">#322E40</Color>
-    <Color x:Key="SceneDuskReflectionColor">#E8A35C</Color>
+    <!-- UX-50 painterly hero — warm glow registered to the storefront's lit window/bulbs.
+         Flicker / entrance fade-in / success pulse animate the Ellipse opacity, not the brush. -->
+    <RadialGradientBrush x:Key="LoginHeroGlowBrush">
+        <GradientStop Color="#7AFFC882" Offset="0.0"/>
+        <GradientStop Color="#3CFFB257" Offset="0.55"/>
+        <GradientStop Color="#00FFB257" Offset="1.0"/>
+    </RadialGradientBrush>
 
-    <!-- ── Evening (19:00-22:59 — full night, store aglow) ────────────────── -->
-    <Color x:Key="SceneEveningSkyTopColor">#0B1026</Color>
-    <Color x:Key="SceneEveningSkyUpperColor">#141B38</Color>
-    <Color x:Key="SceneEveningSkyLowerColor">#232B4E</Color>
-    <Color x:Key="SceneEveningSkyHorizonColor">#3A3458</Color>
-    <Color x:Key="SceneEveningCloudStreakColor">#1E2240</Color>
-    <Color x:Key="SceneEveningTownColor">#161427</Color>
-    <Color x:Key="SceneEveningFacadeWallColor">#3A3146</Color>
-    <Color x:Key="SceneEveningFacadeBaseColor">#2A2538</Color>
-    <Color x:Key="SceneEveningAwningGreenColor">#31543F</Color>
-    <Color x:Key="SceneEveningAwningCreamColor">#B5AC96</Color>
-    <Color x:Key="SceneEveningSignPlateColor">#262138</Color>
-    <Color x:Key="SceneEveningGlowCoreColor">#FFDF9E</Color>
-    <Color x:Key="SceneEveningGlowWarmColor">#F09C42</Color>
-    <Color x:Key="SceneEveningPavementColor">#191724</Color>
-    <Color x:Key="SceneEveningPavementFarColor">#262236</Color>
-    <Color x:Key="SceneEveningReflectionColor">#F0B068</Color>
+    <!-- UX-50 time-of-day grade — deep indigo; the Rectangle's opacity animates per mood
+         (Dusk 0 / Evening / LateNight) to darken+cool the whole hero. The warm glows sit ABOVE
+         this overlay (in HeroLayer) so the storefront stays lit and pops in the darker moods. -->
+    <LinearGradientBrush x:Key="LoginHeroGradeBrush" StartPoint="0.5,0" EndPoint="0.5,1">
+        <GradientStop Color="#05070F" Offset="0.0"/>
+        <GradientStop Color="#0B1024" Offset="1.0"/>
+    </LinearGradientBrush>
 
-    <!-- ── Late night (23:00-04:59 — closing time, interior dimmed) ───────── -->
-    <Color x:Key="SceneLateNightSkyTopColor">#070B1C</Color>
-    <Color x:Key="SceneLateNightSkyUpperColor">#0E1430</Color>
-    <Color x:Key="SceneLateNightSkyLowerColor">#1A2142</Color>
-    <Color x:Key="SceneLateNightSkyHorizonColor">#2A2A4A</Color>
-    <Color x:Key="SceneLateNightCloudStreakColor">#141830</Color>
-    <Color x:Key="SceneLateNightTownColor">#100F20</Color>
-    <Color x:Key="SceneLateNightFacadeWallColor">#322B3E</Color>
-    <Color x:Key="SceneLateNightFacadeBaseColor">#241F30</Color>
-    <Color x:Key="SceneLateNightAwningGreenColor">#2A4836</Color>
-    <Color x:Key="SceneLateNightAwningCreamColor">#9C9480</Color>
-    <Color x:Key="SceneLateNightSignPlateColor">#221E32</Color>
-    <Color x:Key="SceneLateNightGlowCoreColor">#E8C284</Color>
-    <Color x:Key="SceneLateNightGlowWarmColor">#C27E3A</Color>
-    <Color x:Key="SceneLateNightPavementColor">#15131E</Color>
-    <Color x:Key="SceneLateNightPavementFarColor">#201C2C</Color>
-    <Color x:Key="SceneLateNightReflectionColor">#C28E52</Color>
-
-    <!-- ── Mood-independent scene brushes (static fills; only element Opacity animates) ── -->
-    <SolidColorBrush x:Key="SceneSignTextBrush" Color="#FFDFA0"/>
-    <SolidColorBrush x:Key="SceneSignEdgeBrush" Color="#59FFD98A"/>
-    <SolidColorBrush x:Key="SceneBulbCoreBrush" Color="#FFEFC2"/>
-    <SolidColorBrush x:Key="SceneMoonBrush" Color="#E8ECF4"/>
-    <SolidColorBrush x:Key="SceneStarBrush" Color="#DCE4F2"/>
-    <SolidColorBrush x:Key="SceneFireflyBrush" Color="#FFE9A8"/>
-    <SolidColorBrush x:Key="SceneChainBrush" Color="#7A7290"/>
-    <SolidColorBrush x:Key="SceneCurbBrush" Color="#443E54"/>
-    <SolidColorBrush x:Key="SceneTricycleBrush" Color="#16141F"/>
-    <SolidColorBrush x:Key="SceneTricycleRimBrush" Color="#E8923A"/>
-    <SolidColorBrush x:Key="ScenePropBrush" Color="#1E1B2C"/>
-    <SolidColorBrush x:Key="SceneCatBrush" Color="#131120"/>
-    <SolidColorBrush x:Key="ScenePlantBrush" Color="#243528"/>
+    <!-- Sleep dim overlay (DimOverlay opacity 0 → 0.10 while the avatar sleeps) -->
     <SolidColorBrush x:Key="SceneDimBrush" Color="#000000"/>
-
-    <RadialGradientBrush x:Key="SceneBulbHaloBrush">
-        <GradientStop Color="#8CFFD98A" Offset="0"/>
-        <GradientStop Color="#00FFD98A" Offset="1"/>
-    </RadialGradientBrush>
-
-    <RadialGradientBrush x:Key="SceneMoonHaloBrush">
-        <GradientStop Color="#2EE8ECF4" Offset="0"/>
-        <GradientStop Color="#00E8ECF4" Offset="1"/>
-    </RadialGradientBrush>
-
-    <LinearGradientBrush x:Key="SceneAwningShadowBrush" StartPoint="0.5,0" EndPoint="0.5,1">
-        <GradientStop Color="#52000000" Offset="0"/>
-        <GradientStop Color="#00000000" Offset="1"/>
-    </LinearGradientBrush>
-
-    <LinearGradientBrush x:Key="SceneSheenBrush" StartPoint="0,0.5" EndPoint="1,0.5">
-        <GradientStop Color="#00E8A35C" Offset="0"/>
-        <GradientStop Color="#14E8A35C" Offset="0.5"/>
-        <GradientStop Color="#00E8A35C" Offset="1"/>
-    </LinearGradientBrush>
 
     <!-- ── Tindera avatar ("Aling Vi") + badge chrome ──────────────────────── -->
     <Color x:Key="AvatarBadgeRingTopColor">#FFC868</Color>

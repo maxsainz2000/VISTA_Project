@@ -12,389 +12,43 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <!-- UX-49 dusk storefront hero shot. Design canvas is 1600x900; UniformToFill keeps it
-         edge-to-edge. Safe-area rule (defect D2): every readable/narrative element lives
-         inside x 260-1340 — the 900x700 window crops to roughly x 193-1407.
-         All multi-figure geometry sets FillRule="Nonzero" (defect D1 — EvenOdd punches holes).
-         Animated fills (sky stops, facade, glow gradients, pools, reflections) are assigned
-         in code-behind from unfrozen brushes — see BuildAnimatedBrushes(). -->
+    <!-- UX-50: painterly raster hero (Canva-generated, 1600x900) with tasteful motion.
+         HeroLayer carries a Ken-Burns (slow zoom + pan) + cursor-parallax transform; two warm
+         glows registered to the storefront's lit window/bulbs ride the SAME transform, so they
+         stay pinned to the painting — the bulb glow flickers, the window glow pulses on login
+         success, and the scene fades up on entrance. The frosted-glass card samples SceneVisual
+         (= SceneRoot) so the painting + glows blur into real bokeh. DimOverlay (untransformed,
+         on top) dims for sleep. Viewbox UniformToFill keeps it edge-to-edge under the 900x700 window. -->
     <Viewbox Stretch="UniformToFill">
         <Canvas x:Name="SceneRoot" Width="1600" Height="900" ClipToBounds="True">
 
-            <!-- L0 · Sky (4-stop dusk gradient, stops animated per mood) -->
-            <Rectangle x:Name="SkyRect" Width="1600" Height="900"/>
-
-            <!-- L1 · Celestial: stars (6 twinkle) + crescent moon with halo · parallax ±2 -->
-            <Canvas x:Name="CelestialLayer">
+            <Canvas x:Name="HeroLayer" Width="1600" Height="900">
                 <Canvas.RenderTransform>
-                    <TranslateTransform x:Name="CelestialParallaxTr"/>
+                    <TransformGroup>
+                        <ScaleTransform x:Name="HeroScale" CenterX="800" CenterY="450" ScaleX="1.07" ScaleY="1.07"/>
+                        <TranslateTransform x:Name="HeroDriftTr"/>
+                        <TranslateTransform x:Name="HeroParallaxTr"/>
+                    </TransformGroup>
                 </Canvas.RenderTransform>
 
-                <Canvas x:Name="StarsLayer" Opacity="0.35">
-                    <Ellipse Canvas.Left="90" Canvas.Top="70" Width="3" Height="3" Fill="{StaticResource SceneStarBrush}"/>
-                    <Ellipse Canvas.Left="210" Canvas.Top="160" Width="2.5" Height="2.5" Fill="{StaticResource SceneStarBrush}"/>
-                    <Ellipse Canvas.Left="330" Canvas.Top="40" Width="3.5" Height="3.5" Fill="{StaticResource SceneStarBrush}"/>
-                    <Ellipse Canvas.Left="470" Canvas.Top="120" Width="2.5" Height="2.5" Fill="{StaticResource SceneStarBrush}"/>
-                    <Ellipse Canvas.Left="570" Canvas.Top="210" Width="3" Height="3" Fill="{StaticResource SceneStarBrush}"/>
-                    <Ellipse Canvas.Left="680" Canvas.Top="60" Width="2.5" Height="2.5" Fill="{StaticResource SceneStarBrush}"/>
-                    <Ellipse Canvas.Left="800" Canvas.Top="150" Width="3" Height="3" Fill="{StaticResource SceneStarBrush}"/>
-                    <Ellipse Canvas.Left="900" Canvas.Top="36" Width="2.5" Height="2.5" Fill="{StaticResource SceneStarBrush}"/>
-                    <Ellipse Canvas.Left="1010" Canvas.Top="190" Width="3.5" Height="3.5" Fill="{StaticResource SceneStarBrush}"/>
-                    <Ellipse Canvas.Left="1120" Canvas.Top="90" Width="2.5" Height="2.5" Fill="{StaticResource SceneStarBrush}"/>
-                    <Ellipse Canvas.Left="1230" Canvas.Top="230" Width="3" Height="3" Fill="{StaticResource SceneStarBrush}"/>
-                    <Ellipse Canvas.Left="1340" Canvas.Top="50" Width="2.5" Height="2.5" Fill="{StaticResource SceneStarBrush}"/>
-                    <Ellipse Canvas.Left="1450" Canvas.Top="140" Width="3" Height="3" Fill="{StaticResource SceneStarBrush}"/>
-                    <Ellipse Canvas.Left="1530" Canvas.Top="250" Width="2.5" Height="2.5" Fill="{StaticResource SceneStarBrush}"/>
-                    <Ellipse Canvas.Left="160" Canvas.Top="270" Width="2.5" Height="2.5" Fill="{StaticResource SceneStarBrush}"/>
-                    <Ellipse Canvas.Left="745" Canvas.Top="262" Width="2.5" Height="2.5" Fill="{StaticResource SceneStarBrush}"/>
-                </Canvas>
+                <Image x:Name="HeroImage" Width="1600" Height="900"
+                       Stretch="UniformToFill"
+                       RenderOptions.BitmapScalingMode="HighQuality"
+                       Source="pack://application:,,,/Assets/Login/login-hero-dusk.png"/>
 
-                <Canvas x:Name="MoonGroup" Canvas.Left="380" Canvas.Top="120" Opacity="0.55">
-                    <Ellipse Canvas.Left="-55" Canvas.Top="-55" Width="110" Height="110"
-                             Fill="{StaticResource SceneMoonHaloBrush}"/>
-                    <Path Fill="{StaticResource SceneMoonBrush}">
-                        <Path.Data>
-                            <CombinedGeometry GeometryCombineMode="Exclude">
-                                <CombinedGeometry.Geometry1>
-                                    <EllipseGeometry Center="0,0" RadiusX="30" RadiusY="30"/>
-                                </CombinedGeometry.Geometry1>
-                                <CombinedGeometry.Geometry2>
-                                    <EllipseGeometry Center="11,-7" RadiusX="27" RadiusY="27"/>
-                                </CombinedGeometry.Geometry2>
-                            </CombinedGeometry>
-                        </Path.Data>
-                    </Path>
-                </Canvas>
-            </Canvas>
+                <!-- Time-of-day grade: deep-indigo tint over the hero (opacity per mood). The glows
+                     below sit ABOVE it, so the storefront stays warm in Evening/LateNight. -->
+                <Rectangle x:Name="GradeOverlay" Width="1600" Height="900"
+                           Fill="{StaticResource LoginHeroGradeBrush}" Opacity="0"/>
 
-            <!-- L2 · Dusk cloud streaks (gentle ±28px oscillation — no wrap traversal) · parallax ±2 -->
-            <Canvas x:Name="CloudsLayer" Opacity="0.8">
-                <Canvas.RenderTransform>
-                    <TranslateTransform x:Name="CloudsParallaxTr"/>
-                </Canvas.RenderTransform>
-                <Path x:Name="CloudA" Canvas.Left="140" Canvas.Top="180">
-                    <Path.RenderTransform>
-                        <TranslateTransform x:Name="CloudATr"/>
-                    </Path.RenderTransform>
-                    <Path.Data>
-                        <GeometryGroup FillRule="Nonzero">
-                            <RectangleGeometry Rect="0,0,360,24" RadiusX="12" RadiusY="12"/>
-                            <RectangleGeometry Rect="60,16,260,18" RadiusX="9" RadiusY="9"/>
-                        </GeometryGroup>
-                    </Path.Data>
-                </Path>
-                <Path x:Name="CloudB" Canvas.Left="760" Canvas.Top="248">
-                    <Path.RenderTransform>
-                        <TranslateTransform x:Name="CloudBTr"/>
-                    </Path.RenderTransform>
-                    <Path.Data>
-                        <GeometryGroup FillRule="Nonzero">
-                            <RectangleGeometry Rect="0,0,420,26" RadiusX="13" RadiusY="13"/>
-                            <RectangleGeometry Rect="90,18,280,16" RadiusX="8" RadiusY="8"/>
-                        </GeometryGroup>
-                    </Path.Data>
-                </Path>
-                <Path x:Name="CloudC" Canvas.Left="1120" Canvas.Top="140">
-                    <Path.RenderTransform>
-                        <TranslateTransform x:Name="CloudCTr"/>
-                    </Path.RenderTransform>
-                    <Path.Data>
-                        <GeometryGroup FillRule="Nonzero">
-                            <RectangleGeometry Rect="0,0,300,20" RadiusX="10" RadiusY="10"/>
-                            <RectangleGeometry Rect="50,14,210,14" RadiusX="7" RadiusY="7"/>
-                        </GeometryGroup>
-                    </Path.Data>
-                </Path>
-            </Canvas>
-
-            <!-- L3 · Distant town + coconut palms (runs to the curb so the facade flanks
-                 show town, never raw sky) · parallax ±4 -->
-            <Canvas x:Name="TownLayer">
-                <Canvas.RenderTransform>
-                    <TranslateTransform x:Name="TownParallaxTr"/>
-                </Canvas.RenderTransform>
-                <Path x:Name="TownPath"
-                      Data="M-40,778 L-40,362 L60,362 L60,344 L140,344 L140,366 L230,366 L230,338 L320,338 L320,360 L430,360 L430,346 L540,346 L540,368 L660,368 L660,340 L760,340 L760,362 L880,362 L880,350 L990,350 L990,368 L1100,368 L1100,342 L1200,342 L1200,360 L1300,360 L1300,348 L1410,348 L1410,366 L1520,366 L1520,352 L1640,352 L1640,778 Z"/>
-                <Path x:Name="PalmLeft"
-                      Data="F1 M246,402 C247,372 250,350 254,332 L259,333 C255,351 252,372 252,402 Z M256,330 C254,312 258,300 268,290 C262,302 262,316 262,330 Z M256,330 C240,322 226,322 214,330 C228,316 244,318 258,326 Z M258,330 C272,320 288,320 298,328 C286,314 268,318 256,326 Z M255,331 C242,334 232,342 226,352 C230,338 240,330 252,328 Z M259,331 C272,334 282,342 288,352 C284,338 274,330 262,328 Z"/>
-                <Path x:Name="PalmRight"
-                      Data="F1 M246,402 C247,372 250,350 254,332 L259,333 C255,351 252,372 252,402 Z M256,330 C254,312 258,300 268,290 C262,302 262,316 262,330 Z M256,330 C240,322 226,322 214,330 C228,316 244,318 258,326 Z M258,330 C272,320 288,320 298,328 C286,314 268,318 256,326 Z M255,331 C242,334 232,342 226,352 C230,338 240,330 252,328 Z M259,331 C272,334 282,342 288,352 C284,338 274,330 262,328 Z">
-                    <Path.RenderTransform>
-                        <TranslateTransform X="1075"/>
-                    </Path.RenderTransform>
-                </Path>
-            </Canvas>
-
-            <!-- L4 · The Villon Farm Supply facade · parallax ±7 -->
-            <Canvas x:Name="FacadeLayer">
-                <Canvas.RenderTransform>
-                    <TranslateTransform x:Name="FacadeParallaxTr"/>
-                </Canvas.RenderTransform>
-
-                <!-- Fascia + wall + plank seams + foundation strip -->
-                <Rectangle x:Name="FasciaRect" Canvas.Left="180" Canvas.Top="360" Width="1240" Height="44"/>
-                <Rectangle x:Name="WallRect" Canvas.Left="180" Canvas.Top="404" Width="1240" Height="364"/>
-                <Rectangle x:Name="PlankSeam1" Canvas.Left="180" Canvas.Top="580" Width="1240" Height="2" Opacity="0.45"/>
-                <Rectangle x:Name="PlankSeam2" Canvas.Left="180" Canvas.Top="650" Width="1240" Height="2" Opacity="0.45"/>
-                <Rectangle x:Name="PlankSeam3" Canvas.Left="180" Canvas.Top="716" Width="1240" Height="2" Opacity="0.45"/>
-                <Rectangle x:Name="BaseStrip" Canvas.Left="180" Canvas.Top="744" Width="1240" Height="24"/>
-
-                <!-- Open doorway (the brightest light) + warm spill on the wall -->
-                <Ellipse x:Name="DoorSpill" Canvas.Left="950" Canvas.Top="420" Width="420" Height="200" Opacity="1"/>
-                <Rectangle x:Name="DoorSurroundRect" Canvas.Left="1076" Canvas.Top="496" Width="168" Height="272" RadiusX="4" RadiusY="4"/>
-                <Rectangle x:Name="DoorGlowRect" Canvas.Left="1092" Canvas.Top="512" Width="136" Height="256"/>
-                <!-- Interior silhouettes against the glow: shelves, goods, floor sacks, shovel -->
-                <Canvas>
-                    <Rectangle Canvas.Left="1096" Canvas.Top="560" Width="128" Height="5" Fill="{StaticResource ScenePropBrush}"/>
-                    <Rectangle Canvas.Left="1096" Canvas.Top="616" Width="128" Height="5" Fill="{StaticResource ScenePropBrush}"/>
-                    <Rectangle Canvas.Left="1100" Canvas.Top="540" Width="22" Height="20" Fill="{StaticResource ScenePropBrush}"/>
-                    <Rectangle Canvas.Left="1128" Canvas.Top="544" Width="18" Height="16" Fill="{StaticResource ScenePropBrush}"/>
-                    <Rectangle Canvas.Left="1152" Canvas.Top="538" Width="26" Height="22" Fill="{StaticResource ScenePropBrush}"/>
-                    <Rectangle Canvas.Left="1186" Canvas.Top="542" Width="20" Height="18" Fill="{StaticResource ScenePropBrush}"/>
-                    <Rectangle Canvas.Left="1104" Canvas.Top="598" Width="24" Height="18" Fill="{StaticResource ScenePropBrush}"/>
-                    <Rectangle Canvas.Left="1136" Canvas.Top="594" Width="20" Height="22" Fill="{StaticResource ScenePropBrush}"/>
-                    <Rectangle Canvas.Left="1164" Canvas.Top="600" Width="28" Height="16" Fill="{StaticResource ScenePropBrush}"/>
-                    <Rectangle Canvas.Left="1160" Canvas.Top="706" Width="60" Height="62" RadiusX="12" RadiusY="12" Fill="{StaticResource ScenePropBrush}"/>
-                    <Rectangle Canvas.Left="1120" Canvas.Top="722" Width="44" Height="46" RadiusX="10" RadiusY="10" Fill="{StaticResource ScenePropBrush}"/>
-                    <Path Stroke="{StaticResource ScenePropBrush}" StrokeThickness="3" StrokeStartLineCap="Round"
-                          Data="M1110,768 L1116,648"/>
-                    <Path Fill="{StaticResource ScenePropBrush}"
-                          Data="M1108,664 C1104,652 1112,644 1120,648 C1118,656 1114,660 1108,664 Z"/>
-                </Canvas>
-
-                <!-- Display window: feed sacks, bottle row, the hanging tindahan scale -->
-                <Rectangle x:Name="WindowFrameRect" Canvas.Left="296" Canvas.Top="556" Width="228" Height="178" RadiusX="5" RadiusY="5"/>
-                <Rectangle x:Name="WindowGlowRect" Canvas.Left="312" Canvas.Top="572" Width="196" Height="146"/>
-                <Canvas>
-                    <!-- shelf + five bottles -->
-                    <Rectangle Canvas.Left="318" Canvas.Top="628" Width="184" Height="5" Fill="{StaticResource ScenePropBrush}"/>
-                    <Path Fill="{StaticResource ScenePropBrush}"
-                          Data="F1 M330,628 V604 H333 V597 H338 V604 H341 V628 Z M352,628 V604 H355 V597 H360 V604 H363 V628 Z M374,628 V604 H377 V597 H382 V604 H385 V628 Z M396,628 V604 H399 V597 H404 V604 H407 V628 Z M418,628 V604 H421 V597 H426 V604 H429 V628 Z"/>
-                    <!-- sack pyramid -->
-                    <Rectangle Canvas.Left="322" Canvas.Top="678" Width="52" Height="40" RadiusX="10" RadiusY="10" Fill="{StaticResource ScenePropBrush}"/>
-                    <Rectangle Canvas.Left="378" Canvas.Top="678" Width="52" Height="40" RadiusX="10" RadiusY="10" Fill="{StaticResource ScenePropBrush}"/>
-                    <Rectangle Canvas.Left="350" Canvas.Top="646" Width="52" Height="38" RadiusX="10" RadiusY="10" Fill="{StaticResource ScenePropBrush}"/>
-                    <Ellipse Canvas.Left="344" Canvas.Top="673" Width="7" Height="6" Fill="{StaticResource ScenePropBrush}"/>
-                    <Ellipse Canvas.Left="400" Canvas.Top="673" Width="7" Height="6" Fill="{StaticResource ScenePropBrush}"/>
-                    <Ellipse Canvas.Left="372" Canvas.Top="641" Width="8" Height="7" Fill="{StaticResource ScenePropBrush}"/>
-                    <!-- hanging scale -->
-                    <Path Stroke="{StaticResource ScenePropBrush}" StrokeThickness="2" Data="M470,572 V590"/>
-                    <Ellipse Canvas.Left="458" Canvas.Top="590" Width="24" Height="24" Fill="{StaticResource ScenePropBrush}"/>
-                    <Path Stroke="{StaticResource ScenePropBrush}" StrokeThickness="1.5" Data="M470,614 L452,632 M470,614 L488,632"/>
-                    <Ellipse Canvas.Left="448" Canvas.Top="630" Width="44" Height="9" Fill="{StaticResource ScenePropBrush}"/>
-                </Canvas>
-                <Rectangle x:Name="WindowSillRect" Canvas.Left="296" Canvas.Top="730" Width="228" Height="8" RadiusX="3" RadiusY="3"/>
-
-                <!-- Awning shadow on the wall, then the scalloped awning itself -->
-                <Rectangle Canvas.Left="240" Canvas.Top="500" Width="1120" Height="44"
-                           Fill="{StaticResource SceneAwningShadowBrush}"/>
-                <Path x:Name="AwningGreenPath"
-                      Data="F1 M240,448 L320,448 L320,500 A40,12 0 0 1 240,500 Z M400,448 L480,448 L480,500 A40,12 0 0 1 400,500 Z M560,448 L640,448 L640,500 A40,12 0 0 1 560,500 Z M720,448 L800,448 L800,500 A40,12 0 0 1 720,500 Z M880,448 L960,448 L960,500 A40,12 0 0 1 880,500 Z M1040,448 L1120,448 L1120,500 A40,12 0 0 1 1040,500 Z M1200,448 L1280,448 L1280,500 A40,12 0 0 1 1200,500 Z"/>
-                <Path x:Name="AwningCreamPath"
-                      Data="F1 M320,448 L400,448 L400,500 A40,12 0 0 1 320,500 Z M480,448 L560,448 L560,500 A40,12 0 0 1 480,500 Z M640,448 L720,448 L720,500 A40,12 0 0 1 640,500 Z M800,448 L880,448 L880,500 A40,12 0 0 1 800,500 Z M960,448 L1040,448 L1040,500 A40,12 0 0 1 960,500 Z M1120,448 L1200,448 L1200,500 A40,12 0 0 1 1120,500 Z M1280,448 L1360,448 L1360,500 A40,12 0 0 1 1280,500 Z"/>
-                <Rectangle x:Name="AwningBarRect" Canvas.Left="240" Canvas.Top="440" Width="1120" Height="8"/>
-
-                <!-- Hanging bracket sign — readable at all hours, never behind the card -->
-                <Canvas x:Name="SignGroup">
-                    <Canvas.RenderTransform>
-                        <RotateTransform x:Name="SignSway" CenterX="410" CenterY="448"/>
-                    </Canvas.RenderTransform>
-                    <Ellipse x:Name="SignHalo" Canvas.Left="250" Canvas.Top="426" Width="320" Height="160" Opacity="0.6"/>
-                    <Path Stroke="{StaticResource SceneChainBrush}" StrokeThickness="2"
-                          Data="M372,448 L381,464 M448,448 L439,464"/>
-                    <Rectangle x:Name="SignPlateRect" Canvas.Left="310" Canvas.Top="464" Width="200" Height="84"
-                               RadiusX="8" RadiusY="8"
-                               Stroke="{StaticResource SceneSignEdgeBrush}" StrokeThickness="1.5"/>
-                    <Grid Canvas.Left="310" Canvas.Top="464" Width="200" Height="84">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <TextBlock Grid.Row="0" Text="VILLON"
-                                   FontFamily="{StaticResource AppFontFamily}"
-                                   FontSize="30" FontWeight="Bold"
-                                   Foreground="{StaticResource SceneSignTextBrush}"
-                                   HorizontalAlignment="Center" VerticalAlignment="Bottom"/>
-                        <TextBlock Grid.Row="1" Text="FARM SUPPLY"
-                                   FontFamily="{StaticResource AppFontFamily}"
-                                   FontSize="13" FontWeight="SemiBold"
-                                   Foreground="{StaticResource SceneSignTextBrush}"
-                                   HorizontalAlignment="Center" Margin="0,2,0,12"/>
-                    </Grid>
-                </Canvas>
-
-                <!-- Bulb string along the awning edge; bulbs 4-6 sit behind the glass card
-                     on purpose — they become warm bokeh in the frost -->
-                <Canvas x:Name="BulbsLayer" Opacity="0.8">
-                    <Path Stroke="{StaticResource SceneChainBrush}" StrokeThickness="2" Opacity="0.85"
-                          Data="M250,455 L388,467 L525,478 L663,486 L800,489 L938,487 L1075,481 L1213,474 L1350,470"/>
-                    <Canvas x:Name="Bulb0">
-                        <Path Stroke="{StaticResource SceneChainBrush}" StrokeThickness="1.5" Data="M250,455 V464"/>
-                        <Ellipse Canvas.Left="233" Canvas.Top="453" Width="34" Height="34" Fill="{StaticResource SceneBulbHaloBrush}"/>
-                        <Ellipse Canvas.Left="246.5" Canvas.Top="466.5" Width="7" Height="7" Fill="{StaticResource SceneBulbCoreBrush}"/>
-                    </Canvas>
-                    <Canvas x:Name="Bulb1">
-                        <Path Stroke="{StaticResource SceneChainBrush}" StrokeThickness="1.5" Data="M388,467 V476"/>
-                        <Ellipse Canvas.Left="371" Canvas.Top="465" Width="34" Height="34" Fill="{StaticResource SceneBulbHaloBrush}"/>
-                        <Ellipse Canvas.Left="384.5" Canvas.Top="478.5" Width="7" Height="7" Fill="{StaticResource SceneBulbCoreBrush}"/>
-                    </Canvas>
-                    <Canvas x:Name="Bulb2">
-                        <Path Stroke="{StaticResource SceneChainBrush}" StrokeThickness="1.5" Data="M525,478 V487"/>
-                        <Ellipse Canvas.Left="508" Canvas.Top="476" Width="34" Height="34" Fill="{StaticResource SceneBulbHaloBrush}"/>
-                        <Ellipse Canvas.Left="521.5" Canvas.Top="489.5" Width="7" Height="7" Fill="{StaticResource SceneBulbCoreBrush}"/>
-                    </Canvas>
-                    <Canvas x:Name="Bulb3">
-                        <Path Stroke="{StaticResource SceneChainBrush}" StrokeThickness="1.5" Data="M663,486 V495"/>
-                        <Ellipse Canvas.Left="646" Canvas.Top="484" Width="34" Height="34" Fill="{StaticResource SceneBulbHaloBrush}"/>
-                        <Ellipse Canvas.Left="659.5" Canvas.Top="497.5" Width="7" Height="7" Fill="{StaticResource SceneBulbCoreBrush}"/>
-                    </Canvas>
-                    <Canvas x:Name="Bulb4">
-                        <Path Stroke="{StaticResource SceneChainBrush}" StrokeThickness="1.5" Data="M800,489 V498"/>
-                        <Ellipse Canvas.Left="783" Canvas.Top="487" Width="34" Height="34" Fill="{StaticResource SceneBulbHaloBrush}"/>
-                        <Ellipse Canvas.Left="796.5" Canvas.Top="500.5" Width="7" Height="7" Fill="{StaticResource SceneBulbCoreBrush}"/>
-                    </Canvas>
-                    <Canvas x:Name="Bulb5">
-                        <Path Stroke="{StaticResource SceneChainBrush}" StrokeThickness="1.5" Data="M938,487 V496"/>
-                        <Ellipse Canvas.Left="921" Canvas.Top="485" Width="34" Height="34" Fill="{StaticResource SceneBulbHaloBrush}"/>
-                        <Ellipse Canvas.Left="934.5" Canvas.Top="498.5" Width="7" Height="7" Fill="{StaticResource SceneBulbCoreBrush}"/>
-                    </Canvas>
-                    <Canvas x:Name="Bulb6">
-                        <Path Stroke="{StaticResource SceneChainBrush}" StrokeThickness="1.5" Data="M1075,481 V490"/>
-                        <Ellipse Canvas.Left="1058" Canvas.Top="479" Width="34" Height="34" Fill="{StaticResource SceneBulbHaloBrush}"/>
-                        <Ellipse Canvas.Left="1071.5" Canvas.Top="492.5" Width="7" Height="7" Fill="{StaticResource SceneBulbCoreBrush}"/>
-                    </Canvas>
-                    <Canvas x:Name="Bulb7">
-                        <Path Stroke="{StaticResource SceneChainBrush}" StrokeThickness="1.5" Data="M1213,474 V483"/>
-                        <Ellipse Canvas.Left="1196" Canvas.Top="472" Width="34" Height="34" Fill="{StaticResource SceneBulbHaloBrush}"/>
-                        <Ellipse Canvas.Left="1209.5" Canvas.Top="485.5" Width="7" Height="7" Fill="{StaticResource SceneBulbCoreBrush}"/>
-                    </Canvas>
-                    <Canvas x:Name="Bulb8">
-                        <Path Stroke="{StaticResource SceneChainBrush}" StrokeThickness="1.5" Data="M1350,470 V479"/>
-                        <Ellipse Canvas.Left="1333" Canvas.Top="468" Width="34" Height="34" Fill="{StaticResource SceneBulbHaloBrush}"/>
-                        <Ellipse Canvas.Left="1346.5" Canvas.Top="481.5" Width="7" Height="7" Fill="{StaticResource SceneBulbCoreBrush}"/>
-                    </Canvas>
-                </Canvas>
-            </Canvas>
-
-            <!-- L5 · Curb, wet pavement, light pools, reflections, sheen (no parallax —
-                 the soft gradients tolerate the facade's ±7 shift invisibly) -->
-            <Canvas x:Name="PavementLayer">
-                <Rectangle Canvas.Left="-40" Canvas.Top="768" Width="1680" Height="10"
-                           Fill="{StaticResource SceneCurbBrush}" Opacity="0.8"/>
-                <Rectangle x:Name="PavementRect" Canvas.Left="-40" Canvas.Top="778" Width="1680" Height="122"/>
-                <Ellipse x:Name="WindowPool" Canvas.Left="290" Canvas.Top="778" Width="240" Height="36"/>
-                <Ellipse x:Name="DoorPool" Canvas.Left="1000" Canvas.Top="778" Width="320" Height="52"/>
-                <Rectangle x:Name="SignReflection" Canvas.Left="340" Canvas.Top="779" Width="140" Height="60"/>
-                <Rectangle x:Name="WindowReflection" Canvas.Left="330" Canvas.Top="779" Width="160" Height="106"/>
-                <Rectangle x:Name="DoorReflection" Canvas.Left="1100" Canvas.Top="779" Width="120" Height="118"/>
-                <Rectangle x:Name="Sheen1" Canvas.Left="-40" Canvas.Top="778" Width="1680" Height="122"
-                           Fill="{StaticResource SceneSheenBrush}" Opacity="0.3"/>
-                <Rectangle x:Name="Sheen2" Canvas.Left="-340" Canvas.Top="778" Width="1680" Height="122"
-                           Fill="{StaticResource SceneSheenBrush}" Opacity="0.26"/>
-            </Canvas>
-
-            <!-- L6 · Foreground silhouettes (defect D5: dark shapes + warm rim strokes only) · parallax ±13 -->
-            <Canvas x:Name="PropsLayer">
-                <Canvas.RenderTransform>
-                    <TranslateTransform x:Name="PropsParallaxTr"/>
-                </Canvas.RenderTransform>
-
-                <!-- The parked tricycle — identity anchor -->
-                <Canvas>
-                    <Path Fill="{StaticResource SceneTricycleBrush}"
-                          Data="M278,690 Q368,674 462,690 L462,706 Q368,690 278,706 Z"/>
-                    <Rectangle Canvas.Left="286" Canvas.Top="704" Width="6" Height="86" Fill="{StaticResource SceneTricycleBrush}"/>
-                    <Rectangle Canvas.Left="446" Canvas.Top="704" Width="6" Height="66" Fill="{StaticResource SceneTricycleBrush}"/>
-                    <Path Fill="{StaticResource SceneTricycleBrush}"
-                          Data="M282,752 Q282,742 292,742 L428,742 Q446,742 446,756 L446,810 Q446,822 432,822 L296,822 Q282,822 282,810 Z"/>
-                    <Ellipse Canvas.Left="326" Canvas.Top="820" Width="52" Height="52" Fill="{StaticResource SceneTricycleBrush}"/>
-                    <Ellipse Canvas.Left="501" Canvas.Top="819" Width="54" Height="54" Fill="{StaticResource SceneTricycleBrush}"/>
-                    <Path Fill="{StaticResource SceneTricycleBrush}"
-                          Data="M448,778 L502,778 Q516,778 520,790 L530,818 L518,822 L506,792 L448,796 Z"/>
-                    <Path Stroke="{StaticResource SceneTricycleBrush}" StrokeThickness="5"
-                          StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                          Data="M514,780 L502,740 M502,740 L514,734"/>
-                    <Ellipse Canvas.Left="452" Canvas.Top="766" Width="26" Height="12" Fill="{StaticResource SceneTricycleBrush}"/>
-                    <!-- warm rim light (from the window glow above-left) -->
-                    <Path Stroke="{StaticResource SceneTricycleRimBrush}" StrokeThickness="2" Opacity="0.75"
-                          StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                          Data="M280,691 Q368,675 460,690"/>
-                    <Path Stroke="{StaticResource SceneTricycleRimBrush}" StrokeThickness="2" Opacity="0.6"
-                          StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                          Data="M506,838 A27,27 0 0 1 550,838 M331,838 A26,26 0 0 1 373,838"/>
-                    <Path Stroke="{StaticResource SceneTricycleRimBrush}" StrokeThickness="1.5" Opacity="0.5"
-                          StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                          Data="M284,744 L444,744"/>
-                </Canvas>
-
-                <!-- Sack stack + cat (sitting by day-dusk, curled asleep late night) -->
-                <Canvas>
-                    <Rectangle Canvas.Left="1238" Canvas.Top="746" Width="60" Height="52" RadiusX="13" RadiusY="13" Fill="{StaticResource ScenePropBrush}"/>
-                    <Rectangle Canvas.Left="1296" Canvas.Top="746" Width="60" Height="52" RadiusX="13" RadiusY="13" Fill="{StaticResource ScenePropBrush}"/>
-                    <Rectangle Canvas.Left="1266" Canvas.Top="706" Width="60" Height="46" RadiusX="12" RadiusY="12" Fill="{StaticResource ScenePropBrush}"/>
-                    <Ellipse Canvas.Left="1262" Canvas.Top="740" Width="7" Height="6" Fill="{StaticResource ScenePropBrush}"/>
-                    <Ellipse Canvas.Left="1320" Canvas.Top="740" Width="7" Height="6" Fill="{StaticResource ScenePropBrush}"/>
-                    <Ellipse Canvas.Left="1290" Canvas.Top="700" Width="8" Height="7" Fill="{StaticResource ScenePropBrush}"/>
-                    <Path Stroke="{StaticResource SceneTricycleRimBrush}" StrokeThickness="1.5" Opacity="0.6"
-                          StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                          Data="M1268,708 Q1296,702 1324,708 M1240,770 Q1240,750 1254,747"/>
-                </Canvas>
-                <Canvas x:Name="CatSitting">
-                    <Ellipse Canvas.Left="1280" Canvas.Top="672" Width="30" Height="36" Fill="{StaticResource SceneCatBrush}"/>
-                    <Ellipse Canvas.Left="1284" Canvas.Top="654" Width="22" Height="20" Fill="{StaticResource SceneCatBrush}"/>
-                    <Path Fill="{StaticResource SceneCatBrush}" Data="F1 M1286,658 L1290,646 L1296,656 Z M1296,656 L1302,645 L1306,657 Z"/>
-                    <Path Fill="{StaticResource SceneCatBrush}" Data="M1308,702 Q1326,698 1330,682 Q1332,694 1318,704 Z">
-                        <Path.RenderTransform>
-                            <RotateTransform x:Name="CatTailRotate" CenterX="1310" CenterY="700"/>
-                        </Path.RenderTransform>
-                    </Path>
-                </Canvas>
-                <Canvas x:Name="CatAsleep" Opacity="0">
-                    <Ellipse Canvas.Left="1278" Canvas.Top="688" Width="36" Height="20" Fill="{StaticResource SceneCatBrush}"/>
-                    <Ellipse Canvas.Left="1278" Canvas.Top="682" Width="16" Height="14" Fill="{StaticResource SceneCatBrush}"/>
-                    <Path Fill="{StaticResource SceneCatBrush}" Data="M1282,684 L1285,677 L1290,683 Z"/>
-                    <Path Stroke="{StaticResource SceneCatBrush}" StrokeThickness="4"
-                          StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                          Data="M1312,700 Q1320,690 1312,684"/>
-                </Canvas>
-
-                <!-- Potted plant left of the door + walis leaning by the frame -->
-                <Canvas>
-                    <Path Fill="{StaticResource ScenePropBrush}" Data="M1042,742 L1070,742 L1066,768 L1046,768 Z"/>
-                    <Path Fill="{StaticResource ScenePlantBrush}"
-                          Data="F1 M1056,742 C1050,722 1048,706 1050,692 C1056,706 1058,724 1058,742 Z M1056,742 C1044,728 1036,716 1032,702 C1042,714 1050,728 1058,740 Z M1056,742 C1068,728 1076,716 1080,702 C1070,714 1062,728 1054,740 Z M1056,742 C1052,720 1058,700 1068,688 C1062,702 1060,722 1060,742 Z"/>
-                    <Path Stroke="{StaticResource ScenePropBrush}" StrokeThickness="3.5" StrokeStartLineCap="Round"
-                          Data="M1232,640 L1222,756"/>
-                    <Path Fill="{StaticResource ScenePropBrush}" Data="M1214,752 L1230,748 L1238,786 L1206,790 Z"/>
-                </Canvas>
-            </Canvas>
-
-            <!-- L7 · Fireflies (≤8; pulse + drift loops started in code; all moods are dusk/night) -->
-            <Canvas x:Name="FirefliesLayer" Opacity="0.75">
-                <Ellipse Canvas.Left="215" Canvas.Top="700" Width="4" Height="4" Opacity="0" Fill="{StaticResource SceneFireflyBrush}">
-                    <Ellipse.RenderTransform><TranslateTransform/></Ellipse.RenderTransform>
-                </Ellipse>
-                <Ellipse Canvas.Left="290" Canvas.Top="650" Width="3.5" Height="3.5" Opacity="0" Fill="{StaticResource SceneFireflyBrush}">
-                    <Ellipse.RenderTransform><TranslateTransform/></Ellipse.RenderTransform>
-                </Ellipse>
-                <Ellipse Canvas.Left="395" Canvas.Top="720" Width="4" Height="4" Opacity="0" Fill="{StaticResource SceneFireflyBrush}">
-                    <Ellipse.RenderTransform><TranslateTransform/></Ellipse.RenderTransform>
-                </Ellipse>
-                <Ellipse Canvas.Left="520" Canvas.Top="668" Width="3.5" Height="3.5" Opacity="0" Fill="{StaticResource SceneFireflyBrush}">
-                    <Ellipse.RenderTransform><TranslateTransform/></Ellipse.RenderTransform>
-                </Ellipse>
-                <Ellipse Canvas.Left="1250" Canvas.Top="690" Width="4" Height="4" Opacity="0" Fill="{StaticResource SceneFireflyBrush}">
-                    <Ellipse.RenderTransform><TranslateTransform/></Ellipse.RenderTransform>
-                </Ellipse>
-                <Ellipse Canvas.Left="1330" Canvas.Top="640" Width="3.5" Height="3.5" Opacity="0" Fill="{StaticResource SceneFireflyBrush}">
-                    <Ellipse.RenderTransform><TranslateTransform/></Ellipse.RenderTransform>
-                </Ellipse>
-                <Ellipse Canvas.Left="1380" Canvas.Top="725" Width="4" Height="4" Opacity="0" Fill="{StaticResource SceneFireflyBrush}">
-                    <Ellipse.RenderTransform><TranslateTransform/></Ellipse.RenderTransform>
-                </Ellipse>
-                <Ellipse Canvas.Left="1052" Canvas.Top="700" Width="3" Height="3" Opacity="0" Fill="{StaticResource SceneFireflyBrush}">
-                    <Ellipse.RenderTransform><TranslateTransform/></Ellipse.RenderTransform>
-                </Ellipse>
+                <!-- Warm interior-window glow: success-pulse target; fades in with the scene. -->
+                <Ellipse x:Name="GlowWindow" Canvas.Left="808" Canvas.Top="273"
+                         Width="470" Height="380" Opacity="0"
+                         Fill="{StaticResource LoginHeroGlowBrush}"/>
+                <!-- Bulb-string strip glow under the awning: gentle ambient flicker. -->
+                <Ellipse x:Name="GlowBulbs" Canvas.Left="828" Canvas.Top="242"
+                         Width="430" Height="120" Opacity="0"
+                         Fill="{StaticResource LoginHeroGlowBrush}"/>
             </Canvas>
 
             <!-- Sleep dim overlay (0 → 0.10 while the avatar sleeps) -->

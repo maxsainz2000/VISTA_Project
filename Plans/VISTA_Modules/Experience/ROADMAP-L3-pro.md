@@ -292,6 +292,37 @@ Each entry: **What · Why · Research · Codebase grounding · Scope · Owner ·
 
 ---
 
+## P13b — Login Scene Raster Hero (cozy-pixel storefront)
+*Slot: **UX-50** (plan generated) · Depends-on: UX-49*
+
+- **What.** Fix the **medium**, not the tuning: replace UX-49's hand-coded **vector** facade with a
+  licensed **raster** cozy-pixel *tindahan* (CC0 storefront sprite) over the kept dusk gradient sky,
+  unified by a dusk color-grade overlay. The UX-48/49 engine (frosted-glass VisualBrush, parallax,
+  ambient clocks, entrance/door-pulse, static fallback, teardown, Aling Vi avatar) is preserved
+  byte-compatible — only the failing facade band swaps vector → raster; its light-glow ellipses are
+  kept and re-anchored over the sprite.
+- **Why.** Owner review of UX-49 (2026-06-13, reference `Expectation.jpg`): the vector scene reads
+  muddy/abstract. Root cause is structural — UX-49's own D5 rule (silhouettes, *zero interior
+  detail*) is the opposite of the dense, warm, crafted illustration the owner wants. A crafted look
+  is only reliably reached by *displaying* an illustration (raster), not reconstructing it from
+  `Path` geometry. WPF renders PNG at native fidelity → a 100%, deterministic outcome.
+- **Research.** Raster-background practice in WPF (`Resource` build action, pack URIs,
+  `BitmapScalingMode=NearestNeighbor` for crisp pixel art); cozy 2D indie title-screen technique
+  (painted/pixel background + few animated glow/parallax overlays); CC0 asset licensing (itch.io).
+- **Codebase grounding.** Scene is already a layered parallax tree L0–L8; L0–L3 (sky/celestial/
+  clouds/town-silhouette) and L7–L8 already read well and stay. `SceneVisual`/glass mapping, mood
+  crossfade pipeline, and clock lifecycle carry over; the mood system gains a `GradeOverlay` target
+  and **loses** the facade-structure targets (net fewer).
+- **Scope.** New `Assets/Login/*.png` + `CREDITS.md`; `.vbproj` Resource include; edit
+  `LoginScene.xaml`, `DynamicSceneCanvas.xaml(.vb)`; `LoginView` likely untouched. No NuGet, no
+  settings, no VM/auth change.
+- **Owner.** Pre-auth surface — identical for Manager, Owner, Developer.
+- **Done-when.** Plan UX-50 acceptance criteria 1–8 (crisp raster, three moods demo-grade via the
+  grade overlay, glass bokeh + static fallback, entrance/door-pulse retargeted, teardown clean, and
+  the side-by-side verdict gate against `Expectation.jpg`).
+
+---
+
 ## Exit criteria for Level 3
 
 Pro has **no hard finish line** — it is the standing tail of excellence. Practically, the app reaches

@@ -126,6 +126,7 @@ establishes (e.g. Pro accessibility builds on the Basic keyboard/focus floor).
 | P12 | Severity-Aware Insight Banners (tone the "What This Means" callout to the signal) | UX-06, UX-07 | Accounting |
 | P13 | Animated Login Experience (time-of-day farm scene + reactive carabao mascot + CapsLock/shake feedback) | UX-01, UX-07, UX-25 | Login (every user, every session) |
 | P13a | Login Scene Redesign — dusk storefront hero shot + tindera avatar + frosted-glass card (replaces P13's artwork; keeps its machinery) | UX-48 | Login (every user, every session) |
+| P13b | Login Scene Raster Hero — vector facade → licensed CC0 cozy-pixel storefront over the kept gradient sky, dusk-graded (fixes the medium; keeps the machinery) | UX-49 | Login (every user, every session) |
 
 ## Research basis (binding evidence, not opinion)
 

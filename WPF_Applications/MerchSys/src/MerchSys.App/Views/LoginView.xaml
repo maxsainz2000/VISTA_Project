@@ -47,7 +47,9 @@
         <Rectangle Fill="{DynamicResource LoginSceneScrimBrush}" IsHitTestVisible="False"/>
 
         <!-- ── Centered frosted-glass card + avatar badge ─────────────────────── -->
-        <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Margin="24,12">
+        <!-- UX-50: card shifted left over the open dusk sky so the storefront hero shows
+             unobstructed on the right (Expectation.jpg layout). -->
+        <Grid HorizontalAlignment="Left" VerticalAlignment="Center" Margin="48,12,0,12">
 
             <!-- Glass stack: live blurred scene backdrop → theme tint → form content.
                  Static mode (reduced motion / render Tier < 2) collapses the backdrop and
