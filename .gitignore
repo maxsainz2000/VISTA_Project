@@ -39,6 +39,7 @@ Screenshots/
 .agents/
 .codex/
 AGENTS.md
+.claude/settings.local.json
 
 # Reference images
 Expectation.jpg
