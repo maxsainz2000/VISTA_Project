@@ -34,3 +34,11 @@ _views/
 .obsidian/
 
 Screenshots/
+
+# Gemini / Agent / Codex files
+.agents/
+.codex/
+AGENTS.md
+
+# Reference images
+Expectation.jpg
