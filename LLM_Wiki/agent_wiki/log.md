@@ -128,3 +128,4 @@ Chronological record of all agent contributions to the Agent Wiki.
 ## [2026-05-03] claude-code | added antipattern | VB.NET leading dot on continuation lines causes BC30157 outside With blocks — move dot to end of preceding line
 ## [2026-05-02] claude-code | added antipattern | VB.NET loop variable named `entry` shadows inherited `DbContext.Entry()` method — use `dbEntry` instead
 ## [2026-05-02] claude-code | added antipattern | VB.NET RootNamespace doubles prefix when Namespace declarations use fully-qualified names — use relative suffixes only
+## [2026-07-20] antigravity | errors/unseeded-sequence-tables | Added documentation on the unseeded sequence tables issue in migration 0007 (INT-22) which caused duplicate-key checkout crashes, fixed via 0009_seed_sequence_tables.sql.

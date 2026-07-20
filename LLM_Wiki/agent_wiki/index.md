@@ -79,3 +79,4 @@ All engineering learnings from debugging and error-fixing sessions. Check this i
 | [wpf-vista-animated-scene](patterns/wpf-vista-animated-scene.md) | pattern | MerchSys.App | wpf, xaml, vb-net, animation, visual-state-manager, animation-clock, lifecycle, reduced-motion, login, delight, glassmorphism, visual-brush, vector-art | claude-code | 2026-06-12 (updated UX-49) | active |
 
 
+| [unseeded-sequence-tables](errors/unseeded-sequence-tables.md) | error-fix | Infrastructure | ef-core, mariadb, migration, sequence, runtime-error | antigravity | 2026-07-20 | active |
