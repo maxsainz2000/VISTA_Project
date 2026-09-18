@@ -27,8 +27,8 @@ The primary target repository for Jules AI, pre-configured with strict instructi
 ## 4. 24/7 Autonomous Orchestration
 We have configured a fully event-driven workflow where Jules and Antigravity work together seamlessly:
 1. Jules runs its headless integration tests (via the installed MariaDB service in its Ubuntu VM).
-2. When Jules finishes a task and opens a PR, the **GitHub Action** fires.
-3. Your local Antigravity agent (running via `/schedule`) wakes up, analyzes the output against the `Specs/`, logs issues in `Deferred_Tasks.md`, and **pauses for your manual verification** before continuing to the next session.
+2. When Jules finishes a task and opens a PR, the **GitHub Action** fires, sending a webhook payload (via a secure tunnel like ngrok or Cloudflare Tunnel) to your local machine.
+3. A local **Python HTTP server** listener receives the webhook and automatically uses the Antigravity CLI (`agy`) to spawn an agent. The agent analyzes the output against the `Specs/`, logs issues in `Deferred_Tasks.md`, and **pauses for your manual verification** before continuing to the next session.
 
 ## Capabilities & Usage
 By leveraging this setup, you can ask Antigravity to manage Jules entirely through natural language. 
@@ -37,4 +37,4 @@ By leveraging this setup, you can ask Antigravity to manage Jules entirely throu
 - *"Ask Jules to start working on INFRA-01 from the Roadmap, keeping the VB.NET build traps in mind."*
 - *"Check the Jules Docs Vault to see how we can trigger Jules via GitHub Actions."*
 - *"Pull down Jules' latest PR for the Purchasing module so I can review it against the MVP architecture rules."*
-- *"/schedule Check the VISTA_Project GitHub repository every 15 minutes for issues labeled 'jules-agent-trigger'. If found, verify Jules' PR against Specs/ and log errors in Deferred_Tasks.md for my review."*
+- *"Write a lightweight Python FastAPI server to listen for GitHub Action webhooks on port 8080. When triggered, have it execute the `agy` CLI to spawn an agent that verifies Jules' PR against Specs/ and logs any errors in Deferred_Tasks.md for my review."*
