@@ -24,10 +24,10 @@ Whenever the user asks you to delegate or orchestrate a task based on a spec to 
    - Ensure your prompt is detailed, includes the exact spec details, and enforces the rules found in the Knowledge Vault.
 
 4. **Monitoring:**
-   - Wait for the task to finish by checking `jules remote list --session`.
+   - Terminate your current process/session. You do not need to wait. The event-driven webhook listener will automatically spawn a new Antigravity instance when Jules completes the task and opens a PR.
 
 5. **Strict Verification:**
-   - Pull the remote branch/PR using `jules remote pull --session <session_id>`.
+   - Pull the remote branch/PR using `gh pr checkout <pr_number>` (the PR number is provided by the webhook payload).
    - Inspect the code changes strictly.
    - Verify it against the target spec and our rules. Try building or running the relevant commands to ensure it is perfect.
 

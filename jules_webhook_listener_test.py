@@ -46,8 +46,8 @@ async def handle_webhook(request: Request, payload: WebhookPayload):
         env["JULES_PR_URL"] = str(payload.pr_url)
         subprocess.Popen(
             ["agy", "-i", prompt],
-            cwd="VISTA_Project",
             env=env,
+            cwd="VISTA_Project",
             creationflags=subprocess.CREATE_NEW_CONSOLE
         )
     except Exception as e:
