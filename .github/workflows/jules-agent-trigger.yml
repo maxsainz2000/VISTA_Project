@@ -1,0 +1,30 @@
+name: Jules 24/7 Agent Trigger
+
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  notify-agent:
+    runs-on: ubuntu-latest
+    # Trigger only if Jules is the author or the PR has a 'jules' label
+    if: github.actor == 'google-labs-jules[bot]' || contains(github.event.pull_request.labels.*.name, 'jules')
+    steps:
+      - name: Log Jules PR Event
+        run: |
+          echo "Jules PR Event Detected: ${{ github.event.action }}"
+          echo "PR Number: ${{ github.event.pull_request.number }}"
+          echo "PR URL: ${{ github.event.pull_request.html_url }}"
+          
+      - name: Create Tracking Issue for Antigravity
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[24/7 Agent] Jules Task Completed - PR #${context.payload.pull_request.number}`,
+              body: `Jules has opened a new PR: ${context.payload.pull_request.html_url}\n\n**Antigravity Agent:** Please wake up, review the Jules output against the specs, and log any deferred items before auto-launching the next task.`,
+              labels: ['jules-agent-trigger']
+            })
