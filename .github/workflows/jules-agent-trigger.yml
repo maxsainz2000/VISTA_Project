@@ -28,3 +28,10 @@ jobs:
               body: `Jules has opened a new PR: ${context.payload.pull_request.html_url}\n\n**Antigravity Agent:** Please wake up, review the Jules output against the specs, and log any deferred items before auto-launching the next task.`,
               labels: ['jules-agent-trigger']
             })
+
+      - name: Trigger Webhook Listener
+        run: |
+          curl -X POST "${{ secrets.WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{"pr_number": "${{ github.event.pull_request.number }}", "pr_url": "${{ github.event.pull_request.html_url }}"}'
+
