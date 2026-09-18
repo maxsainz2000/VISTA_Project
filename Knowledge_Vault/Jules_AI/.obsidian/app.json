@@ -1,0 +1,10 @@
+{
+  "alwaysUpdateLinks": true,
+  "newLinkFormat": "shortest",
+  "useMarkdownLinks": false,
+  "attachmentFolderPath": "07-Reference/attachments",
+  "showUnsupportedFiles": false,
+  "defaultViewMode": "preview",
+  "livePreview": true,
+  "strictLineBreaks": false
+}
