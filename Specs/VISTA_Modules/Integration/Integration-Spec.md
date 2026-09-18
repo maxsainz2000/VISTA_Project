@@ -3,23 +3,23 @@
 ## Feature: INT-01
 
 ### Overview
-Implemented the App Composition Root (INT-01): wired all module services, ViewModels, and MediatR into the `Application.xaml.vb` DI container, and created the `WpfLowStockNotifier` concrete class.
+Implemented the App Composition Root (INT-01): wired all module services, Presenters, and MediatR into the `Application.Designer code.vb` DI container, and created the `WinFormsLowStockNotifier` concrete class.
 
 ### Requirements
-- **Application.xaml.vb**: replaced the placeholder TODO comments with full DI registrations for all modules; added calls to `AddModuleDbContexts()`, `AddMediatRServices()`, and `AddPurchasingServices()` (extension method); inlined Inventory, POS, and Accounting registrations
-- **Services/WpfLowStockNotifier.vb**: concrete `ILowStockNotifier` implementation backed by `Notification.Wpf`'s `NotificationManager`
+- **Application.Designer code.vb**: replaced the placeholder TODO comments with full DI registrations for all modules; added calls to `AddModuleDbContexts()`, `AddMediatRServices()`, and `AddPurchasingServices()` (extension method); inlined Inventory, POS, and Accounting registrations
+- **Services/WinFormsLowStockNotifier.vb**: concrete `ILowStockNotifier` implementation backed by `Notification.WinForms`'s `NotificationManager`
 
 ## Feature: INT-02
 
 ### Overview
-Implemented Shell Navigation & View Wiring (INT-02): created the `NavigationItem`/`NavigationGroup` models, `MainWindowViewModel` (MVVM navigation hub), rewired `MainWindow.xaml` with a grouped sidebar, and updated `Application.xaml.vb` to register all 16 Views, the 3 missing Purchasing ViewModels, and the shell components.
+Implemented Shell Navigation & View Wiring (INT-02): created the `NavigationItem`/`NavigationGroup` models, `MainWindowPresenter` (MVP navigation hub), rewired `MainWindow.Designer code` with a grouped sidebar, and updated `Application.Designer code.vb` to register all 16 Views, the 3 missing Purchasing Presenters, and the shell components.
 
 ### Requirements
 - **Models/NavigationItem.vb**: `NavigationItem` (observable `IsActive` for active highlighting) and `NavigationGroup` (group name + items list)
-- **ViewModels/MainWindowViewModel.vb**: holds `NavigationGroups` (4 module groups, 16 items total; a 17th entry for `VatReturnView` was added in ACC-11/INT-13 via `BuildAccountingNavItems()` gated on `UserRole.Manager`), `CurrentView` (bound to content area), and `NavigateCommand` (resolves view from `IServiceProvider`, toggles `IsActive`); `NavigateToDefault()` opens `StockDashboardView` on launch
-- **MainWindow.xaml**: full sidebar with dark theme (#2C3E50), app title, grouped nav items via nested `ItemsControl`, `NavItemButton` style with active (#3D566E) and hover (#34495E) states, `ContentControl` bound to `CurrentView`
-- **MainWindow.xaml.vb**: constructor injection of `MainWindowViewModel`; `MainWindow_Loaded` calls `NavigateToDefault()`
-- **Application.xaml.vb**: registered all 16 Views as Transient; registered 3 previously-missing Purchasing ViewModels (`PurchaseOrderListViewModel`, `GoodsReceivingViewModel`, `VendorListViewModel`) as Transient; registered `MainWindowViewModel` and `MainWindow` as Singleton; `Application_Startup` resolves `ILowStockNotifier` on the UI thread (Notification.Wpf initialisation) then shows `MainWindow` from DI
+- **Presenters/MainWindowPresenter.vb**: holds `NavigationGroups` (4 module groups, 16 items total; a 17th entry for `VatReturnView` was added in ACC-11/INT-13 via `BuildAccountingNavItems()` gated on `UserRole.Manager`), `CurrentView` (bound to content area), and `NavigateCommand` (resolves view from `IServiceProvider`, toggles `IsActive`); `NavigateToDefault()` opens `StockDashboardView` on launch
+- **MainWindow.Designer code**: full sidebar with dark theme (#2C3E50), app title, grouped nav items via nested `ItemsControl`, `NavItemButton` style with active (#3D566E) and hover (#34495E) states, `ContentControl` bound to `CurrentView`
+- **MainWindow.Designer code.vb**: constructor injection of `MainWindowPresenter`; `MainWindow_Loaded` calls `NavigateToDefault()`
+- **Application.Designer code.vb**: registered all 16 Views as Transient; registered 3 previously-missing Purchasing Presenters (`PurchaseOrderListPresenter`, `GoodsReceivingPresenter`, `VendorListPresenter`) as Transient; registered `MainWindowPresenter` and `MainWindow` as Singleton; `Application_Startup` resolves `ILowStockNotifier` on the UI thread (Notification.WinForms initialisation) then shows `MainWindow` from DI
 
 ## Feature: INT-03
 
@@ -53,7 +53,7 @@ Generated manual EF Core migrations for all four module DbContexts (Purchasing, 
 - **Migrations/20260507100004_InitialAccounting.vb**: manual migration for 4 Accounting tables (no seed data)
 - **Migrations/AccountingDbContextModelSnapshot.vb**: model snapshot
 - **Data/DatabaseInitializer.vb**: ADO.NET initializer that applies all 4 migrations idempotently on app startup (workaround for EF CLI VB.NET bug)
-- **Application.xaml.vb**: calls `DatabaseInitializer.Initialize()` before the main window is shown
+- **Application.Designer code.vb**: calls `DatabaseInitializer.Initialize()` before the main window is shown
 - Added `Microsoft.EntityFrameworkCore.Design` v10.0.7 to `MerchSys.App.vbproj` (required for EF CLI startup project)
 - Installed `dotnet-ef` 10.0.7 global tool
 
@@ -83,10 +83,10 @@ Project-wide QA pass covering application launch smoke test, database schema val
 ## Feature: INT-07
 
 ### Overview
-Registered 9 of the 10 missing service interfaces in `Application.xaml.vb`. All registrations use Scoped lifetime to match their module DbContext lifetimes. `IInventoryAuditService` was not registered because the interface and implementation do not exist in the codebase (see Issues section).
+Registered 9 of the 10 missing service interfaces in `Application.Designer code.vb`. All registrations use Scoped lifetime to match their module DbContext lifetimes. `IInventoryAuditService` was not registered because the interface and implementation do not exist in the codebase (see Issues section).
 
 ### Requirements
-- Modified `Application.xaml.vb`:
+- Modified `Application.Designer code.vb`:
 - Added `Imports MerchSys.Accounting.Services` (was missing, required for new Accounting registrations)
 - **POS:** Added `ICartService/CartService`, `IPaymentService/PaymentService`, `ICreditService/CreditService`, `ISalesReturnService/SalesReturnService` — all Scoped
 - **Inventory:** Added `IStockService/StockService` — Scoped
@@ -115,7 +115,7 @@ Implemented `IInventoryAuditService` — the only remaining unregistered service
 - **MerchSys.Inventory/Entities/MovementType.vb**: added `Adjustment = 5` enum value (required for audit variance stock movements)
 - **MerchSys.Inventory/Services/IInventoryAuditService.vb**: interface with 4 methods: `PerformStockCountAsync`, `RecordAdjustmentAsync`, `GetAuditHistoryAsync`, `GetLatestAuditPerProductAsync`
 - **MerchSys.Inventory/Services/InventoryAuditService.vb**: implementation injecting `InventoryDbContext` and `ILogger`; writes `StockAuditRecord` and a `StockMovement` (type Adjustment) for non-zero variances
-- **MerchSys.App/Application.xaml.vb**: registered `services.AddScoped(Of IInventoryAuditService, InventoryAuditService)()` in the Inventory block
+- **MerchSys.App/Application.Designer code.vb**: registered `services.AddScoped(Of IInventoryAuditService, InventoryAuditService)()` in the Inventory block
 
 ## Feature: INT-10
 
@@ -134,8 +134,8 @@ Implemented `MediatREventBus` — the missing `IEventBus` adapter — and regist
 
 ### Requirements
 - **MerchSys.App/Services/MediatREventBus.vb**: thin adapter class implementing `IEventBus`; injects `IMediator` and delegates `PublishAsync` to `IMediator.Publish`. Follows the existing `DefaultSessionService` pattern in the same directory.
-- **MerchSys.App/Application.xaml.vb**: added `services.AddScoped(Of IEventBus, MediatREventBus)()` in the Infrastructure section, after `ISessionService` registration.
-- Modified `MerchSys.App/Views/POS/TransactionHistoryView.xaml` (line 601) — removed invalid `Style="{StaticResource FieldLabel}"` from a `<Run>` element. The `FieldLabel` style has `TargetType="TextBlock"` which cannot be applied to `Run` (an inline element). Moved `FontSize="11"` and `Foreground="#7F8C8D"` directly onto the parent `<TextBlock>`. This was a XAML parse-time crash separate from the DI issue.
+- **MerchSys.App/Application.Designer code.vb**: added `services.AddScoped(Of IEventBus, MediatREventBus)()` in the Infrastructure section, after `ISessionService` registration.
+- Modified `MerchSys.App/Views/POS/TransactionHistoryView.Designer code` (line 601) — removed invalid `Style="{StaticResource FieldLabel}"` from a `<Run>` element. The `FieldLabel` style has `TargetType="TextBlock"` which cannot be applied to `Run` (an inline element). Moved `FontSize="11"` and `Foreground="#7F8C8D"` directly onto the parent `<TextBlock>`. This was a Designer code parse-time crash separate from the DI issue.
 
 ## Feature: INT-12
 
@@ -151,7 +151,7 @@ orchestrates both chains against a fresh scratch SQLite DB; contains `ChainProbe
 `EventChainVerificationHarness`, and `ChainVerificationResult`
 - **Debug/EventChainReport.vb**: 
 StringBuilder-driven Markdown emitter; writes to `%TEMP%\event-chain-report-<timestamp>.md`
-and surfaces a `Notification.Wpf` toast with the path on completion
+and surfaces a `Notification.WinForms` toast with the path on completion
 - **Progress/VISTA_Modules/Integration/INT-12-checklist.md**: operator checklist
 for `TransactionHistoryView` re-test and both harness chains; includes INT-10 flip instruction
 
@@ -161,9 +161,9 @@ for `TransactionHistoryView` re-test and both harness chains; includes INT-10 fl
 Implemented INT-13: VatReturnView Navigation Wire-up. Upon inspection, ACC-11 had already wired the navigation entry, DI registrations, and role gate into the shell during its own implementation — the INT-13 deliverables were substantively present before this session started. This session confirmed all acceptance criteria, updated the inline comment to satisfy the plan's documentation requirement, updated the INT-02 progress summary to record the 17th view, and produced this summary.
 
 ### Requirements
-- **ViewModels/MainWindowViewModel.vb**: updated inline comment on the VatReturn nav entry to cite INT-02 (originating navigation convention) and ACC-11 (view source), per plan documentation requirement
+- **Presenters/MainWindowPresenter.vb**: updated inline comment on the VatReturn nav entry to cite INT-02 (originating navigation convention) and ACC-11 (view source), per plan documentation requirement
 - **Progress/VISTA_Modules/Integration/INT-02-summary.md**: added one-sentence note that VatReturnView is the 17th view, added via ACC-11/INT-13 `BuildAccountingNavItems()` gated on `UserRole.Manager`
-No changes to `MainWindow.xaml` were needed — the sidebar is data-driven from `NavigationGroups` and VatReturnView appears automatically when the Manager role is active.
+No changes to `MainWindow.Designer code` were needed — the sidebar is data-driven from `NavigationGroups` and VatReturnView appears automatically when the Manager role is active.
 
 ## Feature: INT-14
 
@@ -171,13 +171,13 @@ No changes to `MainWindow.xaml` were needed — the sidebar is data-driven from 
 Produced the ToListAsync remediation triage checklist for INT-15 and INT-16. Applied the corrected INFRA-18 Rule 3 detector against all 63 sites from the 2026-05-24 baseline, classified each site as true or false positive, and compiled a 47-row checklist with method names, entity types, Include complexity, UI surface descriptions, and batch assignments.
 
 ### Requirements
-- Read all flagged service and ViewModel files from the 2026-05-24 baseline (63 sites across 18 files)
+- Read all flagged service and Presenter files from the 2026-05-24 baseline (63 sites across 18 files)
 - Applied the INFRA-18 corrected Rule 3 detector (shape-aware: GroupBy gate, Select-projection gate, scalar-projection gate)
 - Cleared 16 false positives; confirmed 47 true positives
-- Traced UI callers for each method (ViewModel → View surface described per row)
+- Traced UI callers for each method (Presenter → View surface described per row)
 - Assigned each row to INT-15 (Inventory + POS) or INT-16 (Purchasing + Accounting)
 - Classified fix complexity: `simple` (no Include), `joined` (one Include), `graph` (multiple Includes or nested ThenInclude)
-- Documented the already-applied Vendor fix in `PurchaseOrderListViewModel.vb` as the reference fix shape
+- Documented the already-applied Vendor fix in `PurchaseOrderListPresenter.vb` as the reference fix shape
 - Created `Operator/debug-logs/tolistasync-remediation-checklist.md`
 - Created this progress summary
 
@@ -195,7 +195,7 @@ Applied the raw `SqliteConnection` + synchronous `reader.Read()` fix to all 27 I
 - **MerchSys.Inventory/Services/ExpiryTrackingService.vb**: Rows 5, 6: fixed `GetNearExpiryBatchesAsync` and `GetExpiredBatchesAsync` (both joined: StockBatches with INNER JOIN Inv_Products filter + separate Product load for nav); added class fields `_nearExpiryBatchList`, `_expiredBatchList`
 - **MerchSys.Inventory/Services/VelocityService.vb**: Row 14: fixed `ClassifyAllProductsAsync` (graph: Products + StockBatches + ShrinkageRecords + ProductCategories); added class field `_velocityProductList`
 - **MerchSys.Inventory/Services/StockDashboardService.vb**: Row 1: fixed `GetDashboardDataAsync` (graph: Products + StockBatches + ProductCategories); added class field `_dashboardProductList`
-- **MerchSys.Inventory/ViewModels/ProductManagementViewModel.vb**: Rows 2, 3: fixed `LoadDataAsync` (both Product+Category joined and ProductCategory simple queries in one method); added class fields `_loadedProducts`, `_loadedCategories`; added `Imports MerchSys.Inventory.Services` to reuse `StockService.ReadProduct`
+- **MerchSys.Inventory/Presenters/ProductManagementPresenter.vb**: Rows 2, 3: fixed `LoadDataAsync` (both Product+Category joined and ProductCategory simple queries in one method); added class fields `_loadedProducts`, `_loadedCategories`; added `Imports MerchSys.Inventory.Services` to reuse `StockService.ReadProduct`
 - **MerchSys.Inventory/Handlers/GetProductCatalogQueryHandler.vb**: Row 4: fixed `Handle` (joined: Products + StockBatches, dynamic optional ProductId and SearchTerm filters via LIKE); added class field `_catalogProductList`
 
 ## Feature: INT-16
@@ -242,8 +242,8 @@ so this eliminates the latent footgun without changing any behaviour.
 `formType`→`lockedFormType` in constructor signature and body (including `MyBase.New` message).
 - Modified `MerchSys.App/Models/NavigationItem.vb:28` (in `NavigationGroup.New`)
 — renamed `groupName`→`name`, `items`→`navigationItems`.
-- Modified `MerchSys.App/Views/LoginView.xaml.vb:16`
-— renamed `viewModel`→`vm` in constructor signature, `_viewModel = vm`, `DataContext = vm`.
+- Modified `MerchSys.App/Views/LoginView.Designer code.vb:16`
+— renamed `Presenter`→`vm` in constructor signature, `_viewModel = vm`, `DataContext = vm`.
 - Modified `MerchSys.Inventory/Services/StockService.vb:21` (in `InsufficientStockException.New`)
 — renamed `productId`→`product`, `requestedQty`→`requested`, `availableQty`→`available`.
 - Modified `MerchSys.POS/Debug/ReceiptArchivalHarness.vb:750` (in `EmptyConfigurationSection.New`)
@@ -328,20 +328,20 @@ Concise list of changes made:
 ## Feature: INT-23
 
 ### Overview
-Implemented MVVM hygiene improvements for data-access layering and timer disposal across multiple modules. All direct `MySqlConnection` usages inside ViewModels have been removed, delegating to services (with raw ADO.NET for full entities and EF projections for aggregate metrics). Refresh timers in auto-refresh ViewModels are now cleanly stopped and disposed when their corresponding Views are unloaded.
+Implemented MVP hygiene improvements for data-access layering and timer disposal across multiple modules. All direct `MySqlConnection` usages inside Presenters have been removed, delegating to services (with raw ADO.NET for full entities and EF projections for aggregate metrics). Refresh timers in auto-refresh Presenters are now cleanly stopped and disposed when their corresponding Views are unloaded.
 
 ### Requirements
 ### Part 1 — Data-Access Layering
 - **`IStockService.vb` + `StockService.vb`** — Added `GetProductsWithCategoriesAsync()` returning `ProductAndCategoryData` using raw ADO.NET for full entities.
-- **`ProductManagementViewModel.vb`** — Injected `IStockService`, removed raw connection/reader code in `LoadDataAsync`, and replaced it with a call to `_stockService.GetProductsWithCategoriesAsync()`. Removed `MySqlConnector` import.
+- **`ProductManagementPresenter.vb`** — Injected `IStockService`, removed raw connection/reader code in `LoadDataAsync`, and replaced it with a call to `_stockService.GetProductsWithCategoriesAsync()`. Removed `MySqlConnector` import.
 - **`ICreditService.vb` + `CreditService.vb`** — Added `GetCreditTransactionsAsync(accountId)` returning `List(Of CreditTransactionItem)` using raw ADO.NET. Moved `CreditTransactionItem` class to `ICreditService.vb` to make it accessible to the service layer.
-- **`CreditManagementViewModel.vb`** — Removed local `CreditTransactionItem` class definition. Removed raw connection/reader code in `LoadHistoryInternalAsync` and replaced it with a call to `_creditService.GetCreditTransactionsAsync(account.Id)`. Removed `MySqlConnector` import.
+- **`CreditManagementPresenter.vb`** — Removed local `CreditTransactionItem` class definition. Removed raw connection/reader code in `LoadHistoryInternalAsync` and replaced it with a call to `_creditService.GetCreditTransactionsAsync(account.Id)`. Removed `MySqlConnector` import.
 - **`IPurchasingDashboardService.vb` + `PurchasingDashboardService.vb`** (New) — Created interface and implementation with `GetMonthlyTrendAsync(trendStart)` and `GetTopVendorsAsync()` returning DTOs using EF projections.
-- **`PurchasingDashboardViewModel.vb`** — Injected `IPurchasingDashboardService`, removed local `TrendBarItem` and `TopVendorItem` definitions, and delegated trend and vendor queries to the dashboard service. Removed `MySqlConnector`, EF Core, and database context imports.
+- **`PurchasingDashboardPresenter.vb`** — Injected `IPurchasingDashboardService`, removed local `TrendBarItem` and `TopVendorItem` definitions, and delegated trend and vendor queries to the dashboard service. Removed `MySqlConnector`, EF Core, and database context imports.
 - **`PurchasingServiceCollectionExtensions.vb`** — Registered `IPurchasingDashboardService` as scoped in DI.
-- **`PurchaseOrderListViewModel.vb`** — Cleaned up raw vendor database query and replaced it with `_vendorService.GetAllAsync()`. Removed unused DbContext and `MySqlConnector` imports.
+- **`PurchaseOrderListPresenter.vb`** — Cleaned up raw vendor database query and replaced it with `_vendorService.GetAllAsync()`. Removed unused DbContext and `MySqlConnector` imports.
 - **`IDailySummaryService.vb` + `DailySummaryService.vb`** (Optional Task) — Added `GetDailySalesTrendAsync(startDate)` returning `Dictionary(Of DateTime, Decimal)` using raw ADO.NET.
-- **`OwnerDashboardViewModel.vb`** (Optional Task) — Injected `IDailySummaryService`, removed `MySqlConnector`, `IConfiguration` constructor injection, and the raw SQL connection block in `LoadTrendDataAsync`. Replaced it with a call to `_dailySummary.GetDailySalesTrendAsync(startDate)`.
+- **`OwnerDashboardPresenter.vb`** (Optional Task) — Injected `IDailySummaryService`, removed `MySqlConnector`, `IConfiguration` constructor injection, and the raw SQL connection block in `LoadTrendDataAsync`. Replaced it with a call to `_dailySummary.GetDailySalesTrendAsync(startDate)`.
 
 ## Feature: INT-24
 
@@ -388,8 +388,8 @@ last-synced: 2026-05-26
 
 | What | Path |
 |------|------|
-| TransactionHistoryView | `WPF_Applications\MerchSys\src\MerchSys.App\Views\POS\TransactionHistoryView.xaml.vb` |
-| TransactionHistoryViewModel | `WPF_Applications\MerchSys\src\MerchSys.POS\ViewModels\TransactionHistoryViewModel.vb` |
+| TransactionHistoryView | `WinForms_Applications\MerchSys\src\MerchSys.App\Views\POS\TransactionHistoryView.Designer code.vb` |
+| TransactionHistoryPresenter | `WinForms_Applications\MerchSys\src\MerchSys.POS\Presenters\TransactionHistoryPresenter.vb` |
 | INT-10 summary (for checkbox flip) | `Progress\VISTA_Modules\Integration\INT-10-summary.md` |
 | SQLite database | `%LOCALAPPDATA%\MerchSys\merchsys.db` |
 
@@ -414,7 +414,7 @@ last-synced: 2026-05-26
 1. While the app is still running, navigate to the **Transaction History** view (in the POS section of the sidebar).
 2. Check that it opens and looks correct.
 
-> **View file:** `WPF_Applications\MerchSys\src\MerchSys.App\Views\POS\TransactionHistoryView.xaml.vb`
+> **View file:** `WinForms_Applications\MerchSys\src\MerchSys.App\Views\POS\TransactionHistoryView.Designer code.vb`
 
 **What you should see:**
 - The view opens without crashing.
@@ -503,11 +503,11 @@ last-synced: 2026-06-01
 | What | Path |
 |------|------|
 | SQLite database | `%LOCALAPPDATA%\MerchSys\merchsys.db` |
-| TransactionHistoryView (XAML) | `WPF_Applications\MerchSys\src\MerchSys.App\Views\POS\TransactionHistoryView.xaml.vb` |
-| TransactionHistoryViewModel | `WPF_Applications\MerchSys\src\MerchSys.POS\ViewModels\TransactionHistoryViewModel.vb` |
-| FinancialOverviewView (code-behind) | `WPF_Applications\MerchSys\src\MerchSys.App\Views\Accounting\FinancialOverviewView.xaml.vb` |
-| FinancialOverviewVatExtension | `WPF_Applications\MerchSys\src\MerchSys.Accounting\ViewModels\Extensions\FinancialOverviewVatExtension.vb` |
-| MainWindowViewModel (navigation) | `WPF_Applications\MerchSys\src\MerchSys.App\ViewModels\MainWindowViewModel.vb` |
+| TransactionHistoryView (Designer code) | `WinForms_Applications\MerchSys\src\MerchSys.App\Views\POS\TransactionHistoryView.Designer code.vb` |
+| TransactionHistoryPresenter | `WinForms_Applications\MerchSys\src\MerchSys.POS\Presenters\TransactionHistoryPresenter.vb` |
+| FinancialOverviewView (code-behind) | `WinForms_Applications\MerchSys\src\MerchSys.App\Views\Accounting\FinancialOverviewView.Designer code.vb` |
+| FinancialOverviewVatExtension | `WinForms_Applications\MerchSys\src\MerchSys.Accounting\Presenters\Extensions\FinancialOverviewVatExtension.vb` |
+| MainWindowPresenter (navigation) | `WinForms_Applications\MerchSys\src\MerchSys.App\Presenters\MainWindowPresenter.vb` |
 | INT-10 summary (for checkbox flip) | `Progress\VISTA_Modules\Integration\INT-10-summary.md` |
 | EF Core bug notes | `LLM_Wiki\agent_wiki\errors\efcore10-vbnet-migration-discovery-bug.md` |
 
@@ -583,17 +583,17 @@ last-synced: 2026-06-01
 3. Look at the view carefully. Check that:
    - The view opens without crashing.
    - All columns show data correctly.
-   - The text labels are styled properly (no raw `Run` elements or broken XAML).
+   - The text labels are styled properly (no raw `Run` elements or broken Designer code).
 
-> **View file:** `WPF_Applications\MerchSys\src\MerchSys.App\Views\POS\TransactionHistoryView.xaml.vb`
-> **ViewModel:** `WPF_Applications\MerchSys\src\MerchSys.POS\ViewModels\TransactionHistoryViewModel.vb`
+> **View file:** `WinForms_Applications\MerchSys\src\MerchSys.App\Views\POS\TransactionHistoryView.Designer code.vb`
+> **Presenter:** `WinForms_Applications\MerchSys\src\MerchSys.POS\Presenters\TransactionHistoryPresenter.vb`
 
 **What you should see:**
 - The view loads and displays transaction history data.
 - No visual glitches or unstyled text elements.
 - No errors in the Visual Studio Output window.
 
-- [x] TransactionHistoryView displays correctly after XAML fix
+- [x] TransactionHistoryView displays correctly after Designer code fix
 
 ---
 
@@ -664,7 +664,7 @@ last-synced: 2026-06-01
 
 **What to do:**
 1. Open this file in Visual Studio:
-   `WPF_Applications\MerchSys\src\MerchSys.App\Views\Accounting\FinancialOverviewView.xaml.vb`
+   `WinForms_Applications\MerchSys\src\MerchSys.App\Views\Accounting\FinancialOverviewView.Designer code.vb`
 2. Find the `NavigateToVatReturnRequested` event handler method (use Ctrl+F to search).
 3. Read the code inside.
 
@@ -712,3 +712,4 @@ last-synced: 2026-06-01
 **Depends on:** INT-17 (completed).
 
 ---
+

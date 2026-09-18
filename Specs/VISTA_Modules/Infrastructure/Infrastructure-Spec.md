@@ -3,12 +3,12 @@
 ## Feature: INFRA-01
 
 ### Overview
-Scaffolded the complete MerchSys solution: created the `.slnx` solution file, all 6 projects (1 WPF app + 5 class libraries), established project reference graph, installed all NuGet packages, created the required subfolder structure, and wrote the main window shell and DI startup placeholder.
+Scaffolded the complete MerchSys solution: created the `.slnx` solution file, all 6 projects (1 WinForms app + 5 class libraries), established project reference graph, installed all NuGet packages, created the required subfolder structure, and wrote the main window shell and DI startup placeholder.
 
 ### Requirements
 ### Solution & Projects
 - **MerchSys.slnx**: solution file (dotnet 10 uses `.slnx` format)
-- **MerchSys.App.vbproj**: WPF startup project
+- **MerchSys.App.vbproj**: WinForms startup project
 - **MerchSys.SharedKernel.vbproj**: shared types library
 - **MerchSys.Purchasing.vbproj**: purchasing module library
 - **MerchSys.Inventory.vbproj**: inventory module library
@@ -141,18 +141,18 @@ Implemented INFRA-09: the producer-side `ISyncableRepository(Of TContext)` abstr
 ## Feature: INFRA-10
 
 ### Overview
-Implemented the Sync Status Shell Indicator as specified in INFRA-10. A compact 24-pixel status bar was added to the bottom of `MainWindow.xaml`; it hosts a new `SyncStatusIndicator` UserControl wired to `SyncStatusIndicatorViewModel`, which subscribes to `INotificationService.SyncStatusChanged` and derives visual state from each transition.
+Implemented the Sync Status Shell Indicator as specified in INFRA-10. A compact 24-pixel status bar was added to the bottom of `MainWindow.Designer code`; it hosts a new `SyncStatusIndicator` UserControl wired to `SyncStatusIndicatorPresenter`, which subscribes to `INotificationService.SyncStatusChanged` and derives visual state from each transition.
 
 ### Requirements
 - **MerchSys.SharedKernel/Interfaces/INotificationService.vb**: Added `Event SyncStatusChanged As EventHandler(Of SyncStatus)`, `ReadOnly Property CurrentSyncStatus As SyncStatus`, and `ReadOnly Property LastSuccessfulPushAt As Nullable(Of DateTimeOffset)` to the interface so consumers can subscribe and read state without depending on the concrete class.
 - **MerchSys.App/Services/DefaultNotificationService.vb**: Implemented the three new interface members. `LastSuccessfulPushAt` is set inside `NotifySyncStatusChanged` when the status transitions `Syncing → Online`, which is the only code path in `SyncWorker` where an actual push cycle has completed.
-- **MerchSys.App/ViewModels/Shell/SyncStatusIndicatorViewModel.vb**: Contains `IndicatorSeverity` enum (`Healthy`, `Idle`, `Warning`, `Critical`) and the view-model. Subscribes to `INotificationService.SyncStatusChanged` on construction. Owns a 30-second `DispatcherTimer` that re-runs `Recompute` so `LastSyncDisplay` ticks forward between events. Implements `IDisposable`; `Dispose` stops the timer and removes both handlers.
+- **MerchSys.App/Presenters/Shell/SyncStatusIndicatorPresenter.vb**: Contains `IndicatorSeverity` enum (`Healthy`, `Idle`, `Warning`, `Critical`) and the view-model. Subscribes to `INotificationService.SyncStatusChanged` on construction. Owns a 30-second `DispatcherTimer` that re-runs `Recompute` so `LastSyncDisplay` ticks forward between events. Implements `IDisposable`; `Dispose` stops the timer and removes both handlers.
 - **MerchSys.App/Converters/SeverityToBrushConverter.vb**: New `IValueConverter` mapping `IndicatorSeverity` → `SolidColorBrush`. No equivalent converter existed in the project; a new one was introduced.
-- **MerchSys.App/Views/Shell/SyncStatusIndicator.xaml**: Horizontal `StackPanel` UserControl with an `Ellipse` (fill bound via `SeverityToBrushConverter`), a `DisplayLabel` TextBlock, and a `LastSyncDisplay` TextBlock at 0.6 opacity. `ToolTip` bound to `TooltipText`.
-- **MerchSys.App/Views/Shell/SyncStatusIndicator.xaml.vb**: Minimal code-behind, no logic.
-- **MerchSys.App/MainWindow.xaml**: Added `xmlns:shell` namespace reference, added `Grid.RowDefinitions` (`Height="*"` and `Height="24"`), set `Grid.Row="0"` on both the sidebar `Border` and the content `ContentControl`, and added a `Grid.Row="1"` `Border` (background `#1A252F`) spanning both columns hosting `<shell:SyncStatusIndicator DataContext="{Binding SyncStatusIndicator}"/>`. No pre-existing status-bar row was present, so a new `Grid.Row` was added per spec.
-- **MerchSys.App/ViewModels/MainWindowViewModel.vb**: Added `Public ReadOnly Property SyncStatusIndicator As SyncStatusIndicatorViewModel` and injected it via constructor.
-- **MerchSys.App/Application.xaml.vb**: Registered `SyncStatusIndicatorViewModel` as singleton and `Views.Shell.SyncStatusIndicator` as singleton before `MainWindowViewModel` and `MainWindow`.
+- **MerchSys.App/Views/Shell/SyncStatusIndicator.Designer code**: Horizontal `StackPanel` UserControl with an `Ellipse` (fill bound via `SeverityToBrushConverter`), a `DisplayLabel` TextBlock, and a `LastSyncDisplay` TextBlock at 0.6 opacity. `ToolTip` bound to `TooltipText`.
+- **MerchSys.App/Views/Shell/SyncStatusIndicator.Designer code.vb**: Minimal code-behind, no logic.
+- **MerchSys.App/MainWindow.Designer code**: Added `xmlns:shell` namespace reference, added `Grid.RowDefinitions` (`Height="*"` and `Height="24"`), set `Grid.Row="0"` on both the sidebar `Border` and the content `ContentControl`, and added a `Grid.Row="1"` `Border` (background `#1A252F`) spanning both columns hosting `<shell:SyncStatusIndicator DataContext="{Binding SyncStatusIndicator}"/>`. No pre-existing status-bar row was present, so a new `Grid.Row` was added per spec.
+- **MerchSys.App/Presenters/MainWindowPresenter.vb**: Added `Public ReadOnly Property SyncStatusIndicator As SyncStatusIndicatorPresenter` and injected it via constructor.
+- **MerchSys.App/Application.Designer code.vb**: Registered `SyncStatusIndicatorPresenter` as singleton and `Views.Shell.SyncStatusIndicator` as singleton before `MainWindowPresenter` and `MainWindow`.
 
 ## Feature: INFRA-11
 
@@ -164,7 +164,7 @@ Implements the production deployment configuration layer for INFRA-11. Delivers 
 - **appsettings.json**: removed `Sync:MariaDbConnection` key (the only credential-bearing field); all other `Sync` fields retained for the TCP probe
 - **appsettings.Production.template.json**: operator template with `_comment` keys; placeholder values for `Host`, `Password`; real defaults for `Database` (`merchsys_central`) and `User` (`merchsys_sync`) matching `mariadb-init.sql`
 - **Configuration/ConnectionStringLoader.vb**: VB Module with three-state overlay logic: `GetProductionConfigPath()`, `AddProductionOverlay()` extension on `IConfigurationBuilder`, `GetMariaDbConnectionString(cfg, logger)`
-- **Application.xaml.vb**: added `builder.ConfigureAppConfiguration` call to load the production overlay before DI resolution; added `Imports MerchSys.App.Configuration`
+- **Application.Designer code.vb**: added `builder.ConfigureAppConfiguration` call to load the production overlay before DI resolution; added `Imports MerchSys.App.Configuration`
 - **Startup/SyncConfig.vb**: replaced `cfg.GetSection("Sync")("MariaDbConnection")` direct read with `ConnectionStringLoader.GetMariaDbConnectionString(cfg, logger)` call; added `Imports Microsoft.Extensions.Logging` and `Imports MerchSys.App.Configuration`
 - **Plans/VISTA_Modules/Infrastructure/runbooks/01-production-deployment.md**: operator runbook covering all six specified sections
 
@@ -212,16 +212,16 @@ Implemented full login form and user authentication (INFRA-15). Covers OWASP DA2
 - **Entities/UserAccount.vb**: new entity with `Id`, `Username`, `PasswordHash`, `Role`, `IsActive`, `FailedLoginAttempts`, `LockedUntil`, `LastPasswordChangeAt`, `CreatedAt`, `ModifiedAt`
 - **Services/IAuthenticationService.vb**: interface, `AuthenticationResult`, `PasswordChangeResult`, `AuthenticationService` implementation (raw ADO.NET over `SqliteConnection` per EF Core VB.NET bug workaround), and `Friend Module PasswordHashHelper` (Argon2id hash/verify with 16-byte random salt, 19456 KiB memory, 2 iterations, 1 parallelism, 32-byte output)
 - **Services/LoginSessionService.vb**: `ISessionService` backed by `UserAccount`; in-memory only (DA3); `ClearUser()` on logout
-- **Helpers/PasswordBoxHelper.vb**: attached-property bridge (`IsMonitoring` + `BoundPassword`) that binds `PasswordBox.Password` to a ViewModel string; `[ThreadStatic]` guard prevents re-entrant updates
-- **ViewModels/LoginViewModel.vb**: `LoginCommand` (AsyncRelayCommand), `ChangePasswordCommand`, eye-toggle commands; computed inverse properties (`HidePassword`, `HasError`, `IsNotLoggingIn`, `HidePasswordChange`, `HideNewPassword`) for XAML binding without custom converters; `Reset()` for post-logout re-display; `LoginSucceeded` event
-- Created `Views/LoginView.xaml` + `LoginView.xaml.vb` — standalone `Window` with dark branding, username/password fields with eye-toggle reveal, error message area, LOG IN button, and a first-login password-change panel (revealed when `ShowPasswordChange = True`)
+- **Helpers/PasswordBoxHelper.vb**: attached-property bridge (`IsMonitoring` + `BoundPassword`) that binds `PasswordBox.Password` to a Presenter string; `[ThreadStatic]` guard prevents re-entrant updates
+- **Presenters/LoginPresenter.vb**: `LoginCommand` (AsyncRelayCommand), `ChangePasswordCommand`, eye-toggle commands; computed inverse properties (`HidePassword`, `HasError`, `IsNotLoggingIn`, `HidePasswordChange`, `HideNewPassword`) for Designer code binding without custom converters; `Reset()` for post-logout re-display; `LoginSucceeded` event
+- Created `Views/LoginView.Designer code` + `LoginView.Designer code.vb` — standalone `Window` with dark branding, username/password fields with eye-toggle reveal, error message area, LOG IN button, and a first-login password-change panel (revealed when `ShowPasswordChange = True`)
 - **Data/DatabaseInitializer.vb**: added migration `20260522100000_AddUserAccounts`: creates `Sys_UserAccounts` (NOCASE collation on `Username`, unique index), seeds `manager` (Role=1) and `owner` (Role=2) rows with Argon2id-hashed `Vista2026!`; `LastPasswordChangeAt = NULL` signals first-login state
 - **MerchSys.App.vbproj**: added `Konscious.Security.Cryptography.Argon2 v1.3.0`
 - **Services/DefaultSessionService.vb**: updated doc comment: DEBUG-bypass only, never ships to production
-- **Application.xaml**: added `ShutdownMode="OnExplicitShutdown"` so hiding `LoginView` (on successful login) does not trigger app shutdown
-- **Application.xaml.vb**: new login flow: `ShowLoginView()` → `HandleLoginSucceeded` (hides `LoginView`, resolves singleton `MainWindow`, calls `RefreshNavigation()`, shows `MainWindow`) → `HandleLogoutRequested` (hides `MainWindow`, calls `ShowLoginView()` again); `HandleLoginViewClosed` shuts down if login view is dismissed without completing auth; `LoginSessionService` + `IAuthenticationService` registered in DI; `DefaultSessionService` kept for `#If DEBUG` + `VISTA_BYPASS_LOGIN=1` env-var override
-- **ViewModels/MainWindowViewModel.vb**: constructor now injects `LoginSessionService` directly; `NavigationGroups` initialised as `ObservableCollection` from `BuildNavigationGroups()` list; `BuildNavigationGroups()` return type changed to `List(Of NavigationGroup)`; added `RefreshNavigation()` (clears and rebuilds nav items — enables role switch after logout/re-login); added `LogoutCommand` (RelayCommand) and `LogoutRequested` event
-- **MainWindow.xaml**: added "Log Out" button pinned to the bottom of the sidebar (above the status bar), bound to `LogoutCommand`, styled in red (`#E74C3C`) via the existing `NavItemButton` style
+- **Application.Designer code**: added `ShutdownMode="OnExplicitShutdown"` so hiding `LoginView` (on successful login) does not trigger app shutdown
+- **Application.Designer code.vb**: new login flow: `ShowLoginView()` → `HandleLoginSucceeded` (hides `LoginView`, resolves singleton `MainWindow`, calls `RefreshNavigation()`, shows `MainWindow`) → `HandleLogoutRequested` (hides `MainWindow`, calls `ShowLoginView()` again); `HandleLoginViewClosed` shuts down if login view is dismissed without completing auth; `LoginSessionService` + `IAuthenticationService` registered in DI; `DefaultSessionService` kept for `#If DEBUG` + `VISTA_BYPASS_LOGIN=1` env-var override
+- **Presenters/MainWindowPresenter.vb**: constructor now injects `LoginSessionService` directly; `NavigationGroups` initialised as `ObservableCollection` from `BuildNavigationGroups()` list; `BuildNavigationGroups()` return type changed to `List(Of NavigationGroup)`; added `RefreshNavigation()` (clears and rebuilds nav items — enables role switch after logout/re-login); added `LogoutCommand` (RelayCommand) and `LogoutRequested` event
+- **MainWindow.Designer code**: added "Log Out" button pinned to the bottom of the sidebar (above the status bar), bound to `LogoutCommand`, styled in red (`#E74C3C`) via the existing `NavItemButton` style
 
 ## Feature: INFRA-16
 
@@ -230,9 +230,9 @@ Implemented the Owner Dashboard and read-only view enforcement for the Owner rol
 
 ### Requirements
 ### New Files Created
-- `MerchSys.App/ViewModels/OwnerDashboardViewModel.vb` — KPI aggregation ViewModel with 60-second auto-refresh (DispatcherTimer) and plain-language interpretation strings for all four KPI groups
-- `MerchSys.App/Views/OwnerDashboardView.xaml` — 2×2 KPI card grid with header, loading overlay, and "What This Means" interpretation sections on each card
-- `MerchSys.App/Views/OwnerDashboardView.xaml.vb` — Code-behind; sets DataContext via constructor injection; disposes ViewModel (stops timer) on Unloaded
+- `MerchSys.App/Presenters/OwnerDashboardPresenter.vb` — KPI aggregation Presenter with 60-second auto-refresh (DispatcherTimer) and plain-language interpretation strings for all four KPI groups
+- `MerchSys.App/Views/OwnerDashboardView.Designer code` — 2×2 KPI card grid with header, loading overlay, and "What This Means" interpretation sections on each card
+- `MerchSys.App/Views/OwnerDashboardView.Designer code.vb` — Code-behind; sets DataContext via constructor injection; disposes Presenter (stops timer) on Unloaded
 
 ## Feature: INFRA-17
 
@@ -272,11 +272,11 @@ Implemented OWASP DA2 session inactivity timeout (INFRA-19). Adds idle detection
 
 ### Requirements
 - **Services/IIdleMonitor.vb**: `IdleMonitorOptions`, `IdleMonitorWarningEventArgs`, and `IIdleMonitor` interface
-- **Services/WpfIdleMonitor.vb**: singleton `WpfIdleMonitor` (DispatcherTimer + `InputManager.PreProcessInput` hook); `NoOpIdleMonitor` stub in `#If DEBUG` block for `VISTA_DISABLE_IDLE_TIMEOUT=1` bypass
-- **ViewModels/SessionTimeoutWarningViewModel.vb**: countdown VM with `StaySignedInCommand`, `SignOutCommand`, `Tick(remaining)`, and `CountdownDisplay` formatted as `"M:SS"`
-- **Views/SessionTimeoutWarningView.xaml**: modal `Window`, `Topmost="True"`, `WindowStartupLocation="CenterOwner"`, dark theme matching LoginView; large countdown text + message + two-button layout
-- **Views/SessionTimeoutWarningView.xaml.vb**: code-behind with `MarkDecisionMade()` guard; `OnClosing` override treats X-close as Sign Out
-- **Application.xaml.vb**: DI registration of `IdleMonitorOptions`, `IIdleMonitor`, `SessionTimeoutWarningViewModel`, `SessionTimeoutWarningView`; wired `HandleIdleWarning`, `HandleSessionExpired`; idle monitor starts after login, stops before logout; `Application_Exit` stops monitor before host disposal
+- **Services/WinFormsIdleMonitor.vb**: singleton `WinFormsIdleMonitor` (DispatcherTimer + `InputManager.PreProcessInput` hook); `NoOpIdleMonitor` stub in `#If DEBUG` block for `VISTA_DISABLE_IDLE_TIMEOUT=1` bypass
+- **Presenters/SessionTimeoutWarningPresenter.vb**: countdown VM with `StaySignedInCommand`, `SignOutCommand`, `Tick(remaining)`, and `CountdownDisplay` formatted as `"M:SS"`
+- **Views/SessionTimeoutWarningView.Designer code**: modal `Window`, `Topmost="True"`, `WindowStartupLocation="CenterOwner"`, dark theme matching LoginView; large countdown text + message + two-button layout
+- **Views/SessionTimeoutWarningView.Designer code.vb**: code-behind with `MarkDecisionMade()` guard; `OnClosing` override treats X-close as Sign Out
+- **Application.Designer code.vb**: DI registration of `IdleMonitorOptions`, `IIdleMonitor`, `SessionTimeoutWarningPresenter`, `SessionTimeoutWarningView`; wired `HandleIdleWarning`, `HandleSessionExpired`; idle monitor starts after login, stops before logout; `Application_Exit` stops monitor before host disposal
 - **appsettings.json**: added `Session:IdleTimeoutMinutes` (20) and `Session:WarningLeadSeconds` (60) section
 
 ## Feature: INFRA-20
@@ -297,7 +297,7 @@ Implemented database-level role-based write rejection (OWASP DA5 Improper Author
 2. **App Layer (DI & DB Registrations)**
 - Modified `MerchSys.App/Services/DefaultSessionService.vb` and `LoginSessionService.vb` to support the new `IsAuthenticated` property.
 - Modified `MerchSys.App/Data/DatabaseConfig.vb` to configure the four module DbContexts (`PurchasingDbContext`, `InventoryDbContext`, `POSDbContext`, and `AccountingDbContext`) to resolve and execute `RoleGuardInterceptor`.
-- Modified `MerchSys.App/Application.xaml.vb` to register `IWriteContextScope` (as Singleton), `RoleGuardInterceptor` (as Scoped), and update `IAuthenticationService` factory registration to inject the session and write context dependencies.
+- Modified `MerchSys.App/Application.Designer code.vb` to register `IWriteContextScope` (as Singleton), `RoleGuardInterceptor` (as Scoped), and update `IAuthenticationService` factory registration to inject the session and write context dependencies.
 3. **Background Systems and Handlers (Bypasses)**
 - Modified `MerchSys.App/Services/SyncOrchestrator.vb` to inject `IWriteContextScope` and wrap its background database flush operations inside a `WriteContextKind.System` scope.
 - Wrapped the `Handle` method bodies of all 4 Inventory handlers and 7 Accounting handlers in `Using _writeContext.Enter(WriteContextKind.System)` to allow asynchronous background writes.
@@ -369,7 +369,7 @@ Replaced the local SQLite `DatabaseInitializer` schema builder with a centralize
 - Created `0002_seed_reference_data.sql` at `Data/Migrations/Central/` — Idempotent reference data seed scripts for 4 categories, 3 vendors, 20 products, 3 credit accounts, and default non-VAT configurations.
 - Created `README.md` at `Data/Migrations/Central/` — Documented rules for migration scripting, lexicographical sequencing, idempotency, and drift prevention.
 - Created `MariaDbSchemaInitializer.vb` in `Data/` — Executed embedded DDL resources inside a transaction using custom statement splitting to support `DELIMITER` blocks; hashes each applied script to ensure SHA-256 matching. Seeds default system user accounts (manager, owner) using direct PasswordHashHelper encryption.
-- **App.xaml.vb**: Replaced legacy SQLite initializer call with `MariaDbSchemaInitializer.Initialize` inside startup blocks, passing central DB connection and logger dependencies with complete crash/MessageBox aborts.
+- **App.Designer code.vb**: Replaced legacy SQLite initializer call with `MariaDbSchemaInitializer.Initialize` inside startup blocks, passing central DB connection and logger dependencies with complete crash/MessageBox aborts.
 - **MerchSys.App.vbproj**: Added `<EmbeddedResource>` directive to compile and link all schema SQL files inside `MerchSys.App.dll` resources, and added `MySqlConnector` package dependency.
 
 ## Feature: INFRA-25
@@ -398,7 +398,7 @@ Concise list of changes made:
 - **Configured EF Mappings:** Added `Property(Function(e) e.RowVersion).IsRowVersion().HasColumnType("TIMESTAMP(6)")` to the entity configurations of all 8 mutable tables: `Inv_StockBatches`, `Inv_Products`, `Pur_AccountsPayable`, `Pur_PurchaseOrders`, `Pos_CreditAccounts`, `Pos_SalesTransactions`, `Pur_Vendors`, `Inv_ProductCategories`, and `Pos_ReceiptSequence`.
 - **FIFO Pessimistic Lock Rewrite:** Rewrote FIFO decrement paths in `StockService.vb` and `ShrinkageService.vb` to run transactionally using raw ADO.NET and the `FOR UPDATE` modifier, releasing locks only on commit/rollback.
 - **Fixed Stock Discrepancy:** Added DB writes for `QuantityRemaining` updates in `ShrinkageService.vb` FIFO path, resolving a silent data-loss bug in the legacy code.
-- **Wired UI Toast Retry Helper:** Created `ConcurrencyHelper.vb` with the `ExecuteWithConcurrencyRetryAsync` ViewModel helper. Fixed a VB.NET compiler error (BC36943) regarding await-in-catch by executing the await callback after the try-catch block.
+- **Wired UI Toast Retry Helper:** Created `ConcurrencyHelper.vb` with the `ExecuteWithConcurrencyRetryAsync` Presenter helper. Fixed a VB.NET compiler error (BC36943) regarding await-in-catch by executing the await callback after the try-catch block.
 - **Eliminated Warning:** Removed local `RowVersion` shadowing property in `ReceiptSequence.vb` and manual assignments in `ReceiptIntegrityService.vb` to leverage native MariaDB automatic TIMESTAMP updates.
 
 ## Feature: INFRA-27
@@ -452,16 +452,16 @@ Implemented the Connection Status Indicator and Multi-Client Configuration (INFR
 - **MerchSys.App/Services/IConnectionHealthMonitor.vb**: interface with `ConnectionState` enum, `StateChanged` event, `Start`/`Stop`/`RetryNowAsync` contract
 - **MerchSys.App/Services/ConnectionHealthMonitor.vb**: MySqlConnector SELECT 1 probe, exponential backoff (2-4-8-16-32s), state machine (Online → Reconnecting → Offline), dispatches events to UI thread
 - **MerchSys.App/Services/ConnectionHealthMonitorLocator.vb**: static accessor used by `DisableOnOfflineBehavior` (same pattern as `DebugHostHolder`)
-- **MerchSys.App/ViewModels/Shell/ConnectionStatusViewModel.vb**: CommunityToolkit.Mvvm ViewModel; exposes `StatusText`, `IndicatorBrush`, `IsRetryVisible`, `IsReconnecting`, `RetryCommand`
-- **MerchSys.App/Views/Shell/ConnectionStatusIndicator.xaml**: pill badge with filled dot (Online/Offline), dashed spinning ring (Reconnecting), hidden Retry button (Offline only)
-- **MerchSys.App/Views/Shell/ConnectionStatusIndicator.xaml.vb**: constructor-injected code-behind
+- **MerchSys.App/Presenters/Shell/ConnectionStatusPresenter.vb**: CommunityToolkit.MVP Presenter; exposes `StatusText`, `IndicatorBrush`, `IsRetryVisible`, `IsReconnecting`, `RetryCommand`
+- **MerchSys.App/Views/Shell/ConnectionStatusIndicator.Designer code**: pill badge with filled dot (Online/Offline), dashed spinning ring (Reconnecting), hidden Retry button (Offline only)
+- **MerchSys.App/Views/Shell/ConnectionStatusIndicator.Designer code.vb**: constructor-injected code-behind
 - **MerchSys.App/Behaviors/DisableOnOfflineBehavior.vb**: attached `IsDisabledWhenOffline` DependencyProperty; uses `ConditionalWeakTable` for per-element handler tracking; calls `ClearValue(IsEnabledProperty)` on recovery so command's CanExecute binding resumes naturally
-- **MerchSys.App/Startup/ConnectionConfig.vb**: `AddConnectionHealthMonitor()` extension method; registers monitor as Singleton, ViewModel and Indicator as Transient
+- **MerchSys.App/Startup/ConnectionConfig.vb**: `AddConnectionHealthMonitor()` extension method; registers monitor as Singleton, Presenter and Indicator as Transient
 - **MerchSys.App/appsettings.Example.json**: operator template with placeholders for `Server`, `Password`, and `WorkstationName`
 - **MerchSys.App/appsettings.json**: added `Connection` section (`HealthCheckIntervalSeconds: 15`, `RetryBackoffSeconds: [2,4,8,16,32]`, `MaxRetries: 5`) and `Client:WorkstationName`
-- **MerchSys.App/Views/Shell/MainWindow.xaml**: added `ContentControl x:Name="ConnectionStatusSlot"` in sidebar's bottom DockPanel (below Log Out button)
-- **MerchSys.App/MainWindow.xaml.vb**: added `ConnectionStatusIndicator` constructor parameter; sets `ConnectionStatusSlot.Content`
-- **MerchSys.App/Application.xaml.vb**: calls `services.AddConnectionHealthMonitor()`; resolves and starts monitor after schema init; sets `ConnectionHealthMonitorLocator.Current`; stops monitor in `Application_Exit`
+- **MerchSys.App/Views/Shell/MainWindow.Designer code**: added `ContentControl x:Name="ConnectionStatusSlot"` in sidebar's bottom DockPanel (below Log Out button)
+- **MerchSys.App/MainWindow.Designer code.vb**: added `ConnectionStatusIndicator` constructor parameter; sets `ConnectionStatusSlot.Content`
+- **MerchSys.App/Application.Designer code.vb**: calls `services.AddConnectionHealthMonitor()`; resolves and starts monitor after schema init; sets `ConnectionHealthMonitorLocator.Current`; stops monitor in `Application_Exit`
 
 ## Feature: INFRA-29
 
@@ -485,20 +485,20 @@ Replaced the 22-item flat sidebar with a Master-Detail Activity Rail layout (INF
 ### Requirements
 **New files:**
 - `Models/AppModule.vb` — `AppModule` enum (Purchasing/Inventory/POS/Accounting/DeveloperTools), `RailItem` ObservableObject (ModuleId, Abbreviation, ToolTipText, IsActive)
-- `ViewModels/Shell/ActivityRailViewModel.vb` — builds RailItems, delegates SelectModuleCommand to MainWindowViewModel, subscribes to ActiveModule changes to sync IsActive state
-- `Views/Shell/ActivityRail.xaml` + `.vb` — 60px vertical rail; DI-injected ActivityRailViewModel; left accent bar (#2980B9, 3px) + dark background (#243342) on active icon
-- `Views/Shell/ModuleDetailPanel.xaml` + `.vb` — 220px panel; DataContext = MainWindowViewModel; shows ActiveModuleName header, 5 DataTrigger-gated ItemsControls (one per module), ConnectionStatusSlot, Log Out button
-- `Views/Shell/Modules/PurchasingPanel.xaml` + `.vb` — minimal UserControl binding to `PurchasingItems`
-- `Views/Shell/Modules/InventoryPanel.xaml` + `.vb`
-- `Views/Shell/Modules/PosPanel.xaml` + `.vb`
-- `Views/Shell/Modules/AccountingPanel.xaml` + `.vb`
-- `Views/Shell/Modules/DeveloperToolsPanel.xaml` + `.vb`
+- `Presenters/Shell/ActivityRailPresenter.vb` — builds RailItems, delegates SelectModuleCommand to MainWindowPresenter, subscribes to ActiveModule changes to sync IsActive state
+- `Views/Shell/ActivityRail.Designer code` + `.vb` — 60px vertical rail; DI-injected ActivityRailPresenter; left accent bar (#2980B9, 3px) + dark background (#243342) on active icon
+- `Views/Shell/ModuleDetailPanel.Designer code` + `.vb` — 220px panel; DataContext = MainWindowPresenter; shows ActiveModuleName header, 5 DataTrigger-gated ItemsControls (one per module), ConnectionStatusSlot, Log Out button
+- `Views/Shell/Modules/PurchasingPanel.Designer code` + `.vb` — minimal UserControl binding to `PurchasingItems`
+- `Views/Shell/Modules/InventoryPanel.Designer code` + `.vb`
+- `Views/Shell/Modules/PosPanel.Designer code` + `.vb`
+- `Views/Shell/Modules/AccountingPanel.Designer code` + `.vb`
+- `Views/Shell/Modules/DeveloperToolsPanel.Designer code` + `.vb`
 **Modified files:**
 - `Models/NavigationItem.vb` — no change (AppModule.vb is a new file in same namespace)
-- `ViewModels/MainWindowViewModel.vb` — added `ActiveModule`, `ActiveModuleName`, per-module item collections (`PurchasingItems`, `InventoryItems`, `PosItems`, `AccountingItems`, `DeveloperToolsItems`), `SelectModuleCommand`, `RebuildModuleCollections()`; role-aware navigation preserved
-- `Views/Shell/MainWindow.xaml` — restructured to 3-column grid; `Window.InputBindings` for Ctrl+1–4 and Ctrl+0
-- `Views/Shell/MainWindow.xaml.vb` — constructor now accepts `ActivityRail` + `ModuleDetailPanel` (removed `ConnectionStatusIndicator` — now owned by `ModuleDetailPanel`)
-- `Application.xaml.vb` — registered `ActivityRailViewModel`, `ActivityRail`, `ModuleDetailPanel` as Singleton
+- `Presenters/MainWindowPresenter.vb` — added `ActiveModule`, `ActiveModuleName`, per-module item collections (`PurchasingItems`, `InventoryItems`, `PosItems`, `AccountingItems`, `DeveloperToolsItems`), `SelectModuleCommand`, `RebuildModuleCollections()`; role-aware navigation preserved
+- `Views/Shell/MainWindow.Designer code` — restructured to 3-column grid; `Window.InputBindings` for Ctrl+1–4 and Ctrl+0
+- `Views/Shell/MainWindow.Designer code.vb` — constructor now accepts `ActivityRail` + `ModuleDetailPanel` (removed `ConnectionStatusIndicator` — now owned by `ModuleDetailPanel`)
+- `Application.Designer code.vb` — registered `ActivityRailPresenter`, `ActivityRail`, `ModuleDetailPanel` as Singleton
 
 ## Feature: INFRA-31
 
@@ -534,12 +534,12 @@ It resolves the tension between soft deletes, global EF Core filters, and databa
 - Audited all unique indexes on soft-deletable tables.
 - Hardened `VendorService.CreateAsync` and `UpdateAsync`: Intercepts duplicate name checks using `IgnoreQueryFilters()` and returns a helpful error if a soft-deleted vendor already has that name.
 - Hardened `VendorProductService.AddCatalogEntryAsync`: Checks catalog link using `IgnoreQueryFilters()`. If a soft-deleted entry is found, it automatically restores the entry by setting `IsDeleted = False`, clearing deletion markers, updating unit cost/notes, and saving.
-- Hardened `ProductManagementViewModel.SaveProductAsync` and `SaveCategoryAsync`: Intercepts duplicate SKU and Category Name checks (including soft-deleted) using `IgnoreQueryFilters()` and returns custom, friendly messages.
+- Hardened `ProductManagementPresenter.SaveProductAsync` and `SaveCategoryAsync`: Intercepts duplicate SKU and Category Name checks (including soft-deleted) using `IgnoreQueryFilters()` and returns custom, friendly messages.
 
 ## Feature: INFRA-33
 
 ### Overview
-This progress report documents the implementation of **INFRA-33: Post-Pivot MariaDB SQL Compatibility Remediation**. We resolved the three active database-vs-WPF compatibility issues left by the transition from SQLite to MariaDB, while maintaining the single central `RowVersion` mapping mechanism introduced by `INFRA-31`.
+This progress report documents the implementation of **INFRA-33: Post-Pivot MariaDB SQL Compatibility Remediation**. We resolved the three active database-vs-WinForms compatibility issues left by the transition from SQLite to MariaDB, while maintaining the single central `RowVersion` mapping mechanism introduced by `INFRA-31`.
 
 ### Requirements
 Concise list of changes made:
@@ -590,30 +590,30 @@ last-synced: 2026-06-01
 
 | What | Path |
 |------|------|
-| Production config template | `WPF_Applications\MerchSys\src\MerchSys.App\appsettings.Production.template.json` |
+| Production config template | `WinForms_Applications\MerchSys\src\MerchSys.App\appsettings.Production.template.json` |
 | Where to put the real config | `%LOCALAPPDATA%\VISTA\appsettings.Production.json` |
 | MariaDB init SQL | `Plans\VISTA_Modules\Infrastructure\sql\mariadb-init.sql` |
 | Receipt schema alignment SQL | `Plans\VISTA_Modules\Infrastructure\sql\mariadb-receipt-schema-alignment.sql` |
-| MySqlConnector wrapper | `WPF_Applications\MerchSys\src\MerchSys.SharedKernel\Sync\MariaDbSyncContext.vb` |
+| MySqlConnector wrapper | `WinForms_Applications\MerchSys\src\MerchSys.SharedKernel\Sync\MariaDbSyncContext.vb` |
 | Receipt integrity triggers SQL | `Plans\VISTA_Modules\Infrastructure\sql\02-pos-receipt-integrity-triggers.sql` |
 | Production deployment runbook | `Plans\VISTA_Modules\Infrastructure\runbooks\01-production-deployment.md` |
-| SyncStatusIndicator (XAML) | `WPF_Applications\MerchSys\src\MerchSys.App\Views\Shell\SyncStatusIndicator.xaml` |
-| SyncStatusIndicator (code-behind) | `WPF_Applications\MerchSys\src\MerchSys.App\Views\Shell\SyncStatusIndicator.xaml.vb` |
-| SyncStatusIndicatorViewModel | `WPF_Applications\MerchSys\src\MerchSys.App\ViewModels\Shell\SyncStatusIndicatorViewModel.vb` |
-| SyncOrchestrator | `WPF_Applications\MerchSys\src\MerchSys.App\Services\SyncOrchestrator.vb` |
-| SyncWorker | `WPF_Applications\MerchSys\src\MerchSys.App\Services\SyncWorker.vb` |
-| Directory.Build.props (NU1608) | `WPF_Applications\MerchSys\Directory.Build.props` |
-| ConnectionStringLoader | `WPF_Applications\MerchSys\src\MerchSys.App\Configuration\ConnectionStringLoader.vb` |
+| SyncStatusIndicator (Designer code) | `WinForms_Applications\MerchSys\src\MerchSys.App\Views\Shell\SyncStatusIndicator.Designer code` |
+| SyncStatusIndicator (code-behind) | `WinForms_Applications\MerchSys\src\MerchSys.App\Views\Shell\SyncStatusIndicator.Designer code.vb` |
+| SyncStatusIndicatorPresenter | `WinForms_Applications\MerchSys\src\MerchSys.App\Presenters\Shell\SyncStatusIndicatorPresenter.vb` |
+| SyncOrchestrator | `WinForms_Applications\MerchSys\src\MerchSys.App\Services\SyncOrchestrator.vb` |
+| SyncWorker | `WinForms_Applications\MerchSys\src\MerchSys.App\Services\SyncWorker.vb` |
+| Directory.Build.props (NU1608) | `WinForms_Applications\MerchSys\Directory.Build.props` |
+| ConnectionStringLoader | `WinForms_Applications\MerchSys\src\MerchSys.App\Configuration\ConnectionStringLoader.vb` |
 | SQLite database | `%LOCALAPPDATA%\MerchSys\merchsys.db` |
 | .gitignore | `VISTA_Project\.gitignore` (line 2: `appsettings.Production.json` is excluded) |
-| LoginView (XAML) | `WPF_Applications\MerchSys\src\MerchSys.App\Views\LoginView.xaml` |
-| LoginViewModel | `WPF_Applications\MerchSys\src\MerchSys.App\ViewModels\LoginViewModel.vb` |
-| LoginSessionService | `WPF_Applications\MerchSys\src\MerchSys.App\Services\LoginSessionService.vb` |
-| IAuthenticationService | `WPF_Applications\MerchSys\src\MerchSys.App\Services\IAuthenticationService.vb` |
-| UserAccount entity | `WPF_Applications\MerchSys\src\MerchSys.SharedKernel\Entities\UserAccount.vb` |
-| OwnerDashboardView (XAML) | `WPF_Applications\MerchSys\src\MerchSys.App\Views\OwnerDashboardView.xaml` |
-| OwnerDashboardViewModel | `WPF_Applications\MerchSys\src\MerchSys.App\ViewModels\OwnerDashboardViewModel.vb` |
-| MainWindowViewModel (nav) | `WPF_Applications\MerchSys\src\MerchSys.App\ViewModels\MainWindowViewModel.vb` |
+| LoginView (Designer code) | `WinForms_Applications\MerchSys\src\MerchSys.App\Views\LoginView.Designer code` |
+| LoginPresenter | `WinForms_Applications\MerchSys\src\MerchSys.App\Presenters\LoginPresenter.vb` |
+| LoginSessionService | `WinForms_Applications\MerchSys\src\MerchSys.App\Services\LoginSessionService.vb` |
+| IAuthenticationService | `WinForms_Applications\MerchSys\src\MerchSys.App\Services\IAuthenticationService.vb` |
+| UserAccount entity | `WinForms_Applications\MerchSys\src\MerchSys.SharedKernel\Entities\UserAccount.vb` |
+| OwnerDashboardView (Designer code) | `WinForms_Applications\MerchSys\src\MerchSys.App\Views\OwnerDashboardView.Designer code` |
+| OwnerDashboardPresenter | `WinForms_Applications\MerchSys\src\MerchSys.App\Presenters\OwnerDashboardPresenter.vb` |
+| MainWindowPresenter (nav) | `WinForms_Applications\MerchSys\src\MerchSys.App\Presenters\MainWindowPresenter.vb` |
 
 ---
 
@@ -623,7 +623,7 @@ last-synced: 2026-06-01
 
 **What to do:**
 1. Open the template file at:
-   `WPF_Applications\MerchSys\src\MerchSys.App\appsettings.Production.template.json`
+   `WinForms_Applications\MerchSys\src\MerchSys.App\appsettings.Production.template.json`
 2. Copy it to `%LOCALAPPDATA%\VISTA\appsettings.Production.json` (create the `VISTA` folder if it does not exist).
 3. Open the copied file and fill in the real values:
    - `Host`: your MariaDB server hostname or IP
@@ -683,8 +683,8 @@ last-synced: 2026-06-01
 2. Press **F5** to launch the app.
 3. Look at the very bottom of the main window (the status bar area).
 
-> **Indicator XAML:** `WPF_Applications\MerchSys\src\MerchSys.App\Views\Shell\SyncStatusIndicator.xaml`
-> **Indicator code-behind:** `WPF_Applications\MerchSys\src\MerchSys.App\Views\Shell\SyncStatusIndicator.xaml.vb`
+> **Indicator Designer code:** `WinForms_Applications\MerchSys\src\MerchSys.App\Views\Shell\SyncStatusIndicator.Designer code`
+> **Indicator code-behind:** `WinForms_Applications\MerchSys\src\MerchSys.App\Views\Shell\SyncStatusIndicator.Designer code.vb`
 
 **What you should see:**
 - A sync status indicator is visible in the status bar.
@@ -698,7 +698,7 @@ last-synced: 2026-06-01
 
 **What to do:**
 1. Open the file:
-   `WPF_Applications\MerchSys\src\MerchSys.App\ViewModels\Shell\SyncStatusIndicatorViewModel.vb`
+   `WinForms_Applications\MerchSys\src\MerchSys.App\Presenters\Shell\SyncStatusIndicatorPresenter.vb`
 2. Find the `Dispose` method in that file (line 144).
 3. Set a breakpoint on a line inside the `Dispose` method.
 4. Press **F5** to launch the app in Debug mode.
@@ -770,8 +770,8 @@ last-synced: 2026-06-01
    `%LOCALAPPDATA%\MerchSys\merchsys.db`
 4. Force the same batch to sync again (restart the app or trigger the sync worker manually).
 
-> **SyncOrchestrator code:** `WPF_Applications\MerchSys\src\MerchSys.App\Services\SyncOrchestrator.vb`
-> **SyncWorker code:** `WPF_Applications\MerchSys\src\MerchSys.App\Services\SyncWorker.vb`
+> **SyncOrchestrator code:** `WinForms_Applications\MerchSys\src\MerchSys.App\Services\SyncOrchestrator.vb`
+> **SyncWorker code:** `WinForms_Applications\MerchSys\src\MerchSys.App\Services\SyncWorker.vb`
 
 **What you should see:**
 - The second sync does NOT create duplicate rows in the MariaDB tables (for non-financial tables).
@@ -788,18 +788,18 @@ last-synced: 2026-06-01
 **What to do:**
 - Nothing right now. Whether to migrate `Accounting/Handlers` write paths is a scope decision that hasn't been made yet.
 
-> **Handlers folder:** `WPF_Applications\MerchSys\src\MerchSys.Accounting\Handlers\`
+> **Handlers folder:** `WinForms_Applications\MerchSys\src\MerchSys.Accounting\Handlers\`
 
 - [ ] ⏳ Deferred — scope decision pending
 
 ---
 
-### ⏳ Deferred: ProductManagementViewModel write-path migration
+### ⏳ Deferred: ProductManagementPresenter write-path migration
 
 **What to do:**
-- Nothing right now. Whether to bring `ProductManagementViewModel.vb` into sync scope is a decision that hasn't been made yet.
+- Nothing right now. Whether to bring `ProductManagementPresenter.vb` into sync scope is a decision that hasn't been made yet.
 
-> **ViewModel file:** `WPF_Applications\MerchSys\src\MerchSys.Inventory\ViewModels\ProductManagementViewModel.vb` *(if it exists in this location)*
+> **Presenter file:** `WinForms_Applications\MerchSys\src\MerchSys.Inventory\Presenters\ProductManagementPresenter.vb` *(if it exists in this location)*
 
 - [ ] ⏳ Deferred — scope decision pending
 
@@ -893,8 +893,8 @@ last-synced: 2026-06-01
 2. Enter username `manager` and password `Vista2026!`.
 3. Click **LOG IN**.
 
-> **LoginView file:** `WPF_Applications\MerchSys\src\MerchSys.App\Views\LoginView.xaml`
-> **LoginViewModel:** `WPF_Applications\MerchSys\src\MerchSys.App\ViewModels\LoginViewModel.vb`
+> **LoginView file:** `WinForms_Applications\MerchSys\src\MerchSys.App\Views\LoginView.Designer code`
+> **LoginPresenter:** `WinForms_Applications\MerchSys\src\MerchSys.App\Presenters\LoginPresenter.vb`
 
 **What you should see:**
 - A password-change panel appears ("first login" prompt per DA6 — no default credentials in production use).
@@ -933,7 +933,7 @@ last-synced: 2026-06-01
 3. Click **LOG IN**.
 4. Repeat this 5 times total (5 wrong passwords in a row).
 
-> **Auth service:** `WPF_Applications\MerchSys\src\MerchSys.App\Services\IAuthenticationService.vb`
+> **Auth service:** `WinForms_Applications\MerchSys\src\MerchSys.App\Services\IAuthenticationService.vb`
 
 **What you should see:**
 - After the 5th failed attempt, the error message says the account is locked and shows remaining minutes (approximately 15 minutes).
@@ -986,8 +986,8 @@ last-synced: 2026-06-01
 1. Log in as `owner`.
 2. Look at the content area (the main panel to the right of the sidebar).
 
-> **OwnerDashboardView:** `WPF_Applications\MerchSys\src\MerchSys.App\Views\OwnerDashboardView.xaml`
-> **OwnerDashboardViewModel:** `WPF_Applications\MerchSys\src\MerchSys.App\ViewModels\OwnerDashboardViewModel.vb`
+> **OwnerDashboardView:** `WinForms_Applications\MerchSys\src\MerchSys.App\Views\OwnerDashboardView.Designer code`
+> **OwnerDashboardPresenter:** `WinForms_Applications\MerchSys\src\MerchSys.App\Presenters\OwnerDashboardPresenter.vb`
 
 **What you should see:**
 - The Owner Dashboard is displayed as the landing page (not the Stock Dashboard).
@@ -1022,7 +1022,7 @@ last-synced: 2026-06-01
 1. While logged in as Owner, carefully read every item in the sidebar navigation.
 2. Compare against the expected list.
 
-> **Navigation config:** `WPF_Applications\MerchSys\src\MerchSys.App\ViewModels\MainWindowViewModel.vb` — search for `BuildOwnerNavigationGroups` or `BuildManagerNavigationGroups`.
+> **Navigation config:** `WinForms_Applications\MerchSys\src\MerchSys.App\Presenters\MainWindowPresenter.vb` — search for `BuildOwnerNavigationGroups` or `BuildManagerNavigationGroups`.
 
 **Owner SHOULD see:**
 - Owner Dashboard
@@ -1091,7 +1091,7 @@ last-synced: 2026-06-01
 - The dashboard data refreshes automatically (you may see a brief loading indicator or the numbers updating).
 - The "Last refreshed" timestamp (if shown) updates approximately every 60 seconds.
 
-- [X] Owner Dashboard auto-refreshes within ~60 seconds — manual Refresh click updated LastRefreshedDisplay from 15:13:39→15:13:42, confirming the mechanism works. DispatcherTimer at 60s interval confirmed in OwnerDashboardViewModel.vb; OnTimerTick calls RefreshAsync() which updates LastRefreshedDisplay.
+- [X] Owner Dashboard auto-refreshes within ~60 seconds — manual Refresh click updated LastRefreshedDisplay from 15:13:39→15:13:42, confirming the mechanism works. DispatcherTimer at 60s interval confirmed in OwnerDashboardPresenter.vb; OnTimerTick calls RefreshAsync() which updates LastRefreshedDisplay.
 
 ---
 
@@ -1160,7 +1160,7 @@ last-synced: 2026-06-01
 
 ---
 
-### INFRA-16 Follow-Up: CanEdit on Financial/Income/Sales ViewModels
+### INFRA-16 Follow-Up: CanEdit on Financial/Income/Sales Presenters
 
 - [x] Moot — UI bindings are no longer the sole line of defense; the database layer enforces write rejection robustly across all models for Owner sessions.
 
@@ -1221,12 +1221,12 @@ last-synced: 2026-06-01
 
 ### Future / Backlog Item
 
-## 10. ISyncableRepository Write-Path Migration — ProductManagementViewModel
+## 10. ISyncableRepository Write-Path Migration — ProductManagementPresenter
 
 **Status:** CLOSED (2026-05-27) — out-of-scope for single-branch deployment.
 **Module:** Infrastructure / Inventory
 **Source:** INFRA-13 What's Next
-**Description:** Migrate `Inventory/ViewModels/ProductManagementViewModel.vb` write paths to use `ISyncableRepository` so that product edits are captured in the `Sync_Journal`.
+**Description:** Migrate `Inventory/Presenters/ProductManagementPresenter.vb` write paths to use `ISyncableRepository` so that product edits are captured in the `Sync_Journal`.
 **Scope decision (2026-05-27):** Closed without migration. Rationale:
 1. Villon Farm Supply is single-location (`LLM_Wiki/wiki/entities/villon-farm-supply.md`); there is no second branch needing the same catalog.
 2. Product CRUD is a Manager-only function performed on a single terminal — no second writer to converge.
@@ -1282,6 +1282,7 @@ last-synced: 2026-06-01
 
 **Module:** Infrastructure / Operations
 **Source:** `Inventory-Module_AcademicPaper.md` / `POS-Module_AcademicPaper.md` / `Purchasing-Module_AcademicPaper.md` Scope and Delimitation (§1.5)
-**Description:** Migrate the desktop-only WPF application architecture into cross-platform mobile frameworks (such as .NET MAUI or React Native) and web frontends (Next.js) to allow remote access for the Owner and offsite monitoring of store KPIs.
+**Description:** Migrate the desktop-only WinForms application architecture into cross-platform mobile frameworks (such as .NET MAUI or React Native) and web frontends (Next.js) to allow remote access for the Owner and offsite monitoring of store KPIs.
 **Why deferred:** The business operates from a single, dedicated local POS workstation with intermittent connectivity. A mobile/web deployment would introduce ongoing hosting fees and internet dependency that are currently outside Villon Farm Supply's operational budget.
+
 

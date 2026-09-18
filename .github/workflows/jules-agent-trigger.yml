@@ -7,6 +7,8 @@ on:
 jobs:
   notify-agent:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
     # Trigger only if Jules is the author or the PR has a 'jules' label
     if: github.actor == 'google-labs-jules[bot]' || contains(github.event.pull_request.labels.*.name, 'jules')
     steps:
@@ -31,7 +33,12 @@ jobs:
 
       - name: Trigger Webhook Listener
         run: |
+          # Generate HMAC signature
+          PAYLOAD='{"pr_number": "${{ github.event.pull_request.number }}", "pr_url": "${{ github.event.pull_request.html_url }}"}'
+          SIGNATURE="sha256=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "${{ secrets.WEBHOOK_SECRET }}" | sed 's/^.* //')"
+          
           curl -X POST "${{ secrets.WEBHOOK_URL }}" \
             -H "Content-Type: application/json" \
-            -d '{"pr_number": "${{ github.event.pull_request.number }}", "pr_url": "${{ github.event.pull_request.html_url }}"}'
+            -H "X-Hub-Signature-256: $SIGNATURE" \
+            -d "$PAYLOAD"
 

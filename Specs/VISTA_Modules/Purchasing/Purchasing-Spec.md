@@ -36,7 +36,7 @@ Retrofitted `IPurchaseOrderService` (PUR-03) to persist `Notes` and `ExpectedDel
 ### Requirements
 - **Services/IPurchaseOrderService.vb**: Added `Optional notes As String = Nothing` and `Optional expectedDeliveryDate As DateTime? = Nothing` to `CreateDraftAsync` and `UpdateDraftAsync` signatures.
 - **Services/PurchaseOrderService.vb**: `CreateDraftAsync`: assigns both fields directly in the object initializer. `UpdateDraftAsync`: conditionally updates `po.Notes` when non-Nothing, and `po.ExpectedDeliveryDate` when `HasValue`, preserving existing values when callers omit the params.
-- **ViewModels/PurchaseOrderListViewModel.vb**: Updated `SaveDraftAsync` and `SubmitFromEditorAsync` to pass `Editor.Notes` and `Editor.ExpectedDeliveryDate` through to the service calls.
+- **Presenters/PurchaseOrderListPresenter.vb**: Updated `SaveDraftAsync` and `SubmitFromEditorAsync` to pass `Editor.Notes` and `Editor.ExpectedDeliveryDate` through to the service calls.
 
 ## Feature: PUR-03
 
@@ -115,63 +115,63 @@ Implemented Price Change Detection (PUR-08). When goods are received, the servic
 ## Feature: PUR-09
 
 ### Overview
-Implemented the PO Management WPF Views and ViewModels (PUR-09). Provides the Manager with a full-featured list and inline editor for Purchase Orders, including status filtering, search, and role-based button visibility for Owner read-only access.
+Implemented the PO Management WinForms Views and Presenters (PUR-09). Provides the Manager with a full-featured list and inline editor for Purchase Orders, including status filtering, search, and role-based button visibility for Owner read-only access.
 
 ### Requirements
-- **ViewModels/PurchaseOrderEditorViewModel.vb**: Editor VM with `POLineItem` class (auto-recalculating `LineTotal`), vendor dropdown, line items `ObservableCollection`, running total, `AddLineCommand`, `RemoveLineCommand`. PropertyChanged handlers wire/unwire on each `POLineItem` to propagate `TotalAmount` changes. `PrepareForNew` / `LoadFromPO` / `ToLineDtos` public API used by the list VM.
-- **ViewModels/PurchaseOrderListViewModel.vb**: List VM with `PORowItem` class, status/search filtering, `AsyncRelayCommand`s for New/Edit/Submit/Delete/SaveDraft/SubmitFromEditor/Cancel. Holds an `Editor` (PurchaseOrderEditorViewModel) instance and toggles `IsEditorOpen`. `IsManager` boolean controls role visibility.
-- **Views/Purchasing/PurchaseOrderListView.xaml**: UserControl with filter toolbar (Status ComboBox + Search TextBox + action buttons), status legend, main PO DataGrid with status-colored rows and badge column, and a bottom editor panel (gated by `IsEditorOpen`). Editor panel contains vendor ComboBox, ExpectedDeliveryDate DatePicker, Notes TextBox, editable line items DataGrid with per-row Remove button (via `RelativeSource` to UserControl DataContext), running total, and Save Draft / Submit PO / Cancel buttons.
-- **Views/Purchasing/PurchaseOrderListView.xaml.vb**: Code-behind wires `SelectionChanged` to `vm.SelectedOrder`, `MouseDoubleClick` to `EditPOCommand.ExecuteAsync`, and Escape key to clear `SearchText`.
+- **Presenters/PurchaseOrderEditorPresenter.vb**: Editor VM with `POLineItem` class (auto-recalculating `LineTotal`), vendor dropdown, line items `ObservableCollection`, running total, `AddLineCommand`, `RemoveLineCommand`. PropertyChanged handlers wire/unwire on each `POLineItem` to propagate `TotalAmount` changes. `PrepareForNew` / `LoadFromPO` / `ToLineDtos` public API used by the list VM.
+- **Presenters/PurchaseOrderListPresenter.vb**: List VM with `PORowItem` class, status/search filtering, `AsyncRelayCommand`s for New/Edit/Submit/Delete/SaveDraft/SubmitFromEditor/Cancel. Holds an `Editor` (PurchaseOrderEditorPresenter) instance and toggles `IsEditorOpen`. `IsManager` boolean controls role visibility.
+- **Views/Purchasing/PurchaseOrderListView.Designer code**: UserControl with filter toolbar (Status ComboBox + Search TextBox + action buttons), status legend, main PO DataGrid with status-colored rows and badge column, and a bottom editor panel (gated by `IsEditorOpen`). Editor panel contains vendor ComboBox, ExpectedDeliveryDate DatePicker, Notes TextBox, editable line items DataGrid with per-row Remove button (via `RelativeSource` to UserControl DataContext), running total, and Save Draft / Submit PO / Cancel buttons.
+- **Views/Purchasing/PurchaseOrderListView.Designer code.vb**: Code-behind wires `SelectionChanged` to `vm.SelectedOrder`, `MouseDoubleClick` to `EditPOCommand.ExecuteAsync`, and Escape key to clear `SearchText`.
 - **Extensions/PurchasingServiceCollectionExtensions.vb**: Added `IVendorService` / `VendorService` scoped registration (previously unregistered per codebase_wiki DI registry note).
 
 ## Feature: PUR-10
 
 ### Overview
-Implemented the Goods Receiving WPF View and ViewModel (PUR-10). Manager selects a Submitted PO from a dropdown, edits actual quantities received, unit costs, and expiry dates, notes discrepancies, and confirms receipt — which calls `IGoodsReceivingService.ReceiveGoodsAsync` and transitions the PO to Received.
+Implemented the Goods Receiving WinForms View and Presenter (PUR-10). Manager selects a Submitted PO from a dropdown, edits actual quantities received, unit costs, and expiry dates, notes discrepancies, and confirms receipt — which calls `IGoodsReceivingService.ReceiveGoodsAsync` and transitions the PO to Received.
 
 ### Requirements
-- **ViewModels/GoodsReceivingViewModel.vb**: Defines two helper classes (`POSelectorItem` for the dropdown, `GRLineItem` for the editable receiving grid with `HasDiscrepancy` auto-recalculation). `GoodsReceivingViewModel` loads Submitted POs on init, pre-fills `QtyReceived = QtyOrdered` when a PO is selected, validates discrepancy notes are present when qty differs, calls `ReceiveGoodsAsync`, and resets state using the backing field directly (bypasses setter to avoid re-triggering `LoadPOLinesAsync`).
-- **Views/Purchasing/GoodsReceivingView.xaml**: PO selector ComboBox + Confirm Receipt button toolbar; status bar; placeholder panel when no PO is selected; receiving DataGrid with `GRRowStyle` (amber highlight on discrepancy rows), read-only product/qty-ordered columns, editable qty-received/unit-cost columns, `DatePicker` for expiry date via `CellEditingTemplate`, editable discrepancy notes column with red styling when `HasDiscrepancy = True`, and a ⚠ indicator badge column.
-- **Views/Purchasing/GoodsReceivingView.xaml.vb**: Minimal code-behind; ViewModel injected via constructor and set as `DataContext`.
+- **Presenters/GoodsReceivingPresenter.vb**: Defines two helper classes (`POSelectorItem` for the dropdown, `GRLineItem` for the editable receiving grid with `HasDiscrepancy` auto-recalculation). `GoodsReceivingPresenter` loads Submitted POs on init, pre-fills `QtyReceived = QtyOrdered` when a PO is selected, validates discrepancy notes are present when qty differs, calls `ReceiveGoodsAsync`, and resets state using the backing field directly (bypasses setter to avoid re-triggering `LoadPOLinesAsync`).
+- **Views/Purchasing/GoodsReceivingView.Designer code**: PO selector ComboBox + Confirm Receipt button toolbar; status bar; placeholder panel when no PO is selected; receiving DataGrid with `GRRowStyle` (amber highlight on discrepancy rows), read-only product/qty-ordered columns, editable qty-received/unit-cost columns, `DatePicker` for expiry date via `CellEditingTemplate`, editable discrepancy notes column with red styling when `HasDiscrepancy = True`, and a ⚠ indicator badge column.
+- **Views/Purchasing/GoodsReceivingView.Designer code.vb**: Minimal code-behind; Presenter injected via constructor and set as `DataContext`.
 
 ## Feature: PUR-11
 
 ### Overview
-Implemented the Vendor Directory View and ViewModels (PUR-11). Provides a full vendor management screen with real-time search, inline create/edit panel, soft delete, and a purchase history detail panel for the selected vendor.
+Implemented the Vendor Directory View and Presenters (PUR-11). Provides a full vendor management screen with real-time search, inline create/edit panel, soft delete, and a purchase history detail panel for the selected vendor.
 
 ### Requirements
-- **MerchSys.Purchasing/ViewModels/VendorEditorViewModel.vb**: form state VM for create/edit; holds all vendor fields, client-side validation (name required, phone required, lead time > 0), and `ToCreateDto`/`ToUpdateDto` converters
-- **MerchSys.Purchasing/ViewModels/VendorListViewModel.vb**: main screen VM; vendor list with real-time search filtering, async load/save/delete via `IVendorService`, selection-driven detail panel load, `IsEditorOpen` panel toggle, `IsManager` role guard, `POSummaryRow` row class for recent POs grid
-- **MerchSys.App/Views/Purchasing/VendorDirectoryView.xaml**: UserControl with toolbar (search + Add/Edit/Delete/Refresh), collapsible bottom editor panel (8-field form grid), split main area (vendor DataGrid left, 340px detail panel right with stats + recent POs DataGrid)
-- **MerchSys.App/Views/Purchasing/VendorDirectoryView.xaml.vb**: code-behind wiring `VendorGrid.SelectionChanged` → `vm.SelectedVendor`, double-click to edit, Escape to clear search; ViewModel injected via constructor
+- **MerchSys.Purchasing/Presenters/VendorEditorPresenter.vb**: form state VM for create/edit; holds all vendor fields, client-side validation (name required, phone required, lead time > 0), and `ToCreateDto`/`ToUpdateDto` converters
+- **MerchSys.Purchasing/Presenters/VendorListPresenter.vb**: main screen VM; vendor list with real-time search filtering, async load/save/delete via `IVendorService`, selection-driven detail panel load, `IsEditorOpen` panel toggle, `IsManager` role guard, `POSummaryRow` row class for recent POs grid
+- **MerchSys.App/Views/Purchasing/VendorDirectoryView.Designer code**: UserControl with toolbar (search + Add/Edit/Delete/Refresh), collapsible bottom editor panel (8-field form grid), split main area (vendor DataGrid left, 340px detail panel right with stats + recent POs DataGrid)
+- **MerchSys.App/Views/Purchasing/VendorDirectoryView.Designer code.vb**: code-behind wiring `VendorGrid.SelectionChanged` → `vm.SelectedVendor`, double-click to edit, Escape to clear search; Presenter injected via constructor
 
 ## Feature: PUR-12
 
 ### Overview
-Implemented the AP Ledger screen (PUR-12): WPF View and ViewModel for accounts payable management.
+Implemented the AP Ledger screen (PUR-12): WinForms View and Presenter for accounts payable management.
 Covers outstanding balance summary, full invoice grid with overdue highlighting, status/vendor filters,
 and an inline payment recording dialog.
 
 ### Requirements
 - **MerchSys.Purchasing/Services/IAccountsPayableService.vb**: added `GetAllAsync()` method (needed for All and Paid filters; existing service only exposed outstanding/overdue queries)
 - **MerchSys.Purchasing/Services/AccountsPayableService.vb**: implemented `GetAllAsync()`: returns all AP entries with Vendor and PurchaseOrder navigation, ordered by InvoiceDate descending
-- **MerchSys.Purchasing/Extensions/PurchasingServiceCollectionExtensions.vb**: registered `IAccountsPayableService → AccountsPayableService` (Scoped) and `APLedgerViewModel` (Transient)
-- **MerchSys.Purchasing/ViewModels/APLedgerViewModel.vb**: includes `APLedgerRow` and `VendorSelectorItem` helper classes; full filter logic (All/Outstanding/Overdue/Paid + vendor); inline payment dialog state and commands; `IsAllFilterActive` / `IsOutstandingFilterActive` / `IsOverdueFilterActive` / `IsPaidFilterActive` boolean properties for XAML DataTrigger binding without converters
-- **MerchSys.App/Views/Purchasing/APLedgerView.xaml**: summary header with total outstanding; filter toolbar with four toggle-style status buttons (active state via DataTrigger on `IsXxxFilterActive`); vendor ComboBox; DataGrid with all plan-specified columns (VendorName, InvoiceNumber, InvoiceDate, DueDate, TotalAmount, AmountPaid, Balance, IsPaid, IsOverdue); overdue row highlighting (amber), paid row highlighting (green); payment dialog overlay using Grid + Rectangle backdrop + centered Border card
-- **MerchSys.App/Views/Purchasing/APLedgerView.xaml.vb**: code-behind with DI constructor injection
+- **MerchSys.Purchasing/Extensions/PurchasingServiceCollectionExtensions.vb**: registered `IAccountsPayableService → AccountsPayableService` (Scoped) and `APLedgerPresenter` (Transient)
+- **MerchSys.Purchasing/Presenters/APLedgerPresenter.vb**: includes `APLedgerRow` and `VendorSelectorItem` helper classes; full filter logic (All/Outstanding/Overdue/Paid + vendor); inline payment dialog state and commands; `IsAllFilterActive` / `IsOutstandingFilterActive` / `IsOverdueFilterActive` / `IsPaidFilterActive` boolean properties for Designer code DataTrigger binding without converters
+- **MerchSys.App/Views/Purchasing/APLedgerView.Designer code**: summary header with total outstanding; filter toolbar with four toggle-style status buttons (active state via DataTrigger on `IsXxxFilterActive`); vendor ComboBox; DataGrid with all plan-specified columns (VendorName, InvoiceNumber, InvoiceDate, DueDate, TotalAmount, AmountPaid, Balance, IsPaid, IsOverdue); overdue row highlighting (amber), paid row highlighting (green); payment dialog overlay using Grid + Rectangle backdrop + centered Border card
+- **MerchSys.App/Views/Purchasing/APLedgerView.Designer code.vb**: code-behind with DI constructor injection
 
 ## Feature: PUR-13
 
 ### Overview
-Implemented the Reorder Suggestions view and ViewModel (PUR-13). A two-tab WPF screen lets the manager generate, review, accept, and dismiss stock reorder suggestions, and edit per-product reorder configuration thresholds.
+Implemented the Reorder Suggestions view and Presenter (PUR-13). A two-tab WinForms screen lets the manager generate, review, accept, and dismiss stock reorder suggestions, and edit per-product reorder configuration thresholds.
 
 ### Requirements
-- **MerchSys.Purchasing/ViewModels/ReorderSuggestionsViewModel.vb**: MVVM ViewModel with two-tab state (Suggestions / Configuration), filter tabs (Pending / Accepted / Dismissed), generate/accept/dismiss commands, and a config edit dialog
-- **MerchSys.App/Views/Purchasing/ReorderSuggestionsView.xaml**: UserControl with suggestions DataGrid (per-row Accept/Dismiss buttons, seasonal star indicator), configuration DataGrid (Edit button per row), config edit dialog overlay
-- **MerchSys.App/Views/Purchasing/ReorderSuggestionsView.xaml.vb**: DI-injected code-behind
+- **MerchSys.Purchasing/Presenters/ReorderSuggestionsPresenter.vb**: MVP Presenter with two-tab state (Suggestions / Configuration), filter tabs (Pending / Accepted / Dismissed), generate/accept/dismiss commands, and a config edit dialog
+- **MerchSys.App/Views/Purchasing/ReorderSuggestionsView.Designer code**: UserControl with suggestions DataGrid (per-row Accept/Dismiss buttons, seasonal star indicator), configuration DataGrid (Edit button per row), config edit dialog overlay
+- **MerchSys.App/Views/Purchasing/ReorderSuggestionsView.Designer code.vb**: DI-injected code-behind
 - **MerchSys.Purchasing/Services/IReorderService.vb**: added `GetAllSuggestionsAsync` (required to populate Accepted and Dismissed filter tabs)
 - **MerchSys.Purchasing/Services/ReorderService.vb**: implemented `GetAllSuggestionsAsync` (queries all statuses, ordered by `CreatedAt` descending)
-- **MerchSys.Purchasing/Extensions/PurchasingServiceCollectionExtensions.vb**: registered `IReorderService → ReorderService` (previously missing) and `ReorderSuggestionsViewModel`
+- **MerchSys.Purchasing/Extensions/PurchasingServiceCollectionExtensions.vb**: registered `IReorderService → ReorderService` (previously missing) and `ReorderSuggestionsPresenter`
 
 ## Feature: PUR-14
 
@@ -208,8 +208,8 @@ per-line VAT data.
 - **Dtos/ReceiveGoodsDto.vb**: added `VatClassification As VatTreatment` property.
 - **Services/GoodsReceivingService.vb**: computes `VatAmount` and `VatableSales` per line during receipt creation; event item loop now reads `grLine.VatClassification` and `grLine.VatAmount` instead of hardcoding `Vatable`.
 - **Services/Vat/GoodsReceiptVatCalculator.vb**: replaced Option-2 single-bucket logic with per-classification `Select Case` that reads `line.VatableSales` and `line.VatAmount` to fill the three aggregate buckets.
-- **ViewModels/GoodsReceivingViewModel.vb**: added `VatClassification` to `GRLineItem` (defaults to `Vatable`); auto-computes `VatAmount` when `VatClassification`, `QtyReceived`, or `UnitCost` changes; added `VatTreatmentValues` list to ViewModel for ComboBox binding; `ConfirmReceiptAsync` passes `VatClassification` in DTO.
-- **Views/Purchasing/GoodsReceivingView.xaml**: added `DataGridTemplateColumn` with `ComboBox` bound to `VatClassification` (ItemsSource via `RelativeSource` to ViewModel `VatTreatmentValues`); added read-only `DataGridTextColumn` for `VatAmount` (N2 format, green foreground).
+- **Presenters/GoodsReceivingPresenter.vb**: added `VatClassification` to `GRLineItem` (defaults to `Vatable`); auto-computes `VatAmount` when `VatClassification`, `QtyReceived`, or `UnitCost` changes; added `VatTreatmentValues` list to Presenter for ComboBox binding; `ConfirmReceiptAsync` passes `VatClassification` in DTO.
+- **Views/Purchasing/GoodsReceivingView.Designer code**: added `DataGridTemplateColumn` with `ComboBox` bound to `VatClassification` (ItemsSource via `RelativeSource` to Presenter `VatTreatmentValues`); added read-only `DataGridTextColumn` for `VatAmount` (N2 format, green foreground).
 
 ## Feature: PUR-16
 
@@ -226,14 +226,14 @@ Implemented the Vendor-Product Catalog & PO Line Auto-configuration feature. Rep
 - Created `MerchSys.Purchasing/Services/IVendorProductService.vb` & `VendorProductService.vb` — Injected `ISessionService` and implemented vendor product catalog lookup and mutation routines (Manager-only mutations enforced at data-layer).
 - **MerchSys.SharedKernel/Queries/GetProductsForCatalogQuery.vb**: Cross-module MediatR query to fetch active products matching search inputs.
 - **MerchSys.Inventory/Handlers/GetProductsForCatalogQueryHandler.vb**: MediatR handler querying active inventory items using raw SQLite connection.
-- **MerchSys.Purchasing/Extensions/PurchasingServiceCollectionExtensions.vb**: Registered catalog service and viewmodel transient dependencies.
-- **MerchSys.Purchasing/ViewModels/PurchaseOrderEditorViewModel.vb**: Added `VendorCatalog` observable collection, and extended nested class `POLineItem` to automatically populate details and trigger updates.
-- **MerchSys.Purchasing/ViewModels/PurchaseOrderListViewModel.vb**: Injected notifications and catalog services, hooked async catalog reloading, added pre-save line validator (raises toast errors on zero ProductId), and cost write-backs.
-- **MerchSys.Purchasing/ViewModels/VendorCatalogViewModel.vb**: Master-detail ViewModel for catalog management, supporting adds, updates, soft-deletes, and role gates.
-- **MerchSys.App/Views/Purchasing/PurchaseOrderListView.xaml**: Swapped the textbox Product ID column for a premium vendor-filtered Combobox column.
-- Created `MerchSys.App/Views/Purchasing/VendorCatalogView.xaml` & `VendorCatalogView.xaml.vb` — Full master-detail catalog editor interface with Manager actions, premium styling, and search dialog modals.
-- **MerchSys.App/ViewModels/MainWindowViewModel.vb**: Inserted "Vendor Product Catalog" navigation item for Manager role.
-- **MerchSys.App/Application.xaml.vb**: Registered the catalog view in the Generic Host DI setup.
+- **MerchSys.Purchasing/Extensions/PurchasingServiceCollectionExtensions.vb**: Registered catalog service and Presenter transient dependencies.
+- **MerchSys.Purchasing/Presenters/PurchaseOrderEditorPresenter.vb**: Added `VendorCatalog` observable collection, and extended nested class `POLineItem` to automatically populate details and trigger updates.
+- **MerchSys.Purchasing/Presenters/PurchaseOrderListPresenter.vb**: Injected notifications and catalog services, hooked async catalog reloading, added pre-save line validator (raises toast errors on zero ProductId), and cost write-backs.
+- **MerchSys.Purchasing/Presenters/VendorCatalogPresenter.vb**: Master-detail Presenter for catalog management, supporting adds, updates, soft-deletes, and role gates.
+- **MerchSys.App/Views/Purchasing/PurchaseOrderListView.Designer code**: Swapped the textbox Product ID column for a premium vendor-filtered Combobox column.
+- Created `MerchSys.App/Views/Purchasing/VendorCatalogView.Designer code` & `VendorCatalogView.Designer code.vb` — Full master-detail catalog editor interface with Manager actions, premium styling, and search dialog modals.
+- **MerchSys.App/Presenters/MainWindowPresenter.vb**: Inserted "Vendor Product Catalog" navigation item for Manager role.
+- **MerchSys.App/Application.Designer code.vb**: Registered the catalog view in the Generic Host DI setup.
 
 
 
@@ -263,10 +263,10 @@ last-synced: 2026-06-01
 | What | Path |
 |------|------|
 | SQLite database | `%LOCALAPPDATA%\MerchSys\merchsys.db` |
-| GoodsReceivingService | `WPF_Applications\MerchSys\src\MerchSys.Purchasing\Services\GoodsReceivingService.vb` |
-| GoodsReceivedWithVatEvent | `WPF_Applications\MerchSys\src\MerchSys.SharedKernel\Events\GoodsReceivedWithVatEvent.vb` |
-| GoodsReceivedWithVatHandler | `WPF_Applications\MerchSys\src\MerchSys.Accounting\Handlers\GoodsReceivedWithVatHandler.vb` |
-| GoodsReceiptVatCalculator | `WPF_Applications\MerchSys\src\MerchSys.Purchasing\Services\Vat\GoodsReceiptVatCalculator.vb` |
+| GoodsReceivingService | `WinForms_Applications\MerchSys\src\MerchSys.Purchasing\Services\GoodsReceivingService.vb` |
+| GoodsReceivedWithVatEvent | `WinForms_Applications\MerchSys\src\MerchSys.SharedKernel\Events\GoodsReceivedWithVatEvent.vb` |
+| GoodsReceivedWithVatHandler | `WinForms_Applications\MerchSys\src\MerchSys.Accounting\Handlers\GoodsReceivedWithVatHandler.vb` |
+| GoodsReceiptVatCalculator | `WinForms_Applications\MerchSys\src\MerchSys.Purchasing\Services\Vat\GoodsReceiptVatCalculator.vb` |
 
 ---
 
@@ -294,8 +294,8 @@ last-synced: 2026-06-01
 > `20260510100000_AddVatLedgerColumns`). `Acc_VatReturnLines` is the BIR period-filing table and is
 > only populated when you formally generate a VAT return — it is **not** written during goods receiving.
 
-> **Event publisher:** `WPF_Applications\MerchSys\src\MerchSys.Purchasing\Services\GoodsReceivingService.vb`
-> **Event handler:** `WPF_Applications\MerchSys\src\MerchSys.Accounting\Handlers\GoodsReceivedWithVatHandler.vb`
+> **Event publisher:** `WinForms_Applications\MerchSys\src\MerchSys.Purchasing\Services\GoodsReceivingService.vb`
+> **Event handler:** `WinForms_Applications\MerchSys\src\MerchSys.Accounting\Handlers\GoodsReceivedWithVatHandler.vb`
 
 **What you should see:**
 - One row per line item on the PO appears in `Acc_ExpenseRecords`.
@@ -329,7 +329,7 @@ last-synced: 2026-06-01
    WHERE SourceModule = 'Purchasing' AND SourceReferenceId = <PO_ID>;
    ```
 
-> **VAT calculator:** `WPF_Applications\MerchSys\src\MerchSys.Purchasing\Services\Vat\GoodsReceiptVatCalculator.vb`
+> **VAT calculator:** `WinForms_Applications\MerchSys\src\MerchSys.Purchasing\Services\Vat\GoodsReceiptVatCalculator.vb`
 
 **What you should see:**
 - Two rows in `Acc_ExpenseRecords` — one per line item.
@@ -357,7 +357,7 @@ last-synced: 2026-06-01
    WHERE SourceModule = 'Purchasing' AND SourceReferenceId = <PO_ID>;
    ```
 
-> **Handler (checks for duplicates):** `WPF_Applications\MerchSys\src\MerchSys.Accounting\Handlers\GoodsReceivedWithVatHandler.vb`
+> **Handler (checks for duplicates):** `WinForms_Applications\MerchSys\src\MerchSys.Accounting\Handlers\GoodsReceivedWithVatHandler.vb`
 
 **What you should see:**
 - The count is the **same** as before. No new rows were created.
@@ -405,3 +405,4 @@ last-synced: 2026-06-01
 **Why deferred:** The store's limited historical transaction volume in pre-live stages makes complex ML models highly prone to overfitting. The implemented `ReorderService.vb` uses a deterministic `SeasonalMultiplier` and `MinimumThreshold` trigger which is more stable.
 
 ---
+

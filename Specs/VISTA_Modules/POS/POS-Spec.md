@@ -94,7 +94,7 @@ credit-blocking rule.
 ### Requirements
 - **MerchSys.SharedKernel/Queries/GetProductCatalogQuery.vb**: MediatR query contract for POS → Inventory cross-module product search (name, SKU, price, stock)
 - **MerchSys.SharedKernel/Queries/GetProductCatalogResult.vb**: result DTO with `ProductCatalogItem` (ProductId, ProductName, Sku, UnitPrice, AvailableStock, IsLowStock)
-- **MerchSys.POS/ViewModels/SalesCartViewModel.vb**: full MVVM ViewModel with:
+- **MerchSys.POS/Presenters/SalesCartPresenter.vb**: full MVP Presenter with:
 - `CartLineItem` (ObservableObject wrapper for DataGrid row editing)
 - `ProductSearchItem` (UI DTO from catalog query results)
 - Product search via MediatR `GetProductCatalogQuery`
@@ -105,11 +105,11 @@ credit-blocking rule.
 - `CanPay` gate: empty cart, insufficient cash, blocked customer all disable Pay
 - `ProcessPaymentAsync`: FinalizeAsync → ProcessPaymentAsync → GenerateReceiptAsync sequence
 - `SyncCartLines` helper preserves AvailableStock across service round-trips
-- **MerchSys.App/Views/POS/SalesCartView.xaml**: 3-panel UserControl layout:
+- **MerchSys.App/Views/POS/SalesCartView.Designer code**: 3-panel UserControl layout:
 - Left (260 px): product search with auto-complete list, stock color-coding, double-click to add
 - Center (*): DataGrid (Product / Qty / UnitPrice / Discount / LineTotal / Remove) + SubTotal / Discount / VAT / Grand Total
 - Right (300 px): payment method buttons (active highlighting via DataTrigger), Cash/Credit conditional panels, blocked customer red badge, Pay button (grey when disabled), receipt preview panel
-- **MerchSys.App/Views/POS/SalesCartView.xaml.vb**: code-behind with DI constructor, `CellEditEnding` handler for quantity updates, double-click handler for product add, Enter key search
+- **MerchSys.App/Views/POS/SalesCartView.Designer code.vb**: code-behind with DI constructor, `CellEditEnding` handler for quantity updates, double-click handler for product add, Enter key search
 
 ## Feature: POS-10
 
@@ -117,31 +117,31 @@ credit-blocking rule.
 Implemented the Credit Management screen (POS-10) — a dedicated view for managing customer credit accounts, recording payments, viewing history, and monitoring AR status.
 
 ### Requirements
-- **MerchSys.POS/ViewModels/CreditManagementViewModel.vb**: ViewModel with summary stats (total AR, blocked count, overdue count), in-memory filtered account list, add-account form, payment dialog, and per-account payment/credit-transaction history. Includes a `CreditTransactionItem` helper DTO. Injects `ICreditService` + `POSDbContext` directly for the credit-transaction history query (ICreditService has no method for this).
-- **MerchSys.App/Views/POS/CreditManagementView.xaml**: Full layout with summary cards, filter/search action bar, collapsible add-account form, accounts DataGrid with status icons and per-row Pay button, right-side history panel (payments + credit sales), and a ZIndex overlay for the Record Payment dialog.
-- **MerchSys.App/Views/POS/CreditManagementView.xaml.vb**: Code-behind with constructor DI, DataGrid SelectionChanged → `SelectAccountCommand`, and Enter-key search box handler.
+- **MerchSys.POS/Presenters/CreditManagementPresenter.vb**: Presenter with summary stats (total AR, blocked count, overdue count), in-memory filtered account list, add-account form, payment dialog, and per-account payment/credit-transaction history. Includes a `CreditTransactionItem` helper DTO. Injects `ICreditService` + `POSDbContext` directly for the credit-transaction history query (ICreditService has no method for this).
+- **MerchSys.App/Views/POS/CreditManagementView.Designer code**: Full layout with summary cards, filter/search action bar, collapsible add-account form, accounts DataGrid with status icons and per-row Pay button, right-side history panel (payments + credit sales), and a ZIndex overlay for the Record Payment dialog.
+- **MerchSys.App/Views/POS/CreditManagementView.Designer code.vb**: Code-behind with constructor DI, DataGrid SelectionChanged → `SelectAccountCommand`, and Enter-key search box handler.
 **Build fix applied:** VB.NET `List.Count(predicate)` conflicts with the `.Count` property; replaced with `.Where(predicate).Count()`.
 **Build fix applied:** `Border` in the history panel contained two children (empty-state StackPanel + ScrollViewer); wrapped both in a `Grid`.
 
 ## Feature: POS-11
 
 ### Overview
-Implemented the Transaction History view (POS-11): a full WPF screen for searching past transactions, viewing line items and receipt info, and processing returns — including a modal return dialog with over-return validation.
+Implemented the Transaction History view (POS-11): a full WinForms screen for searching past transactions, viewing line items and receipt info, and processing returns — including a modal return dialog with over-return validation.
 
 ### Requirements
-- **MerchSys.POS/ViewModels/TransactionHistoryViewModel.vb**: ViewModel with four nested display types (`TransactionSummaryItem`, `TransactionDetailLine`, `ReturnSummaryItem`, `ReturnLineSelection`) and full async command set for search, transaction selection, receipt printing, and return processing
-- **MerchSys.App/Views/POS/TransactionHistoryView.xaml**: WPF UserControl with filter bar (date range, TX#, payment method), transaction DataGrid, detail panel (line items + receipt info + returns tabs via ScrollViewer), action buttons, and return dialog overlay
-- **MerchSys.App/Views/POS/TransactionHistoryView.xaml.vb**: Code-behind wiring DataGrid SelectionChanged to `SelectTransactionCommand`, Enter-key search on TX# field, and numeric-only guard on return quantity TextBox
+- **MerchSys.POS/Presenters/TransactionHistoryPresenter.vb**: Presenter with four nested display types (`TransactionSummaryItem`, `TransactionDetailLine`, `ReturnSummaryItem`, `ReturnLineSelection`) and full async command set for search, transaction selection, receipt printing, and return processing
+- **MerchSys.App/Views/POS/TransactionHistoryView.Designer code**: WinForms UserControl with filter bar (date range, TX#, payment method), transaction DataGrid, detail panel (line items + receipt info + returns tabs via ScrollViewer), action buttons, and return dialog overlay
+- **MerchSys.App/Views/POS/TransactionHistoryView.Designer code.vb**: Code-behind wiring DataGrid SelectionChanged to `SelectTransactionCommand`, Enter-key search on TX# field, and numeric-only guard on return quantity TextBox
 
 ## Feature: POS-12
 
 ### Overview
-Implemented the Daily Summary View (POS-12): a WPF UserControl that presents daily, weekly, and monthly sales summaries backed by `IDailySummaryService`.
+Implemented the Daily Summary View (POS-12): a WinForms UserControl that presents daily, weekly, and monthly sales summaries backed by `IDailySummaryService`.
 
 ### Requirements
-- **MerchSys.POS/ViewModels/DailySummaryViewModel.vb**: ViewModel with three period modes (Daily/Weekly/Monthly), KPI properties, payment breakdown and top-products collections, trend bar data, Prev/Next navigation commands, and auto-load on view open.
-- **MerchSys.App/Views/POS/DailySummaryView.xaml**: XAML layout with period-selector header (mode toggle buttons + Prev/Next + DatePicker/week-range/month-year inputs), four KPI summary cards, payment breakdown DataGrid, top-5 products DataGrid, and a bottom-anchored bar chart trend section (hidden for daily mode).
-- **MerchSys.App/Views/POS/DailySummaryView.xaml.vb**: code-behind that injects `DailySummaryViewModel` via constructor DI and auto-triggers `LoadCommand` on the `Loaded` event.
+- **MerchSys.POS/Presenters/DailySummaryPresenter.vb**: Presenter with three period modes (Daily/Weekly/Monthly), KPI properties, payment breakdown and top-products collections, trend bar data, Prev/Next navigation commands, and auto-load on view open.
+- **MerchSys.App/Views/POS/DailySummaryView.Designer code**: Designer code layout with period-selector header (mode toggle buttons + Prev/Next + DatePicker/week-range/month-year inputs), four KPI summary cards, payment breakdown DataGrid, top-5 products DataGrid, and a bottom-anchored bar chart trend section (hidden for daily mode).
+- **MerchSys.App/Views/POS/DailySummaryView.Designer code.vb**: code-behind that injects `DailySummaryPresenter` via constructor DI and auto-triggers `LoadCommand` on the `Loaded` event.
 
 ## Feature: POS-13
 
@@ -186,7 +186,7 @@ Implements BIR three-bucket VAT decomposition (Vatable / Exempt / Zero-Rated) at
 - **Data/DatabaseInitializer.vb**: added `ApplyIfPending` calls for `20260510120000_AddBirRetentionConstraints` and `20260514100000_AddVatThreeBucketColumns`; added corresponding private Sub bodies:
 - `ApplyBirRetentionConstraints`: creates `Pos_ReceiptSequence`, `Pos_ReceiptIntegrity`, `Pos_OfficialReceiptArchive` tables and SQLite immutability triggers (`IF NOT EXISTS` for idempotency)
 - `ApplyVatThreeBucketColumns`: `ALTER TABLE ADD COLUMN` for 5 columns on `Pos_SalesTransactions`, 5 on `Pos_SalesTransactionLines`; creates `Pos_VatConfiguration` with seed row (Id=1, `IsVatRegistered=0`, `VatRate=0.12`)
-- **Application.xaml.vb**: replaced single `AddScoped(Of IReceiptService, ReceiptService)` with manual decorator registrations: `AddScoped(Of ReceiptService)`, `AddScoped(Of IReceiptService, VatAwareReceiptService)`, `AddScoped(Of IVatCalculator, VatCalculator)`, `AddSingleton(Of VatConfigurationLoader)`, `AddScoped(Of IReceiptIntegrityService, ReceiptIntegrityService)` (the last one was previously missing)
+- **Application.Designer code.vb**: replaced single `AddScoped(Of IReceiptService, ReceiptService)` with manual decorator registrations: `AddScoped(Of ReceiptService)`, `AddScoped(Of IReceiptService, VatAwareReceiptService)`, `AddScoped(Of IVatCalculator, VatCalculator)`, `AddSingleton(Of VatConfigurationLoader)`, `AddScoped(Of IReceiptIntegrityService, ReceiptIntegrityService)` (the last one was previously missing)
 
 ## Feature: POS-15
 
@@ -194,14 +194,14 @@ Implements BIR three-bucket VAT decomposition (Vatable / Exempt / Zero-Rated) at
 Closes three causally linked gaps identified in the 2026-05-11 POS audit:
 
 1. `ReceiptService.GenerateReceiptAsync` was using a naïve `CountAsync` pattern to produce receipt numbers — not safe under concurrent transactions and superseded by POS-13.
-2. `IReceiptIntegrityService` was registered in the composition root (`Application.xaml.vb`) rather than a module-local extension, inconsistent with the `AddPurchasingServices()` pattern.
+2. `IReceiptIntegrityService` was registered in the composition root (`Application.Designer code.vb`) rather than a module-local extension, inconsistent with the `AddPurchasingServices()` pattern.
 3. `Pos_SequenceConcurrencyHarness` existed but had no runner that produces a verifiable Markdown report.
 
 ### Requirements
 - **Services/ReceiptService.vb**: injected `IReceiptIntegrityService`, replaced `CountAsync`-based `GenerateReceiptNumberAsync` helper with `_receiptIntegrity.GetNextReceiptNumberAsync(DateTime.Now.Year)`, deleted the helper method entirely, added XML doc comment.
 - Confirmed `Services/VatAwareReceiptService.vb` — decorator pattern intact; delegates to `_inner.GenerateReceiptAsync()` with no numbering logic of its own. No changes required.
-- **Startup/PosServiceRegistration.vb**: new `AddPosModule()` extension method consolidating all POS service and ViewModel registrations.
-- **Application.xaml.vb**: replaced 14 individual POS `AddScoped`/`AddSingleton`/`AddTransient` lines with a single `services.AddPosModule()` call; removed now-unused `Imports MerchSys.POS.Services` and `Imports MerchSys.POS.ViewModels`.
+- **Startup/PosServiceRegistration.vb**: new `AddPosModule()` extension method consolidating all POS service and Presenter registrations.
+- **Application.Designer code.vb**: replaced 14 individual POS `AddScoped`/`AddSingleton`/`AddTransient` lines with a single `services.AddPosModule()` call; removed now-unused `Imports MerchSys.POS.Services` and `Imports MerchSys.POS.Presenters`.
 - **Debug/ReceiptSequenceHarnessReport.vb**: debug-only (`#If DEBUG`) harness runner; uses per-worker `POSDbContext` against a scratch SQLite file, writes Markdown report to `%TEMP%`, cleans up scratch DB.
 
 ## Feature: POS-16
@@ -231,14 +231,14 @@ Implements the VAT Settings UI (POS-17): a dedicated settings view, view-model, 
 ### Requirements
 - **Events/VatConfigurationChangedEvent.vb**: new MediatR event with `OccurredAt`, `IsVatRegistered`, `PreviousIsVatRegistered`
 - **Services/IVatConfigurationWriter.vb**: interface `IVatConfigurationWriter`, DTOs `VatConfigurationUpdateRequest`/`VatConfigurationUpdateResult`, and implementation `VatConfigurationWriter` (Scoped)
-- **ViewModels/VatSettingsViewModel.vb**: ViewModel with `SaveCommand`, `ReloadCommand`, percent ↔ fraction conversion, `IsNotVatRegistered` inverse property for XAML visibility
-- **Views/POS/VatSettingsView.xaml**: two-column settings form: toggle, conditional TIN/rate fields, business info, validation error panel
-- **Views/POS/VatSettingsView.xaml.vb**: code-behind; triggers `ReloadAsync` on `UserControl.Loaded`
-- **Interfaces/INotificationService.vb**: added `ShowSuccess(message)` and `ShowError(message)` methods so module-library ViewModels can surface toast notifications without a direct WPF reference
-- **Services/DefaultNotificationService.vb**: implemented `ShowSuccess`/`ShowError` using `Notification.Wpf.NotificationManager` (same pattern as `WpfLowStockNotifier`)
-- **Startup/PosServiceRegistration.vb**: registered `IVatConfigurationWriter → VatConfigurationWriter` (Scoped) and `VatSettingsViewModel` (Transient)
-- **Application.xaml.vb**: registered `Views.POS.VatSettingsView` (Transient)
-- **ViewModels/MainWindowViewModel.vb**: extracted `BuildPosNavItems()` helper; appends `VatSettings → VatSettingsView` entry only when `CurrentRole = Manager`
+- **Presenters/VatSettingsPresenter.vb**: Presenter with `SaveCommand`, `ReloadCommand`, percent ↔ fraction conversion, `IsNotVatRegistered` inverse property for Designer code visibility
+- **Views/POS/VatSettingsView.Designer code**: two-column settings form: toggle, conditional TIN/rate fields, business info, validation error panel
+- **Views/POS/VatSettingsView.Designer code.vb**: code-behind; triggers `ReloadAsync` on `UserControl.Loaded`
+- **Interfaces/INotificationService.vb**: added `ShowSuccess(message)` and `ShowError(message)` methods so module-library Presenters can surface toast notifications without a direct WinForms reference
+- **Services/DefaultNotificationService.vb**: implemented `ShowSuccess`/`ShowError` using `Notification.WinForms.NotificationManager` (same pattern as `WinFormsLowStockNotifier`)
+- **Startup/PosServiceRegistration.vb**: registered `IVatConfigurationWriter → VatConfigurationWriter` (Scoped) and `VatSettingsPresenter` (Transient)
+- **Application.Designer code.vb**: registered `Views.POS.VatSettingsView` (Transient)
+- **Presenters/MainWindowPresenter.vb**: extracted `BuildPosNavItems()` helper; appends `VatSettings → VatSettingsView` entry only when `CurrentRole = Manager`
 
 ## Feature: POS-18
 
@@ -301,17 +301,17 @@ last-synced: 2026-06-01
 | What | Path |
 |------|------|
 | SQLite database | `%LOCALAPPDATA%\MerchSys\merchsys.db` |
-| DailySummaryView (code-behind) | `WPF_Applications\MerchSys\src\MerchSys.App\Views\POS\DailySummaryView.xaml.vb` |
-| DailySummaryViewModel | `WPF_Applications\MerchSys\src\MerchSys.POS\ViewModels\DailySummaryViewModel.vb` |
-| Concurrency harness | `WPF_Applications\MerchSys\src\MerchSys.POS\Tests\Pos.SequenceConcurrencyHarness.vb` |
-| ReceiptArchivalService | `WPF_Applications\MerchSys\src\MerchSys.POS\Services\Archival\ReceiptArchivalService.vb` |
-| ReceiptArchivalOptions | `WPF_Applications\MerchSys\src\MerchSys.POS\Services\Archival\ReceiptArchivalOptions.vb` |
-| VatSettingsView (code-behind) | `WPF_Applications\MerchSys\src\MerchSys.App\Views\POS\VatSettingsView.xaml.vb` |
-| VatSettingsViewModel | `WPF_Applications\MerchSys\src\MerchSys.POS\ViewModels\VatSettingsViewModel.vb` |
-| VatConfigurationLoader | `WPF_Applications\MerchSys\src\MerchSys.POS\Services\VatConfigurationLoader.vb` |
-| VatConfigurationChangedEvent | `WPF_Applications\MerchSys\src\MerchSys.SharedKernel\Events\VatConfigurationChangedEvent.vb` |
-| IVatConfigurationWriter | `WPF_Applications\MerchSys\src\MerchSys.POS\Services\IVatConfigurationWriter.vb` |
-| POS service registration (DI) | `WPF_Applications\MerchSys\src\MerchSys.App\Startup\PosServiceRegistration.vb` |
+| DailySummaryView (code-behind) | `WinForms_Applications\MerchSys\src\MerchSys.App\Views\POS\DailySummaryView.Designer code.vb` |
+| DailySummaryPresenter | `WinForms_Applications\MerchSys\src\MerchSys.POS\Presenters\DailySummaryPresenter.vb` |
+| Concurrency harness | `WinForms_Applications\MerchSys\src\MerchSys.POS\Tests\Pos.SequenceConcurrencyHarness.vb` |
+| ReceiptArchivalService | `WinForms_Applications\MerchSys\src\MerchSys.POS\Services\Archival\ReceiptArchivalService.vb` |
+| ReceiptArchivalOptions | `WinForms_Applications\MerchSys\src\MerchSys.POS\Services\Archival\ReceiptArchivalOptions.vb` |
+| VatSettingsView (code-behind) | `WinForms_Applications\MerchSys\src\MerchSys.App\Views\POS\VatSettingsView.Designer code.vb` |
+| VatSettingsPresenter | `WinForms_Applications\MerchSys\src\MerchSys.POS\Presenters\VatSettingsPresenter.vb` |
+| VatConfigurationLoader | `WinForms_Applications\MerchSys\src\MerchSys.POS\Services\VatConfigurationLoader.vb` |
+| VatConfigurationChangedEvent | `WinForms_Applications\MerchSys\src\MerchSys.SharedKernel\Events\VatConfigurationChangedEvent.vb` |
+| IVatConfigurationWriter | `WinForms_Applications\MerchSys\src\MerchSys.POS\Services\IVatConfigurationWriter.vb` |
+| POS service registration (DI) | `WinForms_Applications\MerchSys\src\MerchSys.App\Startup\PosServiceRegistration.vb` |
 
 ---
 
@@ -325,8 +325,8 @@ last-synced: 2026-06-01
 3. Navigate to the **Daily Summary** view (in the POS section of the sidebar).
 4. Look at the summary data displayed.
 
-> **View file:** `WPF_Applications\MerchSys\src\MerchSys.App\Views\POS\DailySummaryView.xaml.vb`
-> **ViewModel:** `WPF_Applications\MerchSys\src\MerchSys.POS\ViewModels\DailySummaryViewModel.vb`
+> **View file:** `WinForms_Applications\MerchSys\src\MerchSys.App\Views\POS\DailySummaryView.Designer code.vb`
+> **Presenter:** `WinForms_Applications\MerchSys\src\MerchSys.POS\Presenters\DailySummaryPresenter.vb`
 
 **What you should see:**
 - The view opens without crashing.
@@ -352,7 +352,7 @@ last-synced: 2026-06-01
    ```
 6. Wait for it to finish (this may take a few seconds).
 
-> **Harness file:** `WPF_Applications\MerchSys\src\MerchSys.POS\Tests\Pos.SequenceConcurrencyHarness.vb`
+> **Harness file:** `WinForms_Applications\MerchSys\src\MerchSys.POS\Tests\Pos.SequenceConcurrencyHarness.vb`
 
 **What you should see:**
 - The harness runs multiple threads trying to reserve receipt sequence numbers at the same time.
@@ -395,8 +395,8 @@ last-synced: 2026-06-01
 
 > This section has 6 tests. They all involve the receipt archival system that moves old receipts to archive tables.
 >
-> **Service file:** `WPF_Applications\MerchSys\src\MerchSys.POS\Services\Archival\ReceiptArchivalService.vb`
-> **Options file:** `WPF_Applications\MerchSys\src\MerchSys.POS\Services\Archival\ReceiptArchivalOptions.vb`
+> **Service file:** `WinForms_Applications\MerchSys\src\MerchSys.POS\Services\Archival\ReceiptArchivalService.vb`
+> **Options file:** `WinForms_Applications\MerchSys\src\MerchSys.POS\Services\Archival\ReceiptArchivalOptions.vb`
 
 ### Test 4: Archival moves the right number of receipts
 
@@ -419,7 +419,7 @@ last-synced: 2026-06-01
 **What to do:**
 1. Keep the same test data from Test 4 (or re-seed 100 expired receipts).
 2. Change the batch size to `batchSize = 50`. You can do this by editing:
-   `WPF_Applications\MerchSys\src\MerchSys.POS\Services\Archival\ReceiptArchivalOptions.vb`
+   `WinForms_Applications\MerchSys\src\MerchSys.POS\Services\Archival\ReceiptArchivalOptions.vb`
    or setting it in the app configuration.
 3. Trigger the archival service once.
 
@@ -514,8 +514,8 @@ last-synced: 2026-06-01
 7. Navigate away to a different screen.
 8. Navigate back to **VAT Settings**.
 
-> **View file:** `WPF_Applications\MerchSys\src\MerchSys.App\Views\POS\VatSettingsView.xaml.vb`
-> **ViewModel:** `WPF_Applications\MerchSys\src\MerchSys.POS\ViewModels\VatSettingsViewModel.vb`
+> **View file:** `WinForms_Applications\MerchSys\src\MerchSys.App\Views\POS\VatSettingsView.Designer code.vb`
+> **Presenter:** `WinForms_Applications\MerchSys\src\MerchSys.POS\Presenters\VatSettingsPresenter.vb`
 
 **What you should see:**
 - The new values you saved are still there after navigating away and back.
@@ -535,7 +535,7 @@ last-synced: 2026-06-01
    ```
 3. Check the returned values.
 
-> **Loader file:** `WPF_Applications\MerchSys\src\MerchSys.POS\Services\VatConfigurationLoader.vb`
+> **Loader file:** `WinForms_Applications\MerchSys\src\MerchSys.POS\Services\VatConfigurationLoader.vb`
 
 **What you should see:**
 - The values match what you just saved in the UI (not the old values).
@@ -548,11 +548,11 @@ last-synced: 2026-06-01
 
 **What to do:**
 1. Open this file in Visual Studio:
-   `WPF_Applications\MerchSys\src\MerchSys.POS\Services\IVatConfigurationWriter.vb`
+   `WinForms_Applications\MerchSys\src\MerchSys.POS\Services\IVatConfigurationWriter.vb`
    (This is where the event gets published after saving.)
 2. Find where `VatConfigurationChangedEvent` is created/published. Set a breakpoint on that line.
 3. You can also check the event definition at:
-   `WPF_Applications\MerchSys\src\MerchSys.SharedKernel\Events\VatConfigurationChangedEvent.vb`
+   `WinForms_Applications\MerchSys\src\MerchSys.SharedKernel\Events\VatConfigurationChangedEvent.vb`
 4. Press **F5** to launch the app in Debug mode.
 5. Go to VAT Settings and change the VAT registration status (toggle it on or off).
 6. Click Save.
@@ -575,7 +575,7 @@ last-synced: 2026-06-01
 4. Log in with username `owner` and your password.
 5. Look at the sidebar navigation again.
 
-> **Navigation config:** `WPF_Applications\MerchSys\src\MerchSys.App\ViewModels\MainWindowViewModel.vb` — search for `VatSettings` to see how role visibility is configured.
+> **Navigation config:** `WinForms_Applications\MerchSys\src\MerchSys.App\Presenters\MainWindowPresenter.vb` — search for `VatSettings` to see how role visibility is configured.
 
 **What you should see:**
 - **Manager** sees "VAT Settings" in the sidebar.
@@ -733,3 +733,4 @@ The Inventory module (`StockService.DeductStockFIFOAsync`) correctly implements 
 **Why deferred:** The POS currently records GCash and bank transfer reference codes manually for bookkeeping reconciliation. Live fund transfers are deferred until a formal merchant account and steady internet connections are established at the physical store.
 
 ---
+

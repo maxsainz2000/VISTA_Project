@@ -68,37 +68,37 @@ Implemented the "What This Means" plain-language interpretation engine for the A
 ## Feature: ACC-07
 
 ### Overview
-Implemented the Financial Overview Dashboard — the primary Accounting screen. Created the ViewModel, XAML view, and code-behind per plan ACC-07.
+Implemented the Financial Overview Dashboard — the primary Accounting screen. Created the Presenter, Designer code view, and code-behind per plan ACC-07.
 
 ### Requirements
-- **ViewModels/FinancialOverviewViewModel.vb**: ViewModel with 7 KPI properties, WhatThisMeansText, alert counts (OverdueARCount, OverdueAPCount, LowStockAlertCount), ObservableCollection of `TopProductDto` and `TrendBarItem`, 5-minute auto-refresh timer via `System.Timers.Timer` + SynchronizationContext, and `RefreshCommand` (AsyncRelayCommand).
-- Created `TrendBarItem` class (within the ViewModel file) — flat DTO for the bar chart with pre-computed `RevenueBarHeight`, `COGSBarHeight`, `GrossProfitBarHeight` (normalized to max revenue = 120px).
-- **Views/Accounting/FinancialOverviewView.xaml**: KPI card row (7 cards), "What This Means" box (light blue panel, 💡 icon, always visible, no collapse option), 6-month trend bar chart (WPF primitives: ItemsControl + UniformGrid + Rectangles with VerticalAlignment=Bottom, tooltips showing exact values), Top Products DataGrid (10 rows, columns: Product / Units Sold / Revenue / COGS / Margin %), Alerts panel (3 cards with DataTrigger color-coding: green=OK, red=overdue AR, orange=overdue AP, yellow=low stock).
-- **Views/Accounting/FinancialOverviewView.xaml.vb**: code-behind with constructor injection of `FinancialOverviewViewModel`.
+- **Presenters/FinancialOverviewPresenter.vb**: Presenter with 7 KPI properties, WhatThisMeansText, alert counts (OverdueARCount, OverdueAPCount, LowStockAlertCount), ObservableCollection of `TopProductDto` and `TrendBarItem`, 5-minute auto-refresh timer via `System.Timers.Timer` + SynchronizationContext, and `RefreshCommand` (AsyncRelayCommand).
+- Created `TrendBarItem` class (within the Presenter file) — flat DTO for the bar chart with pre-computed `RevenueBarHeight`, `COGSBarHeight`, `GrossProfitBarHeight` (normalized to max revenue = 120px).
+- **Views/Accounting/FinancialOverviewView.Designer code**: KPI card row (7 cards), "What This Means" box (light blue panel, 💡 icon, always visible, no collapse option), 6-month trend bar chart (WinForms primitives: ItemsControl + UniformGrid + Rectangles with VerticalAlignment=Bottom, tooltips showing exact values), Top Products DataGrid (10 rows, columns: Product / Units Sold / Revenue / COGS / Margin %), Alerts panel (3 cards with DataTrigger color-coding: green=OK, red=overdue AR, orange=overdue AP, yellow=low stock).
+- **Views/Accounting/FinancialOverviewView.Designer code.vb**: code-behind with constructor injection of `FinancialOverviewPresenter`.
 
 ## Feature: ACC-08
 
 ### Overview
-Implemented the Income Statement (P&L) View for the Accounting module. Creates a WPF UserControl that displays the merchandising-format income statement with monthly/quarterly/annual period switching, a mandatory "What This Means" box, and a per-product margins DataGrid tab.
+Implemented the Income Statement (P&L) View for the Accounting module. Creates a WinForms UserControl that displays the merchandising-format income statement with monthly/quarterly/annual period switching, a mandatory "What This Means" box, and a per-product margins DataGrid tab.
 
 ### Requirements
-- **ViewModels/IncomeStatementViewModel.vb**: ViewModel with:
+- **Presenters/IncomeStatementPresenter.vb**: Presenter with:
 - `IncomeStatementPeriodType` enum (Monthly, Quarterly, Annual)
 - Period toggle via `IsMonthly`, `IsQuarterly`, `IsAnnual` bool properties backed by a private `PeriodType` property; setting any to `True` triggers a reload
 - Period selectors: `SelectedYear` (int), `SelectedMonth` (int 1–12), `SelectedQuarterLabel` (string "Q1"–"Q4" mapping to private `_selectedQuarter` int)
 - `AvailableYears` (current year –4 to current, descending), `AvailableMonths` (1–12), `AvailableQuarterLabels` ("Q1"–"Q4")
 - P&L display string properties (`NetSalesDisplay`, `COGSDisplay`, `GrossProfitDisplay`, `OperatingExpensesDisplay`, `ShrinkageLossDisplay`, `NetIncomeDisplay`) pre-formatted as `₱X,XXX.XX` for positive amounts and `(₱X,XXX.XX)` for deductions/negatives via `FormatAmount` / `FormatDeduction` private helpers
-- `GrossMarginPercent` and `NetMarginPercent` as Decimal (XAML uses StringFormat for percent display)
+- `GrossMarginPercent` and `NetMarginPercent` as Decimal (Designer code uses StringFormat for percent display)
 - `WhatThisMeansText` (String) bound to `IWhatThisMeansService.GenerateIncomeStatementInterpretation` with previous-period margin comparison
 - `ProductMargins As ObservableCollection(Of ProductMarginDto)` loaded and sorted by `GrossMarginPercent` ascending (lowest margin first)
 - `LoadCommand As AsyncRelayCommand` and `IsBusy As Boolean` for loading state
 - Previous-period fetch: monthly → previous calendar month, quarterly → previous quarter (wraps year), annual → previous year
-- **Views/Accounting/IncomeStatementView.xaml**: UserControl with:
+- **Views/Accounting/IncomeStatementView.Designer code**: UserControl with:
 - Toolbar: title + period toggle RadioButtons (Monthly / Quarterly / Annual) + conditional Month ComboBox (visible when Monthly) + Quarter ComboBox "Q1"–"Q4" (visible when Quarterly) + Year ComboBox (always visible) + Loading indicator + Refresh button
 - "What This Means" box: light-blue panel with 💡 icon, `WhatThisMeansText` binding, always visible (above the TabControl so it persists across tab switches)
 - **Income Statement tab**: 13-row Grid layout — Net Sales, Less: COGS, separator, Gross Profit (with %), Less: Operating Expenses, Shrinkage Loss (indented), separator, Net Income (with %). All amounts bind to pre-formatted string properties. `Courier New` font on amount column for monospaced alignment.
-- **Per-Product Margins tab**: DataGrid with columns ProductName, Revenue, COGS, Gross Profit, Margin %, Units Sold. `StringFormat='₱{0:N2}'` for currency; `CanUserSortColumns="True"` for interactive re-sorting; items delivered pre-sorted by margin ascending from ViewModel.
-- **Views/Accounting/IncomeStatementView.xaml.vb**: code-behind with constructor injection of `IncomeStatementViewModel`.
+- **Per-Product Margins tab**: DataGrid with columns ProductName, Revenue, COGS, Gross Profit, Margin %, Units Sold. `StringFormat='₱{0:N2}'` for currency; `CanUserSortColumns="True"` for interactive re-sorting; items delivered pre-sorted by margin ascending from Presenter.
+- **Views/Accounting/IncomeStatementView.Designer code.vb**: code-behind with constructor injection of `IncomeStatementPresenter`.
 
 ## Feature: ACC-09
 
@@ -106,9 +106,9 @@ Implemented the Income Statement (P&L) View for the Accounting module. Creates a
 Implemented the Sales Summary View — daily/weekly/monthly breakdown by payment method with mandatory "What This Means" interpretation and credit warning logic.
 
 ### Requirements
-- **ViewModels/SalesSummaryViewModel.vb**: ViewModel with `SalesSummaryPeriodType` enum (Daily/Weekly/Monthly), period toggle bool properties (`IsDaily`, `IsWeekly`, `IsMonthly`), visibility helpers (`ShowDatePicker`, `ShowMonthSelectors`, `ShowDailyBreakdown`), 4 KPI card properties (`TotalNetSalesDisplay`, `TransactionCount`, `AvgTransactionValueDisplay`, `TotalReturnsDisplay`), payment breakdown footer properties (`TotalGrossSalesDisplay`, `TotalTxCountDisplay`), `HasCreditWarning` flag (triggered when credit >= 30%), `WhatThisMeansText`, `ObservableCollection(Of PaymentBreakdownDto)`, `ObservableCollection(Of DailySalesDto)`, and `AsyncRelayCommand LoadCommand`. Weekly period anchors to Sunday of the selected date via `AddDays(-(CInt(DayOfWeek)))`.
-- **Views/Accounting/SalesSummaryView.xaml**: Toolbar with Daily/Weekly/Monthly RadioButton toggles; `DatePicker` for Daily/Weekly (visible via `ShowDatePicker`); Month+Year ComboBoxes for Monthly (visible via `ShowMonthSelectors`); mandatory "What This Means" box with `DataTrigger` on `HasCreditWarning` changing background from light blue (#EBF5FB) to light yellow (#FEF9E7) and showing a "⚠ Credit Alert — High AR Exposure" badge; 4 KPI summary cards in a 4-column Grid; payment method breakdown as an `ItemsControl` with custom header/footer rows (footer shows totals from ViewModel); daily breakdown `DataGrid` (Gross Sales / Discounts / Returns / Net Sales / Transactions per day) with `Visibility` bound to `ShowDailyBreakdown`.
-- **Views/Accounting/SalesSummaryView.xaml.vb**: code-behind with constructor injection of `SalesSummaryViewModel`.
+- **Presenters/SalesSummaryPresenter.vb**: Presenter with `SalesSummaryPeriodType` enum (Daily/Weekly/Monthly), period toggle bool properties (`IsDaily`, `IsWeekly`, `IsMonthly`), visibility helpers (`ShowDatePicker`, `ShowMonthSelectors`, `ShowDailyBreakdown`), 4 KPI card properties (`TotalNetSalesDisplay`, `TransactionCount`, `AvgTransactionValueDisplay`, `TotalReturnsDisplay`), payment breakdown footer properties (`TotalGrossSalesDisplay`, `TotalTxCountDisplay`), `HasCreditWarning` flag (triggered when credit >= 30%), `WhatThisMeansText`, `ObservableCollection(Of PaymentBreakdownDto)`, `ObservableCollection(Of DailySalesDto)`, and `AsyncRelayCommand LoadCommand`. Weekly period anchors to Sunday of the selected date via `AddDays(-(CInt(DayOfWeek)))`.
+- **Views/Accounting/SalesSummaryView.Designer code**: Toolbar with Daily/Weekly/Monthly RadioButton toggles; `DatePicker` for Daily/Weekly (visible via `ShowDatePicker`); Month+Year ComboBoxes for Monthly (visible via `ShowMonthSelectors`); mandatory "What This Means" box with `DataTrigger` on `HasCreditWarning` changing background from light blue (#EBF5FB) to light yellow (#FEF9E7) and showing a "⚠ Credit Alert — High AR Exposure" badge; 4 KPI summary cards in a 4-column Grid; payment method breakdown as an `ItemsControl` with custom header/footer rows (footer shows totals from Presenter); daily breakdown `DataGrid` (Gross Sales / Discounts / Returns / Net Sales / Transactions per day) with `Visibility` bound to `ShowDailyBreakdown`.
+- **Views/Accounting/SalesSummaryView.Designer code.vb**: code-behind with constructor injection of `SalesSummaryPresenter`.
 
 ## Feature: ACC-10
 
@@ -130,7 +130,7 @@ Implemented the Accounting VAT Ledger Schema Extension (ACC-10). Added BIR three
 ## Feature: ACC-11
 
 ### Overview
-Implemented the full BIR VAT Reporting Service pipeline for ACC-11. This includes MediatR handlers that consume VAT-enriched events, `IVatReportingService` that generates/files/amends BIR Form 2550M (monthly VAT), Form 2550Q (quarterly VAT), and Form 2551Q (quarterly 3% percentage tax), a `VatReturnExporter` for CSV and plain-text PDF export, and a Manager-only WPF view to preview, lock, and export returns.
+Implemented the full BIR VAT Reporting Service pipeline for ACC-11. This includes MediatR handlers that consume VAT-enriched events, `IVatReportingService` that generates/files/amends BIR Form 2550M (monthly VAT), Form 2550Q (quarterly VAT), and Form 2551Q (quarterly 3% percentage tax), a `VatReturnExporter` for CSV and plain-text PDF export, and a Manager-only WinForms view to preview, lock, and export returns.
 
 ### Requirements
 **New files — SharedKernel:**
@@ -145,11 +145,11 @@ Implemented the full BIR VAT Reporting Service pipeline for ACC-11. This include
 - **MerchSys.Accounting/Services/IVatReportingService.vb**: interface with Generate/Get/List/File/Amend methods
 - **MerchSys.Accounting/Services/VatReportingService.vb**: full implementation; uses IMediator to get VatConfiguration cross-module; private `LedgerData` class aggregates three-bucket totals; `GuardAndClearExistingAsync` enforces lock on Filed returns; `BuildVatReturn` maps all BIR line numbers (2550M: 1-23, 2550Q: 1-28, 2551Q: 1-14); banker's rounding throughout
 - **MerchSys.Accounting/Services/VatReturnExporter.vb**: both `IVatReturnExporter` interface and `VatReturnExporter` class; CSV export enumerates all form-specific BIR lines; PDF export reads embedded `.template` resource with `{{Placeholder}}` substitution, falls back to built-in string if resource missing; returns `MemoryStream`
-- **MerchSys.Accounting/ViewModels/VatReturnViewModel.vb**: `VatReturnLineRow`, `ExportReadyEventArgs`, full ViewModel with IsForm2550M/Q/R boolean properties, `UpdateWhatThisMeans()`, `AsyncRelayCommand` for Generate/File/Amend/ExportCSV/ExportPDF; export commands raise `ExportReady` event (keeps ViewModel in class library without WPF reference)
+- **MerchSys.Accounting/Presenters/VatReturnPresenter.vb**: `VatReturnLineRow`, `ExportReadyEventArgs`, full Presenter with IsForm2550M/Q/R boolean properties, `UpdateWhatThisMeans()`, `AsyncRelayCommand` for Generate/File/Amend/ExportCSV/ExportPDF; export commands raise `ExportReady` event (keeps Presenter in class library without WinForms reference)
 - **MerchSys.Accounting/Migrations/20260515100000_FixVatReturnAmendedIndex.vb**: drops full unique index on `(Year, Period, PeriodType, FormType)`; recreates as partial unique index `WHERE FilingStatus != 3` to allow Amended rows without constraint violation
 **New files — MerchSys.App:**
-- **MerchSys.App/Views/Accounting/VatReturnView.xaml**: Manager-only UserControl; toolbar, "What This Means" strip, Year/Period ComboBoxes, form-type RadioButtons bound to IsForm2550M/Q, summary KPI cards (5 columns), Generate/File/Amend/ExportCSV/ExportPDF buttons, Lines DataGrid
-- **MerchSys.App/Views/Accounting/VatReturnView.xaml.vb**: code-behind subscribes to `ExportReady`; handles `SaveFileDialog` and writes stream to chosen path
+- **MerchSys.App/Views/Accounting/VatReturnView.Designer code**: Manager-only UserControl; toolbar, "What This Means" strip, Year/Period ComboBoxes, form-type RadioButtons bound to IsForm2550M/Q, summary KPI cards (5 columns), Generate/File/Amend/ExportCSV/ExportPDF buttons, Lines DataGrid
+- **MerchSys.App/Views/Accounting/VatReturnView.Designer code.vb**: code-behind subscribes to `ExportReady`; handles `SaveFileDialog` and writes stream to chosen path
 **New files — Templates:**
 - **MerchSys.Accounting/Reports/Templates/Form2550M.template**: plain-text BIR Form 2550M layout with `{{Placeholder}}` substitution markers
 - **MerchSys.Accounting/Reports/Templates/Form2550Q.template**: quarterly VAT form template
@@ -157,8 +157,8 @@ Implemented the full BIR VAT Reporting Service pipeline for ACC-11. This include
 **Modified files:**
 - **MerchSys.Accounting/MerchSys.Accounting.vbproj**: added `<EmbeddedResource>` entries for all three `.template` files
 - **MerchSys.App/Data/DatabaseInitializer.vb**: added `ApplyVatLedgerColumns` (creates `Acc_VatReturns`, `Acc_VatReturnLines`, adds VAT columns to Revenue/Expense tables, backfills zeros) and `ApplyFixVatReturnAmendedIndex` (partial unique index migration) — fills the gap left by ACC-10 which defined the EF migration file but never wired it into the initializer
-- **MerchSys.App/Application.xaml.vb**: registered `IVatReportingService`, `IVatReturnExporter`, `VatReturnViewModel`, `VatReturnView` with DI
-- **MerchSys.App/ViewModels/MainWindowViewModel.vb**: extracted `BuildAccountingNavItems()`; injects `ISessionService`; VAT Return nav item gated on `UserRole.Manager`
+- **MerchSys.App/Application.Designer code.vb**: registered `IVatReportingService`, `IVatReturnExporter`, `VatReturnPresenter`, `VatReturnView` with DI
+- **MerchSys.App/Presenters/MainWindowPresenter.vb**: extracted `BuildAccountingNavItems()`; injects `ISessionService`; VAT Return nav item gated on `UserRole.Manager`
 - **MerchSys.POS/Services/VatConfigurationLoader.vb**: added missing `Imports System.Threading` (pre-existing BC30002 from ACC-10)
 
 ## Feature: ACC-12
@@ -168,8 +168,8 @@ Implemented the VAT Payable KPI widget for the Financial Overview Dashboard (ACC
 Added a `VatPayableKpiProvider` behind an `IKpiProvider` abstraction, a decorator
 `VatEnrichedFinancialOverviewService` that enriches the ACC-03 DTO without touching its
 source file, partial-class extensions on both `FinancialOverviewDto` and
-`FinancialOverviewViewModel`, a "What This Means" insight provider, and a standalone
-`VatPayableTile.xaml` UserControl.
+`FinancialOverviewPresenter`, a "What This Means" insight provider, and a standalone
+`VatPayableTile.Designer code` UserControl.
 
 ### Requirements
 **New files — MerchSys.Accounting:**
@@ -178,20 +178,20 @@ source file, partial-class extensions on both `FinancialOverviewDto` and
 - **Services/VatEnrichedFinancialOverviewService.vb**: decorator; calls inner service then each `IKpiProvider`; maps `"VatPayable"` key to DTO VAT extension fields
 - **Services/Insights/IFinancialInsightProvider.vb**: `IFinancialInsightProvider` interface
 - **Services/Insights/VatPayableInsightProvider.vb**: generates Info/Warning/Critical insight sentences from the enriched DTO
-- **ViewModels/Extensions/FinancialOverviewVatExtension.vb**: two partial classes:
+- **Presenters/Extensions/FinancialOverviewVatExtension.vb**: two partial classes:
 - `Partial Public Class FinancialOverviewDto` (Services namespace) — adds `VatPayable`, `VatPayableLabel`, `VatFilingDueDate`, `VatPayableSeverity`, `IsVatRegistered`, `VatPeriodDescription`
-- `Partial Public Class FinancialOverviewViewModel` (ViewModels namespace) — adds six observable VAT properties, `IsVatWarning`/`IsVatCritical` read-only helpers, `NavigateToVatReturnCommand`, `NavigateToVatReturnRequested` event, and an `OnPropertyChanged` override that triggers `ApplyVatDataFromServiceAsync` on every IsBusy True→False transition (hooking into the existing refresh cycle without modifying the ACC-07 file)
+- `Partial Public Class FinancialOverviewPresenter` (Presenters namespace) — adds six observable VAT properties, `IsVatWarning`/`IsVatCritical` read-only helpers, `NavigateToVatReturnCommand`, `NavigateToVatReturnRequested` event, and an `OnPropertyChanged` override that triggers `ApplyVatDataFromServiceAsync` on every IsBusy True→False transition (hooking into the existing refresh cycle without modifying the ACC-07 file)
 **New files — MerchSys.App:**
-- **Views/Accounting/Components/VatPayableTile.xaml**: standalone `UserControl` with severity DataTriggers (neutral/amber/red), peso amount, label, and due-date secondary line; inherits parent DataContext
-- **Views/Accounting/Components/VatPayableTile.xaml.vb**: minimal code-behind (`InitializeComponent` only; DataContext from parent)
+- **Views/Accounting/Components/VatPayableTile.Designer code**: standalone `UserControl` with severity DataTriggers (neutral/amber/red), peso amount, label, and due-date secondary line; inherits parent DataContext
+- **Views/Accounting/Components/VatPayableTile.Designer code.vb**: minimal code-behind (`InitializeComponent` only; DataContext from parent)
 **Modified files:**
 - `Services/WhatThisMeansService.vb` — added constructor accepting `IEnumerable(Of IFinancialInsightProvider)`; `GenerateOverviewInterpretation` now appends each provider's sentence after the standard text
-- `MerchSys.App/Application.xaml.vb` — replaced single `IFinancialOverviewService` registration with decorator pattern (`FinancialOverviewService` registered as concrete, `IFinancialOverviewService` resolved via factory that wraps it in `VatEnrichedFinancialOverviewService`); added `IKpiProvider`, `IFinancialInsightProvider`, and `VatPayableTile` registrations
+- `MerchSys.App/Application.Designer code.vb` — replaced single `IFinancialOverviewService` registration with decorator pattern (`FinancialOverviewService` registered as concrete, `IFinancialOverviewService` resolved via factory that wraps it in `VatEnrichedFinancialOverviewService`); added `IKpiProvider`, `IFinancialInsightProvider`, and `VatPayableTile` registrations
 **Unchanged (verified via `git diff`):**
 - `Services/IFinancialOverviewService.vb` (ACC-03)
 - `Services/FinancialOverviewService.vb` (ACC-03)
-- `ViewModels/FinancialOverviewViewModel.vb` (ACC-07)
-- `Views/Accounting/FinancialOverviewView.xaml` (ACC-07)
+- `Presenters/FinancialOverviewPresenter.vb` (ACC-07)
+- `Views/Accounting/FinancialOverviewView.Designer code` (ACC-07)
 
 ## Feature: ACC-13
 
@@ -205,11 +205,11 @@ Implemented the VAT Ledger Schema Verification harness (ACC-13) — a `#If DEBUG
 ## Feature: ACC-14
 
 ### Overview
-Implemented ACC-14: VAT Tile Integration into Financial Overview. Placed `VatPayableTile` in `FinancialOverviewView.xaml`, wired the navigation handler in the code-behind using the type-based `NavigationItem` lookup pattern, and produced `VatTileSmokeHarness.vb` for end-to-end verification.
+Implemented ACC-14: VAT Tile Integration into Financial Overview. Placed `VatPayableTile` in `FinancialOverviewView.Designer code`, wired the navigation handler in the code-behind using the type-based `NavigationItem` lookup pattern, and produced `VatTileSmokeHarness.vb` for end-to-end verification.
 
 ### Requirements
-- **Views/Accounting/FinancialOverviewView.xaml**: added `xmlns:vatTiles` namespace, 8th `ColumnDefinition Width="*"`, removed `Margin="0"` override from Inventory Value tile, added `<vatTiles:VatPayableTile Grid.Column="7" Margin="0"/>` as the new last KPI tile
-- **Views/Accounting/FinancialOverviewView.xaml.vb**: added `System.Linq` and `MerchSys.App.ViewModels` imports; wired `AddHandler viewModel.NavigateToVatReturnRequested, AddressOf OnNavigateToVatReturnRequested` in constructor; implemented `OnNavigateToVatReturnRequested` using type-based `NavigationItem` resolution from `MainWindowViewModel.NavigationGroups`
+- **Views/Accounting/FinancialOverviewView.Designer code**: added `xmlns:vatTiles` namespace, 8th `ColumnDefinition Width="*"`, removed `Margin="0"` override from Inventory Value tile, added `<vatTiles:VatPayableTile Grid.Column="7" Margin="0"/>` as the new last KPI tile
+- **Views/Accounting/FinancialOverviewView.Designer code.vb**: added `System.Linq` and `MerchSys.App.Presenters` imports; wired `AddHandler Presenter.NavigateToVatReturnRequested, AddressOf OnNavigateToVatReturnRequested` in constructor; implemented `OnNavigateToVatReturnRequested` using type-based `NavigationItem` resolution from `MainWindowPresenter.NavigationGroups`
 - **Debug/VatTileSmokeHarness.vb**: `#If DEBUG`-gated harness; builds scratch AccountingDbContext in `%TEMP%`; seeds `RevenueRecord` (VatableAmount=₱100,000, OutputVat=₱12,000) and `ExpenseRecord` (InputVat=₱3,000); resolves `IFinancialOverviewService` from isolated ServiceCollection; asserts `ComputedVatPayable = 9000`; navigation check via reflection on host's `IServiceProvider`; writes Markdown report to `%TEMP%\vat-tile-smoke-report-<timestamp>.md`
 - **MerchSys.Accounting.vbproj**: added `Microsoft.Extensions.DependencyInjection 10.0.7` and `Microsoft.Extensions.Hosting.Abstractions 10.0.7` (required by harness for `ServiceCollection`, `BuildServiceProvider()`, and `IHost`)
 
@@ -227,7 +227,7 @@ Implemented the Receipt Tamper Audit Handler for ACC-15. Added a durable, append
 - **MerchSys.Accounting/Handlers/ReceiptTamperDetectedHandler.vb**: `INotificationHandler(Of ReceiptTamperDetectedEvent)`; sink-only, rethrows on save failure after logging Critical; captures `Environment.MachineName` and `WindowsIdentity.GetCurrent()?.Name`
 - **MerchSys.Accounting/Services/ITamperAuditQueryService.vb**: interface + `TamperAuditQueryService` implementation in same file; `GetIncidentsAsync` returns rows ordered by `DetectedAt DESC`; `CountByKindAsync` materializes TamperKind strings then groups in memory to avoid EF translation edge cases
 - Updated `MerchSys.App/Data/DatabaseInitializer.vb` — added `ApplyIfPending` call + `ApplyTamperAuditLog` method with idempotent `CREATE TABLE IF NOT EXISTS`, index, and `CREATE TRIGGER IF NOT EXISTS`
-- Updated `MerchSys.App/Application.xaml.vb` — added `services.AddScoped(Of ITamperAuditQueryService, TamperAuditQueryService)()`; handler is auto-registered via MediatR assembly scanning (`RegisterServicesFromAssembly` on `AccountingDbContext` assembly), no double registration
+- Updated `MerchSys.App/Application.Designer code.vb` — added `services.AddScoped(Of ITamperAuditQueryService, TamperAuditQueryService)()`; handler is auto-registered via MediatR assembly scanning (`RegisterServicesFromAssembly` on `AccountingDbContext` assembly), no double registration
 
 ## Feature: ACC-16
 
@@ -236,11 +236,11 @@ Implemented ACC-16: VatPayableTile Financial Overview Placement & Navigation Wir
 
 Upon inspection, the core functional deliverables of ACC-16 were already implemented by ACC-14
 (`14-vat-tile-integration.md`), which placed the tile and wired the navigation handler ahead of
-this plan executing. ACC-16's remaining output requirement (the XAML documentation comment) was
+this plan executing. ACC-16's remaining output requirement (the Designer code documentation comment) was
 added in this session.
 
 ### Requirements
-- **Views/Accounting/FinancialOverviewView.xaml**: added four-line inline
+- **Views/Accounting/FinancialOverviewView.Designer code**: added four-line inline
 comment above `<vatTiles:VatPayableTile>` documenting the tile's DataContext source
 (`VatEnrichedFinancialOverviewService` decorator), click-navigation chain, and type-based
 NavigationItem lookup
@@ -261,9 +261,9 @@ completion (or on error). BC36943 compliant: `Await` is inside `Try`, not `Catch
 - **Startup/DebugServiceRegistration.vb**: `#If DEBUG`-gated
 `DebugServiceRegistration` Module with `AddDebugServices` extension method that registers
 `DebugMenuView` as Transient in DI.
-- **Application.xaml.vb**: added `#If DEBUG` block calling
+- **Application.Designer code.vb**: added `#If DEBUG` block calling
 `services.AddDebugServices()` after the Shell registrations.
-- **ViewModels/MainWindowViewModel.vb**: refactored
+- **Presenters/MainWindowPresenter.vb**: refactored
 `BuildNavigationGroups` to assign to a local variable before returning, then appends a
 "Developer Tools" `NavigationGroup` with a "Run VAT Schema Harness" `NavigationItem`
 (pointing to `DebugMenuView`) inside a `#If DEBUG` block.
@@ -274,11 +274,11 @@ completion (or on error). BC36943 compliant: `Await` is inside `Try`, not `Catch
 Implemented the Tamper Audit Report UI — a read-only compliance view allowing Manager and Owner roles to review receipt tamper incidents. Consumes `ITamperAuditQueryService` (delivered in ACC-15) and displays incidents in a filterable DataGrid with hash truncation, colour-coded severity, and an empty-state banner.
 
 ### Requirements
-- **ViewModels/TamperAuditReportViewModel.vb**: ViewModel with `TamperAuditEntryDto` nested class, date-range filter (default last 30 days), `LoadCommand` (AsyncRelayCommand), and `HasNoEntries`/`HasEntries` observable properties for conditional visibility
-- **Views/Accounting/TamperAuditReportView.xaml**: DataGrid-based view with 6 columns (Date/Time, Receipt Number, Expected Hash, Actual Hash, Severity, Details); hash columns use `ExpectedHashShort`/`ActualHashShort` (12-char truncation) in the cell and full value in ToolTip; Severity styled red for Critical; empty-state banner bound to `HasNoEntries`
-- **Views/Accounting/TamperAuditReportView.xaml.vb**: Constructor-injection code-behind
-- **ViewModels/MainWindowViewModel.vb**: Added "Tamper Audit Report" `NavigationItem` to `BuildAccountingNavItems()` (unconditional — accessible to both Manager and Owner)
-- **Application.xaml.vb**: Registered `TamperAuditReportViewModel` (Transient) and `Views.Accounting.TamperAuditReportView` (Transient) in the DI container
+- **Presenters/TamperAuditReportPresenter.vb**: Presenter with `TamperAuditEntryDto` nested class, date-range filter (default last 30 days), `LoadCommand` (AsyncRelayCommand), and `HasNoEntries`/`HasEntries` observable properties for conditional visibility
+- **Views/Accounting/TamperAuditReportView.Designer code**: DataGrid-based view with 6 columns (Date/Time, Receipt Number, Expected Hash, Actual Hash, Severity, Details); hash columns use `ExpectedHashShort`/`ActualHashShort` (12-char truncation) in the cell and full value in ToolTip; Severity styled red for Critical; empty-state banner bound to `HasNoEntries`
+- **Views/Accounting/TamperAuditReportView.Designer code.vb**: Constructor-injection code-behind
+- **Presenters/MainWindowPresenter.vb**: Added "Tamper Audit Report" `NavigationItem` to `BuildAccountingNavItems()` (unconditional — accessible to both Manager and Owner)
+- **Application.Designer code.vb**: Registered `TamperAuditReportPresenter` (Transient) and `Views.Accounting.TamperAuditReportView` (Transient) in the DI container
 
 ## Feature: ACC-19
 
@@ -288,11 +288,11 @@ Implemented the BIR VAT Relief Report (ACC-19) — a lightweight, month-scoped s
 ### Requirements
 - **Services/IVatReliefReportService.vb**: defines `VatReliefSummary` DTO and `IVatReliefReportService` interface with `GetMonthlySummaryAsync` and `GetTrailingMonthsAsync`
 - **Services/VatReliefReportService.vb**: implementation using raw `SqliteConnection` + synchronous `reader.Read()` loop (EF Core 10 VB.NET workaround); connection string obtained via `_db.Database.GetConnectionString()` mirroring `VatReportingService`
-- **ViewModels/VatReliefReportViewModel.vb**: MVVM ViewModel with `LoadCommand`/`RefreshCommand`, trailing-months `ObservableCollection`, and `WhatThisMeans` builder using `CultureInfo("en-PH")`
-- **Views/Accounting/VatReliefReportView.xaml**: read-only view: period selector toolbar, Net VAT Payable banner (colour-coded Red/Green/Grey), two side-by-side summary cards (Sales and Purchases), trailing 12-month DataGrid
-- **Views/Accounting/VatReliefReportView.xaml.vb**: minimal code-behind; ViewModel injected via constructor
-- **Application.xaml.vb**: added `AddScoped(Of IVatReliefReportService, VatReliefReportService)`, `AddTransient(Of VatReliefReportViewModel)`, and `AddTransient(Of Views.Accounting.VatReliefReportView)`
-- **ViewModels/MainWindowViewModel.vb**: added "VAT Relief Report" nav item to `BuildAccountingNavItems` (Manager + Owner) and to `BuildOwnerNavigationGroups` Accounting section
+- **Presenters/VatReliefReportPresenter.vb**: MVP Presenter with `LoadCommand`/`RefreshCommand`, trailing-months `ObservableCollection`, and `WhatThisMeans` builder using `CultureInfo("en-PH")`
+- **Views/Accounting/VatReliefReportView.Designer code**: read-only view: period selector toolbar, Net VAT Payable banner (colour-coded Red/Green/Grey), two side-by-side summary cards (Sales and Purchases), trailing 12-month DataGrid
+- **Views/Accounting/VatReliefReportView.Designer code.vb**: minimal code-behind; Presenter injected via constructor
+- **Application.Designer code.vb**: added `AddScoped(Of IVatReliefReportService, VatReliefReportService)`, `AddTransient(Of VatReliefReportPresenter)`, and `AddTransient(Of Views.Accounting.VatReliefReportView)`
+- **Presenters/MainWindowPresenter.vb**: added "VAT Relief Report" nav item to `BuildAccountingNavItems` (Manager + Owner) and to `BuildOwnerNavigationGroups` Accounting section
 - Removed item #1 (BIR VAT Relief Report) from `Plans/Future/deferred-features-backlog.md` and updated `last-synced`
 
 ## Feature: ACC-20
@@ -311,11 +311,11 @@ Implemented the **Tamper Incident Report — CSV / PDF Export (ACC-20)** feature
 - Created `TamperReportFormat.vb` enum defining Csv and Pdf.
 - Created `TamperReportExportOptions.vb` config class.
 - Created `TamperReportExporter.vb` implementing ITamperReportExporter.
-- Modified `TamperAuditReportViewModel.vb` to inject exporter and options, and expose `ExportCsvCommand` and `ExportPdfCommand` relay commands.
+- Modified `TamperAuditReportPresenter.vb` to inject exporter and options, and expose `ExportCsvCommand` and `ExportPdfCommand` relay commands.
 - **App/Views changes**:
-- Registered the scoped exporter service, bound settings configuration, and declared the QuestPDF Community license in `Application.xaml.vb` under Accounting registrations.
-- Added "Export to CSV" and "Export to PDF" buttons in `TamperAuditReportView.xaml`.
-- Implemented the file dialog click handlers and environment suggested path resolver in `TamperAuditReportView.xaml.vb`.
+- Registered the scoped exporter service, bound settings configuration, and declared the QuestPDF Community license in `Application.Designer code.vb` under Accounting registrations.
+- Added "Export to CSV" and "Export to PDF" buttons in `TamperAuditReportView.Designer code`.
+- Implemented the file dialog click handlers and environment suggested path resolver in `TamperAuditReportView.Designer code.vb`.
 - Added `Accounting:TamperReport:Export` configurations in `appsettings.json`.
 
 ## Feature: ACC-21
@@ -356,12 +356,12 @@ Replaced the plain-text "Export PDF" output on three accounting views (Income St
 - **Created:** `Services/Reporting/IVatReliefPdfExporter.vb` — interface for VAT Relief Report PDF generation.
 - **Created:** `Services/Reporting/VatReliefPdfExporter.vb` — QuestPDF implementation rendering Sales/Purchases summaries, Net VAT Payable, interpretation text, and trailing 12-month trend table.
 - **Modified:** `Services/VatReturnExporter.vb` — rewrote `ExportPdfAsync` from plain-text template rendering to QuestPDF `Document.Create()` with a structured BIR form line-number table. Added `BuildCsvLineItems` helper and `VatReturnLineItem` private DTO.
-- **Modified:** `ViewModels/VatReturnViewModel.vb` — changed file extension from `.pdf.txt` to `.pdf` and dialog filter from text files to `"PDF files (*.pdf)|*.pdf"`.
-- **Modified:** `Views/Shell/ReportPreviewWindow.xaml` — replaced `TextBox` with `ItemsControl` of page images inside `ScrollViewer` with inline `DropShadowEffect` for paper-like appearance.
-- **Modified:** `Views/Shell/ReportPreviewWindow.xaml.vb` — new constructor accepts `ReportPdfResult`. Converts page PNG byte arrays to `BitmapImage` sources for preview. "Save As PDF..." writes actual PDF bytes. "Print" renders page images via `PrintDialog.PrintVisual`.
-- **Modified:** `Views/Accounting/IncomeStatementView.xaml.vb` — injected `IIncomeStatementPdfExporter` via constructor. `ExportPdf_Click` generates PDF and opens preview window. Removed old `BuildIncomeStatementReport` plain-text method.
-- **Modified:** `Views/Accounting/VatReliefReportView.xaml.vb` — injected `IVatReliefPdfExporter` via constructor. `ExportPdf_Click` generates PDF and opens preview window. Removed old `BuildVatReliefReport` plain-text method.
-- **Modified:** `Application.xaml.vb` — added two Scoped DI registrations: `IIncomeStatementPdfExporter → IncomeStatementPdfExporter` and `IVatReliefPdfExporter → VatReliefPdfExporter`.
+- **Modified:** `Presenters/VatReturnPresenter.vb` — changed file extension from `.pdf.txt` to `.pdf` and dialog filter from text files to `"PDF files (*.pdf)|*.pdf"`.
+- **Modified:** `Views/Shell/ReportPreviewWindow.Designer code` — replaced `TextBox` with `ItemsControl` of page images inside `ScrollViewer` with inline `DropShadowEffect` for paper-like appearance.
+- **Modified:** `Views/Shell/ReportPreviewWindow.Designer code.vb` — new constructor accepts `ReportPdfResult`. Converts page PNG byte arrays to `BitmapImage` sources for preview. "Save As PDF..." writes actual PDF bytes. "Print" renders page images via `PrintDialog.PrintVisual`.
+- **Modified:** `Views/Accounting/IncomeStatementView.Designer code.vb` — injected `IIncomeStatementPdfExporter` via constructor. `ExportPdf_Click` generates PDF and opens preview window. Removed old `BuildIncomeStatementReport` plain-text method.
+- **Modified:** `Views/Accounting/VatReliefReportView.Designer code.vb` — injected `IVatReliefPdfExporter` via constructor. `ExportPdf_Click` generates PDF and opens preview window. Removed old `BuildVatReliefReport` plain-text method.
+- **Modified:** `Application.Designer code.vb` — added two Scoped DI registrations: `IIncomeStatementPdfExporter → IncomeStatementPdfExporter` and `IVatReliefPdfExporter → VatReliefPdfExporter`.
 
 
 
@@ -390,12 +390,12 @@ last-synced: 2026-06-01
 | What | Path |
 |------|------|
 | SQLite database | `%LOCALAPPDATA%\MerchSys\merchsys.db` |
-| Database config | `WPF_Applications\MerchSys\src\MerchSys.App\Data\DatabaseConfig.vb` |
-| FinancialOverviewView (XAML) | `WPF_Applications\MerchSys\src\MerchSys.App\Views\Accounting\FinancialOverviewView.xaml` |
-| FinancialOverviewView (code-behind) | `WPF_Applications\MerchSys\src\MerchSys.App\Views\Accounting\FinancialOverviewView.xaml.vb` |
-| VatPayableTile | `WPF_Applications\MerchSys\src\MerchSys.App\Views\Accounting\Components\VatPayableTile.xaml.vb` |
-| FinancialOverviewVatExtension | `WPF_Applications\MerchSys\src\MerchSys.Accounting\ViewModels\Extensions\FinancialOverviewVatExtension.vb` |
-| Concurrency harness | `WPF_Applications\MerchSys\src\MerchSys.POS\Tests\Pos.SequenceConcurrencyHarness.vb` |
+| Database config | `WinForms_Applications\MerchSys\src\MerchSys.App\Data\DatabaseConfig.vb` |
+| FinancialOverviewView (Designer code) | `WinForms_Applications\MerchSys\src\MerchSys.App\Views\Accounting\FinancialOverviewView.Designer code` |
+| FinancialOverviewView (code-behind) | `WinForms_Applications\MerchSys\src\MerchSys.App\Views\Accounting\FinancialOverviewView.Designer code.vb` |
+| VatPayableTile | `WinForms_Applications\MerchSys\src\MerchSys.App\Views\Accounting\Components\VatPayableTile.Designer code.vb` |
+| FinancialOverviewVatExtension | `WinForms_Applications\MerchSys\src\MerchSys.Accounting\Presenters\Extensions\FinancialOverviewVatExtension.vb` |
+| Concurrency harness | `WinForms_Applications\MerchSys\src\MerchSys.POS\Tests\Pos.SequenceConcurrencyHarness.vb` |
 
 ---
 
@@ -476,8 +476,8 @@ last-synced: 2026-06-01
 3. Navigate to the **Financial Overview** screen.
 4. Find the VAT Payable tile among the KPI cards.
 
-> **View file:** `WPF_Applications\MerchSys\src\MerchSys.App\Views\Accounting\FinancialOverviewView.xaml`
-> **Tile file:** `WPF_Applications\MerchSys\src\MerchSys.App\Views\Accounting\Components\VatPayableTile.xaml.vb`
+> **View file:** `WinForms_Applications\MerchSys\src\MerchSys.App\Views\Accounting\FinancialOverviewView.Designer code`
+> **Tile file:** `WinForms_Applications\MerchSys\src\MerchSys.App\Views\Accounting\Components\VatPayableTile.Designer code.vb`
 
 **What you should see:**
 - The tile displays a peso amount that matches the sum of VAT for the current period.
@@ -523,7 +523,7 @@ last-synced: 2026-06-01
 4. Look for the VAT Payable tile (it should be among the KPI cards at the top).
 5. Click the VAT Payable tile.
 
-> **Navigation handler:** `WPF_Applications\MerchSys\src\MerchSys.App\Views\Accounting\FinancialOverviewView.xaml.vb` — look for `NavigateToVatReturnRequested`
+> **Navigation handler:** `WinForms_Applications\MerchSys\src\MerchSys.App\Views\Accounting\FinancialOverviewView.Designer code.vb` — look for `NavigateToVatReturnRequested`
 
 **What you should see:**
 - The tile is visible on the Financial Overview.
@@ -560,7 +560,7 @@ last-synced: 2026-06-01
 4. Type: `? Await VatTileSmokeHarness.RunAsync(host)` and press Enter.
 5. Read the output.
 
-> **VAT extension logic:** `WPF_Applications\MerchSys\src\MerchSys.Accounting\ViewModels\Extensions\FinancialOverviewVatExtension.vb`
+> **VAT extension logic:** `WinForms_Applications\MerchSys\src\MerchSys.Accounting\Presenters\Extensions\FinancialOverviewVatExtension.vb`
 
 **What you should see:**
 - `ComputedVatPayable = 9000` (or whatever the expected test value is)
@@ -756,3 +756,4 @@ The Inventory module (`StockService.DeductStockFIFOAsync`) correctly implements 
 **Why deferred:** Highly visual dashboard cards (e.g. outstanding AP alerts, overdue AR collection flags) provide immediate management utility. Comprehensive multi-row ledger grids are deferred to the V2 auditing phase.
 
 ---
+

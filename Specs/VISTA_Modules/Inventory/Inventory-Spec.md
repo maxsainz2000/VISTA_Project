@@ -98,9 +98,9 @@ Implemented predictive stockout estimation for the Inventory module. Calculates 
 Implemented the Stock Dashboard View — the primary Inventory screen. Provides real-time stock visibility across all products with FIFO-costed values, color-coded status, expiry alerts, and predictive stockout estimates. Driven by the existing `IStockDashboardService` (INV-05) and `IStockoutEstimationService` (INV-09).
 
 ### Requirements
-- **ViewModels/StockDashboardViewModel.vb**: ObservableObject ViewModel combining `StockDashboardDto` and `StockoutEstimateDto` into `ProductRowItem` rows. Implements category/status/text filtering, product detail drill-down, and 60-second auto-refresh via `System.Timers.Timer` + captured `SynchronizationContext`.
-- **Views/Inventory/StockDashboardView.xaml**: WPF UserControl with five summary cards, filter toolbar, color-coded DataGrid (DataTrigger row styles), color-coded status/expiry badge columns, and a bottom detail panel for batch list + recent movements.
-- **Views/Inventory/StockDashboardView.xaml.vb**: Code-behind with constructor injection, `SelectionChanged` handler that fires `SelectProductCommand`, and Escape key handler to clear the search box.
+- **Presenters/StockDashboardPresenter.vb**: ObservableObject Presenter combining `StockDashboardDto` and `StockoutEstimateDto` into `ProductRowItem` rows. Implements category/status/text filtering, product detail drill-down, and 60-second auto-refresh via `System.Timers.Timer` + captured `SynchronizationContext`.
+- **Views/Inventory/StockDashboardView.Designer code**: WinForms UserControl with five summary cards, filter toolbar, color-coded DataGrid (DataTrigger row styles), color-coded status/expiry badge columns, and a bottom detail panel for batch list + recent movements.
+- **Views/Inventory/StockDashboardView.Designer code.vb**: Code-behind with constructor injection, `SelectionChanged` handler that fires `SelectProductCommand`, and Escape key handler to clear the search box.
 
 ## Feature: INV-11
 
@@ -108,9 +108,9 @@ Implemented the Stock Dashboard View — the primary Inventory screen. Provides 
 Implemented the Product Management view — a manager-only screen for full product catalog CRUD and category management. Based on INV-11.
 
 ### Requirements
-- **ViewModels/ProductManagementViewModel.vb**: ViewModel with product CRUD, category CRUD, filtering, and overlay dialog state. Injects `InventoryDbContext` directly. Exposes `ProductManagementRowItem` and `CategoryManagementItem` row types.
-- **Views/Inventory/ProductManagementView.xaml**: TabControl with Products tab (DataGrid + toolbar + overlay product editor) and Categories sub-tab (DataGrid + overlay category editor). Deactivate/Reactivate button toggles using `Style.Triggers` on `SelectedProductIsActive`.
-- **Views/Inventory/ProductManagementView.xaml.vb**: Code-behind; constructor-injected ViewModel, Escape key clears search.
+- **Presenters/ProductManagementPresenter.vb**: Presenter with product CRUD, category CRUD, filtering, and overlay dialog state. Injects `InventoryDbContext` directly. Exposes `ProductManagementRowItem` and `CategoryManagementItem` row types.
+- **Views/Inventory/ProductManagementView.Designer code**: TabControl with Products tab (DataGrid + toolbar + overlay product editor) and Categories sub-tab (DataGrid + overlay category editor). Deactivate/Reactivate button toggles using `Style.Triggers` on `SelectedProductIsActive`.
+- **Views/Inventory/ProductManagementView.Designer code.vb**: Code-behind; constructor-injected Presenter, Escape key clears search.
 
 ## Feature: INV-12
 
@@ -118,20 +118,20 @@ Implemented the Product Management view — a manager-only screen for full produ
 Implemented the Expiry Monitor screen (INV-12) — a dedicated view for monitoring batch expiry dates, with near-expiry alerts, expired batch listing, and one-click write-off to shrinkage.
 
 ### Requirements
-- **MerchSys.Inventory/ViewModels/ExpiryMonitorViewModel.vb**: ViewModel with two ObservableCollections (`NearExpiryBatches`, `ExpiredBatches`), three summary properties (`NearExpiryCount`, `ExpiredCount`, `TotalValueAtRisk`), a configurable `DaysThreshold` (default 30, clamped 1–365), `WriteOffCommand` (AsyncRelayCommand(Of ExpiryRowItem)), `RefreshCommand`, status feedback properties (`StatusMessage`, `IsStatusError`), and 60-second auto-refresh timer using the `classlib-viewmodel-auto-refresh-timer` pattern.
-- Created `MerchSys.Inventory/ViewModels/ExpiryRowItem.vb` (nested in the ViewModel file) — flat bindable row with `UrgencyLevel` ("Red" ≤7 days, "Orange" 8–14 days, "Yellow" 15–30 days) driving DataGrid row coloring.
-- **MerchSys.App/Views/Inventory/ExpiryMonitorView.xaml**: three summary cards (NearExpiryCount, ExpiredCount, TotalValueAtRisk), threshold spinner (TextBox + RepeatButtons), TabControl with Near-Expiry and Expired tabs; row styles keyed to `UrgencyLevel`; Expired tab includes a per-row "Write Off" button in a DataGridTemplateColumn.
-- **MerchSys.App/Views/Inventory/ExpiryMonitorView.xaml.vb**: constructor-injected ViewModel, `WriteOffButton_Click` handler (shows MessageBox confirmation before invoking `WriteOffCommand`), threshold spinner handlers, and numeric-only input filter for the threshold TextBox.
+- **MerchSys.Inventory/Presenters/ExpiryMonitorPresenter.vb**: Presenter with two ObservableCollections (`NearExpiryBatches`, `ExpiredBatches`), three summary properties (`NearExpiryCount`, `ExpiredCount`, `TotalValueAtRisk`), a configurable `DaysThreshold` (default 30, clamped 1–365), `WriteOffCommand` (AsyncRelayCommand(Of ExpiryRowItem)), `RefreshCommand`, status feedback properties (`StatusMessage`, `IsStatusError`), and 60-second auto-refresh timer using the `classlib-Presenter-auto-refresh-timer` pattern.
+- Created `MerchSys.Inventory/Presenters/ExpiryRowItem.vb` (nested in the Presenter file) — flat bindable row with `UrgencyLevel` ("Red" ≤7 days, "Orange" 8–14 days, "Yellow" 15–30 days) driving DataGrid row coloring.
+- **MerchSys.App/Views/Inventory/ExpiryMonitorView.Designer code**: three summary cards (NearExpiryCount, ExpiredCount, TotalValueAtRisk), threshold spinner (TextBox + RepeatButtons), TabControl with Near-Expiry and Expired tabs; row styles keyed to `UrgencyLevel`; Expired tab includes a per-row "Write Off" button in a DataGridTemplateColumn.
+- **MerchSys.App/Views/Inventory/ExpiryMonitorView.Designer code.vb**: constructor-injected Presenter, `WriteOffButton_Click` handler (shows MessageBox confirmation before invoking `WriteOffCommand`), threshold spinner handlers, and numeric-only input filter for the threshold TextBox.
 
 ## Feature: INV-13
 
 ### Overview
-Implemented the Shrinkage View — a WPF screen for recording inventory losses and viewing their history with financial impact. Depends on INV-07 (ShrinkageService, IStockService).
+Implemented the Shrinkage View — a WinForms screen for recording inventory losses and viewing their history with financial impact. Depends on INV-07 (ShrinkageService, IStockService).
 
 ### Requirements
-- **MerchSys.Inventory/ViewModels/ShrinkageViewModel.vb**: ViewModel with three helper classes (`ShrinkageRowItem`, `ShrinkageProductItem`, `ShrinkageBatchItem`) and the main `ShrinkageViewModel`
-- **MerchSys.App/Views/Inventory/ShrinkageView.xaml**: UserControl with summary cards, filter toolbar, history DataGrid, and MVVM overlay dialog
-- **MerchSys.App/Views/Inventory/ShrinkageView.xaml.vb**: Code-behind with DI constructor injection, DatePicker sync, reason filter handler, dialog confirmation/validation, and quantity input guard
+- **MerchSys.Inventory/Presenters/ShrinkagePresenter.vb**: Presenter with three helper classes (`ShrinkageRowItem`, `ShrinkageProductItem`, `ShrinkageBatchItem`) and the main `ShrinkagePresenter`
+- **MerchSys.App/Views/Inventory/ShrinkageView.Designer code**: UserControl with summary cards, filter toolbar, history DataGrid, and MVP overlay dialog
+- **MerchSys.App/Views/Inventory/ShrinkageView.Designer code.vb**: Code-behind with DI constructor injection, DatePicker sync, reason filter handler, dialog confirmation/validation, and quantity input guard
 
 ## Feature: INV-14
 
@@ -144,12 +144,12 @@ Implemented the Product RetailPrice Change History feature — a secure, append-
 - **MerchSys.Inventory/Data/InventoryDbContext.vb**: Registered new `DbSet(Of ProductPriceHistory)`.
 - Created manual migration baseline `MerchSys.Inventory/Migrations/20260527100000_AddProductPriceHistory.vb`.
 - **MerchSys.App/Data/DatabaseInitializer.vb**: Registered the baseline migration and wrote the idempotent ADO.NET SQL migration script to apply the schema (table and index) automatically on app startup.
-- **MerchSys.Inventory/ViewModels/ProductPriceHistoryViewModel.vb**: Popup viewer ViewModel exposing list loading via explicit DTO projection (`PriceHistoryRowItem`) to circumvent the VB.NET full-entity query silent empty bug.
-- **MerchSys.Inventory/ViewModels/ProductManagementViewModel.vb**: Injected `ISessionService` to fetch user credentials, added change reason binding `EditorPriceChangeReason`, and transactionally wrote price histories inside `SaveProductAsync` if prices changed.
-- **MerchSys.App/Application.xaml.vb**: Registered the view model and popup window view in the startup DI container.
-- **MerchSys.App/Views/Inventory/ProductManagementView.xaml**: Wired the "Price History" button next to existing toolbar actions and added the "Price Change Reason (optional)" textbox in the product edit card overlay.
-- **MerchSys.App/Views/Inventory/ProductManagementView.xaml.vb**: Injected `IServiceProvider` and wrote the button click handler to dynamically instantiate, initialize, and display the history dialog.
-- Created `MerchSys.App/Views/Inventory/ProductPriceHistoryView.xaml` & `ProductPriceHistoryView.xaml.vb` — WPF Window popup showcasing a premium DataGrid ledger with colored price deltas (green for increase, red for decrease) and operating logs.
+- **MerchSys.Inventory/Presenters/ProductPriceHistoryPresenter.vb**: Popup viewer Presenter exposing list loading via explicit DTO projection (`PriceHistoryRowItem`) to circumvent the VB.NET full-entity query silent empty bug.
+- **MerchSys.Inventory/Presenters/ProductManagementPresenter.vb**: Injected `ISessionService` to fetch user credentials, added change reason binding `EditorPriceChangeReason`, and transactionally wrote price histories inside `SaveProductAsync` if prices changed.
+- **MerchSys.App/Application.Designer code.vb**: Registered the view model and popup window view in the startup DI container.
+- **MerchSys.App/Views/Inventory/ProductManagementView.Designer code**: Wired the "Price History" button next to existing toolbar actions and added the "Price Change Reason (optional)" textbox in the product edit card overlay.
+- **MerchSys.App/Views/Inventory/ProductManagementView.Designer code.vb**: Injected `IServiceProvider` and wrote the button click handler to dynamically instantiate, initialize, and display the history dialog.
+- Created `MerchSys.App/Views/Inventory/ProductPriceHistoryView.Designer code` & `ProductPriceHistoryView.Designer code.vb` — WinForms Window popup showcasing a premium DataGrid ledger with colored price deltas (green for increase, red for decrease) and operating logs.
 
 ## Feature: INV-15
 
@@ -159,18 +159,18 @@ Enhanced the Stock Dashboard product list grid by replacing the single "Price" c
 ### Requirements
 - **Modified:** `Services/IStockDashboardService.vb` — added properties `AverageUnitCost As Decimal` and `FifoOldestUnitCost As Decimal` to `ProductSummaryDto` class inside the file.
 - **Modified:** `Services/StockDashboardService.vb` — calculated weighted average cost across remaining non-expired batches, retrieved FIFO oldest non-expired batch unit cost, and populated the DTO. Avoided variable shadowing inside lambdas.
-- **Modified:** `Views/Inventory/StockDashboardView.xaml` — replaced the single Price column with three columns incorporating bindings, currency formatting `₱{0:N2}`, right-alignment, and helpful tooltips for each header.
+- **Modified:** `Views/Inventory/StockDashboardView.Designer code` — replaced the single Price column with three columns incorporating bindings, currency formatting `₱{0:N2}`, right-alignment, and helpful tooltips for each header.
 
 
 
 ### Future / Backlog Item
 
-## 10. ISyncableRepository Write-Path Migration — ProductManagementViewModel
+## 10. ISyncableRepository Write-Path Migration — ProductManagementPresenter
 
 **Status:** CLOSED (2026-05-27) — out-of-scope for single-branch deployment.
 **Module:** Infrastructure / Inventory
 **Source:** INFRA-13 What's Next
-**Description:** Migrate `Inventory/ViewModels/ProductManagementViewModel.vb` write paths to use `ISyncableRepository` so that product edits are captured in the `Sync_Journal`.
+**Description:** Migrate `Inventory/Presenters/ProductManagementPresenter.vb` write paths to use `ISyncableRepository` so that product edits are captured in the `Sync_Journal`.
 **Scope decision (2026-05-27):** Closed without migration. Rationale:
 1. Villon Farm Supply is single-location (`LLM_Wiki/wiki/entities/villon-farm-supply.md`); there is no second branch needing the same catalog.
 2. Product CRUD is a Manager-only function performed on a single terminal — no second writer to converge.
@@ -324,3 +324,4 @@ The Inventory module (`StockService.DeductStockFIFOAsync`) correctly implements 
 **Why deferred:** Villon Farm Supply manages a compact inventory mix of approximately 50 distinct SKUs, making keyboard search and dropdown selection highly efficient. Physical hardware integration is deferred to V2 when transaction velocity justifies the hardware expense.
 
 ---
+
