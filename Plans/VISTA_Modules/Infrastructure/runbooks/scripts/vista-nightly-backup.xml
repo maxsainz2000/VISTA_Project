@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-16"?>
+<!--
+  VISTA Nightly Backup — Windows Task Scheduler job
+  INFRA-29
+
+  Import via:
+    schtasks /Create /XML "vista-nightly-backup.xml" /TN "VISTA\NightlyBackup"
+
+  Or via Task Scheduler GUI:
+    Action > Import Task > select this file.
+
+  Before importing, update:
+    <Arguments> — replace <BACKUP-PASSWORD> with the real backup_user password.
+    <StartBoundary> — adjust the time if 02:00 is not suitable.
+-->
+<Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+  <RegistrationInfo>
+    <Date>2026-05-28T02:00:00</Date>
+    <Author>VISTA IT Admin</Author>
+    <Description>Nightly compressed mysqldump of merchsys_central with 7-day/4-week/6-month retention. See runbooks/03-nightly-backup.md for details.</Description>
+    <URI>\VISTA\NightlyBackup</URI>
+  </RegistrationInfo>
+  <Triggers>
+    <CalendarTrigger>
+      <StartBoundary>2026-05-29T02:00:00</StartBoundary>
+      <Enabled>true</Enabled>
+      <ScheduleByDay>
+        <DaysInterval>1</DaysInterval>
+      </ScheduleByDay>
+    </CalendarTrigger>
+  </Triggers>
+  <Principals>
+    <Principal id="Author">
+      <LogonType>Password</LogonType>
+      <RunLevel>HighestAvailable</RunLevel>
+    </Principal>
+  </Principals>
+  <Settings>
+    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>
+    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
+    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
+    <AllowHardTerminate>true</AllowHardTerminate>
+    <StartWhenAvailable>true</StartWhenAvailable>
+    <RunOnlyIfNetworkAvailable>false</RunOnlyIfNetworkAvailable>
+    <IdleSettings>
+      <StopOnIdleEnd>false</StopOnIdleEnd>
+      <RestartOnIdle>false</RestartOnIdle>
+    </IdleSettings>
+    <AllowStartOnDemand>true</AllowStartOnDemand>
+    <Enabled>true</Enabled>
+    <Hidden>false</Hidden>
+    <RunOnlyIfIdle>false</RunOnlyIfIdle>
+    <WakeToRun>false</WakeToRun>
+    <ExecutionTimeLimit>PT1H</ExecutionTimeLimit>
+    <Priority>7</Priority>
+  </Settings>
+  <Actions Context="Author">
+    <Exec>
+      <Command>pwsh.exe</Command>
+      <Arguments>-NonInteractive -NoProfile -ExecutionPolicy Bypass -File "C:\Program Files\VISTA\runbooks\scripts\backup-mysqldump.ps1" -BackupPassword "&lt;BACKUP-PASSWORD&gt;" -BackupRoot "\\BACKUP-MACHINE\vista"</Arguments>
+      <WorkingDirectory>C:\Program Files\VISTA</WorkingDirectory>
+    </Exec>
+  </Actions>
+</Task>

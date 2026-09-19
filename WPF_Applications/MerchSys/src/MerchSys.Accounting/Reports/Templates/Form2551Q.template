@@ -1,0 +1,34 @@
+BIR FORM 2551Q — Quarterly Percentage Tax Return
+{{BusinessName}}
+TIN: {{BusinessTIN}}
+Period: {{PeriodDescription}}
+Generated: {{GeneratedAt}}
+Filing Status: {{FilingStatus}}
+================================================================================
+
+NOTE: This business is NOT VAT-registered.
+      Form 2551Q covers the 3% Percentage Tax on gross receipts.
+
+PART II: COMPUTATION OF TAX
+
+  Line  1  Gross Taxable Receipts — 1st Month         {{Month1GrossReceipts}}
+  Line  2  Gross Taxable Receipts — 2nd Month         {{Month2GrossReceipts}}
+  Line  3  Gross Taxable Receipts — 3rd Month         {{Month3GrossReceipts}}
+  Line  4  Total Gross Taxable Receipts               {{TotalVatableSales}}
+
+  Line  5  Rate of Tax                                {{TaxRate}}
+  Line  6  Tax Due (Line 4 × Line 5)                  {{VatPayable}}
+
+  Line  7  Less: Tax Paid in Previous Months          0.00
+  Line  8  Tax Still Due                              {{VatPayable}}
+
+Interest, Surcharge & Penalty:
+  Line  9  Surcharge                                  0.00
+  Line 10  Interest                                   0.00
+  Line 11  Compromise                                 0.00
+
+  Line 14  TOTAL AMOUNT DUE                           {{VatPayable}}
+
+================================================================================
+Filing Deadline: {{FilingDeadline}}
+{{WhatThisMeans}}

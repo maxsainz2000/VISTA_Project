@@ -1,0 +1,148 @@
+<UserControl x:Class="Views.Shell.ActivityRail"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MerchSys.App.ViewModels.Shell"
+             xmlns:models="clr-namespace:MerchSys.App.Models"
+             mc:Ignorable="d"
+             d:DesignHeight="720" d:DesignWidth="60"
+             Background="{DynamicResource SidebarBackgroundBrush}">
+
+    <UserControl.Resources>
+
+        <!--
+            Rail icon button style.
+            We use a single template to control the visual states.
+            Hover/Active animations swap the Opacity of named Border elements for smooth transition.
+        -->
+        <Style x:Key="RailButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="60"/>
+            <Setter Property="Height" Value="60"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <!-- Active selection pill (macOS-style sidebar selection) -->
+                            <Border x:Name="ActiveBg"
+                                    CornerRadius="{DynamicResource RadiusSmall}"
+                                    Background="{DynamicResource SelectionBackgroundBrush}"
+                                    Margin="8,6"
+                                    Opacity="0"/>
+                            <!-- Hover pill background -->
+                            <Border x:Name="HoverBg"
+                                    CornerRadius="{DynamicResource RadiusSmall}"
+                                    Background="{DynamicResource HoverBackgroundBrush}"
+                                    Margin="8,6"
+                                    Opacity="0"/>
+                            <!-- Content presenter -->
+                            <ContentPresenter VerticalAlignment="Center"
+                                              HorizontalAlignment="Center"
+                                              RecognizesAccessKey="True"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <!-- Hover animation (~120ms transition) -->
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="HoverBg"
+                                                             Storyboard.TargetProperty="Opacity"
+                                                             To="1" Duration="{StaticResource MotionDurationFast}"
+                                                             EasingFunction="{StaticResource MotionEasing}"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="HoverBg"
+                                                             Storyboard.TargetProperty="Opacity"
+                                                             To="0" Duration="{StaticResource MotionDurationFast}"
+                                                             EasingFunction="{StaticResource MotionEasing}"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                            </Trigger>
+                            <!-- Selection active state data trigger -->
+                            <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                <DataTrigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="ActiveBg"
+                                                             Storyboard.TargetProperty="Opacity"
+                                                             To="1" Duration="{StaticResource MotionDurationFast}"
+                                                             EasingFunction="{StaticResource MotionEasing}"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </DataTrigger.EnterActions>
+                                <DataTrigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="ActiveBg"
+                                                             Storyboard.TargetProperty="Opacity"
+                                                             To="0" Duration="{StaticResource MotionDurationFast}"
+                                                             EasingFunction="{StaticResource MotionEasing}"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </DataTrigger.ExitActions>
+                                <Setter Property="Foreground" Value="{DynamicResource SelectionForegroundBrush}"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                            </DataTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+    </UserControl.Resources>
+
+    <!-- Right border separator wraps the rail content to separate it from the module detail panel -->
+    <Border BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="0,0,1,0">
+        <DockPanel>
+
+            <!-- App identifier at top -->
+            <TextBlock DockPanel.Dock="Top"
+                       Text="V"
+                       Foreground="{DynamicResource TextPrimaryBrush}"
+                       FontSize="{DynamicResource FontSizeTitle}"
+                       FontWeight="Bold"
+                       HorizontalAlignment="Center"
+                       Margin="0,16,0,16"
+                       ToolTip="VISTA — Villon Integrated Supply and Trade Application"/>
+
+            <!-- Divider -->
+            <Border DockPanel.Dock="Top" 
+                    Height="1" 
+                    Background="{DynamicResource SeparatorBrush}" 
+                    Margin="4,0,4,4"/>
+
+            <!-- Module icon buttons -->
+            <ItemsControl DockPanel.Dock="Top"
+                          ItemsSource="{Binding RailItems}"
+                          Focusable="False">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type models:RailItem}">
+                        <Button Command="{Binding DataContext.SelectModuleCommand,
+                                                   RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                CommandParameter="{Binding ModuleId}"
+                                ToolTip="{Binding ToolTipText}"
+                                Content="{Binding Abbreviation}"
+                                Style="{StaticResource RailButtonStyle}"
+                                AutomationProperties.Name="{Binding ToolTipText}"
+                                AutomationProperties.HelpText="{Binding ToolTipText}"/>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+        </DockPanel>
+    </Border>
+
+</UserControl>

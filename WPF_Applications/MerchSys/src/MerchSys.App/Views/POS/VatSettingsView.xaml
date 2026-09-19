@@ -1,0 +1,204 @@
+<UserControl x:Class="Views.POS.VatSettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
+             xmlns:helpers="clr-namespace:MerchSys.App.Helpers"
+             mc:Ignorable="d"
+             d:DesignHeight="620" d:DesignWidth="800"
+             Background="{DynamicResource WindowBackgroundBrush}">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
+        <Style x:Key="FormInput" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+            <Setter Property="Padding" Value="6,4"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <DockPanel Margin="14">
+
+            <!-- ═══════════════════════════════════════════════════════════
+                 TOOLBAR
+                 ═══════════════════════════════════════════════════════════ -->
+            <Border DockPanel.Dock="Top"
+                    Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                    CornerRadius="{DynamicResource RadiusSmall}" Padding="14,8" Margin="0,0,0,10"
+                    Effect="{DynamicResource CardShadow}">
+                <Grid>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="VAT Settings" FontSize="{DynamicResource FontSizeSubhead}" FontWeight="Bold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        <TextBlock Text=" — BIR Registration &amp; Tax Rates" FontSize="{DynamicResource FontSizeBody}"
+                                   Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <TextBlock Text="Saving…" FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}"
+                                   VerticalAlignment="Center" Margin="0,0,10,0"
+                                   Visibility="{Binding IsSaving, Converter={StaticResource BoolToVis}}"/>
+                        <Button Content="_Reload" Command="{Binding ReloadCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,6,0"
+                                TabIndex="1"/>
+                        <Button Content="_Save" Command="{Binding SaveCommand}"
+                                Style="{StaticResource PrimaryButtonStyle}" Margin="0"
+                                IsDefault="True" TabIndex="2"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <ScrollViewer DockPanel.Dock="Top" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel Margin="0,0,10,0">
+
+                    <!-- ═══════════════════════════════════════════════════════════
+                         VALIDATION ERRORS
+                         ═══════════════════════════════════════════════════════════ -->
+                    <Border
+                    Background="{DynamicResource SidebarBackgroundBrush}" BorderBrush="{DynamicResource DangerBrush}" BorderThickness="1"
+                    CornerRadius="{DynamicResource RadiusSmall}" Padding="12,8" Margin="0,0,0,10">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Visibility" Value="Visible"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding ValidationErrors.Count}" Value="0">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <ItemsControl ItemsSource="{Binding ValidationErrors}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" Style="{StaticResource ErrorText}"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Border>
+
+            <!-- ═══════════════════════════════════════════════════════════
+                 REGISTRATION STATUS
+                 ═══════════════════════════════════════════════════════════ -->
+                    <Border Style="{StaticResource CardStyle}" Padding="20,16" Margin="0,0,0,10">
+                <StackPanel>
+                    <TextBlock Text="Registration Status" FontSize="{DynamicResource FontSizeBody}" FontWeight="Bold"
+                               Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
+
+                    <CheckBox IsChecked="{Binding IsVatRegistered, Mode=TwoWay}"
+                              FontSize="{DynamicResource FontSizeBody}" Foreground="{DynamicResource TextPrimaryBrush}" Cursor="Hand"
+                              TabIndex="3">
+                        <TextBlock TextWrapping="Wrap">
+                            <Run Text="Business is VAT-registered with BIR"/>
+                            <LineBreak/>
+                            <Run Text="(Applies when annual gross sales exceed ₱3M)" FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        </TextBlock>
+                    </CheckBox>
+                </StackPanel>
+            </Border>
+
+            <!-- ═══════════════════════════════════════════════════════════
+                 TAX RATES  (two-column grid)
+                 ═══════════════════════════════════════════════════════════ -->
+                    <Border Style="{StaticResource CardStyle}" Padding="20,16" Margin="0,0,0,10">
+                <StackPanel>
+                    <TextBlock Text="Tax Rates" FontSize="{DynamicResource FontSizeBody}" FontWeight="Bold"
+                               Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
+
+                    <StackPanel>
+                        <!-- TIN (visible only when VAT-registered) -->
+                        <HeaderedContentControl Header="TIN (BIR)"
+                                                Style="{StaticResource FieldRowStyle}"
+                                                helpers:FormHelper.IsRequired="True"
+                                                Visibility="{Binding IsVatRegistered, Converter={StaticResource BoolToVis}}">
+                            <TextBox Text="{Binding Tin, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, NotifyOnValidationError=True}"
+                                     MaxLength="20"
+                                     Style="{StaticResource FormInput}"
+                                     TabIndex="4"/>
+                        </HeaderedContentControl>
+
+                        <!-- VAT Rate (visible only when VAT-registered) -->
+                        <HeaderedContentControl Header="VAT Rate (%)"
+                                                Style="{StaticResource FieldRowStyle}"
+                                                helpers:FormHelper.IsRequired="False"
+                                                Visibility="{Binding IsVatRegistered, Converter={StaticResource BoolToVis}}">
+                            <TextBox Text="{Binding VatRatePercent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, NotifyOnValidationError=True}"
+                                     helpers:FormHelper.InputMode="PositiveDecimal"
+                                     MaxLength="6"
+                                     Style="{StaticResource FormInput}"
+                                     TabIndex="5"/>
+                        </HeaderedContentControl>
+
+                        <!-- Percentage Tax Rate (visible only when NOT VAT-registered) -->
+                        <HeaderedContentControl Header="Percentage Tax Rate (%)"
+                                                Style="{StaticResource FieldRowStyle}"
+                                                helpers:FormHelper.IsRequired="False"
+                                                Visibility="{Binding IsNotVatRegistered, Converter={StaticResource BoolToVis}}">
+                            <TextBox Text="{Binding PercentageTaxRatePercent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, NotifyOnValidationError=True}"
+                                     helpers:FormHelper.InputMode="PositiveDecimal"
+                                     MaxLength="6"
+                                     Style="{StaticResource FormInput}"
+                                     TabIndex="6"/>
+                        </HeaderedContentControl>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- ═══════════════════════════════════════════════════════════
+                 BUSINESS INFORMATION  (two-column grid)
+                 ═══════════════════════════════════════════════════════════ -->
+                    <Border Style="{StaticResource CardStyle}" Padding="20,16" Margin="0,0,0,10">
+                <StackPanel>
+                    <TextBlock Text="Business Information" FontSize="{DynamicResource FontSizeBody}" FontWeight="Bold"
+                               Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
+
+                    <StackPanel>
+                        <HeaderedContentControl Header="Registered Business Name"
+                                                Style="{StaticResource FieldRowStyle}"
+                                                helpers:FormHelper.IsRequired="True">
+                            <TextBox Text="{Binding RegisteredBusinessName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, NotifyOnValidationError=True}"
+                                     MaxLength="200"
+                                     Style="{StaticResource FormInput}"
+                                     TabIndex="7"/>
+                        </HeaderedContentControl>
+
+                        <HeaderedContentControl Header="Registered Address"
+                                                Style="{StaticResource FieldRowStyle}"
+                                                helpers:FormHelper.IsRequired="True">
+                            <TextBox Text="{Binding RegisteredAddress, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, NotifyOnValidationError=True}"
+                                     AcceptsReturn="True" MinHeight="60" MaxHeight="100"
+                                     TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
+                                     MaxLength="500"
+                                     Style="{StaticResource FormInput}"
+                                     TabIndex="8"/>
+                        </HeaderedContentControl>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- ═══════════════════════════════════════════════════════════
+                 STATUS MESSAGE
+                 ═══════════════════════════════════════════════════════════ -->
+                    <TextBlock Text="{Binding StatusMessage}"
+                               FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}"
+                               Margin="2,0,0,0" TextWrapping="Wrap"/>
+                </StackPanel>
+            </ScrollViewer>
+
+        </DockPanel>
+
+        <views:BusyOverlay Message="Saving settings..."
+                           Visibility="{Binding IsSaving, Converter={StaticResource BoolToVis}}"
+                           HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+
+        <views:ErrorStatePanel Title="Load Failed"
+                               Message="{Binding ErrorMessage}"
+                               RetryCommand="{Binding ReloadCommand}"
+                               Visibility="{Binding IsError, Converter={StaticResource BoolToVis}}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+    </Grid>
+</UserControl>

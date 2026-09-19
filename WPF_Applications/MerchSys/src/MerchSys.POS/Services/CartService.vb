@@ -1,0 +1,463 @@
+Imports System.Collections.Concurrent
+Imports System.Threading
+Imports MySqlConnector
+Imports Microsoft.EntityFrameworkCore
+Imports MerchSys.POS.Data
+Imports MerchSys.POS.Entities
+Imports MerchSys.SharedKernel.Enums
+Imports MerchSys.SharedKernel.Persistence
+Imports MerchSys.SharedKernel.Paging
+Imports Microsoft.Extensions.Logging
+
+Namespace Services
+
+    Public Class CartService
+        Implements ICartService
+
+        ''' <summary>
+        ''' In-memory cart store shared across DI scope lifetimes for the lifetime of the process.
+        ''' Carts are created here and removed when finalized or abandoned.
+        ''' </summary>
+        Private Shared ReadOnly _carts As New ConcurrentDictionary(Of Guid, CartDto)()
+
+        Private ReadOnly _context As POSDbContext
+        Private ReadOnly _receiptService As IReceiptService
+        Private ReadOnly _vatConfigLoader As VatConfigurationLoader
+        Private ReadOnly _logger As Microsoft.Extensions.Logging.ILogger(Of CartService)
+
+        Public Sub New(context As POSDbContext,
+                       receiptService As IReceiptService,
+                       vatConfigLoader As VatConfigurationLoader,
+                       logger As Microsoft.Extensions.Logging.ILogger(Of CartService))
+            _context = context
+            _receiptService = receiptService
+            _vatConfigLoader = vatConfigLoader
+            _logger = logger
+        End Sub
+
+        Public Async Function CreateCartAsync() As Task(Of CartDto) Implements ICartService.CreateCartAsync
+            Dim cart As New CartDto() With {.CartId = Guid.NewGuid()}
+            Await RecalculateTotalsAsync(cart)
+            _carts(cart.CartId) = cart
+            Return cart
+        End Function
+
+        Public Function GetCartAsync(cartId As Guid) As Task(Of CartDto) Implements ICartService.GetCartAsync
+            Return Task.FromResult(GetCart(cartId))
+        End Function
+
+        Public Async Function AddLineAsync(cartId As Guid, productId As Integer, productName As String, quantity As Integer, unitPrice As Decimal) As Task(Of CartDto) Implements ICartService.AddLineAsync
+            Dim cart = GetCart(cartId)
+            cart.Lines.Add(New CartLineDto() With {
+                .ProductId = productId,
+                .ProductName = productName,
+                .Quantity = quantity,
+                .UnitPrice = unitPrice,
+                .DiscountAmount = 0D
+            })
+            Await RecalculateTotalsAsync(cart)
+            Return cart
+        End Function
+
+        Public Async Function UpdateLineQuantityAsync(cartId As Guid, lineIndex As Integer, newQuantity As Integer) As Task(Of CartDto) Implements ICartService.UpdateLineQuantityAsync
+            Dim cart = GetCart(cartId)
+            ValidateLineIndex(cart, lineIndex)
+            cart.Lines(lineIndex).Quantity = newQuantity
+            Await RecalculateTotalsAsync(cart)
+            Return cart
+        End Function
+
+        Public Async Function RemoveLineAsync(cartId As Guid, lineIndex As Integer) As Task(Of CartDto) Implements ICartService.RemoveLineAsync
+            Dim cart = GetCart(cartId)
+            ValidateLineIndex(cart, lineIndex)
+            cart.Lines.RemoveAt(lineIndex)
+            Await RecalculateTotalsAsync(cart)
+            Return cart
+        End Function
+
+        Public Async Function ApplyLineDiscountAsync(cartId As Guid, lineIndex As Integer, discountAmount As Decimal) As Task(Of CartDto) Implements ICartService.ApplyLineDiscountAsync
+            Dim cart = GetCart(cartId)
+            ValidateLineIndex(cart, lineIndex)
+            cart.Lines(lineIndex).DiscountAmount = discountAmount
+            Await RecalculateTotalsAsync(cart)
+            Return cart
+        End Function
+
+        Public Async Function FinalizeAsync(cartId As Guid, paymentMethod As PaymentMethod, amountTendered As Decimal, Optional customerId As Integer? = Nothing) As Task(Of SalesTransaction) Implements ICartService.FinalizeAsync
+            Dim cart = GetCart(cartId)
+
+            If cart.Lines.Count = 0 Then
+                Throw New InvalidOperationException("Cannot finalize an empty cart.")
+            End If
+
+            If paymentMethod = PaymentMethod.Cash AndAlso amountTendered < cart.GrandTotal Then
+                Throw New InvalidOperationException($"Insufficient cash tendered. Required: {cart.GrandTotal:F2}, tendered: {amountTendered:F2}.")
+            End If
+
+            Dim creditAccount As CreditAccount = Nothing
+            If paymentMethod = PaymentMethod.Credit Then
+                creditAccount = Await ValidateCreditCustomerAsync(customerId)
+            End If
+
+            Dim txNumber = Await GenerateTransactionNumberAsync()
+            Dim now = DateTime.UtcNow
+            Dim changeAmount = If(paymentMethod = PaymentMethod.Cash, amountTendered - cart.GrandTotal, 0D)
+
+            Dim transaction As New SalesTransaction() With {
+                .TransactionNumber = txNumber,
+                .TransactionDate = now,
+                .CustomerId = customerId,
+                .CustomerName = If(creditAccount IsNot Nothing, creditAccount.CustomerName, Nothing),
+                .PaymentMethod = paymentMethod,
+                .SubTotal = cart.SubTotal,
+                .DiscountAmount = cart.DiscountTotal,
+                .VatAmount = cart.VatAmount,
+                .TotalAmount = cart.GrandTotal,
+                .AmountTendered = amountTendered,
+                .ChangeAmount = changeAmount,
+                .IsVoided = False,
+                .CreditAccount = creditAccount
+            }
+
+            For Each cartLine In cart.Lines
+                transaction.Lines.Add(New SalesTransactionLine() With {
+                    .ProductId = cartLine.ProductId,
+                    .ProductName = cartLine.ProductName,
+                    .Quantity = cartLine.Quantity,
+                    .UnitPrice = cartLine.UnitPrice,
+                    .DiscountAmount = cartLine.DiscountAmount,
+                    .LineTotal = cartLine.LineTotal
+                })
+            Next
+
+            _context.SalesTransactions.Add(transaction)
+            Await _context.SaveChangesAsync()
+
+            Dim removed As CartDto = Nothing
+            _carts.TryRemove(cartId, removed)
+
+            Return transaction
+        End Function
+
+        Public Async Function VoidTransactionAsync(transactionId As Integer, reason As String) As Task Implements ICartService.VoidTransactionAsync
+            Dim transaction = Await _context.SalesTransactions.FindAsync(transactionId)
+            If transaction Is Nothing Then
+                Throw New InvalidOperationException($"Transaction {transactionId} not found.")
+            End If
+            If transaction.IsVoided Then
+                Throw New InvalidOperationException($"Transaction {transactionId} is already voided.")
+            End If
+            transaction.IsVoided = True
+            transaction.VoidReason = reason
+            Await _context.SaveChangesAsync()
+        End Function
+
+        Public Async Function GetTransactionHistoryAsync(Optional startDate As DateTime? = Nothing, Optional endDate As DateTime? = Nothing) As Task(Of List(Of SalesTransaction)) Implements ICartService.GetTransactionHistoryAsync
+            Dim txHistoryList As New List(Of SalesTransaction)()
+            Dim thConnStr = _context.Database.GetConnectionString()
+            Using thConn As New MySqlConnection(thConnStr)
+                Await thConn.OpenAsync()
+
+                Dim thSql = "SELECT Id, TransactionNumber, TransactionDate, CustomerId, CustomerName, " &
+                             "PaymentMethod, SubTotal, DiscountAmount, VatAmount, TotalAmount, " &
+                             "AmountTendered, ChangeAmount, IsVoided, VoidReason, " &
+                             "IsDeleted, DeletedBy, DeletedAt, CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                             "FROM Pos_SalesTransactions WHERE IsDeleted = 0"
+                If startDate.HasValue Then thSql &= " AND TransactionDate >= @startDate"
+                If endDate.HasValue Then thSql &= " AND TransactionDate <= @endDate"
+                thSql &= " ORDER BY TransactionDate DESC"
+
+                Using thCmd = thConn.CreateCommand()
+                    thCmd.CommandText = thSql
+                    If startDate.HasValue Then thCmd.Parameters.Add(New MySqlParameter("@startDate", startDate.Value))
+                    If endDate.HasValue Then thCmd.Parameters.Add(New MySqlParameter("@endDate", endDate.Value))
+                    Using thReader = thCmd.ExecuteReader()
+                        While thReader.Read()
+                            txHistoryList.Add(New SalesTransaction With {
+                                .Id = thReader.GetInt32(0),
+                                .TransactionNumber = thReader.GetString(1),
+                                .TransactionDate = thReader.GetDateTime(2),
+                                .CustomerId = If(thReader.IsDBNull(3), CType(Nothing, Integer?), thReader.GetInt32(3)),
+                                .CustomerName = If(thReader.IsDBNull(4), Nothing, thReader.GetString(4)),
+                                .PaymentMethod = CType(thReader.GetInt32(5), PaymentMethod),
+                                .SubTotal = thReader.GetDecimal(6),
+                                .DiscountAmount = thReader.GetDecimal(7),
+                                .VatAmount = thReader.GetDecimal(8),
+                                .TotalAmount = thReader.GetDecimal(9),
+                                .AmountTendered = thReader.GetDecimal(10),
+                                .ChangeAmount = thReader.GetDecimal(11),
+                                .IsVoided = thReader.GetBoolean(12),
+                                .VoidReason = If(thReader.IsDBNull(13), Nothing, thReader.GetString(13)),
+                                .IsDeleted = thReader.GetBoolean(14),
+                                .DeletedBy = If(thReader.IsDBNull(15), Nothing, thReader.GetString(15)),
+                                .DeletedAt = If(thReader.IsDBNull(16), Nothing, CType(thReader.GetDateTime(16), DateTime?)),
+                                .CreatedBy = thReader.GetString(17),
+                                .CreatedAt = thReader.GetDateTime(18),
+                                .ModifiedBy = If(thReader.IsDBNull(19), Nothing, thReader.GetString(19)),
+                                .ModifiedAt = If(thReader.IsDBNull(20), Nothing, CType(thReader.GetDateTime(20), DateTime?))
+                            })
+                        End While
+                    End Using
+                End Using
+
+                If txHistoryList.Count > 0 Then
+                    Dim txIds = String.Join(",", txHistoryList.Select(Function(t) t.Id))
+                    Dim lineMap As New Dictionary(Of Integer, List(Of SalesTransactionLine))()
+                    Using lCmd = thConn.CreateCommand()
+                        lCmd.CommandText = "SELECT TransactionId, ProductId, ProductName, Quantity, UnitPrice, DiscountAmount, LineTotal " &
+                                            $"FROM Pos_SalesTransactionLines WHERE TransactionId IN ({txIds})"
+                        Using lReader = lCmd.ExecuteReader()
+                            While lReader.Read()
+                                Dim line As New SalesTransactionLine With {
+                                    .TransactionId = lReader.GetInt32(0),
+                                    .ProductId = lReader.GetInt32(1),
+                                    .ProductName = lReader.GetString(2),
+                                    .Quantity = lReader.GetInt32(3),
+                                    .UnitPrice = lReader.GetDecimal(4),
+                                    .DiscountAmount = lReader.GetDecimal(5),
+                                    .LineTotal = lReader.GetDecimal(6)
+                                }
+                                If Not lineMap.ContainsKey(line.TransactionId) Then lineMap(line.TransactionId) = New List(Of SalesTransactionLine)()
+                                lineMap(line.TransactionId).Add(line)
+                            End While
+                        End Using
+                    End Using
+                    For Each tx In txHistoryList
+                        Dim txLines As List(Of SalesTransactionLine) = Nothing
+                        If lineMap.TryGetValue(tx.Id, txLines) Then
+                            For Each ln In txLines : tx.Lines.Add(ln) : Next
+                        End If
+                    Next
+                End If
+            End Using
+            Return txHistoryList
+        End Function
+
+        ''' <summary>
+        ''' Keyset-paged transaction history (INFRA-34). Same projection as
+        ''' <see cref="GetTransactionHistoryAsync"/> but bounded: it seeks past the cursor and
+        ''' fetches one page (PageSize + 1 rows to detect HasMore) ordered by
+        ''' <c>(TransactionDate DESC, Id DESC)</c>. The (date, Id) tuple is the stable cursor.
+        ''' Lines are loaded only for the page's transactions.
+        ''' </summary>
+        Public Async Function GetTransactionHistoryPageAsync(request As PageRequest) As Task(Of PagedResult(Of SalesTransaction)) Implements ICartService.GetTransactionHistoryPageAsync
+            If request Is Nothing Then request = New PageRequest()
+            ' Trusted server-side integer (VM sets PageSize); inlined to avoid driver LIMIT-parameter quirks. Not user input.
+            Dim fetchLimit As Integer = request.PageSize + 1
+            Dim pageList As New List(Of SalesTransaction)()
+            Dim thConnStr = _context.Database.GetConnectionString()
+            Using thConn As New MySqlConnection(thConnStr)
+                Await thConn.OpenAsync()
+
+                Dim thSql = "SELECT Id, TransactionNumber, TransactionDate, CustomerId, CustomerName, " &
+                             "PaymentMethod, SubTotal, DiscountAmount, VatAmount, TotalAmount, " &
+                             "AmountTendered, ChangeAmount, IsVoided, VoidReason, " &
+                             "IsDeleted, DeletedBy, DeletedAt, CreatedBy, CreatedAt, ModifiedBy, ModifiedAt " &
+                             "FROM Pos_SalesTransactions WHERE IsDeleted = 0"
+                If request.FromUtc.HasValue Then thSql &= " AND TransactionDate >= @fromUtc"
+                If request.ToUtc.HasValue Then thSql &= " AND TransactionDate <= @toUtc"
+                If request.CursorId.HasValue Then
+                    thSql &= " AND (TransactionDate < @cursorDate OR (TransactionDate = @cursorDate AND Id < @cursorId))"
+                End If
+                thSql &= " ORDER BY TransactionDate DESC, Id DESC LIMIT " & fetchLimit.ToString()
+
+                Using thCmd = thConn.CreateCommand()
+                    thCmd.CommandText = thSql
+                    If request.FromUtc.HasValue Then thCmd.Parameters.Add(New MySqlParameter("@fromUtc", request.FromUtc.Value))
+                    If request.ToUtc.HasValue Then thCmd.Parameters.Add(New MySqlParameter("@toUtc", request.ToUtc.Value))
+                    If request.CursorId.HasValue Then
+                        thCmd.Parameters.Add(New MySqlParameter("@cursorDate", request.CursorDate.Value))
+                        thCmd.Parameters.Add(New MySqlParameter("@cursorId", request.CursorId.Value))
+                    End If
+                    Using thReader = thCmd.ExecuteReader()
+                        While thReader.Read()
+                            pageList.Add(New SalesTransaction With {
+                                .Id = thReader.GetInt32(0),
+                                .TransactionNumber = thReader.GetString(1),
+                                .TransactionDate = thReader.GetDateTime(2),
+                                .CustomerId = If(thReader.IsDBNull(3), CType(Nothing, Integer?), thReader.GetInt32(3)),
+                                .CustomerName = If(thReader.IsDBNull(4), Nothing, thReader.GetString(4)),
+                                .PaymentMethod = CType(thReader.GetInt32(5), PaymentMethod),
+                                .SubTotal = thReader.GetDecimal(6),
+                                .DiscountAmount = thReader.GetDecimal(7),
+                                .VatAmount = thReader.GetDecimal(8),
+                                .TotalAmount = thReader.GetDecimal(9),
+                                .AmountTendered = thReader.GetDecimal(10),
+                                .ChangeAmount = thReader.GetDecimal(11),
+                                .IsVoided = thReader.GetBoolean(12),
+                                .VoidReason = If(thReader.IsDBNull(13), Nothing, thReader.GetString(13)),
+                                .IsDeleted = thReader.GetBoolean(14),
+                                .DeletedBy = If(thReader.IsDBNull(15), Nothing, thReader.GetString(15)),
+                                .DeletedAt = If(thReader.IsDBNull(16), Nothing, CType(thReader.GetDateTime(16), DateTime?)),
+                                .CreatedBy = thReader.GetString(17),
+                                .CreatedAt = thReader.GetDateTime(18),
+                                .ModifiedBy = If(thReader.IsDBNull(19), Nothing, thReader.GetString(19)),
+                                .ModifiedAt = If(thReader.IsDBNull(20), Nothing, CType(thReader.GetDateTime(20), DateTime?))
+                            })
+                        End While
+                    End Using
+                End Using
+
+                ' HasMore detection: we fetched PageSize + 1; if the extra row came back, drop it.
+                Dim hasMore As Boolean = pageList.Count > request.PageSize
+                If hasMore Then pageList.RemoveAt(pageList.Count - 1)
+
+                ' Load lines for just this page's transactions (bounded by PageSize).
+                If pageList.Count > 0 Then
+                    Dim txIds = String.Join(",", pageList.Select(Function(t) t.Id))
+                    Dim lineMap As New Dictionary(Of Integer, List(Of SalesTransactionLine))()
+                    Using lCmd = thConn.CreateCommand()
+                        lCmd.CommandText = "SELECT TransactionId, ProductId, ProductName, Quantity, UnitPrice, DiscountAmount, LineTotal " &
+                                            $"FROM Pos_SalesTransactionLines WHERE TransactionId IN ({txIds})"
+                        Using lReader = lCmd.ExecuteReader()
+                            While lReader.Read()
+                                Dim line As New SalesTransactionLine With {
+                                    .TransactionId = lReader.GetInt32(0),
+                                    .ProductId = lReader.GetInt32(1),
+                                    .ProductName = lReader.GetString(2),
+                                    .Quantity = lReader.GetInt32(3),
+                                    .UnitPrice = lReader.GetDecimal(4),
+                                    .DiscountAmount = lReader.GetDecimal(5),
+                                    .LineTotal = lReader.GetDecimal(6)
+                                }
+                                If Not lineMap.ContainsKey(line.TransactionId) Then lineMap(line.TransactionId) = New List(Of SalesTransactionLine)()
+                                lineMap(line.TransactionId).Add(line)
+                            End While
+                        End Using
+                    End Using
+                    For Each tx In pageList
+                        Dim txLines As List(Of SalesTransactionLine) = Nothing
+                        If lineMap.TryGetValue(tx.Id, txLines) Then
+                            For Each ln In txLines : tx.Lines.Add(ln) : Next
+                        End If
+                    Next
+                End If
+
+                Dim nextDate As DateTime? = Nothing
+                Dim nextId As Long? = Nothing
+                If pageList.Count > 0 Then
+                    nextDate = pageList(pageList.Count - 1).TransactionDate
+                    nextId = pageList(pageList.Count - 1).Id
+                End If
+                Return New PagedResult(Of SalesTransaction)(pageList, hasMore, nextDate, nextId)
+            End Using
+        End Function
+
+        ' --- Private Helpers ---
+
+        Private Function GetCart(cartId As Guid) As CartDto
+            Dim cart As CartDto = Nothing
+            If Not _carts.TryGetValue(cartId, cart) Then
+                Throw New InvalidOperationException($"Cart {cartId} not found.")
+            End If
+            Return cart
+        End Function
+
+        Private Shared Sub ValidateLineIndex(cart As CartDto, lineIndex As Integer)
+            If lineIndex < 0 OrElse lineIndex >= cart.Lines.Count Then
+                Throw New ArgumentOutOfRangeException(NameOf(lineIndex), "Line index is out of range.")
+            End If
+        End Sub
+
+        Private Async Function RecalculateTotalsAsync(cart As CartDto) As Task
+            For Each cartLine In cart.Lines
+                cartLine.LineTotal = (cartLine.Quantity * cartLine.UnitPrice) - cartLine.DiscountAmount
+            Next
+            cart.SubTotal = cart.Lines.Sum(Function(l) l.Quantity * l.UnitPrice)
+            cart.DiscountTotal = cart.Lines.Sum(Function(l) l.DiscountAmount)
+
+            Dim grossAmount = cart.SubTotal - cart.DiscountTotal
+
+            ' Read VAT status from the database-backed singleton cache (VatConfigurationLoader)
+            ' instead of the stale IConfiguration key, so runtime changes via VAT Settings
+            ' are reflected immediately in the cart.
+            Dim vatConfig = Await _vatConfigLoader.GetAsync()
+            If vatConfig IsNot Nothing AndAlso vatConfig.IsVatRegistered Then
+                ' VAT-inclusive decomposition: Philippine retail prices already include VAT.
+                ' Extract the VAT component per BIR formula.
+                Dim vatRate = vatConfig.VatRate
+                Dim vatableAmount = Math.Round(grossAmount / (1D + vatRate), 2, MidpointRounding.ToEven)
+                cart.VatAmount = grossAmount - vatableAmount
+            Else
+                cart.VatAmount = 0D
+            End If
+
+            ' Grand total equals the gross amount (prices are VAT-inclusive; VAT is
+            ' an informational decomposition, not additive).
+            cart.GrandTotal = grossAmount
+        End Function
+
+        Private Async Function ValidateCreditCustomerAsync(customerId As Integer?) As Task(Of CreditAccount)
+            If Not customerId.HasValue Then
+                Throw New InvalidOperationException("A customer ID is required for credit transactions.")
+            End If
+            Dim account = Await _context.CreditAccounts.FindAsync(customerId.Value)
+            If account Is Nothing Then
+                Throw New InvalidOperationException($"Credit account {customerId.Value} not found.")
+            End If
+            If account.IsBlocked Then
+                Throw New InvalidOperationException($"Customer '{account.CustomerName}' has an outstanding balance and is blocked from new credit purchases.")
+            End If
+            Return account
+        End Function
+
+        Private Async Function GenerateTransactionNumberAsync() As Task(Of String)
+            Dim year As Integer = DateTime.Now.Year
+            Dim nextValue As Integer = -1
+            Dim success = False
+            Dim MaxSequenceRetries As Integer = 10
+
+            For attempt = 1 To MaxSequenceRetries
+                Dim concurrencyFailed = False
+
+                Try
+                    Using txn = Await _context.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable)
+                        Dim sequence = Await _context.TransactionSequences.
+                            FirstOrDefaultAsync(Function(s) s.Year = year)
+
+                        If sequence Is Nothing Then
+                            sequence = New TransactionSequence() With {
+                                .Year = year,
+                                .NextValue = 1
+                            }
+                            _context.TransactionSequences.Add(sequence)
+                        Else
+                            sequence.NextValue += 1
+                        End If
+
+                        Await _context.SaveChangesAsync()
+                        Await txn.CommitAsync()
+                        nextValue = sequence.NextValue
+                        success = True
+                    End Using
+                Catch ex As DbUpdateConcurrencyException
+                    ' Update-path race: another client advanced the row's RowVersion. Retry.
+                    concurrencyFailed = True
+                    _context.ChangeTracker.Clear()
+                Catch ex As DbUpdateException
+                    ' First-insert race: two clients created the same Year row concurrently.
+                    ' The loser gets a duplicate-key violation (a DbUpdateException, not a
+                    ' concurrency exception). Clear the tracker and retry — the row now exists,
+                    ' so the next attempt takes the increment path.
+                    concurrencyFailed = True
+                    _context.ChangeTracker.Clear()
+                End Try
+
+                If success Then Exit For
+                If concurrencyFailed Then
+                    _logger.LogWarning("Transaction sequence concurrency conflict on attempt {Attempt}/{Max} for year {Year}",
+                        attempt, MaxSequenceRetries, year)
+                End If
+            Next
+
+            If Not success Then
+                Throw New InvalidOperationException(
+                    $"Unable to acquire transaction sequence for year {year} after {MaxSequenceRetries} attempts.")
+            End If
+
+            Return $"TX-{year}-{nextValue:D4}"
+        End Function
+
+    End Class
+
+End Namespace

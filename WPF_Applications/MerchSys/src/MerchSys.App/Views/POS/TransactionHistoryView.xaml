@@ -1,0 +1,613 @@
+<UserControl x:Class="Views.POS.TransactionHistoryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MerchSys.POS.ViewModels;assembly=MerchSys.POS"
+             xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
+             mc:Ignorable="d"
+             d:DesignHeight="768" d:DesignWidth="1280"
+             Background="{DynamicResource WindowBackgroundBrush}"
+             PreviewKeyDown="UserControl_PreviewKeyDown">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
+        <Style x:Key="ReceiptLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="Margin" Value="0,2,0,2"/>
+        </Style>
+
+        <Style x:Key="ReceiptValue" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,2,0,2"/>
+        </Style>
+
+        <!-- DataGrid base style for read-only display grids -->
+        <Style x:Key="ReadOnlyGrid" TargetType="DataGrid" BasedOn="{StaticResource {x:Type DataGrid}}">
+            <Setter Property="IsReadOnly" Value="True"/>
+            <Setter Property="CanUserSortColumns" Value="True"/>
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
+            <Setter Property="RowHeight" Value="28"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <!-- ═══════════════════════════════════════════════════════════════════════ -->
+        <!-- MAIN CONTENT                                                            -->
+        <!-- ═══════════════════════════════════════════════════════════════════════ -->
+        <Grid x:Name="MainGrid">
+            <Grid.Style>
+                <Style TargetType="Grid">
+                    <Setter Property="Visibility" Value="Visible"/>
+                    <Style.Triggers>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsBusy}" Value="True"/>
+                                <Condition Binding="{Binding LastLoadedAt}" Value="{x:Null}"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </MultiDataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Style>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- ── Row 0: Filter bar ─────────────────────────────────────────────── -->
+            <Border Grid.Row="0"
+                    Background="{DynamicResource SurfaceBrush}"
+                    BorderBrush="{DynamicResource SeparatorBrush}"
+                    BorderThickness="0,0,0,1"
+                    Padding="16,12">
+                <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+
+                    <!-- Date From -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,16,4" VerticalAlignment="Center">
+                        <TextBlock Text="From:" Style="{StaticResource CaptionLabelStyle}"/>
+                        <DatePicker x:Name="DateFromPicker"
+                                    SelectedDate="{Binding DateFrom, Mode=TwoWay}"
+                                    Width="120" Height="30" FontSize="12"
+                                    TabIndex="1"/>
+                    </StackPanel>
+
+                    <!-- Date To -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,16,4" VerticalAlignment="Center">
+                        <TextBlock Text="To:" Style="{StaticResource CaptionLabelStyle}"/>
+                        <DatePicker x:Name="DateToPicker"
+                                    SelectedDate="{Binding DateTo, Mode=TwoWay}"
+                                    Width="120" Height="30" FontSize="12"
+                                    TabIndex="2"/>
+                    </StackPanel>
+
+                    <!-- TX Number -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,16,4" VerticalAlignment="Center">
+                        <TextBlock Text="TX #:" Style="{StaticResource CaptionLabelStyle}"/>
+                        <TextBox x:Name="TxNumberBox"
+                                 Text="{Binding TxNumberFilter, UpdateSourceTrigger=PropertyChanged}"
+                                 Width="130" Height="30" Padding="8,0"
+                                 FontSize="12" VerticalContentAlignment="Center"
+                                 BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                                 TabIndex="3"/>
+                    </StackPanel>
+
+                    <!-- Payment Method -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,16,4" VerticalAlignment="Center">
+                        <TextBlock Text="Payment:" Style="{StaticResource CaptionLabelStyle}"/>
+                        <ComboBox ItemsSource="{Binding PaymentMethodFilters}"
+                                  SelectedItem="{Binding SelectedPaymentMethodFilter}"
+                                  Width="110" Height="30" FontSize="12"
+                                  TabIndex="4"/>
+                    </StackPanel>
+
+                    <!-- Search button -->
+                    <Button Content="_Search"
+                             Style="{StaticResource PrimaryButtonStyle}"
+                             Command="{Binding SearchCommand}"
+                             Margin="0,0,6,4"
+                             TabIndex="5"/>
+
+                    <!-- Clear button -->
+                    <Button Content="_Clear Filters"
+                             Style="{StaticResource SecondaryButtonStyle}"
+                             Command="{Binding ClearFiltersCommand}"
+                             Margin="0,0,0,4"
+                             TabIndex="6"/>
+
+                    <!-- Busy indicator -->
+                    <ProgressBar IsIndeterminate="True"
+                                 Width="80" Height="4"
+                                 Margin="12,0,0,0"
+                                 VerticalAlignment="Center"
+                                 Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
+
+                    <!-- Data Freshness Chip -->
+                    <views:FreshnessChip LastLoadedAt="{Binding LastLoadedAt}"
+                                         RefreshCommand="{Binding SearchCommand}"
+                                         VerticalAlignment="Center"
+                                         Margin="12,0,0,4"/>
+                </WrapPanel>
+            </Border>
+
+            <!-- Filter summary bar showing count, active filter chips, and clear all -->
+            <views:FilterSummaryBar Grid.Row="1"
+                                    Margin="16,8,16,0"
+                                    ShownCount="{Binding Transactions.Count}"
+                                    TotalCount="{Binding TotalTransactions}"
+                                    ActiveFilters="{Binding ActiveFilterChips}"
+                                    ClearAllCommand="{Binding ClearFiltersCommand}"/>
+
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="400"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Left: Transaction DataGrid ──────────────────────────────────── -->
+                <Border Grid.Column="0"
+                        Margin="12,12,0,12"
+                        BorderBrush="{DynamicResource SeparatorBrush}"
+                        BorderThickness="1"
+                        Background="{DynamicResource SurfaceBrush}"
+                        CornerRadius="{DynamicResource RadiusMedium}"
+                        Effect="{DynamicResource CardShadow}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <DataGrid x:Name="TransactionGrid"
+                                  Grid.Row="0"
+                                  Style="{StaticResource ReadOnlyGrid}"
+                                  ItemsSource="{Binding Transactions}"
+                                  VirtualizingStackPanel.VirtualizationMode="Recycling"
+                                  BorderThickness="0"
+                                  TabIndex="7">
+
+                            <DataGrid.RowStyle>
+                                <Style TargetType="DataGridRow" BasedOn="{StaticResource SemanticRowStyle}">
+                                    <Setter Property="Cursor" Value="Hand"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsVoided}" Value="True">
+                                            <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.RowStyle>
+
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="TX Number"
+                                                    Binding="{Binding TransactionNumber}"
+                                                    Width="110"/>
+                                <DataGridTextColumn Header="Date"
+                                                    Binding="{Binding TransactionDate, StringFormat={StaticResource FormatDateTimeShort}}"
+                                                    Width="120"/>
+                                <DataGridTextColumn Header="Customer"
+                                                    Binding="{Binding CustomerName}"
+                                                    Width="*"/>
+                                <DataGridTextColumn Header="Payment"
+                                                    Binding="{Binding PaymentMethod}"
+                                                    Width="80"/>
+                                <DataGridTextColumn Header="Total"
+                                                    Binding="{Binding TotalAmount, StringFormat={StaticResource FormatCurrency}}"
+                                                    Width="90"
+                                                    ElementStyle="{StaticResource NumericCellStyle}"
+                                                    HeaderStyle="{StaticResource RightAlignedHeaderStyle}"/>
+                                <DataGridTextColumn Header="Items"
+                                                    Binding="{Binding ItemCount}"
+                                                    Width="50"
+                                                    ElementStyle="{StaticResource NumericCellStyle}"
+                                                    HeaderStyle="{StaticResource RightAlignedHeaderStyle}"/>
+                                <DataGridTextColumn Header="Returns"
+                                                    Binding="{Binding HasReturnsText}"
+                                                    Width="65">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Status"
+                                                    Binding="{Binding StatusText}"
+                                                    Width="70">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <views:EmptyStatePanel Grid.Row="0" Title="No transactions found"
+                                               Description="Adjust your search filters to find transactions."
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}"/>
+
+                        <!-- INFRA-34: incremental keyset paging — appends the next page; virtualization preserved (no outer ScrollViewer) -->
+                        <Button Grid.Row="1"
+                                Content="Load more"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Command="{Binding LoadMoreCommand}"
+                                HorizontalAlignment="Center"
+                                Margin="0,8,0,8"
+                                Visibility="{Binding HasMore, Converter={StaticResource BoolToVis}}"/>
+                    </Grid>
+                </Border>
+
+                <!-- Right: Details panel ────────────────────────────────────────── -->
+                <Grid Grid.Column="1" Margin="12">
+                    
+                    <!-- Empty state -->
+                    <views:EmptyStatePanel Title="No transaction selected"
+                                           Description="Select a transaction from the list to view details."
+                                           HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <views:EmptyStatePanel.Style>
+                            <Style TargetType="UserControl">
+                                <Setter Property="Visibility" Value="Visible"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsDetailVisible}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </views:EmptyStatePanel.Style>
+                    </views:EmptyStatePanel>
+
+                    <!-- Detail content -->
+                    <Grid Visibility="{Binding IsDetailVisible, Converter={StaticResource BoolToVis}}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Detail scroll area -->
+                        <Border Grid.Row="0"
+                                BorderBrush="{DynamicResource SeparatorBrush}"
+                                BorderThickness="1"
+                                Background="{DynamicResource SurfaceBrush}"
+                                CornerRadius="{DynamicResource RadiusMedium}"
+                                Effect="{DynamicResource CardShadow}">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="{DynamicResource SpacingM}">
+                                <StackPanel>
+
+                                    <!-- Transaction header -->
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                        <TextBlock FontSize="{DynamicResource FontSizeSubhead}" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"
+                                                   Text="{Binding SelectedTransaction.TransactionNumber}"/>
+                                        <Border Margin="8,2,0,0" Padding="6,1" CornerRadius="{DynamicResource RadiusSmall}">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Background" Value="{DynamicResource SidebarBackgroundBrush}"/>
+                                                    <Setter Property="BorderBrush" Value="{DynamicResource SuccessBrush}"/>
+                                                    <Setter Property="BorderThickness" Value="1"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding SelectedTransaction.IsVoided}" Value="True">
+                                                            <Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <TextBlock FontSize="{DynamicResource FontSizeCaption}" FontWeight="SemiBold"
+                                                       Text="{Binding SelectedTransaction.StatusText}">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding SelectedTransaction.IsVoided}" Value="True">
+                                                                <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Border>
+                                    </StackPanel>
+
+                                    <!-- ── Line Items section ──────────────────────── -->
+                                    <TextBlock Text="LINE ITEMS" Style="{StaticResource SectionHeaderStyle}"/>
+                                    <DataGrid Style="{StaticResource ReadOnlyGrid}"
+                                              ItemsSource="{Binding DetailLines}"
+                                              Height="140"
+                                              SelectionMode="Single"
+                                              TabIndex="8">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Product"
+                                                                Binding="{Binding ProductName}"
+                                                                Width="*"/>
+                                            <DataGridTextColumn Header="Qty"
+                                                                Binding="{Binding Quantity}"
+                                                                Width="40"
+                                                                ElementStyle="{StaticResource NumericCellStyle}"
+                                                                HeaderStyle="{StaticResource RightAlignedHeaderStyle}"/>
+                                            <DataGridTextColumn Header="Price"
+                                                                Binding="{Binding UnitPrice, StringFormat={StaticResource FormatCurrency}}"
+                                                                Width="70"
+                                                                ElementStyle="{StaticResource NumericCellStyle}"
+                                                                HeaderStyle="{StaticResource RightAlignedHeaderStyle}"/>
+                                            <DataGridTextColumn Header="Total"
+                                                                Binding="{Binding LineTotal, StringFormat={StaticResource FormatCurrency}}"
+                                                                Width="70"
+                                                                ElementStyle="{StaticResource NumericCellStyle}"
+                                                                HeaderStyle="{StaticResource RightAlignedHeaderStyle}"/>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+
+                                    <!-- ── Receipt Info section ────────────────────── -->
+                                    <TextBlock Text="OFFICIAL RECEIPT" Style="{StaticResource SectionHeaderStyle}"/>
+                                    <Border Padding="10,8" Background="{DynamicResource SidebarBackgroundBrush}"
+                                            BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1" CornerRadius="{DynamicResource RadiusSmall}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Receipt No.:" Style="{StaticResource ReceiptLabel}" Width="90"/>
+                                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ReceiptNumber}" Style="{StaticResource ReceiptValue}"/>
+
+                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Issue Date:" Style="{StaticResource ReceiptLabel}"/>
+                                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ReceiptDate}" Style="{StaticResource ReceiptValue}"/>
+
+                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Business:" Style="{StaticResource ReceiptLabel}"/>
+                                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ReceiptBusinessName}" Style="{StaticResource ReceiptValue}" TextWrapping="Wrap"/>
+
+                                            <TextBlock Grid.Row="3" Grid.Column="0" Text="TIN:" Style="{StaticResource ReceiptLabel}"/>
+                                            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding ReceiptTin}" Style="{StaticResource ReceiptValue}"/>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- No receipt fallback -->
+                                    <TextBlock Text="No receipt on file for this transaction."
+                                               Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource FontSizeCaption}" Margin="0,4,0,0">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding HasReceipt}" Value="False">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+
+                                    <!-- ── Returns section ────────────────────────── -->
+                                    <TextBlock Text="RETURNS" Style="{StaticResource SectionHeaderStyle}"/>
+                                    <DataGrid Style="{StaticResource ReadOnlyGrid}"
+                                              ItemsSource="{Binding DetailReturns}"
+                                              Height="120"
+                                              SelectionMode="Single">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Date"
+                                                                Binding="{Binding ReturnDate, StringFormat={StaticResource FormatDateShort}}"
+                                                                Width="65"/>
+                                            <DataGridTextColumn Header="Product"
+                                                                Binding="{Binding ProductName}"
+                                                                Width="*"/>
+                                            <DataGridTextColumn Header="Qty"
+                                                                Binding="{Binding QuantityReturned}"
+                                                                Width="38"
+                                                                ElementStyle="{StaticResource NumericCellStyle}"
+                                                                HeaderStyle="{StaticResource RightAlignedHeaderStyle}"/>
+                                            <DataGridTextColumn Header="Refund"
+                                                                Binding="{Binding RefundAmount, StringFormat={StaticResource FormatCurrency}}"
+                                                                Width="70"
+                                                                ElementStyle="{StaticResource NumericCellStyle}"
+                                                                HeaderStyle="{StaticResource RightAlignedHeaderStyle}"/>
+                                            <DataGridTextColumn Header="Restocked"
+                                                                Binding="{Binding RestockedText}"
+                                                                Width="68">
+                                                <DataGridTextColumn.ElementStyle>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                                                    </Style>
+                                                </DataGridTextColumn.ElementStyle>
+                                            </DataGridTextColumn>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+
+                                    <TextBlock Text="No returns for this transaction."
+                                               Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource FontSizeCaption}" Margin="0,4,0,0">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding DetailReturns.Count}" Value="0">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+
+                                </StackPanel>
+                            </ScrollViewer>
+                        </Border>
+
+                        <!-- Action buttons -->
+                        <Border Grid.Row="1" Padding="0,8,0,0">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <Button Content="_View Receipt"
+                                        Style="{StaticResource PrimaryButtonStyle}"
+                                        Command="{Binding ViewReceiptCommand}"
+                                        Margin="0,0,6,0"
+                                        TabIndex="9"/>
+                                <Button Content="_Process Return"
+                                        Style="{StaticResource SuccessButtonStyle}"
+                                        Command="{Binding OpenReturnDialogCommand}"
+                                        IsEnabled="{Binding CanEdit}"
+                                        TabIndex="10"/>
+                                <Button Content="_Void Transaction"
+                                        Style="{StaticResource DangerButtonStyle}"
+                                        Command="{Binding VoidTransactionCommand}"
+                                        IsEnabled="{Binding CanEdit}"
+                                        Margin="6,0,0,0"
+                                        TabIndex="11"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Grid>
+            </Grid>
+
+            <!-- ── Row 3: Status bar ──────────────────────────────────────────────── -->
+            <Border Grid.Row="3"
+                    Background="{DynamicResource SurfaceBrush}"
+                    BorderBrush="{DynamicResource SeparatorBrush}"
+                    BorderThickness="0,1,0,0"
+                    Padding="16,8">
+                <TextBlock FontSize="{DynamicResource FontSizeBody}" VerticalAlignment="Center"
+                           Text="{Binding StatusMessage}">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsStatusSuccess}" Value="False">
+                                    <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Border>
+        </Grid>
+
+        <!-- ═══════════════════════════════════════════════════════════════════════ -->
+        <!-- RETURN DIALOG OVERLAY                                                   -->
+        <!-- ═══════════════════════════════════════════════════════════════════════ -->
+        <Grid x:Name="ReturnDialogOverlay"
+              Background="{DynamicResource OverlayBrush}"
+              Visibility="{Binding IsReturnDialogVisible, Converter={StaticResource BoolToVis}}"
+              IsVisibleChanged="ReturnDialogOverlay_IsVisibleChanged">
+
+            <Border Background="{DynamicResource SurfaceBrush}"
+                    Width="460"
+                    CornerRadius="{DynamicResource RadiusLarge}"
+                    Padding="28,24"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Effect="{DynamicResource CardShadow}">
+
+                <StackPanel>
+                    <!-- Dialog header -->
+                    <TextBlock Text="Process Return"
+                               FontSize="{DynamicResource FontSizeTitle}" FontWeight="Bold"
+                               Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                    <TextBlock FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,16"
+                               Text="{Binding SelectedTransaction.TransactionNumber,
+                                              StringFormat='Transaction: {0}'}"/>
+
+                    <Separator Margin="0,0,0,16" Background="{DynamicResource SeparatorBrush}"/>
+
+                    <!-- Product selection -->
+                    <TextBlock Text="Product to Return" Style="{StaticResource CaptionLabelStyle}"
+                               Margin="0,0,0,4"/>
+                    <ComboBox x:Name="ReturnLineComboBox"
+                              ItemsSource="{Binding ReturnableLines}"
+                              SelectedItem="{Binding SelectedReturnLine}"
+                              DisplayMemberPath="DisplayText"
+                              Height="32" FontSize="12"
+                              Margin="0,0,0,14"
+                              TabIndex="11"/>
+
+                    <!-- Quantity -->
+                    <Grid Margin="0,0,0,14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="16"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Return Quantity" Style="{StaticResource CaptionLabelStyle}"
+                                       Margin="0,0,0,4"/>
+                            <TextBox x:Name="ReturnQtyBox"
+                                     Text="{Binding ReturnQuantity, UpdateSourceTrigger=PropertyChanged}"
+                                     Height="32" Padding="10,0"
+                                     FontSize="12" VerticalContentAlignment="Center"
+                                     BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                                     TabIndex="12"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Maximum" Style="{StaticResource CaptionLabelStyle}"
+                                       Margin="0,0,0,4"/>
+                            <Border Height="32" Background="{DynamicResource SidebarBackgroundBrush}"
+                                    BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                                    Padding="10,0" CornerRadius="{DynamicResource RadiusSmall}">
+                                <TextBlock Text="{Binding ReturnMaxQty}"
+                                           VerticalAlignment="Center"
+                                           FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"
+                                           FontWeight="SemiBold"/>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Reason -->
+                    <TextBlock Margin="0,0,0,4" FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}">
+                        <Run Text="Reason"/>
+                        <Run Text=" *" Foreground="{DynamicResource DangerBrush}" FontWeight="Bold"/>
+                    </TextBlock>
+                    <TextBox Text="{Binding ReturnReason, UpdateSourceTrigger=PropertyChanged}"
+                             Height="64"
+                             Padding="10,8"
+                             FontSize="12"
+                             TextWrapping="Wrap"
+                             AcceptsReturn="True"
+                             VerticalContentAlignment="Top"
+                             BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                             Margin="0,0,0,14"
+                             TabIndex="13"/>
+
+                    <!-- Restock checkbox -->
+                    <CheckBox IsChecked="{Binding ShouldRestock}"
+                              Content="Restock items back to inventory"
+                              FontSize="{DynamicResource FontSizeBody}" Foreground="{DynamicResource TextPrimaryBrush}"
+                              Margin="0,0,0,20"
+                              TabIndex="14"/>
+
+                    <Separator Margin="0,0,0,16" Background="{DynamicResource SeparatorBrush}"/>
+
+                    <!-- Buttons -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="_Cancel"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Command="{Binding CancelReturnCommand}"
+                                Width="90" Margin="0,0,10,0"
+                                TabIndex="15"/>
+                        <Button Content="_Confirm Return"
+                                Style="{StaticResource DangerButtonStyle}"
+                                Command="{Binding ProcessReturnCommand}"
+                                Width="130"
+                                TabIndex="16"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <views:SkeletonPanel Kind="Rows" IsBusy="{Binding IsBusy}" LastLoadedAt="{Binding LastLoadedAt}" Margin="12"/>
+
+        <views:BusyOverlay Grid.RowSpan="4" IsBusy="{Binding IsBusy}" LastLoadedAt="{Binding LastLoadedAt}"/>
+
+        <views:ErrorStatePanel Grid.RowSpan="4"
+                               Title="Load Failed"
+                               Message="{Binding ErrorMessage}"
+                               RetryCommand="{Binding SearchCommand}"
+                               Visibility="{Binding IsError, Converter={StaticResource BoolToVis}}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+    </Grid>
+</UserControl>

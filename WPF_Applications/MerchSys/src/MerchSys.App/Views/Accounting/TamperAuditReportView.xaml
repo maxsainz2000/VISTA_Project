@@ -1,0 +1,179 @@
+<UserControl x:Class="Views.Accounting.TamperAuditReportView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
+             mc:Ignorable="d"
+             d:DesignHeight="768" d:DesignWidth="1280"
+             Background="{DynamicResource WindowBackgroundBrush}">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
+        <Style x:Key="SeverityCritical" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Page header -->
+            <StackPanel Grid.Row="0" Margin="0,0,0,16">
+                <TextBlock Text="Tamper Audit Report"
+                            FontSize="22" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                <TextBlock Text="Review receipt integrity violations detected by the POS tamper audit system."
+                            FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,0"/>
+            </StackPanel>
+
+            <!-- Date range filter bar -->
+            <Border Grid.Row="1" Style="{StaticResource FilterBarStyle}" Margin="0,0,0,12">
+                <WrapPanel Orientation="Horizontal">
+                    <!-- From Date -->
+                    <StackPanel Style="{StaticResource FilterBarItemStyle}" Orientation="Horizontal">
+                        <TextBlock Text="From:" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <DatePicker SelectedDate="{Binding DateFrom, Mode=TwoWay}"
+                                    Width="130" VerticalAlignment="Center"
+                                    TabIndex="1"/>
+                    </StackPanel>
+
+                    <!-- To Date -->
+                    <StackPanel Style="{StaticResource FilterBarItemStyle}" Orientation="Horizontal">
+                        <TextBlock Text="To:" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <DatePicker SelectedDate="{Binding DateTo, Mode=TwoWay}"
+                                    Width="130" VerticalAlignment="Center"
+                                    TabIndex="2"/>
+                    </StackPanel>
+
+                    <!-- Apply Filter Button -->
+                    <Button Content="_Apply Filter"
+                            Style="{StaticResource PrimaryButtonStyle}" Padding="14,6" FontWeight="SemiBold"
+                            Command="{Binding LoadCommand}"
+                            VerticalAlignment="Center" Margin="0,0,12,4"
+                            TabIndex="3"/>
+
+                    <!-- Export to CSV Button -->
+                    <Button Content="Export to _CSV"
+                            Style="{StaticResource PrimaryButtonStyle}" Padding="14,6" FontWeight="SemiBold"
+                            IsEnabled="{Binding HasEntries}"
+                            Click="ExportCsv_Click"
+                            VerticalAlignment="Center" Margin="0,0,12,4"
+                            TabIndex="4"/>
+
+                    <!-- Export to PDF Button -->
+                    <Button Content="Export to _PDF"
+                            Style="{StaticResource PrimaryButtonStyle}" Padding="14,6" FontWeight="SemiBold"
+                            IsEnabled="{Binding HasEntries}"
+                            Click="ExportPdf_Click"
+                            VerticalAlignment="Center" Margin="0,0,12,4"
+                            TabIndex="5"/>
+
+                    <!-- Loading indicator -->
+                    <TextBlock Text="Loading…"
+                               VerticalAlignment="Center" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
+                               Margin="0,0,12,4"
+                               Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}"/>
+                </WrapPanel>
+            </Border>
+
+            <!-- Filter summary bar showing count and clear all -->
+            <views:FilterSummaryBar Grid.Row="2"
+                                    Margin="0,0,0,12"
+                                    ShownCount="{Binding Entries.Count}"
+                                    TotalCount="{Binding Entries.Count}"
+                                    ClearAllCommand="{Binding ClearFiltersCommand}"/>
+
+            <!-- Incident DataGrid — shown when entries exist -->
+            <Border Grid.Row="3" Style="{StaticResource CardStyle}" CornerRadius="{DynamicResource RadiusSmall}" Padding="0"
+                    Visibility="{Binding HasEntries, Converter={StaticResource BoolToVis}}">
+                <DataGrid AutoGenerateColumns="False"
+                          CanUserAddRows="False" CanUserDeleteRows="False"
+                          IsReadOnly="True" CanUserReorderColumns="False"
+                          HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                          HorizontalGridLinesBrush="{DynamicResource SeparatorBrush}"
+                          RowBackground="{DynamicResource SurfaceBrush}" AlternatingRowBackground="{DynamicResource SidebarBackgroundBrush}"
+                          BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                          RowStyle="{StaticResource SemanticRowStyle}"
+                          SelectionMode="Single"
+                          VirtualizingStackPanel.VirtualizationMode="Recycling"
+                          VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                          ItemsSource="{Binding Entries}"
+                          TabIndex="6">
+                    <DataGrid.Columns>
+
+                        <DataGridTextColumn Header="Date / Time Detected"
+                                            Binding="{Binding DetectedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}"
+                                            Width="180" MinWidth="160"/>
+
+                        <DataGridTextColumn Header="Receipt Number"
+                                            Binding="{Binding ReceiptNumber}"
+                                            Width="140" MinWidth="120"/>
+
+                        <DataGridTemplateColumn Header="Expected Hash" Width="160" MinWidth="140">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding ExpectedHashShort}"
+                                               ToolTip="{Binding ExpectedHash}"
+                                               FontFamily="Consolas" FontSize="12"
+                                               Padding="4,2" VerticalAlignment="Center"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTemplateColumn Header="Actual Hash" Width="160" MinWidth="140">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding ActualHashShort}"
+                                               ToolTip="{Binding ActualHash}"
+                                               FontFamily="Consolas" FontSize="12"
+                                               Padding="4,2" VerticalAlignment="Center"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTemplateColumn Header="Severity" Width="100" MinWidth="90">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Severity}"
+                                               Style="{StaticResource SeverityCritical}"
+                                               Padding="4,2" VerticalAlignment="Center"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTextColumn Header="Details"
+                                            Binding="{Binding Details}"
+                                            Width="*" MinWidth="120"/>
+
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+
+            <!-- Empty state panel -->
+            <views:EmptyStatePanel Grid.Row="3" Title="No Incidents Detected"
+                                   Description="No tamper incidents detected in the selected period."
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   Visibility="{Binding HasNoEntries, Converter={StaticResource BoolToVis}}"/>
+
+        </Grid>
+
+        <!-- Busy overlay -->
+        <views:BusyOverlay Message="Loading tamper audit report..."
+                           Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}"
+                           HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+
+        <views:ErrorStatePanel Title="Load Failed"
+                               Message="{Binding ErrorMessage}"
+                               RetryCommand="{Binding LoadCommand}"
+                               Visibility="{Binding IsError, Converter={StaticResource BoolToVis}}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+    </Grid>
+</UserControl>

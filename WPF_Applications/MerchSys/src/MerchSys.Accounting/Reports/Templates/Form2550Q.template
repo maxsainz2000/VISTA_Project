@@ -1,0 +1,43 @@
+BIR FORM 2550Q — Quarterly Value-Added Tax Return
+{{BusinessName}}
+TIN: {{BusinessTIN}}
+Period: {{PeriodDescription}}
+Generated: {{GeneratedAt}}
+Filing Status: {{FilingStatus}}
+================================================================================
+
+PART II: COMPUTATION OF TAX
+
+Sales/Receipts and Output Tax:
+  Line  1  Taxable Sales/Receipts — 1st Month         {{Month1VatableSales}}
+  Line  2  Taxable Sales/Receipts — 2nd Month         {{Month2VatableSales}}
+  Line  3  Taxable Sales/Receipts — 3rd Month         {{Month3VatableSales}}
+  Line  4  Total Taxable Sales for the Quarter         {{TotalVatableSales}}
+  Line  5  Zero-Rated Sales                            {{TotalZeroRatedSales}}
+  Line  6  Exempt Sales                                {{TotalVatExemptSales}}
+  Line  7  Total Gross Sales/Receipts                  {{TotalGrossSales}}
+  Line  8  Output Tax (12% of Line 4)                  {{TotalOutputVat}}
+  Line  9  Adjustments to Output Tax                   0.00
+  Line 10  Total Output Tax (Line 8 + Line 9)          {{TotalOutputVat}}
+
+Input Tax:
+  Line 11  Input Tax Carried Over from Previous Quarter 0.00
+  Line 12  Input Tax on Domestic Purchases             {{TotalInputVat}}
+  Line 13  Total Allowable Input Tax                   {{TotalInputVat}}
+
+Net VAT:
+  Line 14  VAT Payable/(Creditable) (Line 10 - Line 13) {{VatPayable}}
+  Line 15  Less: VAT Paid in 1st Month                 0.00
+  Line 16  Less: VAT Paid in 2nd Month                 0.00
+  Line 17  Net VAT Payable for the Quarter             {{VatPayable}}
+
+Interest, Surcharge & Penalty:
+  Line 18  Surcharge                                   0.00
+  Line 19  Interest                                    0.00
+  Line 20  Compromise                                  0.00
+
+  Line 28  TOTAL AMOUNT DUE                            {{VatPayable}}
+
+================================================================================
+Filing Deadline: {{FilingDeadline}}
+{{WhatThisMeans}}

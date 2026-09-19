@@ -1,0 +1,59 @@
+<UserControl x:Class="Views.Login.DynamicSceneCanvas"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Focusable="False"
+             IsHitTestVisible="False">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/Themes/LoginScene.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <!-- UX-50: painterly raster hero (Canva-generated, 1600x900) with tasteful motion.
+         HeroLayer carries a Ken-Burns (slow zoom + pan) + cursor-parallax transform; two warm
+         glows registered to the storefront's lit window/bulbs ride the SAME transform, so they
+         stay pinned to the painting — the bulb glow flickers, the window glow pulses on login
+         success, and the scene fades up on entrance. The frosted-glass card samples SceneVisual
+         (= SceneRoot) so the painting + glows blur into real bokeh. DimOverlay (untransformed,
+         on top) dims for sleep. Viewbox UniformToFill keeps it edge-to-edge under the 900x700 window. -->
+    <Viewbox Stretch="UniformToFill">
+        <Canvas x:Name="SceneRoot" Width="1600" Height="900" ClipToBounds="True">
+
+            <Canvas x:Name="HeroLayer" Width="1600" Height="900">
+                <Canvas.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform x:Name="HeroScale" CenterX="800" CenterY="450" ScaleX="1.07" ScaleY="1.07"/>
+                        <TranslateTransform x:Name="HeroDriftTr"/>
+                        <TranslateTransform x:Name="HeroParallaxTr"/>
+                    </TransformGroup>
+                </Canvas.RenderTransform>
+
+                <Image x:Name="HeroImage" Width="1600" Height="900"
+                       Stretch="UniformToFill"
+                       RenderOptions.BitmapScalingMode="HighQuality"
+                       Source="pack://application:,,,/Assets/Login/login-hero-dusk.png"/>
+
+                <!-- Time-of-day grade: deep-indigo tint over the hero (opacity per mood). The glows
+                     below sit ABOVE it, so the storefront stays warm in Evening/LateNight. -->
+                <Rectangle x:Name="GradeOverlay" Width="1600" Height="900"
+                           Fill="{StaticResource LoginHeroGradeBrush}" Opacity="0"/>
+
+                <!-- Warm interior-window glow: success-pulse target; fades in with the scene. -->
+                <Ellipse x:Name="GlowWindow" Canvas.Left="808" Canvas.Top="273"
+                         Width="470" Height="380" Opacity="0"
+                         Fill="{StaticResource LoginHeroGlowBrush}"/>
+                <!-- Bulb-string strip glow under the awning: gentle ambient flicker. -->
+                <Ellipse x:Name="GlowBulbs" Canvas.Left="828" Canvas.Top="242"
+                         Width="430" Height="120" Opacity="0"
+                         Fill="{StaticResource LoginHeroGlowBrush}"/>
+            </Canvas>
+
+            <!-- Sleep dim overlay (0 → 0.10 while the avatar sleeps) -->
+            <Rectangle x:Name="DimOverlay" Width="1600" Height="900"
+                       Fill="{StaticResource SceneDimBrush}" Opacity="0"/>
+        </Canvas>
+    </Viewbox>
+</UserControl>

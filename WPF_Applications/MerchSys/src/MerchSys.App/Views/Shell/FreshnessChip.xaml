@@ -1,0 +1,98 @@
+<UserControl x:Class="Views.Shell.FreshnessChip"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:converters="clr-namespace:MerchSys.App.Converters"
+             mc:Ignorable="d"
+             x:Name="Root">
+    <UserControl.Resources>
+        <converters:RelativeTimeConverter x:Key="RelativeTimeConverter"/>
+    </UserControl.Resources>
+
+    <UserControl.Style>
+        <Style TargetType="UserControl">
+            <Setter Property="Visibility" Value="Visible"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsNeverLoaded, ElementName=Root}" Value="True">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Style>
+
+    <Border Background="{DynamicResource SidebarBackgroundBrush}"
+            BorderBrush="{DynamicResource SeparatorBrush}"
+            BorderThickness="1"
+            CornerRadius="{DynamicResource RadiusSmall}"
+            Padding="8,4"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Center">
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+            <!-- Relative text -->
+            <TextBlock x:Name="TimeText"
+                       Text="{Binding LastLoadedAt, ElementName=Root, Converter={StaticResource RelativeTimeConverter}}"
+                       FontSize="{DynamicResource FontSizeCaption}"
+                       VerticalAlignment="Center">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsStale, ElementName=Root}" Value="True">
+                                <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+
+            <!-- Separator bullet -->
+            <TextBlock Text=" · "
+                       FontSize="{DynamicResource FontSizeCaption}"
+                       VerticalAlignment="Center">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsStale, ElementName=Root}" Value="True">
+                                <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+
+            <!-- Refresh button -->
+            <Button Command="{Binding RefreshCommand, ElementName=Root}"
+                    Style="{StaticResource LinkButtonStyle}"
+                    VerticalAlignment="Center"
+                    Margin="2,0,0,0"
+                    Padding="2"
+                    ToolTip="Refresh Data"
+                    x:Name="RefreshBtn"
+                    AutomationProperties.Name="Refresh data"
+                    AutomationProperties.HelpText="Reloads the current list or grid data from the server.">
+                <Path Data="{StaticResource IconRefreshGeometry}"
+                      Width="12"
+                      Height="12"
+                      VerticalAlignment="Center"
+                      HorizontalAlignment="Center">
+                    <Path.Style>
+                        <Style TargetType="Path" BasedOn="{StaticResource IconBase}">
+                            <Setter Property="Fill" Value="{DynamicResource TextSecondaryBrush}"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsStale, ElementName=Root}" Value="True">
+                                    <Setter Property="Fill" Value="{DynamicResource WarningBrush}"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding IsMouseOver, ElementName=RefreshBtn}" Value="True">
+                                    <Setter Property="Fill" Value="{DynamicResource AccentBrush}"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Path.Style>
+                </Path>
+            </Button>
+        </StackPanel>
+    </Border>
+</UserControl>
