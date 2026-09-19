@@ -70,16 +70,16 @@ All code must implement the OWASP DA Top 10 controls:
 
 ## Documentation & Architectural Rules (MUST READ)
 
-The core architectural rules and domain concepts are located in the `docs/` folder. While the inline rules above serve as a quick-reference checklist, the `docs/` folder is the **single source of truth** for architectural rationale. You MUST read relevant files from this folder before proposing architectural changes or domain logic.
+The core architectural rules and domain concepts are maintained centrally and will be provided to you directly within the session prompt by the orchestrating agent. You MUST adhere to the context and rules embedded in your prompt before proposing architectural changes or domain logic.
 
 ### UI Architecture
-- **[MVP Pattern](../Knowledge_Vault/Rules/architecture-winforms-mvp.md)**: All Windows Forms UI MUST strictly adhere to the Model-View-Presenter pattern. Read this rule before creating or modifying any forms.
+- **MVP Pattern**: All Windows Forms UI MUST strictly adhere to the Model-View-Presenter pattern. Read the pattern rules provided in your prompt before creating or modifying any forms.
 
 ### Domain Knowledge
-Before touching business logic, check the `../Knowledge_Vault/VISTA_Domain/` directory for context:
-- **Concepts**: `../Knowledge_Vault/VISTA_Domain/concepts/` (e.g., FIFO costing, centralized database architecture)
-- **Entities**: `../Knowledge_Vault/VISTA_Domain/entities/` (e.g., module definitions, business rules)
-- **Sources**: `../Knowledge_Vault/VISTA_Domain/sources/` (system plan and amendments)
+Before touching business logic, carefully review the domain context provided in your prompt. This will include:
+- **Concepts**: (e.g., FIFO costing, centralized database architecture)
+- **Entities**: (e.g., module definitions, business rules)
+- **Sources**: (system plan and amendments)
 
 ### Feature Specifications
 - **[Specs/](Specs/)**: Contains the detailed requirements and business logic for each module (e.g., Purchasing, Inventory). You MUST read the relevant module specs before implementing features.
