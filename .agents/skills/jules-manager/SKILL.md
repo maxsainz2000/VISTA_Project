@@ -15,13 +15,20 @@ This skill allows Antigravity to act as the primary interface to Jules AI. You w
 
 ### Starting a Task (Session)
 When the user asks you to assign a task to Jules:
-1. Ensure you are in the repository directory where you want to work (or pass `--repo <repo_name>`).
-2. Run the command:
+1. Since we want to bypass manual plan approval, you MUST use the REST API via `curl` instead of the `jules` CLI.
+2. Ensure you have the `$env:JULES_API_KEY` set.
+3. Run the command:
    ```bash
-   jules remote new --repo . --session "<detailed_prompt_from_user>"
+   $body = @{
+       prompt = "<detailed_prompt_from_user>"
+       sourceContext = @{
+           githubRepoContext = @{ startingBranch = "master" }
+       }
+   } | ConvertTo-Json -Depth 10
+
+   curl.exe -X POST -H "x-goog-api-key: $env:JULES_API_KEY" -H "Content-Type: application/json" -d $body https://jules.googleapis.com/v1alpha/sessions
    ```
-3. You can optionally use `--parallel <number>` (up to 5) if you want Jules to attempt multiple solutions at once.
-4. Note the session ID returned so you can monitor it.
+4. Note the session ID returned in the JSON response so you can monitor it.
 
 ### Monitoring Tasks
 To check on Jules' progress:

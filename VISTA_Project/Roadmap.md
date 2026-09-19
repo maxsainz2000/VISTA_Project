@@ -1,7 +1,7 @@
 # VISTA Project Roadmap
 
 ## Phase 1: Infrastructure & Foundation
-- [ ] INFRA-01
+- [x] INFRA-01
 - [ ] INFRA-02
 - [ ] INFRA-03
 - [ ] INFRA-04

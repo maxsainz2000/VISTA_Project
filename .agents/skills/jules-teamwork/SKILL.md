@@ -27,9 +27,17 @@ Execute this loop up to 100 times (or until the roadmap is complete/user interru
    - Jules runs in the cloud and pulls from the remote repository.
    - Therefore, before delegating to Jules, you MUST autonomously `git commit` and `git push` any updates you made to the Knowledge Vault, Specs, or Roadmap.
 2. **Launch**: 
-   - Dispatch the task to Jules via CLI.
+   - Since we want to bypass manual plan approval, you MUST use the REST API via `curl` instead of the `jules` CLI.
+   - Dispatch the task to Jules via API (requires `$env:JULES_API_KEY`):
    ```bash
-   jules remote new --repo . --session "<detailed_prompt_including_specs_and_rules>"
+   $body = @{
+       prompt = "<detailed_prompt_including_specs_and_rules>"
+       sourceContext = @{
+           githubRepoContext = @{ startingBranch = "master" }
+       }
+   } | ConvertTo-Json -Depth 10
+
+   curl.exe -X POST -H "x-goog-api-key: $env:JULES_API_KEY" -H "Content-Type: application/json" -d $body https://jules.googleapis.com/v1alpha/sessions
    ```
 3. **Monitor**: 
    - Wait for Jules to complete the task and open a Pull Request.
