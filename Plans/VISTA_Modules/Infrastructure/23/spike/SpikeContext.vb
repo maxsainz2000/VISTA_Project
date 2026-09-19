@@ -27,7 +27,7 @@ Namespace Spike
         Public Property Batches As DbSet(Of SpikeBatch)
 
         Protected Overrides Sub OnConfiguring(optionsBuilder As DbContextOptionsBuilder)
-            Dim connStr = "Server=localhost;Port=3306;Database=merchsys_central;User Id=root;Password=;"
+            Dim connStr = "Server=127.0.0.1;Port=3306;Database=merchsys_central;User Id=root;Password=;"
             optionsBuilder.UseMySQL(connStr)
         End Sub
 

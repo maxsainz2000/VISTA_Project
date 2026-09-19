@@ -10,7 +10,7 @@ Namespace Data
             Implements IDesignTimeDbContextFactory(Of InventoryDbContext).CreateDbContext
 
             Dim optionsBuilder = New DbContextOptionsBuilder(Of InventoryDbContext)()
-            optionsBuilder.UseMySQL("Server=localhost;Database=design_time;User Id=root;Password=;")
+            optionsBuilder.UseMySQL("Server=127.0.0.1;Database=design_time;User Id=root;Password=;")
             Return New InventoryDbContext(optionsBuilder.Options, Nothing)
         End Function
 

@@ -10,7 +10,7 @@ Namespace Data
             Implements IDesignTimeDbContextFactory(Of PurchasingDbContext).CreateDbContext
 
             Dim optionsBuilder = New DbContextOptionsBuilder(Of PurchasingDbContext)()
-            optionsBuilder.UseMySQL("Server=localhost;Database=design_time;User Id=root;Password=;")
+            optionsBuilder.UseMySQL("Server=127.0.0.1;Database=design_time;User Id=root;Password=;")
             Return New PurchasingDbContext(optionsBuilder.Options, Nothing)
         End Function
 

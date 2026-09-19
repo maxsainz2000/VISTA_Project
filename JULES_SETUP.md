@@ -21,14 +21,13 @@ The primary target repository for Jules AI, pre-configured with strict instructi
 - **`AGENTS.md`**: Contains CRITICAL instructions for Jules. It mandates the use of **Windows Forms (MVP)** and **VB.NET 10**, explicitly banning WPF/XAML. It also details the database architecture (MariaDB 11.4.x LTS), MediatR event contracts, security requirements, and known VB.NET build traps.
 - **`Roadmap.md`**: A comprehensive 7-phase execution plan covering everything from Infrastructure to Accounting and UX, broken down into hundreds of trackable tasks.
 - **`Deferred_Tasks.md`**: A central ledger auto-populated by the 24/7 Agent to track tasks that Jules fails or defers due to spec issues, awaiting your manual verification.
-- **`.github/workflows/jules-agent-trigger.yml`**: A GitHub Action that triggers the local 24/7 Antigravity listener whenever Jules completes a PR.
 - **Directory Structure**: Includes `Specs/` (business logic requirements), `docs/` (architectural source of truth), and `WinForms_Applications/` (target for the migration).
 
 ## 4. 24/7 Autonomous Orchestration
-We have configured a fully event-driven workflow where Jules and Antigravity work together seamlessly:
+We have configured a fully automated workflow where Jules and Antigravity work together seamlessly via the `jules-teamwork` skill:
 1. Jules runs its headless integration tests (via the installed MariaDB service in its Ubuntu VM).
-2. When Jules finishes a task and opens a PR, the **GitHub Action** fires, sending a webhook payload (via a secure tunnel like ngrok or Cloudflare Tunnel) to your local machine.
-3. A local **Python HTTP server** listener receives the webhook and automatically uses the Antigravity CLI (`agy`) to spawn an agent. The agent analyzes the output against the `Specs/`, logs issues in `Deferred_Tasks.md`, and **pauses for your manual verification** before continuing to the next session.
+2. The `jules-teamwork` skill executes a supervised sequential burst of up to 100 sessions. Antigravity orchestrates, verifies, and manages docs, while Jules strictly codes.
+3. The agent analyzes the output against the `Specs/`, logs issues in `Deferred_Tasks.md`, and loops synchronously.
 
 ## Capabilities & Usage
 By leveraging this setup, you can ask Antigravity to manage Jules entirely through natural language. 
@@ -37,4 +36,4 @@ By leveraging this setup, you can ask Antigravity to manage Jules entirely throu
 - *"Ask Jules to start working on INFRA-01 from the Roadmap, keeping the VB.NET build traps in mind."*
 - *"Check the Jules Docs Vault to see how we can trigger Jules via GitHub Actions."*
 - *"Pull down Jules' latest PR for the Purchasing module so I can review it against the MVP architecture rules."*
-- *"Write a lightweight Python FastAPI server to listen for GitHub Action webhooks on port 8080. When triggered, have it execute the `agy` CLI to spawn an agent that verifies Jules' PR against Specs/ and logs any errors in Deferred_Tasks.md for my review."*
+- *"Run a /jules-teamwork loop for the VISTA project to execute the roadmap."*

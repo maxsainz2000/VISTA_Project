@@ -20,16 +20,16 @@ Whenever the user asks you to delegate or orchestrate a task based on a spec to 
    - Identify the next uncompleted priority task from `VISTA_Project\Roadmap.md`.
 
 3. **Task Delegation:**
-   - Use the `jules-manager` skill (via `jules remote new --repo maxsainz2000/VISTA_Project --session "<prompt>"`) to spawn a new session for the selected spec.
+   - Use the `jules-manager` skill (via `jules remote new --repo . --session "<prompt>"`) to spawn a new session for the selected spec.
    - **CRITICAL CONTEXT BOUNDARY**: Jules AI runs remotely and only has access to the GitHub repository. It cannot access local directories outside the repo (like `Knowledge_Vault`).
    - Therefore, YOU (Antigravity) must read the relevant global rules from `Knowledge_Vault` locally and embed their actual contents/constraints directly into the `<prompt>`. For project-specific rules (like MVP architecture) and domain knowledge, simply instruct Jules to read them from the `docs/` folder within the repository.
    - Ensure any file paths mentioned in the prompt are relative to the repository root (e.g. `Specs/...` instead of `VISTA_Project/Specs/...`).
 
 4. **Monitoring:**
-   - Terminate your current process/session. You do not need to wait. The event-driven webhook listener will automatically spawn a new Antigravity instance when Jules completes the task and opens a PR.
+   - Loop synchronously and wait for the session to complete. You do not need to terminate.
 
 5. **Strict Verification:**
-   - Pull the remote branch/PR using native git: `git fetch origin pull/<pr_number>/head:pr-<pr_number>` then `git checkout pr-<pr_number>` (the PR number is provided by the webhook payload). Alternatively, use `jules remote pull --session <session_id>` if you initiated the session and have the session ID.
+   - Pull the remote branch/PR using `jules remote pull --session <session_id>`. (The session ID is returned when you spawn the session).
    - Inspect the code changes strictly.
    - Verify it against the target spec and our rules. Try building or running the relevant commands to ensure it is perfect.
 
