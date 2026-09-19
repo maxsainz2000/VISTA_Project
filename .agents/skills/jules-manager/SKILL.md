@@ -22,6 +22,7 @@ When the user asks you to assign a task to Jules:
    $body = @{
        prompt = "<detailed_prompt_from_user>"
        sourceContext = @{
+           source = "sources/github/maxsainz2000/VISTA_Project"
            githubRepoContext = @{ startingBranch = "master" }
        }
    } | ConvertTo-Json -Depth 10

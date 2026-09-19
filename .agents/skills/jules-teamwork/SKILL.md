@@ -38,6 +38,7 @@ Execute this loop up to 100 times (or until the roadmap is complete/user interru
    $body = @{
        prompt = "<detailed_prompt_including_specs_and_rules>"
        sourceContext = @{
+           source = "sources/github/maxsainz2000/VISTA_Project"
            githubRepoContext = @{ startingBranch = "master" }
        }
    } | ConvertTo-Json -Depth 10
