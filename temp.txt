@@ -1,0 +1,4 @@
+           ID                                    Description                                    Repo                Last active                Status         
+ 14288920883370595937    Execute task INFRA-01 from VISTA_Project/Roadmap.md. Refer …  maxsainz2000/VISTA_Pr…  23s ago                 Awaiting Plan A
+ 5674080636597207330     Task: INFRA-01 from VISTA_Project/Roadmap.md. Spec is in VI…  maxsainz2000/VISTA_Pr…  16h25m49s ago           Completed      
+                                                                                                                                                      

@@ -8,7 +8,7 @@ Scaffolded the complete MerchSys solution: created the `.slnx` solution file, al
 ### Requirements
 ### Solution & Projects
 - **MerchSys.slnx**: solution file (dotnet 10 uses `.slnx` format)
-- **MerchSys.App.vbproj**: WinForms startup project
+- **MerchSys.App.vbproj**: WinForms startup project (CRITICAL: Must not contain any WPF elements. No <UseWPF>true</UseWPF>, no .xaml files, no System.Windows namespaces. Must be purely WinForms).
 - **MerchSys.SharedKernel.vbproj**: shared types library
 - **MerchSys.Purchasing.vbproj**: purchasing module library
 - **MerchSys.Inventory.vbproj**: inventory module library
