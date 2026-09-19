@@ -16,9 +16,9 @@ This skill allows Antigravity to act as the primary interface to Jules AI. You w
 ### Starting a Task (Session)
 When the user asks you to assign a task to Jules:
 1. Since we want to bypass manual plan approval, you MUST use the REST API via `curl` instead of the `jules` CLI.
-2. Ensure you have the `$env:JULES_API_KEY` set.
-3. Run the command:
+2. Read the API key from `~/.jules/api_key`:
    ```bash
+   $apiKey = Get-Content ~/.jules/api_key
    $body = @{
        prompt = "<detailed_prompt_from_user>"
        sourceContext = @{
@@ -26,9 +26,9 @@ When the user asks you to assign a task to Jules:
        }
    } | ConvertTo-Json -Depth 10
 
-   curl.exe -X POST -H "x-goog-api-key: $env:JULES_API_KEY" -H "Content-Type: application/json" -d $body https://jules.googleapis.com/v1alpha/sessions
+   curl.exe -X POST -H "x-goog-api-key: $apiKey" -H "Content-Type: application/json" -d $body https://jules.googleapis.com/v1alpha/sessions
    ```
-4. Note the session ID returned in the JSON response so you can monitor it.
+3. Note the session ID returned in the JSON response so you can monitor it.
 
 ### Monitoring Tasks
 To check on Jules' progress:

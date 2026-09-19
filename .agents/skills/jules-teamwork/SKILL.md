@@ -20,6 +20,10 @@ When the user types `/jules-teamwork`, execute the following strict sequence aut
 2. Read the existing `Knowledge_Vault`, `Specs`, and `Roadmap.md`. (If you need a refresher on Jules CLI syntax, refer to the `jules-manager` skill).
 3. Identify the next uncompleted atomic task from the roadmap.
 
+> [!IMPORTANT]
+> **ROADMAP INTEGRITY CONSTRAINT**:
+> DO NOT auto-complete tasks in `Roadmap.md` based on your own static analysis of the codebase. The user is actively migrating the architecture (WPF to WinForms MVP), so legacy code existing does NOT mean the task is complete. Only mark a task as `[x]` AFTER a Jules session specifically completes it and you merge the PR during Phase 2.
+
 ### Phase 2: Supervised Sequential Burst (The Loop)
 Execute this loop up to 100 times (or until the roadmap is complete/user interrupts):
 
@@ -28,8 +32,9 @@ Execute this loop up to 100 times (or until the roadmap is complete/user interru
    - Therefore, before delegating to Jules, you MUST autonomously `git commit` and `git push` any updates you made to the Knowledge Vault, Specs, or Roadmap.
 2. **Launch**: 
    - Since we want to bypass manual plan approval, you MUST use the REST API via `curl` instead of the `jules` CLI.
-   - Dispatch the task to Jules via API (requires `$env:JULES_API_KEY`):
+   - Dispatch the task to Jules via API (Read API key from `~/.jules/api_key`):
    ```bash
+   $apiKey = Get-Content ~/.jules/api_key
    $body = @{
        prompt = "<detailed_prompt_including_specs_and_rules>"
        sourceContext = @{
@@ -37,7 +42,7 @@ Execute this loop up to 100 times (or until the roadmap is complete/user interru
        }
    } | ConvertTo-Json -Depth 10
 
-   curl.exe -X POST -H "x-goog-api-key: $env:JULES_API_KEY" -H "Content-Type: application/json" -d $body https://jules.googleapis.com/v1alpha/sessions
+   curl.exe -X POST -H "x-goog-api-key: $apiKey" -H "Content-Type: application/json" -d $body https://jules.googleapis.com/v1alpha/sessions
    ```
 3. **Monitor**: 
    - Wait for Jules to complete the task and open a Pull Request.
