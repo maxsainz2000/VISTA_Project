@@ -45,8 +45,10 @@ Execute this loop up to 100 times (or until the roadmap is complete/user interru
 
    curl.exe -X POST -H "x-goog-api-key: $apiKey" -H "Content-Type: application/json" -d $body https://jules.googleapis.com/v1alpha/sessions
    ```
-3. **Monitor**: 
-   - Wait for Jules to complete the task and open a Pull Request.
+3. **Monitor (Active Polling)**: 
+   - **CRITICAL**: You MUST use the `schedule` tool (e.g., `DurationSeconds=120`) to actively monitor the Jules session's progress in the background.
+   - Do NOT end your turn waiting for the user to prompt you. This is a fully automated loop. You must autonomously wake yourself up, run `jules remote list --session`, and repeat the timer until the session status is `Completed`.
+   - Once Jules completes the task, proceed immediately to Verification.
 4. **Strict Verification**: 
    - Pull the PR locally.
    - Delegate verification to your `DeepInvestigator` subagent or perform rigorous checks yourself (run tests, check edge cases, verify against specs).
