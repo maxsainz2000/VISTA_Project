@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <!-- Link to SharedKernel -->
     <ProjectReference Include="..\MerchSys.SharedKernel\MerchSys.SharedKernel.vbproj" />
   </ItemGroup>
 
@@ -8,10 +9,11 @@
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="MediatR" Version="14.1.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.7" />
-    <PackageReference Include="MySql.EntityFrameworkCore" Version="10.0.7" />
-    <PackageReference Include="MySqlConnector" Version="2.5.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.7" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.7" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.7" />
+    <PackageReference Include="MySql.EntityFrameworkCore" Version="10.0.7" />
+    <PackageReference Include="MySqlConnector" Version="2.5.0" />
     <PackageReference Include="QuestPDF" Version="2026.5.0" />
   </ItemGroup>
 

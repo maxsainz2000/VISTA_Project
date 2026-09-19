@@ -5,6 +5,7 @@
     <TargetFramework>net10.0-windows</TargetFramework>
     <RootNamespace>MerchSys.App</RootNamespace>
     <StartupObject>Sub Main</StartupObject>
+    <UseWPF>false</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
   </PropertyGroup>
@@ -16,7 +17,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Link to SharedKernel -->
     <ProjectReference Include="..\MerchSys.SharedKernel\MerchSys.SharedKernel.vbproj" />
+    <!-- Module references -->
     <ProjectReference Include="..\MerchSys.Purchasing\MerchSys.Purchasing.vbproj" />
     <ProjectReference Include="..\MerchSys.Inventory\MerchSys.Inventory.vbproj" />
     <ProjectReference Include="..\MerchSys.POS\MerchSys.POS.vbproj" />
@@ -30,17 +33,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.7" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.7">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="MySql.EntityFrameworkCore" Version="10.0.7" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.7" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.7" />
-    <PackageReference Include="MySqlConnector" Version="2.5.0" />
-    <PackageReference Include="Konscious.Security.Cryptography.Argon2" Version="1.3.0" />
-    <PackageReference Include="MediatR" Version="14.1.0" />
+    <PackageReference Include="Konscious.Security.Cryptography.Argon2" Version="1.3.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.12" />
+    <PackageReference Include="Notification.Wpf" Version="11.0.0" />
   </ItemGroup>
 
 </Project>

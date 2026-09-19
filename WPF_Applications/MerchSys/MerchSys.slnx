@@ -1,4 +1,5 @@
 <Solution>
+  <!-- Scaffolded solution -->
   <Folder Name="/src/">
     <Project Path="src/MerchSys.Accounting/MerchSys.Accounting.vbproj" />
     <Project Path="src/MerchSys.App/MerchSys.App.vbproj" />
