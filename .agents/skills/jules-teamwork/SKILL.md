@@ -36,7 +36,10 @@ Execute this loop up to 100 times (or until the roadmap is complete/user interru
    ```bash
    $apiKey = Get-Content ~/.jules/api_key
    $body = @{
-       prompt = "<detailed_prompt_including_specs_and_rules>"
+       prompt = "<detailed_prompt_including_specs_and_rules>
+       
+       CRITICAL NUGET RULE:
+       When modifying code to use new NuGet dependencies (e.g., Microsoft.Data.Sqlite), you MUST add the <PackageReference> to the specific inner module .vbproj files (e.g., MerchSys.Inventory.vbproj, MerchSys.Purchasing.vbproj) that use those types. DO NOT just install it in the root MerchSys.App.vbproj."
        sourceContext = @{
            source = "sources/github/maxsainz2000/VISTA_Project"
            githubRepoContext = @{ startingBranch = "master" }
