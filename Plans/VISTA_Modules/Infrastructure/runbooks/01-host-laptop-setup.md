@@ -132,7 +132,7 @@ Run in an **Administrator** PowerShell. Verify the rule appears in *Windows Defe
 
 1. Copy the VISTA build output to `C:\Program Files\VISTA\`.
 2. Edit `C:\Program Files\VISTA\appsettings.json`:
-   - Set `ConnectionStrings:MerchSysCentral` to `Server=localhost;Port=3306;Database=merchsys_central;User Id=vista_app;Password=<VISTA-APP-PASSWORD>;ConnectionTimeout=5;DefaultCommandTimeout=10;`
+   - Set `ConnectionStrings:MerchSysCentral` to `Server=127.0.0.1;Port=3306;Database=merchsys_central;User Id=vista_app;Password=<VISTA-APP-PASSWORD>;ConnectionTimeout=5;DefaultCommandTimeout=10;`
    - Set `Client:WorkstationName` to `Host-Laptop`
 3. Launch VISTA. The `MariaDbSchemaInitializer` runs automatically — it creates all tables and inserts seed data (20 products, 4 categories, 3 vendors).
 4. Confirm by running:

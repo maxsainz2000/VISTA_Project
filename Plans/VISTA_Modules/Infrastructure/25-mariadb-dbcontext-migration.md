@@ -104,7 +104,7 @@ Public Class InventoryDbContextFactory
         Dim optionsBuilder = New DbContextOptionsBuilder(Of InventoryDbContext)()
         ' Design-time only — does NOT need to hit a live DB.
         ' Provide a syntactically valid MariaDB connection string with a known server version.
-        optionsBuilder.UseMySql("Server=localhost;Database=design_time;User Id=root;",
+        optionsBuilder.UseMySql("Server=127.0.0.1;Database=design_time;User Id=root;",
                                 New MySqlServerVersion(New Version(11, 4, 0)))
         Return New InventoryDbContext(optionsBuilder.Options)
     End Function
