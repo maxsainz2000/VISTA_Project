@@ -1,26 +1,25 @@
-Imports System.Windows.Forms
 Imports Microsoft.Extensions.Hosting
 Imports Microsoft.Extensions.DependencyInjection
+Imports System.Windows.Forms
 
-Module Program
-    <STAThread>
-    Sub Main()
-        System.Windows.Forms.Application.EnableVisualStyles()
-        System.Windows.Forms.Application.SetCompatibleTextRenderingDefault(False)
+Friend Module Program
 
-        Dim builder = Host.CreateDefaultBuilder()
+    <STAThread()>
+    Friend Sub Main(args As String())
+        Application.SetHighDpiMode(HighDpiMode.SystemAware)
+        Application.EnableVisualStyles()
+        Application.SetCompatibleTextRenderingDefault(False)
 
+        Dim builder = Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder(args)
         builder.ConfigureServices(Sub(context, services)
-                                      services.AddSingleton(Of MainWindow)()
-                                      ' Placeholder for DI setup (TODO INFRA-02)
-                                  End Sub)
+                                   ' TODO INFRA-02: Register ViewModels and Services here
+                                   services.AddTransient(Of Form1)()
+                               End Sub)
 
-        Dim hostApp = builder.Build()
+        Dim host As IHost = builder.Build()
 
-        Using scope = hostApp.Services.CreateScope()
-            Dim services = scope.ServiceProvider
-            Dim mainWindow = services.GetRequiredService(Of MainWindow)()
-            System.Windows.Forms.Application.Run(mainWindow)
-        End Using
+        Dim mainForm = host.Services.GetRequiredService(Of Form1)()
+        Application.Run(mainForm)
     End Sub
+
 End Module

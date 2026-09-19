@@ -14,4 +14,5 @@
     <PackageReference Include="MySqlConnector" Version="2.5.0" />
   </ItemGroup>
 
+  <!-- SharedKernel project -->
 </Project>
