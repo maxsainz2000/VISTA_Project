@@ -2,7 +2,7 @@
 
 ## Phase 1: Infrastructure & Foundation
 - [x] INFRA-01
-- [ ] INFRA-02
+- [x] INFRA-02
 - [ ] INFRA-03
 - [ ] INFRA-04
 - [ ] INFRA-05
