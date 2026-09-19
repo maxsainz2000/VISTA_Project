@@ -41,6 +41,7 @@ Execute this loop up to 100 times (or until the roadmap is complete/user interru
            source = "sources/github/maxsainz2000/VISTA_Project"
            githubRepoContext = @{ startingBranch = "master" }
        }
+       automationMode = "AUTO_CREATE_PR"
    } | ConvertTo-Json -Depth 10
 
    curl.exe -X POST -H "x-goog-api-key: $apiKey" -H "Content-Type: application/json" -d $body https://jules.googleapis.com/v1alpha/sessions
