@@ -48,6 +48,8 @@ Execute this loop up to 100 times (or until the roadmap is complete/user interru
 3. **Monitor (Active Polling)**: 
    - **CRITICAL**: You MUST use the `schedule` tool (e.g., `DurationSeconds=120`) to actively monitor the Jules session's progress in the background.
    - Do NOT end your turn waiting for the user to prompt you. This is a fully automated loop. You must autonomously wake yourself up, run `jules remote list --session`, and repeat the timer until the session status is `Completed`.
+   - If the session status changes to `AWAITING_USER_FEEDBACK` (or `Awaiting User F`), you MUST read Jules's messages via the activities API (`curl -H "x-goog-api-key: $apiKey" https://jules.googleapis.com/v1alpha/sessions/<ID>/activities?pageSize=5`). 
+   - Reply to Jules using the `:sendMessage` API endpoint to unblock it. (Do NOT let it auto-complete Roadmap tasks; instruct it to submit the PR if work is done).
    - Once Jules completes the task, proceed immediately to Verification.
 4. **Strict Verification**: 
    - Pull the PR locally.
