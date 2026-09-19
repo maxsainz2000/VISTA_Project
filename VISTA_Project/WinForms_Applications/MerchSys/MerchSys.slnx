@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/MerchSys.Accounting/MerchSys.Accounting.vbproj" />
+    <Project Path="src/MerchSys.App/MerchSys.App.vbproj" />
+    <Project Path="src/MerchSys.Inventory/MerchSys.Inventory.vbproj" />
+    <Project Path="src/MerchSys.POS/MerchSys.POS.vbproj" />
+    <Project Path="src/MerchSys.Purchasing/MerchSys.Purchasing.vbproj" />
+    <Project Path="src/MerchSys.SharedKernel/MerchSys.SharedKernel.vbproj" />
+  </Folder>
+</Solution>

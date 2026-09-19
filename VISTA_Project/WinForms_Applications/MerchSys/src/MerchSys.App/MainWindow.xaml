@@ -1,0 +1,103 @@
+<Window x:Class="MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:models="clr-namespace:MerchSys.App.Models"
+        mc:Ignorable="d"
+        Title="VISTA — Villon Integrated Supply and Trade Application"
+        Height="720" Width="1280"
+        MinHeight="600" MinWidth="900"
+        FontFamily="{DynamicResource AppFontFamily}"
+        xmlns:views="clr-namespace:MerchSys.App.Views.Shell">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    </Window.Resources>
+
+    <!--
+        Shell layout — three columns:
+          Col 0 (60px)  : Activity Rail — module icon buttons
+          Col 1 (220px) : Module Detail Panel — active module nav items, session info, Log Out, connection status
+          Col 2 (*)     : Content — the active view UserControl
+    -->
+
+    <!-- Keyboard shortcuts: Ctrl+1..4 switch modules; Ctrl+0 switches to Developer Tools (Debug) -->
+    <Window.InputBindings>
+        <KeyBinding Gesture="Ctrl+1"
+                    Command="{Binding SelectModuleCommand}"
+                    CommandParameter="{x:Static models:AppModule.Purchasing}"/>
+        <KeyBinding Gesture="Ctrl+2"
+                    Command="{Binding SelectModuleCommand}"
+                    CommandParameter="{x:Static models:AppModule.Inventory}"/>
+        <KeyBinding Gesture="Ctrl+3"
+                    Command="{Binding SelectModuleCommand}"
+                    CommandParameter="{x:Static models:AppModule.POS}"/>
+        <KeyBinding Gesture="Ctrl+4"
+                    Command="{Binding SelectModuleCommand}"
+                    CommandParameter="{x:Static models:AppModule.Accounting}"/>
+        <KeyBinding Gesture="Ctrl+D0"
+                    Command="{Binding SelectModuleCommand}"
+                    CommandParameter="{x:Static models:AppModule.DeveloperTools}"/>
+        <KeyBinding Gesture="Ctrl+K"
+                    Command="{Binding CommandPalette.OpenCommand}"/>
+    </Window.InputBindings>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <!-- Col 0: Activity Rail -->
+            <ColumnDefinition Width="60"/>
+            <!-- Col 1: Module Detail Panel -->
+            <ColumnDefinition Width="220"/>
+            <!-- Col 2: Active Content View -->
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- ═══ Col 0 — Activity Rail ═══════════════════════════════════════ -->
+        <!-- Slot filled by code-behind from DI (ActivityRail UserControl) -->
+        <ContentControl Grid.Column="0" x:Name="ActivityRailSlot"/>
+
+        <!-- ═══ Col 1 — Module Detail Panel ════════════════════════════════ -->
+        <!-- Slot filled by code-behind from DI (ModuleDetailPanel UserControl) -->
+        <ContentControl Grid.Column="1" x:Name="ModuleDetailSlot"/>
+
+        <!-- ═══ Col 2 — Active Content View ════════════════════════════════ -->
+        <Border Grid.Column="2"
+                Background="{DynamicResource WindowBackgroundBrush}"
+                Padding="{DynamicResource SpacingL}">
+            <ContentControl Content="{Binding CurrentView, NotifyOnTargetUpdated=True}">
+                <ContentControl.RenderTransform>
+                    <TranslateTransform Y="0"/>
+                </ContentControl.RenderTransform>
+                <ContentControl.Triggers>
+                    <EventTrigger RoutedEvent="Binding.TargetUpdated">
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                 From="0.0" To="1.0"
+                                                 Duration="{StaticResource MotionDurationStd}"/>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
+                                                 From="8.0" To="0.0"
+                                                 Duration="{StaticResource MotionDurationStd}"
+                                                 EasingFunction="{StaticResource MotionEasing}"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+                </ContentControl.Triggers>
+            </ContentControl>
+        </Border>
+
+        <!-- Command Palette Overlay -->
+        <views:CommandPalette x:Name="CommandPaletteControl"
+                              Grid.Column="0" Grid.ColumnSpan="3"
+                              Visibility="{Binding IsOpen, Converter={StaticResource BooleanToVisibilityConverter}}"
+                              DataContext="{Binding CommandPalette}"/>
+
+        <!-- Shortcuts Overlay -->
+        <views:ShortcutsOverlay x:Name="ShortcutsOverlayControl"
+                                Grid.Column="0" Grid.ColumnSpan="3"
+                                Visibility="{Binding IsOpen, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                DataContext="{Binding ShortcutsOverlay}"/>
+
+    </Grid>
+</Window>

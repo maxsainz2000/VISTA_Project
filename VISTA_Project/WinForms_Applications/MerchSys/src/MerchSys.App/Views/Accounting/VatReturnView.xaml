@@ -1,0 +1,260 @@
+<UserControl x:Class="Views.Accounting.VatReturnView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:views="clr-namespace:MerchSys.App.Views.Shell"
+             mc:Ignorable="d"
+             d:DesignHeight="768" d:DesignWidth="1280"
+             Background="{DynamicResource WindowBackgroundBrush}">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </UserControl.Resources>
+
+    <Grid>
+        <DockPanel Margin="10">
+
+            <!-- ═══════════════════════════════════════════════════════════
+                 TOOLBAR
+                 ═══════════════════════════════════════════════════════════ -->
+            <Border DockPanel.Dock="Top"
+                    Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                    CornerRadius="{DynamicResource RadiusSmall}" Padding="12,8" Margin="0,0,0,8">
+                <Grid>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="BIR VAT Return" FontSize="14" FontWeight="Bold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        <TextBlock Text=" — Generate, File, and Export" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <TextBlock Text="Loading…" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"
+                                   VerticalAlignment="Center" Margin="0,0,10,0"
+                                   Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <ScrollViewer DockPanel.Dock="Top" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel Margin="0,0,10,0">
+
+                    <!-- ═══════════════════════════════════════════════════════════
+                         WHAT THIS MEANS
+                         ═══════════════════════════════════════════════════════════ -->
+                    <views:InsightBanner Margin="0,0,0,8"
+                                         Text="{Binding WhatThisMeansText}"
+                                         Severity="{Binding WhatThisMeansSeverity}"/>
+
+                    <!-- ═══════════════════════════════════════════════════════════
+                         CONTROLS PANEL
+                         ═══════════════════════════════════════════════════════════ -->
+                    <Border Style="{StaticResource CardStyle}" CornerRadius="{DynamicResource RadiusSmall}" Padding="14,12" Margin="0,0,0,8">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Period selectors -->
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="Year:" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <ComboBox ItemsSource="{Binding AvailableYears}"
+                                          SelectedItem="{Binding SelectedYear, Mode=TwoWay}"
+                                          Width="70" FontSize="11" VerticalAlignment="Center" Margin="0,0,12,0"/>
+
+                                <TextBlock Text="Period:" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <ComboBox ItemsSource="{Binding AvailablePeriods}"
+                                          SelectedItem="{Binding SelectedPeriod, Mode=TwoWay}"
+                                          Width="60" FontSize="11" VerticalAlignment="Center" Margin="0,0,20,0"/>
+
+                                <!-- Form Type radios -->
+                                <TextBlock Text="Form:" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <RadioButton Content="2550M (Monthly VAT)"
+                                             IsChecked="{Binding IsForm2550M, Mode=TwoWay}"
+                                             FontSize="11" VerticalAlignment="Center" Margin="0,0,10,0" Cursor="Hand"/>
+                                <RadioButton Content="2550Q (Quarterly VAT)"
+                                             IsChecked="{Binding IsForm2550Q, Mode=TwoWay}"
+                                             FontSize="11" VerticalAlignment="Center" Margin="0,0,10,0" Cursor="Hand"/>
+                                <RadioButton Content="2551Q (3% Tax)"
+                                             IsChecked="{Binding IsForm2551Q, Mode=TwoWay}"
+                                             FontSize="11" VerticalAlignment="Center" Cursor="Hand"/>
+                            </StackPanel>
+
+                            <!-- Action buttons -->
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button Content="Generate" Command="{Binding GenerateCommand}"
+                                        Style="{StaticResource PrimaryButtonStyle}" Padding="12,6" FontWeight="SemiBold" FontSize="12" Margin="0,0,6,0"/>
+                                <Button Content="File with BIR" Command="{Binding FileCommand}"
+                                        Style="{StaticResource SuccessButtonStyle}" Padding="12,6" FontWeight="SemiBold" FontSize="12" Margin="0,0,6,0"/>
+                                <Button Content="Amend" Command="{Binding AmendCommand}"
+                                        Style="{StaticResource WarningButtonStyle}" Padding="12,6" FontWeight="SemiBold" FontSize="12" Margin="0,0,6,0"/>
+                                <Button Content="Export CSV" Command="{Binding ExportCsvCommand}"
+                                        Style="{StaticResource PrimaryButtonStyle}" Padding="12,6" FontWeight="SemiBold" FontSize="12" Margin="0,0,6,0"/>
+                                <Button Content="Export PDF" Command="{Binding ExportPdfCommand}"
+                                        Style="{StaticResource PrimaryButtonStyle}" Padding="12,6" FontWeight="SemiBold" FontSize="12" Margin="0"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- ═══════════════════════════════════════════════════════════
+                         STATUS MESSAGE
+                         ═══════════════════════════════════════════════════════════ -->
+                    <TextBlock Text="{Binding StatusMessage}"
+                               FontSize="{DynamicResource FontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}"
+                               Margin="2,0,0,6"
+                               TextWrapping="Wrap"/>
+
+                    <!-- ═══════════════════════════════════════════════════════════
+                         SUMMARY CARDS
+                         ═══════════════════════════════════════════════════════════ -->
+                    <Border Margin="0,0,0,8">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1.3*"/> <!-- Hero (VAT Payable) -->
+                                <ColumnDefinition Width="*"/>     <!-- VATable Sales -->
+                                <ColumnDefinition Width="*"/>     <!-- Output VAT -->
+                                <ColumnDefinition Width="*"/>     <!-- Input VAT -->
+                                <ColumnDefinition Width="*"/>     <!-- Filing Status -->
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Hero: VAT Payable -->
+                            <Border Grid.Column="0" Margin="0,0,6,0">
+                                <Border.Style>
+                                    <Style TargetType="Border" BasedOn="{StaticResource PrimaryMetricCardStyle}">
+                                        <Setter Property="Background" Value="{DynamicResource SidebarBackgroundBrush}"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding VatPayable}" Value="0">
+                                                <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <StackPanel>
+                                    <TextBlock Text="VAT PAYABLE" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,0,3"/>
+                                    <TextBlock Text="{Binding VatPayableDisplay}" Style="{StaticResource PrimaryMetricValueStyle}" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- VATable Sales -->
+                            <Border Grid.Column="1" Style="{StaticResource SecondaryMetricCardStyle}" Margin="0,0,6,0">
+                                <StackPanel>
+                                    <TextBlock Text="VATABLE SALES" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,0,3"/>
+                                    <TextBlock Text="{Binding TotalVatableSales, StringFormat={StaticResource FormatCurrency}}" Style="{StaticResource SecondaryMetricValueStyle}"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Output VAT -->
+                            <Border Grid.Column="2" Style="{StaticResource SecondaryMetricCardStyle}" Margin="0,0,6,0">
+                                <StackPanel>
+                                    <TextBlock Text="OUTPUT VAT" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,0,3"/>
+                                    <TextBlock Text="{Binding TotalOutputVat, StringFormat={StaticResource FormatCurrency}}" Style="{StaticResource SecondaryMetricValueStyle}"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Input VAT -->
+                            <Border Grid.Column="3" Style="{StaticResource SecondaryMetricCardStyle}" Margin="0,0,6,0">
+                                <StackPanel>
+                                    <TextBlock Text="INPUT VAT" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,0,3"/>
+                                    <TextBlock Text="{Binding TotalInputVat, StringFormat={StaticResource FormatCurrency}}" Style="{StaticResource SecondaryMetricValueStyle}"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Filing Status -->
+                            <Border Grid.Column="4" Style="{StaticResource SecondaryMetricCardStyle}" Margin="0">
+                                <StackPanel>
+                                    <TextBlock Text="FILING STATUS" Style="{StaticResource CaptionLabelStyle}" Margin="0,0,0,3"/>
+                                    <TextBlock Text="{Binding FilingStatusDisplay}" Style="{StaticResource SecondaryMetricValueStyle}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </Border>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- ═══════════════════════════════════════════════════════════
+                 LINES DETAIL
+                 ═══════════════════════════════════════════════════════════ -->
+            <Border Style="{StaticResource CardStyle}" CornerRadius="{DynamicResource RadiusSmall}" Padding="14,12" Margin="0">
+                <Grid>
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top" Text="Source Document Lines" Style="{StaticResource SectionHeaderStyle}" Margin="0,0,0,8"/>
+                        <TextBlock DockPanel.Dock="Top" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,8"
+                                   Text="Each row represents one ledger entry contributing to this return."/>
+
+                        <DataGrid ItemsSource="{Binding Lines}"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False" CanUserDeleteRows="False"
+                                  IsReadOnly="True" CanUserReorderColumns="True" CanUserResizeRows="False"
+                                  HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                                  BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+                                  RowBackground="{DynamicResource SurfaceBrush}" AlternatingRowBackground="{DynamicResource SidebarBackgroundBrush}"
+                                  RowStyle="{StaticResource SemanticRowStyle}"
+                                  FontSize="11" CanUserSortColumns="True"
+                                  VirtualizingStackPanel.VirtualizationMode="Recycling"
+                                  SelectionMode="Single">
+
+                            <DataGrid.Columns>
+
+                                <DataGridTextColumn Header="Source" Width="220"
+                                                    Binding="{Binding SourceDescription}"/>
+
+                                <DataGridTextColumn Header="Date" Width="100"
+                                                    Binding="{Binding TransactionDate, StringFormat={StaticResource FormatDate}}"/>
+
+                                <DataGridTextColumn Header="Treatment" Width="90"
+                                                    Binding="{Binding TreatmentDisplay}"/>
+
+                                <DataGridTextColumn Header="Vatable Amt" Width="110"
+                                                    HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                    Binding="{Binding VatableAmount, StringFormat={StaticResource FormatCurrency}}"
+                                                    ElementStyle="{StaticResource NumericCellStyle}"/>
+
+                                <DataGridTextColumn Header="Exempt Amt" Width="110"
+                                                    HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                    Binding="{Binding VatExemptAmount, StringFormat={StaticResource FormatCurrency}}"
+                                                    ElementStyle="{StaticResource NumericCellStyle}"/>
+
+                                <DataGridTextColumn Header="Zero-Rated Amt" Width="120"
+                                                    HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                    Binding="{Binding ZeroRatedAmount, StringFormat={StaticResource FormatCurrency}}"
+                                                    ElementStyle="{StaticResource NumericCellStyle}"/>
+
+                                <DataGridTextColumn Header="Output VAT" Width="100"
+                                                    HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                    Binding="{Binding OutputVat, StringFormat={StaticResource FormatCurrency}}"
+                                                    ElementStyle="{StaticResource NumericCellStyle}"/>
+
+                                <DataGridTextColumn Header="Input VAT" Width="100"
+                                                    HeaderStyle="{StaticResource RightAlignedHeaderStyle}"
+                                                    Binding="{Binding InputVat, StringFormat={StaticResource FormatCurrency}}"
+                                                    ElementStyle="{StaticResource NumericCellStyle}"/>
+
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </DockPanel>
+
+                    <views:EmptyStatePanel Title="No Lines Found"
+                                           Description="There are no source document lines for this period."
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}"/>
+                </Grid>
+            </Border>
+
+        </DockPanel>
+
+        <!-- Busy Overlay -->
+        <views:BusyOverlay Message="Loading VAT Return..."
+                           Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"
+                           HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+
+        <views:ErrorStatePanel Title="Load Failed"
+                               Message="{Binding ErrorMessage}"
+                               RetryCommand="{Binding GenerateCommand}"
+                               Visibility="{Binding IsError, Converter={StaticResource BoolToVis}}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+    </Grid>
+</UserControl>

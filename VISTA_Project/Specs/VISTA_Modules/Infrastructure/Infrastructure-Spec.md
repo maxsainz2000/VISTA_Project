@@ -1,0 +1,1288 @@
+# Infrastructure Specification
+
+## Feature: INFRA-01
+
+### Overview
+Scaffolded the complete MerchSys solution: created the `.slnx` solution file, all 6 projects (1 WinForms app + 5 class libraries), established project reference graph, installed all NuGet packages, created the required subfolder structure, and wrote the main window shell and DI startup placeholder.
+
+### Requirements
+### Solution & Projects
+- **MerchSys.slnx**: solution file (dotnet 10 uses `.slnx` format)
+- **MerchSys.App.vbproj**: WinForms startup project
+- **MerchSys.SharedKernel.vbproj**: shared types library
+- **MerchSys.Purchasing.vbproj**: purchasing module library
+- **MerchSys.Inventory.vbproj**: inventory module library
+- **MerchSys.POS.vbproj**: POS module library
+- **MerchSys.Accounting.vbproj**: accounting module library
+
+## Feature: INFRA-02
+
+### Overview
+Implemented the Shared Kernel foundation — all base entity classes, interfaces, and enums that every business module inherits from. Based on plan INFRA-02.
+
+### Requirements
+- Deleted `Class1.vb` — default scaffold placeholder
+- **Interfaces/IAuditable.vb**: audit column interface
+- **Interfaces/ISoftDeletable.vb**: soft-delete interface
+- **Entities/BaseEntity.vb**: abstract root with `Id As Integer`
+- **Entities/AuditableEntity.vb**: inherits BaseEntity, implements IAuditable
+- **Entities/SoftDeletableEntity.vb**: inherits AuditableEntity, implements ISoftDeletable
+- **Enums/UserRole.vb**: Manager=1, Owner=2
+- **Enums/PaymentMethod.vb**: Cash, GCash, BankTransfer, Credit
+- **Enums/PurchaseOrderStatus.vb**: Draft through Closed lifecycle
+
+## Feature: INFRA-03
+
+### Overview
+Implemented one `DbContext` per module with a shared abstract base that auto-populates audit columns and enforces soft-delete semantics globally. All four module DbContexts connect to a single SQLite file via `DatabaseConfig`.
+
+### Requirements
+- **MerchSys.SharedKernel/Data/BaseDbContext.vb**: abstract `DbContext` with:
+- `ConfigureConventions` setting default string max-length to 256
+- `ApplySoftDeleteFilters` applying `IsDeleted = False` global query filter for all `ISoftDeletable` entities via reflection + expression trees
+- `SaveChangesAsync` override populating `IAuditable` columns and converting hard deletes to soft deletes
+- **MerchSys.SharedKernel/Data/AuditInterceptor.vb**: alternative `SaveChangesInterceptor` implementing the same audit/soft-delete logic (documented as an alternative pattern)
+- **MerchSys.Purchasing/Data/PurchasingDbContext.vb**: inherits `BaseDbContext`, uses `Pur_` table prefix
+- **MerchSys.Inventory/Data/InventoryDbContext.vb**: inherits `BaseDbContext`, uses `Inv_` table prefix
+- **MerchSys.POS/Data/POSDbContext.vb**: inherits `BaseDbContext`, uses `Pos_` table prefix
+- **MerchSys.Accounting/Data/AccountingDbContext.vb**: inherits `BaseDbContext`, uses `Acc_` table prefix
+- **MerchSys.App/Data/DatabaseConfig.vb**: `DatabasePath` property (`%LOCALAPPDATA%\MerchSys\merchsys.db`) and `AddModuleDbContexts` extension method on `IServiceCollection`
+- Updated `MerchSys.SharedKernel.vbproj` — added `Microsoft.EntityFrameworkCore` 10.0.7
+- Updated `MerchSys.App.vbproj` — added `Microsoft.EntityFrameworkCore` 10.0.7 and `Microsoft.EntityFrameworkCore.Sqlite` 10.0.7
+
+## Feature: INFRA-04
+
+### Overview
+Implemented the MediatR event bus layer for VISTA: all cross-module event and query contracts in `SharedKernel`, the optional `IEventBus` abstraction, and the MediatR DI registration module in `MerchSys.App`.
+
+### Requirements
+- **Events/GoodsReceivedEvent.vb**: `INotification`; published by Purchasing → consumed by Inventory and Accounting
+- **Events/SaleCompletedEvent.vb**: `INotification`; published by POS → consumed by Inventory and Accounting
+- **Events/CreditPaymentEvent.vb**: `INotification`; published by POS → consumed by Accounting
+- **Events/ShrinkageRecordedEvent.vb**: `INotification`; published by Inventory → consumed by Accounting
+- **Queries/GetInventoryValuationQuery.vb**: `IRequest(Of GetInventoryValuationResult)`; sent by Accounting → handled by Inventory
+- **Queries/GetInventoryValuationResult.vb**: response type with per-product FIFO valuation breakdown
+- **Queries/GetCurrentStockQuery.vb**: `IRequest(Of GetCurrentStockResult)`; sent by Purchasing reorder engine → handled by Inventory
+- **Queries/GetCurrentStockResult.vb**: response type with stock level and threshold status per product
+- **Interfaces/IEventBus.vb**: narrow abstraction over `IMediator` for publishing notifications
+- **Startup/MediatRConfig.vb**: `AddMediatRServices` extension method registering all 5 assemblies
+- **MerchSys.App.vbproj**: added `MediatR 14.1.0` package reference
+
+## Feature: INFRA-05
+
+### Overview
+Implemented INFRA-05: the dual-condition sync probe, background sync worker, sync journal, and all supporting abstractions. This establishes the offline-first synchronization infrastructure; actual data transmission to MariaDB is deferred to INFRA-06.
+
+### Requirements
+### SharedKernel — new files
+- **Interfaces/INotificationService.vb**: cross-cutting interface for surfacing sync status to the UI shell; was listed as an INFRA-02 deliverable but was missing from the codebase
+- **Sync/SyncStatus.vb**: enum (Offline, Probing, Online, Syncing, `[Error]`)
+- **Sync/SyncSettings.vb**: POCO (placed in SharedKernel to avoid circular dependency; App cannot be referenced by SharedKernel)
+- **Sync/SyncProbeResult.vb**: probe result with `IsHealthy` composite property; `Error` property escaped as `[Error]` (reserved VB.NET keyword)
+- **Sync/ISyncProbe.vb**: XML-doc'd interface for the dual-condition probe
+- **Sync/ISyncableRepository.vb**: XML-doc'd interface for module sync participation; returns `IReadOnlyList(Of SyncJournal)`
+- **Sync/SyncJournal.vb**: `AuditableEntity` with XML doc describing the offline-first contract; maps to `Sync_Journal` table
+- **Sync/SyncJournalDbContext.vb**: standalone context inheriting `BaseDbContext`; index on `(ModuleName, SyncedAt)`
+- **Sync/DualConditionSyncProbe.vb**: Condition A via `NetworkInterface.GetIsNetworkAvailable()`, Condition B via `TcpClient.ConnectAsync` with `CancellationTokenSource(timeout)`; logs exception type only
+
+## Feature: INFRA-06
+
+### Overview
+Implemented INFRA-06: the central MariaDB schema, conflict resolver, per-module sync maps, and the
+`MariaDbSyncContext`. The `SyncOrchestrator` placeholder from INFRA-05 has been replaced with the
+full resolution-and-push pipeline. All 24 synced entity types are mapped; the SQL DDL creates the
+`merchsys_central` database with immutability triggers on BIR/ledger tables.
+
+### Requirements
+### SharedKernel — new files
+- **Sync/ConflictResolution.vb**: `ConflictResolution` enum (LastWriteWins / AppendOnly / Reject), `SyncAction` enum (Push / Skip / Reject), `RemoteRowSnapshot` class (Exists + ModifiedAt), `ResolutionDecision` class (Action + Reason)
+- **Sync/ConflictResolver.vb**: `IConflictResolver` interface with XML docs; `ConflictResolver` implementation using a two-tier static policy table (exact table name → prefix fallback); returns `Task.FromResult` (synchronous logic)
+- **Sync/SyncMaps/PurchasingSyncMap.vb**: 9 remote Pur_* POCO classes + `PurchasingSyncMap` (shared `ToRemote`/`GetRemoteKey`/`Tables`)
+- **Sync/SyncMaps/InventorySyncMap.vb**: 7 remote Inv_* POCO classes + `InventorySyncMap`
+- **Sync/SyncMaps/PosSyncMap.vb**: 7 remote Pos_* POCO classes including placeholder `RemoteReceiptIntegrity` + `PosSyncMap`
+- **Sync/MariaDbSyncContext.vb**: `MariaDbSyncContext` (Pomelo/MySql DbContext): 24 DbSets configured via `OnModelCreating`; `ValueGeneratedNever()` on all PKs (IDs come from the sync journal); `FetchRemoteRowAsync(tableName, entityId)` using raw ADO.NET to check remote existence without type-specific DbSet casts
+- **Sync/SyncMaps/AccountingSyncMap.vb**: 4 remote Acc_* POCO classes + `AccountingSyncMap`
+
+## Feature: INFRA-07
+
+### Overview
+Implemented INFRA-07: Cross-Module VAT Event Payload Contracts. Added three new `INotification` events and one enum to `MerchSys.SharedKernel` that carry BIR three-bucket VAT data (vatable, exempt, zero-rated) without modifying the original INFRA-04 events.
+
+### Requirements
+- **Enums/VatTreatment.vb**: `VatTreatment` enum with `Vatable = 0`, `Exempt = 1`, `ZeroRated = 2`; XML doc references BIR RR No. 16-2005
+- **Events/SaleCompletedWithVatEvent.vb**: mirrors `SaleCompletedEvent` core fields; adds `VatableSales`, `VatExemptSales`, `ZeroRatedSales`, `OutputVat`, `IsVatRegistered` at header level; nested `SaleItemWithVat` adds per-line `Treatment`, `VatableAmount`, `VatExemptAmount`, `ZeroRatedAmount`, `OutputVat`; published by POS-14, consumed by ACC-10/ACC-11
+- **Events/GoodsReceivedWithVatEvent.vb**: mirrors `GoodsReceivedEvent` core fields; adds `VatableInput`, `VatExemptInput`, `ZeroRatedInput`, `InputVat` at header level; nested `GoodsReceivedItemWithVat` adds per-line `Treatment`, `InputVat`; published by Purchasing, consumed by ACC-10/ACC-11
+- **Events/ReceiptTamperDetectedEvent.vb**: `ReceiptId`, `ReceiptNumber`, `ExpectedHash`, `ActualHash`, `DetectedAt`, `DetectedBy`; published by POS-13, consumed by Accounting audit log handler
+- All four files: full XML doc comments on every class and property specifying publisher, consumer(s), payload meaning, and BIR rationale
+- Existing INFRA-04 events (`SaleCompletedEvent`, `GoodsReceivedEvent`, and others) left unchanged
+
+## Feature: INFRA-08
+
+### Overview
+Closes the MariaDB tamper-evidence gap identified in the 2026-05-11 Infrastructure and POS audits. The POS-13 SQLite triggers enforce append-only semantics locally; this plan adds the central-server mirror. Audit of `01-mariadb-init.sql` revealed partial coverage already exists — see "Discovered State" below.
+
+### Requirements
+- **Plans/VISTA_Modules/Infrastructure/sql/02-pos-receipt-integrity-triggers.sql**: schema delta: `Pos_OfficialReceiptArchive` table + two immutability triggers
+- **Resources/Sql/ReceiptIntegrityTriggerVerification.sql**: diagnostic query bundle (trigger inventory + 5 negative-path probes)
+- Created `Resources/Sql/` directory (did not previously exist)
+
+## Feature: INFRA-09
+
+### Overview
+Implemented INFRA-09: the producer-side `ISyncableRepository(Of TContext)` abstraction, four module implementations, the `<NoSync>` exclusion attribute, and DI registration. This closes the gap between the INFRA-05/06 sync pipeline (which was feature-complete on both ends) and the module data layer (which was not yet producing `Sync_Journal` rows).
+
+### Requirements
+### SharedKernel — new files
+- **Persistence/NoSyncAttribute.vb**: `<NoSync>` class attribute; applied to entity classes that must never be journalled
+- **Persistence/SyncJournalDescriptor.vb**: lightweight DTO capturing one EF change event; fields: `TableName`, `PrimaryKeyJson`, `OperationKind`, `RowSnapshotJson`, `OccurredAt`
+- **Persistence/ISyncableRepository.vb**: generic producer-side interface `ISyncableRepository(Of TContext As DbContext)` with XML-documented transactional guarantee; distinct from the consumer-side `MerchSys.SharedKernel.Sync.ISyncableRepository` (non-generic)
+- **Persistence/SyncableRepositoryCore.vb**: public `Module` (static helper) containing all change-capture, descriptor-building, and journal-mapping logic; also contains `Friend NotInheritable Class PreSaveInfo` (internal capture DTO)
+
+## Feature: INFRA-10
+
+### Overview
+Implemented the Sync Status Shell Indicator as specified in INFRA-10. A compact 24-pixel status bar was added to the bottom of `MainWindow.Designer code`; it hosts a new `SyncStatusIndicator` UserControl wired to `SyncStatusIndicatorPresenter`, which subscribes to `INotificationService.SyncStatusChanged` and derives visual state from each transition.
+
+### Requirements
+- **MerchSys.SharedKernel/Interfaces/INotificationService.vb**: Added `Event SyncStatusChanged As EventHandler(Of SyncStatus)`, `ReadOnly Property CurrentSyncStatus As SyncStatus`, and `ReadOnly Property LastSuccessfulPushAt As Nullable(Of DateTimeOffset)` to the interface so consumers can subscribe and read state without depending on the concrete class.
+- **MerchSys.App/Services/DefaultNotificationService.vb**: Implemented the three new interface members. `LastSuccessfulPushAt` is set inside `NotifySyncStatusChanged` when the status transitions `Syncing → Online`, which is the only code path in `SyncWorker` where an actual push cycle has completed.
+- **MerchSys.App/Presenters/Shell/SyncStatusIndicatorPresenter.vb**: Contains `IndicatorSeverity` enum (`Healthy`, `Idle`, `Warning`, `Critical`) and the view-model. Subscribes to `INotificationService.SyncStatusChanged` on construction. Owns a 30-second `DispatcherTimer` that re-runs `Recompute` so `LastSyncDisplay` ticks forward between events. Implements `IDisposable`; `Dispose` stops the timer and removes both handlers.
+- **MerchSys.App/Converters/SeverityToBrushConverter.vb**: New `IValueConverter` mapping `IndicatorSeverity` → `SolidColorBrush`. No equivalent converter existed in the project; a new one was introduced.
+- **MerchSys.App/Views/Shell/SyncStatusIndicator.Designer code**: Horizontal `StackPanel` UserControl with an `Ellipse` (fill bound via `SeverityToBrushConverter`), a `DisplayLabel` TextBlock, and a `LastSyncDisplay` TextBlock at 0.6 opacity. `ToolTip` bound to `TooltipText`.
+- **MerchSys.App/Views/Shell/SyncStatusIndicator.Designer code.vb**: Minimal code-behind, no logic.
+- **MerchSys.App/MainWindow.Designer code**: Added `xmlns:shell` namespace reference, added `Grid.RowDefinitions` (`Height="*"` and `Height="24"`), set `Grid.Row="0"` on both the sidebar `Border` and the content `ContentControl`, and added a `Grid.Row="1"` `Border` (background `#1A252F`) spanning both columns hosting `<shell:SyncStatusIndicator DataContext="{Binding SyncStatusIndicator}"/>`. No pre-existing status-bar row was present, so a new `Grid.Row` was added per spec.
+- **MerchSys.App/Presenters/MainWindowPresenter.vb**: Added `Public ReadOnly Property SyncStatusIndicator As SyncStatusIndicatorPresenter` and injected it via constructor.
+- **MerchSys.App/Application.Designer code.vb**: Registered `SyncStatusIndicatorPresenter` as singleton and `Views.Shell.SyncStatusIndicator` as singleton before `MainWindowPresenter` and `MainWindow`.
+
+## Feature: INFRA-11
+
+### Overview
+Implements the production deployment configuration layer for INFRA-11. Delivers credential sanitisation of `appsettings.json`, a `ConnectionStringLoader` module with three-state overlay logic, a committed production template, `.gitignore` protection, and the first operator-facing runbook. The Pomelo 10.x bump is **deferred** (see below).
+
+### Requirements
+- **.gitignore**: added `appsettings.Production.json` exclusion (sequenced before the template was created)
+- **appsettings.json**: removed `Sync:MariaDbConnection` key (the only credential-bearing field); all other `Sync` fields retained for the TCP probe
+- **appsettings.Production.template.json**: operator template with `_comment` keys; placeholder values for `Host`, `Password`; real defaults for `Database` (`merchsys_central`) and `User` (`merchsys_sync`) matching `mariadb-init.sql`
+- **Configuration/ConnectionStringLoader.vb**: VB Module with three-state overlay logic: `GetProductionConfigPath()`, `AddProductionOverlay()` extension on `IConfigurationBuilder`, `GetMariaDbConnectionString(cfg, logger)`
+- **Application.Designer code.vb**: added `builder.ConfigureAppConfiguration` call to load the production overlay before DI resolution; added `Imports MerchSys.App.Configuration`
+- **Startup/SyncConfig.vb**: replaced `cfg.GetSection("Sync")("MariaDbConnection")` direct read with `ConnectionStringLoader.GetMariaDbConnectionString(cfg, logger)` call; added `Imports Microsoft.Extensions.Logging` and `Imports MerchSys.App.Configuration`
+- **Plans/VISTA_Modules/Infrastructure/runbooks/01-production-deployment.md**: operator runbook covering all six specified sections
+
+## Feature: INFRA-12
+
+### Overview
+Implemented INFRA-12: `ISyncTransmitter` abstraction and `MariaDbSyncTransmitter` Pomelo-backed implementation. Modified `SyncOrchestrator` to delegate the actual remote write operations to `ISyncTransmitter`, replacing the prior inline per-entry `SaveChangesAsync` push pattern from INFRA-05.
+
+### Requirements
+- **Services/Sync/ISyncTransmitter.vb**: interface with `TransmitBatchAsync`, plus `TransmitResult` and `TransmitError` result types
+- **Services/Sync/MariaDbSyncTransmitter.vb**: Pomelo-backed `ISyncTransmitter`; groups entries by `TableName`, wraps each group in its own transaction, handles INSERT / UPDATE / DELETE, applies financial reject-on-conflict and non-financial upsert semantics
+- **Services/SyncOrchestrator.vb**: restructured `RunForModuleAsync` into three phases (conflict resolution, batch transmission via `ISyncTransmitter`, mark-synced); removed inline `PushEntryAsync` and `ToRemoteEntity` (moved to transmitter); added `ISyncTransmitter` constructor parameter
+- **Startup/SyncConfig.vb**: registered `ISyncTransmitter` → `MariaDbSyncTransmitter` as a scoped service
+
+## Feature: INFRA-13
+
+### Overview
+Migrated all four module write-path services from `_context.SaveChangesAsync()` to `_repository.SaveChangesWithJournalAsync()`, populating `Sync_Journal` on every local write. Also implemented the non-generic `ISyncableRepository` interface on all four module repositories and registered them in the DI container so `SyncOrchestrator` can resolve `IEnumerable(Of ISyncableRepository)`.
+
+### Requirements
+### Module Repositories — Non-Generic Interface Implementation
+Each module repository now implements both the generic producer interface and the non-generic consumer interface:
+- **Data/PurchasingSyncableRepository.vb**: added `Implements ISyncableRepository` (non-generic), `ModuleName = "Purchasing"`, `GetPendingChangesAsync()`, `MarkSyncedAsync()`
+- **Data/InventorySyncableRepository.vb**: added `Implements ISyncableRepository` (non-generic), `ModuleName = "Inventory"`, `GetPendingChangesAsync()`, `MarkSyncedAsync()`
+- **Data/PosSyncableRepository.vb**: added `Implements ISyncableRepository` (non-generic), `ModuleName = "POS"`, `GetPendingChangesAsync()`, `MarkSyncedAsync()`
+- **Data/AccountingSyncableRepository.vb**: added `Implements ISyncableRepository` (non-generic), `ModuleName = "Accounting"`, `GetPendingChangesAsync()`, `MarkSyncedAsync()`
+The `GetPendingChangesAsync()` implementation queries `_journalContext.SyncJournalEntries` filtered by `ModuleName` where `SyncedAt Is Nothing`, ordered by `CreatedAt`. `MarkSyncedAsync()` loads matching entries by ID and sets `SyncedAt = UtcNow`.
+
+## Feature: INFRA-14
+
+### Overview
+Aligns the central MariaDB `Pos_OfficialReceipts` table with the local SQLite schema by adding the three columns introduced by POS-13/14/15 (`Status`, `IssuedAt`, `IntegrityHash`). Without this alignment the `SyncOrchestrator` (INFRA-12) would fail when pushing receipt rows to central MariaDB. Two deployment paths are provided: an idempotent ALTER TABLE script for existing installations and an updated `mariadb-init.sql` for fresh installs.
+
+### Requirements
+- **Plans/VISTA_Modules/Infrastructure/sql/mariadb-receipt-schema-alignment.sql**: idempotent ALTER TABLE statements with full header comment referencing INFRA-06, INFRA-08, POS-13/14/15 and trigger compatibility rationale
+- **Data/Migrations/Central/AlignReceiptSyncColumns.sql**: versioned migration script (version 1) containing the same ALTER TABLE statements for deployment tracking
+- **Plans/VISTA_Modules/Infrastructure/sql/mariadb-init.sql**: added `Status`, `IssuedAt`, `IntegrityHash` columns and `IX_OfficialReceipts_IssuedAt` index to the `Pos_OfficialReceipts` CREATE TABLE definition; bumped schema version to 1.1.0
+
+## Feature: INFRA-15
+
+### Overview
+Implemented full login form and user authentication (INFRA-15). Covers OWASP DA2 (authentication & session), DA4 (Argon2id cryptography), DA5 (role-based navigation), and DA6 (no default credentials — mandatory first-login password change).
+
+### Requirements
+- **Entities/UserAccount.vb**: new entity with `Id`, `Username`, `PasswordHash`, `Role`, `IsActive`, `FailedLoginAttempts`, `LockedUntil`, `LastPasswordChangeAt`, `CreatedAt`, `ModifiedAt`
+- **Services/IAuthenticationService.vb**: interface, `AuthenticationResult`, `PasswordChangeResult`, `AuthenticationService` implementation (raw ADO.NET over `SqliteConnection` per EF Core VB.NET bug workaround), and `Friend Module PasswordHashHelper` (Argon2id hash/verify with 16-byte random salt, 19456 KiB memory, 2 iterations, 1 parallelism, 32-byte output)
+- **Services/LoginSessionService.vb**: `ISessionService` backed by `UserAccount`; in-memory only (DA3); `ClearUser()` on logout
+- **Helpers/PasswordBoxHelper.vb**: attached-property bridge (`IsMonitoring` + `BoundPassword`) that binds `PasswordBox.Password` to a Presenter string; `[ThreadStatic]` guard prevents re-entrant updates
+- **Presenters/LoginPresenter.vb**: `LoginCommand` (AsyncRelayCommand), `ChangePasswordCommand`, eye-toggle commands; computed inverse properties (`HidePassword`, `HasError`, `IsNotLoggingIn`, `HidePasswordChange`, `HideNewPassword`) for Designer code binding without custom converters; `Reset()` for post-logout re-display; `LoginSucceeded` event
+- Created `Views/LoginView.Designer code` + `LoginView.Designer code.vb` — standalone `Window` with dark branding, username/password fields with eye-toggle reveal, error message area, LOG IN button, and a first-login password-change panel (revealed when `ShowPasswordChange = True`)
+- **Data/DatabaseInitializer.vb**: added migration `20260522100000_AddUserAccounts`: creates `Sys_UserAccounts` (NOCASE collation on `Username`, unique index), seeds `manager` (Role=1) and `owner` (Role=2) rows with Argon2id-hashed `Vista2026!`; `LastPasswordChangeAt = NULL` signals first-login state
+- **MerchSys.App.vbproj**: added `Konscious.Security.Cryptography.Argon2 v1.3.0`
+- **Services/DefaultSessionService.vb**: updated doc comment: DEBUG-bypass only, never ships to production
+- **Application.Designer code**: added `ShutdownMode="OnExplicitShutdown"` so hiding `LoginView` (on successful login) does not trigger app shutdown
+- **Application.Designer code.vb**: new login flow: `ShowLoginView()` → `HandleLoginSucceeded` (hides `LoginView`, resolves singleton `MainWindow`, calls `RefreshNavigation()`, shows `MainWindow`) → `HandleLogoutRequested` (hides `MainWindow`, calls `ShowLoginView()` again); `HandleLoginViewClosed` shuts down if login view is dismissed without completing auth; `LoginSessionService` + `IAuthenticationService` registered in DI; `DefaultSessionService` kept for `#If DEBUG` + `VISTA_BYPASS_LOGIN=1` env-var override
+- **Presenters/MainWindowPresenter.vb**: constructor now injects `LoginSessionService` directly; `NavigationGroups` initialised as `ObservableCollection` from `BuildNavigationGroups()` list; `BuildNavigationGroups()` return type changed to `List(Of NavigationGroup)`; added `RefreshNavigation()` (clears and rebuilds nav items — enables role switch after logout/re-login); added `LogoutCommand` (RelayCommand) and `LogoutRequested` event
+- **MainWindow.Designer code**: added "Log Out" button pinned to the bottom of the sidebar (above the status bar), bound to `LogoutCommand`, styled in red (`#E74C3C`) via the existing `NavItemButton` style
+
+## Feature: INFRA-16
+
+### Overview
+Implemented the Owner Dashboard and read-only view enforcement for the Owner role, as specified in INFRA-16. This includes a dedicated KPI dashboard landing page, role-based sidebar navigation filtering, session identity display in the shell header, and UI-layer read-only enforcement on shared CRUD views.
+
+### Requirements
+### New Files Created
+- `MerchSys.App/Presenters/OwnerDashboardPresenter.vb` — KPI aggregation Presenter with 60-second auto-refresh (DispatcherTimer) and plain-language interpretation strings for all four KPI groups
+- `MerchSys.App/Views/OwnerDashboardView.Designer code` — 2×2 KPI card grid with header, loading overlay, and "What This Means" interpretation sections on each card
+- `MerchSys.App/Views/OwnerDashboardView.Designer code.vb` — Code-behind; sets DataContext via constructor injection; disposes Presenter (stops timer) on Unloaded
+
+## Feature: INFRA-17
+
+### Overview
+Implemented INFRA-17 to resolve the Pomelo 9 / EF Core 10 incompatibility block. Replaced the `Pomelo.EntityFrameworkCore.MySql` dependency with raw `MySqlConnector` ADO.NET. `MariaDbSyncContext` was completely rewritten to a lightweight connection wrapper featuring reflection-based SQL generation for INSERT/UPDATE with per-type query caching.
+
+### Requirements
+- **MerchSys.SharedKernel.vbproj**: swapped Pomelo for `MySqlConnector` 2.5.0.
+- **Directory.Build.props**: removed NU1608 suppression.
+- Rewrote `Sync/MariaDbSyncContext.vb` — replaced EF Core DbContext with a thin ADO.NET wrapper. Added caching reflection SQL builder.
+- Rewrote `Services/Sync/MariaDbSyncTransmitter.vb` — replaced EF Core persistence calls with parameterized ADO.NET execution, preserving exact conflict semantics per table.
+- **Startup/SyncConfig.vb**: updated DI registration from `AddDbContext` to `AddScoped` factory.
+
+## Feature: INFRA-18
+
+### Overview
+Rewrote five audit detectors that produced a ~45% false-positive rate in the
+2026-05-24 baseline run (`agent-wiki-verification-report.md`, 93 total findings,
+~45-51 real). Each detector previously used a literal substring grep; each is now
+shape-aware per the rule definition in `LLM_Wiki/agent_wiki/`.
+
+No product code was modified. All changes are tooling-only.
+
+---
+
+### Requirements
+### Deliverable 1 — Corrected detector skill
+- **.claude/skills/vista-audit/SKILL.md**: new skill file containing the
+corrected shape-aware detector logic for Rules 3, 7, 12, 14, and 19.
+Rules 1-2, 4-6, 8-11, 13, 15-18 are unchanged (no false-positive issues found).
+Also documents the corpus self-test procedure and live-scan output format.
+
+## Feature: INFRA-19
+
+### Overview
+Implemented OWASP DA2 session inactivity timeout (INFRA-19). Adds idle detection via `InputManager.PreProcessInput`, a 60-second countdown warning dialog, and automatic forced logout on timeout — all routed through the existing `HandleLogoutRequested` flow from INFRA-15.
+
+### Requirements
+- **Services/IIdleMonitor.vb**: `IdleMonitorOptions`, `IdleMonitorWarningEventArgs`, and `IIdleMonitor` interface
+- **Services/WinFormsIdleMonitor.vb**: singleton `WinFormsIdleMonitor` (DispatcherTimer + `InputManager.PreProcessInput` hook); `NoOpIdleMonitor` stub in `#If DEBUG` block for `VISTA_DISABLE_IDLE_TIMEOUT=1` bypass
+- **Presenters/SessionTimeoutWarningPresenter.vb**: countdown VM with `StaySignedInCommand`, `SignOutCommand`, `Tick(remaining)`, and `CountdownDisplay` formatted as `"M:SS"`
+- **Views/SessionTimeoutWarningView.Designer code**: modal `Window`, `Topmost="True"`, `WindowStartupLocation="CenterOwner"`, dark theme matching LoginView; large countdown text + message + two-button layout
+- **Views/SessionTimeoutWarningView.Designer code.vb**: code-behind with `MarkDecisionMade()` guard; `OnClosing` override treats X-close as Sign Out
+- **Application.Designer code.vb**: DI registration of `IdleMonitorOptions`, `IIdleMonitor`, `SessionTimeoutWarningPresenter`, `SessionTimeoutWarningView`; wired `HandleIdleWarning`, `HandleSessionExpired`; idle monitor starts after login, stops before logout; `Application_Exit` stops monitor before host disposal
+- **appsettings.json**: added `Session:IdleTimeoutMinutes` (20) and `Session:WarningLeadSeconds` (60) section
+
+## Feature: INFRA-20
+
+### Overview
+Implemented database-level role-based write rejection (OWASP DA5 Improper Authorization) to ensure users in the `Owner` role are prevented from performing unauthorized writes even if UI controls are bypassed or misconfigured. This was accomplished by introducing a scoped write context model (`IWriteContextScope`) and an EF Core save interceptor (`RoleGuardInterceptor`) that guards all operational databases.
+
+
+---
+
+### Requirements
+1. **SharedKernel Layer (Common Abstractions)**
+- Modified `MerchSys.SharedKernel/Interfaces/ISessionService.vb` to add the `IsAuthenticated` property.
+- Created `MerchSys.SharedKernel/Interfaces/IWriteContextScope.vb` defining `WriteContextKind` (User, System, AuthSelfService) and `IWriteContextScope`.
+- Created `MerchSys.SharedKernel/Data/WriteContextScope.vb` utilizing `AsyncLocal(Of Frame)` to carry write context metadata safely across asynchronous boundaries.
+- Created `MerchSys.SharedKernel/Exceptions/UnauthorizedWriteException.vb` to represent data-layer write violations (renamed constructor parameters to prevent VB.NET case-insensitive property shadowing).
+- Created `MerchSys.SharedKernel/Data/RoleGuardInterceptor.vb` inheriting `SaveChangesInterceptor` to perform the role and context evaluation, intercepting both synchronous `SavingChanges` and asynchronous `SavingChangesAsync` operations.
+2. **App Layer (DI & DB Registrations)**
+- Modified `MerchSys.App/Services/DefaultSessionService.vb` and `LoginSessionService.vb` to support the new `IsAuthenticated` property.
+- Modified `MerchSys.App/Data/DatabaseConfig.vb` to configure the four module DbContexts (`PurchasingDbContext`, `InventoryDbContext`, `POSDbContext`, and `AccountingDbContext`) to resolve and execute `RoleGuardInterceptor`.
+- Modified `MerchSys.App/Application.Designer code.vb` to register `IWriteContextScope` (as Singleton), `RoleGuardInterceptor` (as Scoped), and update `IAuthenticationService` factory registration to inject the session and write context dependencies.
+3. **Background Systems and Handlers (Bypasses)**
+- Modified `MerchSys.App/Services/SyncOrchestrator.vb` to inject `IWriteContextScope` and wrap its background database flush operations inside a `WriteContextKind.System` scope.
+- Wrapped the `Handle` method bodies of all 4 Inventory handlers and 7 Accounting handlers in `Using _writeContext.Enter(WriteContextKind.System)` to allow asynchronous background writes.
+- Modified `MerchSys.App/Services/IAuthenticationService.vb` (impl `AuthenticationService`) to inject `ISessionService` and `IWriteContextScope`, wrap lockout count writes in `System` scopes, and wrap password changes in `AuthSelfService` scopes. Added a service-level role guard to reject Owner attempts to modify other users' credentials.
+4. **Backlog & Operator Cleanups**
+- Created the complete Write-Path Audit deliverable at `Plans/VISTA_Modules/Infrastructure/20-da5-write-path-audit.md`.
+- Modified `Plans/Future/deferred-features-backlog.md` to remove item #7 and record completion.
+- Modified `Operator/INFRA-verification-checklist.md` to replace deferred DA5 placeholders with active verification test cases.
+---
+
+## Feature: INFRA-21
+
+### Overview
+Migrated all six in-scope event handlers in the `MerchSys.Accounting` module from direct database context saves (`_db.SaveChangesAsync`) to journaled repository saves (`_repository.SaveChangesWithJournalAsync`) using `ISyncableRepository(Of AccountingDbContext)`. This captures derived accounting records (`RevenueRecord`, `ExpenseRecord`) in `Sync_Journal` for offline-first replication.
+
+### Requirements
+- **[SaleCompletedAccountingHandler.vb](file:///c:/Users/Admin/Documents/VISTA_Project/Handlers/SaleCompletedAccountingHandler.vb) **: Imported `MerchSys.SharedKernel.Persistence`, injected `ISyncableRepository(Of AccountingDbContext)`, and replaced direct save with `_repository.SaveChangesWithJournalAsync(cancellationToken)`.
+- **[GoodsReceivedAccountingHandler.vb](file:///c:/Users/Admin/Documents/VISTA_Project/Handlers/GoodsReceivedAccountingHandler.vb) **: Imported `MerchSys.SharedKernel.Persistence`, injected `ISyncableRepository(Of AccountingDbContext)`, and replaced direct save with `_repository.SaveChangesWithJournalAsync(cancellationToken)`.
+- **[CreditPaymentAccountingHandler.vb](file:///c:/Users/Admin/Documents/VISTA_Project/Handlers/CreditPaymentAccountingHandler.vb) **: Imported `MerchSys.SharedKernel.Persistence`, injected `ISyncableRepository(Of AccountingDbContext)`, and replaced direct save with `_repository.SaveChangesWithJournalAsync(cancellationToken)`.
+- **[ShrinkageAccountingHandler.vb](file:///c:/Users/Admin/Documents/VISTA_Project/Handlers/ShrinkageAccountingHandler.vb) **: Imported `MerchSys.SharedKernel.Persistence`, injected `ISyncableRepository(Of AccountingDbContext)`, and replaced direct save with `_repository.SaveChangesWithJournalAsync(cancellationToken)`.
+- **[SaleCompletedWithVatHandler.vb](file:///c:/Users/Admin/Documents/VISTA_Project/Handlers/SaleCompletedWithVatHandler.vb) **: Imported `MerchSys.SharedKernel.Persistence`, injected `ISyncableRepository(Of AccountingDbContext)`, and replaced direct save with `_repository.SaveChangesWithJournalAsync(cancellationToken)`.
+- **[GoodsReceivedWithVatHandler.vb](file:///c:/Users/Admin/Documents/VISTA_Project/Handlers/GoodsReceivedWithVatHandler.vb) **: Imported `MerchSys.SharedKernel.Persistence`, injected `ISyncableRepository(Of AccountingDbContext)`, and replaced direct save with `_repository.SaveChangesWithJournalAsync(cancellationToken)`.
+- Verified [ReceiptTamperDetectedHandler.vb](file:///c:/Users/Admin/Documents/VISTA_Project/Handlers/ReceiptTamperDetectedHandler.vb) remains unchanged, utilizing direct context saving since its audit log records are local-only and decorated `<NoSync>`.
+
+## Feature: INFRA-22
+
+### Overview
+This progress report documents the completion of **INFRA-22: Central MariaDB Schema + Sync Map for Inv_SaleCogs**. We have aligned the remote MariaDB central schema with the local SQLite DB for the `Inv_SaleCogs` table, registered the table in `InventorySyncMap` with deserialization support, and customized the sync context to resolve missing `ModifiedAt` column checks.
+
+### Requirements
+- **[mariadb-inv-salecogs-schema.sql](file:///c:/Users/Admin/Documents/VISTA_Project/Plans/VISTA_Modules/Infrastructure/sql/mariadb-inv-salecogs-schema.sql) **: central table DDL script.
+- **[AddInvSaleCogs.sql](file:///c:/Users/Admin/Documents/VISTA_Project/Data/Migrations/Central/AddInvSaleCogs.sql) **: migration script for existing deployments.
+- **[mariadb-init.sql](file:///c:/Users/Admin/Documents/VISTA_Project/Plans/VISTA_Modules/Infrastructure/sql/mariadb-init.sql) **: added central schema table creation for fresh deploys.
+- **[InventorySyncMap.vb](file:///c:/Users/Admin/Documents/VISTA_Project/Sync/SyncMaps/InventorySyncMap.vb) **: added `RemoteSaleCogs` POCO, `"Inv_SaleCogs"` to the tables registry list, and its payload deserialization in `ToRemote`.
+- **[MariaDbSyncContext.vb](file:///c:/Users/Admin/Documents/VISTA_Project/Sync/MariaDbSyncContext.vb) **: updated `FetchRemoteRowAsync` to dynamically check the table name and select `DeductedAt` instead of `ModifiedAt` for `Inv_SaleCogs`, ensuring conflict resolution checks succeed without schema mismatches.
+
+## Feature: INFRA-23
+
+### Overview
+Evaluated and pinned the Entity Framework Core 10 provider for MariaDB 11.4.x. Built and executed a disposable validation spike to confirm that Oracle's official `MySql.EntityFrameworkCore` version `10.0.7` satisfies all technical criteria, including basic CRUD, LINQ queries, asynchronous materialization, optimistic concurrency, and pessimistic row locking.
+
+### Requirements
+- **Plans/VISTA_Modules/Infrastructure/23/provider-evaluation.md**: Detailed candidates and the technical decision matrix.
+- **Plans/VISTA_Modules/Infrastructure/23/spike/MerchSys.ProviderSpike.vbproj**: Disposable .NET 10 console project referencing `MySql.EntityFrameworkCore` v10.0.7.
+- **Plans/VISTA_Modules/Infrastructure/23/spike/SpikeContext.vb**: Defined a minimal DbContext with two relational entities and a TIMESTAMP(6)-based `RowVersion` optimistic concurrency token.
+- **Plans/VISTA_Modules/Infrastructure/23/spike/Program.vb**: Coded validation steps checking CRUD, LINQ `Include` queries, optimistic concurrency (`DbUpdateConcurrencyException`), and pessimistic row locking (`SELECT ... FOR UPDATE`).
+- Executed the spike project against the live host MariaDB instance. Spike output:
+```
+INFRA-23 Spike: Starting Verification...
+OK: EnsureCreated schema completed.
+OK: CRUD inserts completed.
+OK: LINQ query and ToListAsync navigation load completed.
+OK: Context A saved changes successfully.
+OK: Context B threw DbUpdateConcurrencyException as expected.
+Starting SELECT FOR UPDATE locking query...
+OK: SELECT FOR UPDATE executed and locked successfully.
+OK: Schema cleanup completed successfully.
+ALL SPIKE CHECKS: OK
+```
+- **LLM_Wiki/agent_wiki/patterns/mariadb-pure-client-server-architecture.md**: Updated the MySQL Provider section with the chosen provider, package name, version, and spike findings.
+
+## Feature: INFRA-24
+
+### Overview
+Replaced the local SQLite `DatabaseInitializer` schema builder with a centralized MariaDB startup-time schema bootstrap and seeding module (`MariaDbSchemaInitializer`). The central schema now maps all 40 module database tables transactionally, sets Microsecond-level timestamp formatting (`DATETIME(6)`), wires MySQL optimistic concurrency `TIMESTAMP(6)` defaults on all mutable fields, applies BIR Receipt immutability trigger procedures natively in MariaDB, and performs SHA-256 drift detection to cleanly abort app startup upon script tampering.
+
+### Requirements
+- Created `0001_initial_schema.sql` at `Data/Migrations/Central/` — Ported the complete SQLite baseline schema (40 tables, keys, triggers, constraints) to modern MariaDB syntax with microsecond timestamps and concurrency row versions.
+- Created `0002_seed_reference_data.sql` at `Data/Migrations/Central/` — Idempotent reference data seed scripts for 4 categories, 3 vendors, 20 products, 3 credit accounts, and default non-VAT configurations.
+- Created `README.md` at `Data/Migrations/Central/` — Documented rules for migration scripting, lexicographical sequencing, idempotency, and drift prevention.
+- Created `MariaDbSchemaInitializer.vb` in `Data/` — Executed embedded DDL resources inside a transaction using custom statement splitting to support `DELIMITER` blocks; hashes each applied script to ensure SHA-256 matching. Seeds default system user accounts (manager, owner) using direct PasswordHashHelper encryption.
+- **App.Designer code.vb**: Replaced legacy SQLite initializer call with `MariaDbSchemaInitializer.Initialize` inside startup blocks, passing central DB connection and logger dependencies with complete crash/MessageBox aborts.
+- **MerchSys.App.vbproj**: Added `<EmbeddedResource>` directive to compile and link all schema SQL files inside `MerchSys.App.dll` resources, and added `MySqlConnector` package dependency.
+
+## Feature: INFRA-25
+
+### Overview
+Successfully converted all four module `DbContext`s from SQLite to MariaDB using the official oracle provider `MySql.EntityFrameworkCore` version `10.0.7`, and fully adapted all 80+ direct connection ADO.NET query workarounds from SQLite (`SqliteConnection`, `SqliteCommand`, `SqliteParameter`, `SqliteDataReader`) to modern MariaDB equivalents (`MySqlConnection`, `MySqlCommand`, `MySqlParameter`, `MySqlDataReader` via `MySqlConnector` version `2.5.0`). Commented out the `SyncWorker` and `SyncJournalDbContext` in `SyncConfig.vb` to prepare for decommissioning in INFRA-27.
+
+### Requirements
+Concise list of changes made:
+- **Modified Projects:** Added `MySqlConnector` v2.5.0 and `MySql.EntityFrameworkCore` v10.0.7 references to all 4 module projects (`Accounting.vbproj`, `Inventory.vbproj`, `POS.vbproj`, `Purchasing.vbproj`) and removed obsolete SQLite references.
+- **Direct Query Migrations:** Migrated all `SqliteConnection` ADO.NET bypasses across all module services to `MySqlConnection` from the `MySqlConnector` library.
+- **Decommissioned SQLite Debug Tools:** Removed obsolete SQLite-specific test harnesses under `Accounting/Debug/`, `POS/Debug/`, `POS/Tests/`, and `App/Debug/`.
+- **Configured DbContexts:** Swapped `AddModuleDbContexts` inside `DatabaseConfig.vb` to use `UseMySQL(connectionString)`.
+- **Configured Design-Time Factories:** Swapped all 4 design-time `DbContext` factories in modules to use `UseMySQL` against design-time targets.
+- **Deactivated Sync:** Commented out `SyncWorker` and `SyncJournalDbContext` in `SyncConfig.vb`.
+
+## Feature: INFRA-26
+
+### Overview
+Successfully implemented both optimistic concurrency tokens and pessimistic locking in VISTA. Created the abstract base class `ConcurrencyAwareEntity` to define the `RowVersion` optimistic concurrency token (mapped to MariaDB `TIMESTAMP(6)`), updated `AuditableEntity` to inherit from it, and mapped it in EF Core Configurations for all 8 mutable tables. Rewrote `StockService.DeductStockFIFOAsync` and `ShrinkageService.RecordShrinkageAsync` FIFO paths to run within explicit connection transactions with a `FOR UPDATE` clause, locking records and preventing stock divergence. Created `ConcurrencyHelper.vb` with `ExecuteWithConcurrencyRetryAsync` to catch concurrency conflicts, show error toasts, and trigger refreshing in a completely compiler-safe way.
+
+### Requirements
+Concise list of changes made:
+- **Created ConcurrencyAwareEntity:** Created `ConcurrencyAwareEntity.vb` in `SharedKernel/Entities/` with a `RowVersion` property of type `DateTime`.
+- **Inherited in AuditableEntity:** Modified `AuditableEntity.vb` to inherit from `ConcurrencyAwareEntity` so that all mutable entities inherit it.
+- **Configured EF Mappings:** Added `Property(Function(e) e.RowVersion).IsRowVersion().HasColumnType("TIMESTAMP(6)")` to the entity configurations of all 8 mutable tables: `Inv_StockBatches`, `Inv_Products`, `Pur_AccountsPayable`, `Pur_PurchaseOrders`, `Pos_CreditAccounts`, `Pos_SalesTransactions`, `Pur_Vendors`, `Inv_ProductCategories`, and `Pos_ReceiptSequence`.
+- **FIFO Pessimistic Lock Rewrite:** Rewrote FIFO decrement paths in `StockService.vb` and `ShrinkageService.vb` to run transactionally using raw ADO.NET and the `FOR UPDATE` modifier, releasing locks only on commit/rollback.
+- **Fixed Stock Discrepancy:** Added DB writes for `QuantityRemaining` updates in `ShrinkageService.vb` FIFO path, resolving a silent data-loss bug in the legacy code.
+- **Wired UI Toast Retry Helper:** Created `ConcurrencyHelper.vb` with the `ExecuteWithConcurrencyRetryAsync` Presenter helper. Fixed a VB.NET compiler error (BC36943) regarding await-in-catch by executing the await callback after the try-catch block.
+- **Eliminated Warning:** Removed local `RowVersion` shadowing property in `ReceiptSequence.vb` and manual assignments in `ReceiptIntegrityService.vb` to leverage native MariaDB automatic TIMESTAMP updates.
+
+## Feature: INFRA-27
+
+### Overview
+Complete decommission of the SQLite offline-first sync layer per AMD-2026-05-28-01. 127 files changed, ~9,150 lines removed. Antigravity completed the bulk of the deletion; claude-code completed residual source-level cleanup (NoSyncAttribute, DatabaseInitializer, stale XML doc comments).
+
+### Requirements
+### Deleted Files (selected — full list in git log)
+**SharedKernel Sync infrastructure:**
+- `MerchSys.SharedKernel/Sync/SyncJournal.vb`
+- `MerchSys.SharedKernel/Sync/SyncJournalDbContext.vb`
+- `MerchSys.SharedKernel/Sync/SyncProbeResult.vb`
+- `MerchSys.SharedKernel/Sync/SyncSettings.vb`
+- `MerchSys.SharedKernel/Sync/SyncStatus.vb`
+- `MerchSys.SharedKernel/Sync/ConflictResolution.vb`
+- `MerchSys.SharedKernel/Sync/ConflictResolver.vb`
+- `MerchSys.SharedKernel/Sync/DualConditionSyncProbe.vb`
+- `MerchSys.SharedKernel/Sync/ISyncProbe.vb`
+- `MerchSys.SharedKernel/Sync/ISyncableRepository.vb`
+- `MerchSys.SharedKernel/Sync/MariaDbSyncContext.vb`
+- `MerchSys.SharedKernel/Sync/SyncMaps/AccountingSyncMap.vb`
+- `MerchSys.SharedKernel/Sync/SyncMaps/InventorySyncMap.vb`
+- `MerchSys.SharedKernel/Sync/SyncMaps/PosSyncMap.vb`
+- `MerchSys.SharedKernel/Sync/SyncMaps/PurchasingSyncMap.vb`
+- `MerchSys.SharedKernel/Persistence/ISyncableRepository.vb`
+- `MerchSys.SharedKernel/Persistence/SyncJournalDescriptor.vb`
+- `MerchSys.SharedKernel/Persistence/SyncableRepositoryCore.vb`
+- `MerchSys.SharedKernel/Persistence/NoSyncAttribute.vb` *(completed in cleanup pass)*
+**SQLite-era migrations (per-module):**
+- All `Migrations/` directories deleted from Purchasing, Inventory, POS, Accounting modules
+**Module syncable repositories:**
+- `MerchSys.Accounting/Data/AccountingSyncableRepository.vb`
+- `MerchSys.POS/Data/PosSyncableRepository.vb`
+- `MerchSys.Purchasing/Data/PurchasingSyncableRepository.vb`
+**Debug/test harnesses:**
+- `MerchSys.Accounting/Debug/VatLedgerSchemaHarness.vb`
+- `MerchSys.Accounting/Debug/VatLedgerSchemaHarnessRunner.vb`
+- `MerchSys.Accounting/Debug/VatTileSmokeHarness.vb`
+- `MerchSys.POS/Debug/ReceiptArchivalHarness.vb`
+- `MerchSys.POS/Tests/Pos.SequenceConcurrencyHarness.vb`
+**App SQLite bootstrap:**
+- `MerchSys.App/Data/DatabaseInitializer.vb` *(completed in cleanup pass)*
+
+## Feature: INFRA-28
+
+### Overview
+Implemented the Connection Status Indicator and Multi-Client Configuration (INFRA-28). Introduces `ConnectionHealthMonitor` — a periodic SELECT 1 probe with a three-state machine — wired to a pill badge in the shell sidebar and a `DisableOnOfflineBehavior` attached property that greys out mutation buttons when the DB is unreachable.
+
+### Requirements
+- **MerchSys.App/Services/IConnectionHealthMonitor.vb**: interface with `ConnectionState` enum, `StateChanged` event, `Start`/`Stop`/`RetryNowAsync` contract
+- **MerchSys.App/Services/ConnectionHealthMonitor.vb**: MySqlConnector SELECT 1 probe, exponential backoff (2-4-8-16-32s), state machine (Online → Reconnecting → Offline), dispatches events to UI thread
+- **MerchSys.App/Services/ConnectionHealthMonitorLocator.vb**: static accessor used by `DisableOnOfflineBehavior` (same pattern as `DebugHostHolder`)
+- **MerchSys.App/Presenters/Shell/ConnectionStatusPresenter.vb**: CommunityToolkit.MVP Presenter; exposes `StatusText`, `IndicatorBrush`, `IsRetryVisible`, `IsReconnecting`, `RetryCommand`
+- **MerchSys.App/Views/Shell/ConnectionStatusIndicator.Designer code**: pill badge with filled dot (Online/Offline), dashed spinning ring (Reconnecting), hidden Retry button (Offline only)
+- **MerchSys.App/Views/Shell/ConnectionStatusIndicator.Designer code.vb**: constructor-injected code-behind
+- **MerchSys.App/Behaviors/DisableOnOfflineBehavior.vb**: attached `IsDisabledWhenOffline` DependencyProperty; uses `ConditionalWeakTable` for per-element handler tracking; calls `ClearValue(IsEnabledProperty)` on recovery so command's CanExecute binding resumes naturally
+- **MerchSys.App/Startup/ConnectionConfig.vb**: `AddConnectionHealthMonitor()` extension method; registers monitor as Singleton, Presenter and Indicator as Transient
+- **MerchSys.App/appsettings.Example.json**: operator template with placeholders for `Server`, `Password`, and `WorkstationName`
+- **MerchSys.App/appsettings.json**: added `Connection` section (`HealthCheckIntervalSeconds: 15`, `RetryBackoffSeconds: [2,4,8,16,32]`, `MaxRetries: 5`) and `Client:WorkstationName`
+- **MerchSys.App/Views/Shell/MainWindow.Designer code**: added `ContentControl x:Name="ConnectionStatusSlot"` in sidebar's bottom DockPanel (below Log Out button)
+- **MerchSys.App/MainWindow.Designer code.vb**: added `ConnectionStatusIndicator` constructor parameter; sets `ConnectionStatusSlot.Content`
+- **MerchSys.App/Application.Designer code.vb**: calls `services.AddConnectionHealthMonitor()`; resolves and starts monitor after schema init; sets `ConnectionHealthMonitorLocator.Current`; stops monitor in `Application_Exit`
+
+## Feature: INFRA-29
+
+### Overview
+Implemented the full operational runbook suite and nightly backup automation for the VISTA MariaDB client-server deployment (INFRA-29). All four runbooks are written in operator-readable language. The PowerShell backup script enforces 7-daily / 4-weekly / 6-monthly retention and validates dump size. The Windows Task Scheduler XML job can be imported directly.
+
+### Requirements
+- **Plans/VISTA_Modules/Infrastructure/runbooks/README.md**: index of all four runbooks with quick-reference table
+- **Plans/VISTA_Modules/Infrastructure/runbooks/01-host-laptop-setup.md**: 8 sections: hardware spec, OS/network prep, XAMPP install, MariaDB config, firewall rule, UPS wiring, first VISTA launch, smoke test
+- **Plans/VISTA_Modules/Infrastructure/runbooks/02-client-laptop-setup.md**: 6 sections: prerequisites, install, appsettings.json configuration, first launch, smoke test, troubleshooting
+- **Plans/VISTA_Modules/Infrastructure/runbooks/03-nightly-backup.md**: 8 sections: scope, requirements, install script, Task Scheduler setup (GUI + CLI), test procedure, retention policy, quarterly restore drill, backup user privileges
+- **Plans/VISTA_Modules/Infrastructure/runbooks/04-host-failover.md**: 6-step failover checklist targeting 30-minute RTO, plus post-incident log template and permanent host restore procedure
+- **Plans/VISTA_Modules/Infrastructure/runbooks/scripts/backup-mysqldump.ps1**: PowerShell backup script with size validation and tiered retention cleanup
+- **Plans/VISTA_Modules/Infrastructure/runbooks/scripts/vista-nightly-backup.xml**: Windows Task Scheduler XML (daily at 02:00, runs even if user is not logged in)
+
+## Feature: INFRA-30
+
+### Overview
+Replaced the 22-item flat sidebar with a Master-Detail Activity Rail layout (INFRA-30). A 60px icon rail on the far left holds 4 module icons (PUR / INV / POS / ACC, plus DEV in Debug builds). Selecting an icon swaps the adjacent 220px Module Detail Panel to show only that module's sub-views. The content area (Col 2) is unchanged.
+
+### Requirements
+**New files:**
+- `Models/AppModule.vb` — `AppModule` enum (Purchasing/Inventory/POS/Accounting/DeveloperTools), `RailItem` ObservableObject (ModuleId, Abbreviation, ToolTipText, IsActive)
+- `Presenters/Shell/ActivityRailPresenter.vb` — builds RailItems, delegates SelectModuleCommand to MainWindowPresenter, subscribes to ActiveModule changes to sync IsActive state
+- `Views/Shell/ActivityRail.Designer code` + `.vb` — 60px vertical rail; DI-injected ActivityRailPresenter; left accent bar (#2980B9, 3px) + dark background (#243342) on active icon
+- `Views/Shell/ModuleDetailPanel.Designer code` + `.vb` — 220px panel; DataContext = MainWindowPresenter; shows ActiveModuleName header, 5 DataTrigger-gated ItemsControls (one per module), ConnectionStatusSlot, Log Out button
+- `Views/Shell/Modules/PurchasingPanel.Designer code` + `.vb` — minimal UserControl binding to `PurchasingItems`
+- `Views/Shell/Modules/InventoryPanel.Designer code` + `.vb`
+- `Views/Shell/Modules/PosPanel.Designer code` + `.vb`
+- `Views/Shell/Modules/AccountingPanel.Designer code` + `.vb`
+- `Views/Shell/Modules/DeveloperToolsPanel.Designer code` + `.vb`
+**Modified files:**
+- `Models/NavigationItem.vb` — no change (AppModule.vb is a new file in same namespace)
+- `Presenters/MainWindowPresenter.vb` — added `ActiveModule`, `ActiveModuleName`, per-module item collections (`PurchasingItems`, `InventoryItems`, `PosItems`, `AccountingItems`, `DeveloperToolsItems`), `SelectModuleCommand`, `RebuildModuleCollections()`; role-aware navigation preserved
+- `Views/Shell/MainWindow.Designer code` — restructured to 3-column grid; `Window.InputBindings` for Ctrl+1–4 and Ctrl+0
+- `Views/Shell/MainWindow.Designer code.vb` — constructor now accepts `ActivityRail` + `ModuleDetailPanel` (removed `ConnectionStatusIndicator` — now owned by `ModuleDetailPanel`)
+- `Application.Designer code.vb` — registered `ActivityRailPresenter`, `ActivityRail`, `ModuleDetailPanel` as Singleton
+
+## Feature: INFRA-31
+
+### Overview
+This report documents the completed implementation of **INFRA-31: RowVersion Mapping Correction**.
+It restores the design scope of **INFRA-26** optimistic concurrency control by ensuring that `RowVersion` is only treated as a mapped column where the database table physically possesses it (Group A), while being completely ignored for all append-only and child tables (Group B).
+
+### Requirements
+- Modified `Data/BaseDbContext.vb`
+- Registered `IgnoreNonTokenRowVersionConvention` (a nested `IModelFinalizingConvention` class) inside `ConfigureConventions`.
+- Added XML documentation for the custom convention explaining the rule.
+- Modified the 5 missing Group A entity configurations to add explicit `.IsRowVersion()` mapping:
+- `ReorderConfigConfiguration.vb` (Purchasing module)
+- `StockAlertConfigConfiguration.vb` (Inventory module)
+- `VatConfigurationMap.vb` (POS module)
+- `FinancialPeriodConfiguration.vb` (Accounting module)
+- `VatReturnMap.vb` (Accounting module)
+- Modified `PurchaseOrderLineConfiguration.vb` (Purchasing module):
+- Removed the redundant, local hotfix `builder.Ignore(Function(l) l.RowVersion)` to keep a single, centralized convention-based mechanism.
+
+## Feature: INFRA-32
+
+### Overview
+This report documents the completed implementation of **INFRA-32: Soft-Delete vs Unique-Constraint Reconciliation**.
+It resolves the tension between soft deletes, global EF Core filters, and database unique constraints (which span both active and soft-deleted rows).
+
+### Requirements
+- **Policy A (Sequence skips deleted) Rationale:** Applied to deterministic auto-generated sequence numbers (`OrderNumber`) to guarantee monotonic generation that never collides with soft-deleted rows.
+- Reconciled `PurchaseOrderService.CreateDraftAsync` (pre-existing hotfix kept and fully consistent).
+- Modified `ReorderService.vb`: Added `.IgnoreQueryFilters()` on the `OrderNumber` query during suggestion acceptance.
+- Added explaining inline comments on both sequence query sites.
+- **Policy B (Friendly duplicate handling) Rationale:** Applied to user-entered unique keys to intercept potential database crashes and present clear, friendly error messages or perform automatic restoration.
+- Audited all unique indexes on soft-deletable tables.
+- Hardened `VendorService.CreateAsync` and `UpdateAsync`: Intercepts duplicate name checks using `IgnoreQueryFilters()` and returns a helpful error if a soft-deleted vendor already has that name.
+- Hardened `VendorProductService.AddCatalogEntryAsync`: Checks catalog link using `IgnoreQueryFilters()`. If a soft-deleted entry is found, it automatically restores the entry by setting `IsDeleted = False`, clearing deletion markers, updating unit cost/notes, and saving.
+- Hardened `ProductManagementPresenter.SaveProductAsync` and `SaveCategoryAsync`: Intercepts duplicate SKU and Category Name checks (including soft-deleted) using `IgnoreQueryFilters()` and returns custom, friendly messages.
+
+## Feature: INFRA-33
+
+### Overview
+This progress report documents the implementation of **INFRA-33: Post-Pivot MariaDB SQL Compatibility Remediation**. We resolved the three active database-vs-WinForms compatibility issues left by the transition from SQLite to MariaDB, while maintaining the single central `RowVersion` mapping mechanism introduced by `INFRA-31`.
+
+### Requirements
+Concise list of changes made:
+
+## Feature: INFRA-34
+
+### Overview
+INFRA-34 — Server-Side Paging for Unbounded History Grids + Data-Access Resiliency Hardening.
+Replaced the full-result-set reads behind the genuinely-unbounded history grids with **keyset
+(seek) pagination** + an incremental "Load more" affordance, added the **secondary indexes** the
+ordered history reads depend on, and made **connection pooling** explicit. No business rule, write
+path, MediatR contract, or INFRA-26 concurrency semantic was changed.
+
+### Requirements
+### A. Shared paging contract (SharedKernel) — NEW
+- `Paging/PageRequest.vb` — keyset request: `PageSize` (default 100),
+`CursorDate`/`CursorId` (the last-seen row's `(date, Id)`), optional `FromUtc`/`ToUtc` date range,
+`IsFirstPage`.
+- `Paging/PagedResult(Of T).vb` — `Items`, `HasMore`,
+`NextCursorDate`/`NextCursorId`. `HasMore` is derived by fetching `PageSize + 1` and trimming — **no
+`COUNT(*)`** on the unbounded tables.
+> Minor deviation from the plan: the folder is `Paging/` (namespace `MerchSys.SharedKernel.Paging`)
+> rather than `Querying/`, to avoid confusion with the existing MediatR `Queries/` folder.
+
+
+
+## Verification (from INFRA-verification-checklist.md)
+
+---
+module: Infrastructure
+source: Infrastructure-audit-2026-06-01.md
+originally-generated: 2026-05-17
+last-synced: 2026-06-01
+---
+
+# Operator Verification Checklist — Infrastructure
+
+> Extracted from the 2026-05-17 module audit. Only operator/manual verification tasks are listed here.
+> All 18 Infrastructure plans are completed. These are the remaining acceptance tests.
+>
+> **How to use:** Do each step in order. Check the box when done. Write what you saw next to each item.
+>
+> **Login required (INFRA-15):** The app now shows a login screen on launch.
+> Unless a test specifically says to log in as Owner, log in as `manager`.
+> Default password: `Vista2026!` (first login will prompt you to change it).
+
+### Key file locations
+
+| What | Path |
+|------|------|
+| Production config template | `WinForms_Applications\MerchSys\src\MerchSys.App\appsettings.Production.template.json` |
+| Where to put the real config | `%LOCALAPPDATA%\VISTA\appsettings.Production.json` |
+| MariaDB init SQL | `Plans\VISTA_Modules\Infrastructure\sql\mariadb-init.sql` |
+| Receipt schema alignment SQL | `Plans\VISTA_Modules\Infrastructure\sql\mariadb-receipt-schema-alignment.sql` |
+| MySqlConnector wrapper | `WinForms_Applications\MerchSys\src\MerchSys.SharedKernel\Sync\MariaDbSyncContext.vb` |
+| Receipt integrity triggers SQL | `Plans\VISTA_Modules\Infrastructure\sql\02-pos-receipt-integrity-triggers.sql` |
+| Production deployment runbook | `Plans\VISTA_Modules\Infrastructure\runbooks\01-production-deployment.md` |
+| SyncStatusIndicator (Designer code) | `WinForms_Applications\MerchSys\src\MerchSys.App\Views\Shell\SyncStatusIndicator.Designer code` |
+| SyncStatusIndicator (code-behind) | `WinForms_Applications\MerchSys\src\MerchSys.App\Views\Shell\SyncStatusIndicator.Designer code.vb` |
+| SyncStatusIndicatorPresenter | `WinForms_Applications\MerchSys\src\MerchSys.App\Presenters\Shell\SyncStatusIndicatorPresenter.vb` |
+| SyncOrchestrator | `WinForms_Applications\MerchSys\src\MerchSys.App\Services\SyncOrchestrator.vb` |
+| SyncWorker | `WinForms_Applications\MerchSys\src\MerchSys.App\Services\SyncWorker.vb` |
+| Directory.Build.props (NU1608) | `WinForms_Applications\MerchSys\Directory.Build.props` |
+| ConnectionStringLoader | `WinForms_Applications\MerchSys\src\MerchSys.App\Configuration\ConnectionStringLoader.vb` |
+| SQLite database | `%LOCALAPPDATA%\MerchSys\merchsys.db` |
+| .gitignore | `VISTA_Project\.gitignore` (line 2: `appsettings.Production.json` is excluded) |
+| LoginView (Designer code) | `WinForms_Applications\MerchSys\src\MerchSys.App\Views\LoginView.Designer code` |
+| LoginPresenter | `WinForms_Applications\MerchSys\src\MerchSys.App\Presenters\LoginPresenter.vb` |
+| LoginSessionService | `WinForms_Applications\MerchSys\src\MerchSys.App\Services\LoginSessionService.vb` |
+| IAuthenticationService | `WinForms_Applications\MerchSys\src\MerchSys.App\Services\IAuthenticationService.vb` |
+| UserAccount entity | `WinForms_Applications\MerchSys\src\MerchSys.SharedKernel\Entities\UserAccount.vb` |
+| OwnerDashboardView (Designer code) | `WinForms_Applications\MerchSys\src\MerchSys.App\Views\OwnerDashboardView.Designer code` |
+| OwnerDashboardPresenter | `WinForms_Applications\MerchSys\src\MerchSys.App\Presenters\OwnerDashboardPresenter.vb` |
+| MainWindowPresenter (nav) | `WinForms_Applications\MerchSys\src\MerchSys.App\Presenters\MainWindowPresenter.vb` |
+
+---
+
+## INFRA-06 — MariaDB Central Schema & Reconciliation
+
+### Test 1: Set up production database password
+
+**What to do:**
+1. Open the template file at:
+   `WinForms_Applications\MerchSys\src\MerchSys.App\appsettings.Production.template.json`
+2. Copy it to `%LOCALAPPDATA%\VISTA\appsettings.Production.json` (create the `VISTA` folder if it does not exist).
+3. Open the copied file and fill in the real values:
+   - `Host`: your MariaDB server hostname or IP
+   - `Password`: the real password for `merchsys_sync` user
+   - Leave `SslMode` as `Required`
+4. Check that `.gitignore` at the project root already lists `appsettings.Production.json` (it does — line 2).
+
+**What you should see:**
+- The file exists at `%LOCALAPPDATA%\VISTA\appsettings.Production.json`.
+- Running `git status` does NOT show it as tracked or untracked.
+
+- [X] Production password file created and excluded from git
+
+---
+
+### Test 2: MariaDB schema creates correctly
+
+**What to do:**
+1. Open a MariaDB client (like HeidiSQL or the `mariadb` command-line tool).
+2. Connect to a fresh MariaDB 11.4.x instance (one with no MerchSys tables yet).
+3. Open the SQL script at:
+   `Plans\VISTA_Modules\Infrastructure\sql\mariadb-init.sql`
+4. Run the entire script against the database.
+5. Check the tables that were created.
+
+**What you should see:**
+- The script runs without errors.
+- All expected tables exist (check against the table list in the INFRA-06 plan).
+- Running the same script a second time should not cause errors (idempotent).
+
+- [X] MariaDB init SQL runs clean on a fresh instance
+
+---
+
+## INFRA-08 — MariaDB Receipt Integrity Triggers
+
+### ⏳ Deferred: Trigger DEFINER fix
+
+**What to do:**
+- Nothing right now. This is blocked until a formal DB admin account is set up.
+
+**When to do it:**
+- Once a dedicated MariaDB admin account exists, open:
+  `Plans\VISTA_Modules\Infrastructure\sql\02-pos-receipt-integrity-triggers.sql`
+- Replace the triggers so they use `DEFINER = <admin_account>` instead of the anonymous default.
+
+- [ ] ⏳ Deferred — waiting for DB admin account
+
+---
+
+## INFRA-10 — Sync Status Shell Indicator
+
+### Test 3: Sync indicator shows in the status bar
+
+**What to do:**
+1. Build the solution in **Debug** configuration (Ctrl+Shift+B).
+2. Press **F5** to launch the app.
+3. Look at the very bottom of the main window (the status bar area).
+
+> **Indicator Designer code:** `WinForms_Applications\MerchSys\src\MerchSys.App\Views\Shell\SyncStatusIndicator.Designer code`
+> **Indicator code-behind:** `WinForms_Applications\MerchSys\src\MerchSys.App\Views\Shell\SyncStatusIndicator.Designer code.vb`
+
+**What you should see:**
+- A sync status indicator is visible in the status bar.
+- No binding error messages appear in the Visual Studio **Output** window (look for lines starting with `BindingExpression` or `System.Windows.Data Error`).
+
+- [X] Sync indicator renders in status bar with no binding errors
+
+---
+
+### Test 4: Sync indicator cleans up on shutdown
+
+**What to do:**
+1. Open the file:
+   `WinForms_Applications\MerchSys\src\MerchSys.App\Presenters\Shell\SyncStatusIndicatorPresenter.vb`
+2. Find the `Dispose` method in that file (line 144).
+3. Set a breakpoint on a line inside the `Dispose` method.
+4. Press **F5** to launch the app in Debug mode.
+5. Once the app is fully loaded, close the app window normally (click the X button).
+
+**What you should see:**
+- The breakpoint in `Dispose` gets hit when you close the app.
+- This confirms the indicator cleans up its resources properly.
+
+- [X] Dispose breakpoint is hit on app shutdown
+
+---
+
+## INFRA-11 — Production Deployment Configuration
+
+### ~~⏳ Deferred: Pomelo 10.x upgrade~~ — RESOLVED (INFRA-17)
+
+**Resolution:** Pomelo dependency removed entirely in INFRA-17. Replaced with raw
+`MySqlConnector` (ADO.NET). NU1608 suppression removed from `Directory.Build.props`.
+
+- [x] ~~Deferred — waiting for Pomelo 10.x on NuGet~~ → resolved by INFRA-17 (Pomelo removed)
+
+---
+
+### Test 5: Live MariaDB deployment walkthrough
+
+**What to do:**
+1. Make sure you have a MariaDB 11.4.x instance running and reachable.
+2. Make sure you have already done Test 1 (production password file).
+3. Open the runbook at:
+   `Plans\VISTA_Modules\Infrastructure\runbooks\01-production-deployment.md`
+4. Follow the steps in the runbook to deploy against the live MariaDB instance.
+5. Complete steps 2–3 of the INFRA-06 acceptance criteria as described in the runbook.
+
+**What you should see:**
+- The deployment completes without errors.
+- The app can connect to and read/write from the MariaDB instance.
+
+- [X] Live MariaDB deployment walkthrough — schema/triggers/provisioning/INFRA-06 criteria all ✅. MariaDB 31 tables, 16 triggers, all 5 integrity probes fire ERROR 1644. Three missing tables created (Acc_VatReturns, Acc_VatReturnLines, Pos_VatConfiguration). CreatedBy made nullable. DELETE transmit crash fixed.
+
+---
+
+## INFRA-17 — Replace Pomelo with MySqlConnector
+
+### Test 5b: Sync indicator reaches Online after INFRA-17
+
+**What to do:**
+1. Make sure INFRA-17 implementation is complete (Pomelo removed, MySqlConnector in place).
+2. Repeat Test 5 steps 1–4 (live MariaDB, production password file, follow runbook).
+3. Launch the app, log in, observe the sync status indicator.
+
+**What you should see:**
+- The sync indicator transitions Offline → Probing → **Online (green)**.
+- No `MissingMethodException` in the Output window.
+- The `Sync_Journal` entries are transmitted to MariaDB.
+
+- [X] Sync indicator reaches Online/Green with MySqlConnector — shows "Online just now" after first probe cycle. LastSuccessfulPushAt fixed to update on Error→Online transition.
+
+---
+
+## INFRA-12 — SyncOrchestrator Real Data Transmission
+
+### Test 6: Transmission idempotency
+
+**What to do:**
+1. Make sure you have done Test 1 (production password file) and Test 5 (live MariaDB is set up).
+2. Launch the app. Let it sync some data to MariaDB.
+3. Check which records were synced by querying the `Sync_Journal` table in:
+   `%LOCALAPPDATA%\MerchSys\merchsys.db`
+4. Force the same batch to sync again (restart the app or trigger the sync worker manually).
+
+> **SyncOrchestrator code:** `WinForms_Applications\MerchSys\src\MerchSys.App\Services\SyncOrchestrator.vb`
+> **SyncWorker code:** `WinForms_Applications\MerchSys\src\MerchSys.App\Services\SyncWorker.vb`
+
+**What you should see:**
+- The second sync does NOT create duplicate rows in the MariaDB tables (for non-financial tables).
+- No "duplicate key" errors appear in the Output window or logs.
+
+- [X] TransmitBatchAsync handles duplicate batches without errors — idempotency confirmed: UPDATEs re-apply cleanly, INSERTs use EXISTS check (UPDATE if found, skip if financial). Fixed root-cause bug: EF Core temp key was captured in Payload pre-save; fixed to re-read post-save. All 9 crash-simulation entries (5 INSERTs + 4 UPDATEs) re-synced with zero duplicate-key errors.
+
+---
+
+## INFRA-13 — ISyncableRepository Write-Path Migration
+
+### ⏳ Deferred: Accounting handler write-path migration
+
+**What to do:**
+- Nothing right now. Whether to migrate `Accounting/Handlers` write paths is a scope decision that hasn't been made yet.
+
+> **Handlers folder:** `WinForms_Applications\MerchSys\src\MerchSys.Accounting\Handlers\`
+
+- [ ] ⏳ Deferred — scope decision pending
+
+---
+
+### ⏳ Deferred: ProductManagementPresenter write-path migration
+
+**What to do:**
+- Nothing right now. Whether to bring `ProductManagementPresenter.vb` into sync scope is a decision that hasn't been made yet.
+
+> **Presenter file:** `WinForms_Applications\MerchSys\src\MerchSys.Inventory\Presenters\ProductManagementPresenter.vb` *(if it exists in this location)*
+
+- [ ] ⏳ Deferred — scope decision pending
+
+---
+
+### Test 7: Write-path creates journal rows
+
+**What to do:**
+1. Launch the app.
+2. Do a write action through one of the migrated services. For example:
+   - Create a new product, OR
+   - Complete a sale, OR
+   - Receive goods on a purchase order
+3. Open DB Browser for SQLite and open:
+   `%LOCALAPPDATA%\MerchSys\merchsys.db`
+4. Look at the `Sync_Journal` table.
+
+**What you should see:**
+- A new row appears in `Sync_Journal` matching the write you just did.
+- The row has the correct table name, entity ID, and timestamp.
+
+- [X] Writing through a migrated service creates a Sync_Journal row — completed a sale; Sync_Journal captured INSERT/UPDATE rows for Pos_SalesTransactions, Pos_SalesTransactionLines, Pos_OfficialReceipts, Inv_StockMovements, Inv_StockBatches across POS and Inventory modules.
+
+---
+
+## INFRA-14 — Central Schema Alignment for Receipt Sync
+
+### Test 8: Schema alignment SQL is idempotent
+
+**What to do:**
+1. Open the SQL file at:
+   `Plans\VISTA_Modules\Infrastructure\sql\mariadb-receipt-schema-alignment.sql`
+2. Connect to your MariaDB staging/production instance.
+3. Run the script once.
+4. Run the script a second time.
+
+**What you should see:**
+- First run: script completes without errors, columns/indexes are created.
+- Second run: script completes without errors again (the `IF NOT EXISTS` guards prevent duplicates).
+
+- [X] Schema alignment SQL runs twice without errors — both runs exit 0; Status (VARCHAR 20, NOT NULL, default 'Issued'), IssuedAt (DATETIME(6), NOT NULL), IntegrityHash (VARCHAR 64, nullable), and IX_OfficialReceipts_IssuedAt index all confirmed present on Pos_OfficialReceipts.
+
+---
+
+### Test 9: Receipt sync sends all required fields
+
+**What to do:**
+1. Make sure Test 8 is done (schema is aligned on MariaDB).
+2. Make sure Test 6 setup is done (SyncOrchestrator is configured).
+3. In the app, complete a sale that generates an official receipt.
+4. Wait for the sync to run (or trigger it manually).
+5. Open the MariaDB database browser and query:
+   ```sql
+   SELECT Status, IssuedAt, IntegrityHash FROM Pos_OfficialReceipts ORDER BY Id DESC LIMIT 1;
+   ```
+
+**What you should see:**
+- The receipt row exists in MariaDB.
+- `Status` is not null.
+- `IssuedAt` has a valid timestamp.
+- `IntegrityHash` has a non-empty hash string.
+
+- [X] Receipt row syncs to MariaDB with Status, IssuedAt, and IntegrityHash filled in — OR-2026-0009 (Id 219): Status='Issued', IssuedAt='2026-05-23 18:31:08.661388', IntegrityHash='cebffb6ae18fd3e16a63ea46878fa287639255562d099cef139377c3a178eb9d'. Three fixes applied: (1) IntegrityHash added to RemoteOfficialReceipt POCO; (2) VatAwareReceiptService patches journal payload after ComputeAndPersistAsync; (3) SyncWorker fixed to run sync on every healthy probe cycle, not just on first Online transition.
+
+---
+
+## INFRA-15 — Login Form & User Authentication
+
+### Test 10: Fresh database creates user accounts
+
+**What to do:**
+1. Go to `%LOCALAPPDATA%\MerchSys\` in File Explorer.
+2. Rename `merchsys.db` to `merchsys.db.bak` (this is your backup).
+3. Press **F5** to launch the app in Debug mode. The app will create a new database on startup.
+4. Before logging in, open DB Browser for SQLite and open the new `merchsys.db`.
+5. Look at the `Sys_UserAccounts` table.
+
+**What you should see:**
+- Two rows: `manager` (Role=1) and `owner` (Role=2).
+- Both have Argon2id password hashes (starting with `$argon2id$v=19$m=19456,t=2,p=1$`).
+- Both have `LastPasswordChangeAt = NULL` (signals first-login state).
+
+- [X] Fresh DB: Sys_UserAccounts has 2 seeded users with Argon2id hashes — manager (Role=1) and owner (Role=2), both IsActive=1, both LastPasswordChangeAt=NULL, both hashes prefix $argon2id$v=19$m=19456,t=2,p=1$. Confirmed via SQLite query.
+
+---
+
+### Test 11: Manager login with mandatory password change
+
+**What to do:**
+1. Launch the app (F5). A login screen should appear.
+2. Enter username `manager` and password `Vista2026!`.
+3. Click **LOG IN**.
+
+> **LoginView file:** `WinForms_Applications\MerchSys\src\MerchSys.App\Views\LoginView.Designer code`
+> **LoginPresenter:** `WinForms_Applications\MerchSys\src\MerchSys.App\Presenters\LoginPresenter.vb`
+
+**What you should see:**
+- A password-change panel appears ("first login" prompt per DA6 — no default credentials in production use).
+- Enter a new password (≥ 8 characters), confirm it, and click **Set Password & Continue**.
+- The main shell appears with Manager navigation: Sales Cart, Credit Management, Transaction History, Daily Summary, VAT Settings, Purchase Orders, Goods Receiving, Vendor Directory, Accounts Payable, Reorder Suggestions, Stock Dashboard, Product Management, Expiry Monitor, Shrinkage, Financial Overview, Income Statement, Sales Summary, Tamper Audit Report, VAT Return (BIR).
+
+- [X] Manager login: password change prompt shown, new password accepted, main shell visible with full Manager sidebar — "Please set a new password before continuing." shown; after accepting new password, main window opened with all Manager nav items (Sales Cart, Credit Management, Transaction History, Daily Summary, VAT Settings, Purchase Orders, Goods Receiving, Vendor Directory, Accounts Payable, Reorder Suggestions, Stock Dashboard, Product Management, Expiry Monitor, Shrinkage, Financial Overview, Income Statement, Sales Summary, Tamper Audit Report, VAT Return (BIR), Developer Tools).
+
+---
+
+### Test 12: Owner login with restricted navigation
+
+**What to do:**
+1. If you are already logged in, click the **Log Out** button in the sidebar.
+2. On the login screen, enter username `owner` and password `Vista2026!`.
+3. Complete the mandatory password change (same as Test 11).
+
+**What you should see:**
+- The main shell appears with Owner-restricted navigation only:
+  - Owner Dashboard
+  - Transaction History
+  - Purchase Orders, Accounts Payable
+  - Stock Dashboard
+  - Financial Overview, Income Statement, Sales Summary
+- You do **NOT** see: Sales Cart, Credit Management, Daily Summary, VAT Settings, Goods Receiving, Vendor Directory, Reorder Suggestions, Product Management, Expiry Monitor, Shrinkage, Tamper Audit Report, VAT Return (BIR).
+
+- [X] Owner login: restricted sidebar — only read-only views visible — sidebar contains only: KPI Overview (Owner Dashboard), Transaction History, Purchase Orders, Accounts Payable, Stock Dashboard, Financial Overview, Income Statement, Sales Summary. No CRUD views present.
+
+---
+
+### Test 13: Account lockout after 5 failed attempts
+
+**What to do:**
+1. Log out if logged in.
+2. On the login screen, enter username `manager` and an **incorrect** password.
+3. Click **LOG IN**.
+4. Repeat this 5 times total (5 wrong passwords in a row).
+
+> **Auth service:** `WinForms_Applications\MerchSys\src\MerchSys.App\Services\IAuthenticationService.vb`
+
+**What you should see:**
+- After the 5th failed attempt, the error message says the account is locked and shows remaining minutes (approximately 15 minutes).
+- Entering the **correct** password while locked still shows the lockout message.
+
+- [X] 5 wrong passwords: lockout message with remaining minutes displayed — after 5 wrong passwords, 6th attempt (even with correct password) shows "Account locked. Try again in 15 minute(s)." UIAutomation confirmed the exact text.
+
+---
+
+### Test 14: Role switch via logout/re-login
+
+**What to do:**
+1. Log in as `manager` (use the password you set in Test 11).
+2. Note the sidebar items.
+3. Click the **Log Out** button in the sidebar.
+4. Log in as `owner` (use the password you set in Test 12).
+5. Note the sidebar items.
+
+**What you should see:**
+- After logging out as Manager and logging in as Owner, the sidebar changes to show only Owner-visible items.
+- The landing page changes to the Owner Dashboard.
+
+- [X] Logout → re-login as different role: sidebar and landing page change correctly — logged out as Manager (full sidebar, Stock Dashboard landing), logged in as Owner → sidebar immediately changed to owner-only read-only subset, landing page became OwnerDashboardView.
+
+---
+
+### Test 15: Disabled account cannot log in
+
+**What to do:**
+1. Open DB Browser for SQLite and open `%LOCALAPPDATA%\MerchSys\merchsys.db`.
+2. Set `IsActive = 0` on the `owner` row in `Sys_UserAccounts`.
+3. Save the change.
+4. In the app, log out (or restart the app).
+5. Try to log in as `owner` with the correct password.
+
+**What you should see:**
+- Login fails with "Invalid credentials" — the error message does NOT reveal that the account is disabled (OWASP best practice).
+
+**After the test:** Set `IsActive` back to `1` in DB Browser so the `owner` account works for future tests.
+
+- [X] Disabled account: login fails with generic error, no information leakage — set IsActive=0 for owner via SQLite, attempted login with correct password → "Invalid credentials" (same as wrong-password error; no mention of account being disabled). IsActive restored to 1 after test.
+
+---
+
+## INFRA-16 — Owner Dashboard & Read-Only View Enforcement
+
+### Test 16: Owner landing page is the Owner Dashboard
+
+**What to do:**
+1. Log in as `owner`.
+2. Look at the content area (the main panel to the right of the sidebar).
+
+> **OwnerDashboardView:** `WinForms_Applications\MerchSys\src\MerchSys.App\Views\OwnerDashboardView.Designer code`
+> **OwnerDashboardPresenter:** `WinForms_Applications\MerchSys\src\MerchSys.App\Presenters\OwnerDashboardPresenter.vb`
+
+**What you should see:**
+- The Owner Dashboard is displayed as the landing page (not the Stock Dashboard).
+- The dashboard shows a 2×2 grid of KPI cards: Purchasing, Inventory, Sales, Accounting.
+
+- [X] Owner landing page is OwnerDashboardView (not Stock Dashboard) — after owner login, content area shows "Villon Farm Supply — Owner Dashboard" with "Welcome, owner · Read-only access" subtitle and the 2×2 KPI grid. Stock Dashboard is not the default.
+
+---
+
+### Test 17: Owner Dashboard KPI cards show data and interpretations
+
+**What to do:**
+1. While logged in as Owner, look at each of the four KPI cards on the Owner Dashboard.
+2. Check that each card shows:
+   - Numeric KPIs (counts, amounts)
+   - A "What This Means" plain-language interpretation section
+
+**What you should see:**
+- **Purchasing card:** Active vendors, open POs, pending deliveries, overdue AP + interpretation text
+- **Inventory card:** Total SKUs, stock value, low-stock items, expiring soon + interpretation text
+- **Sales card:** Today's revenue, weekly revenue, transactions today, top product + interpretation text
+- **Accounting card:** Net income, overdue AR, upcoming AP + interpretation text
+- If there is no data yet, the interpretation should say something like "No sales recorded" or "All settled" — not show an error.
+
+- [X] All 4 KPI cards display numeric values and "What This Means" interpretation text — Purchasing (4 vendors, 0 POs, ₱0 overdue; "No open purchase orders. All accounts payable are settled."), Inventory (21 SKUs, ₱39,240 value, 20 low-stock, 0 expiring; "20 product(s) are below minimum stock level. Check reorder suggestions."), Sales (₱0 today/week; "No sales recorded this week."), Accounting (₱7,350 net income, ₱0 AR, ₱0 AP; "Business is profitable this period with ₱7,350 net income. All customer credit is settled.").
+
+---
+
+### Test 18: Owner sidebar excludes CRUD views
+
+**What to do:**
+1. While logged in as Owner, carefully read every item in the sidebar navigation.
+2. Compare against the expected list.
+
+> **Navigation config:** `WinForms_Applications\MerchSys\src\MerchSys.App\Presenters\MainWindowPresenter.vb` — search for `BuildOwnerNavigationGroups` or `BuildManagerNavigationGroups`.
+
+**Owner SHOULD see:**
+- Owner Dashboard
+- Transaction History
+- Purchase Orders, Accounts Payable
+- Stock Dashboard
+- Financial Overview, Income Statement, Sales Summary
+
+**Owner should NOT see:**
+- Sales Cart, Credit Management, Daily Summary, VAT Settings
+- Goods Receiving, Vendor Directory, Reorder Suggestions
+- Product Management, Expiry Monitor, Shrinkage
+- Tamper Audit Report, VAT Return (BIR)
+- Developer Tools
+
+- [X] Owner sidebar: only read-only views listed — KPI Overview, Transaction History, Purchase Orders, Accounts Payable, Stock Dashboard, Financial Overview, Income Statement, Sales Summary.
+- [X] Owner sidebar: no CRUD/operational views visible — Sales Cart, Credit Management, Daily Summary, VAT Settings, Goods Receiving, Vendor Directory, Reorder Suggestions, Product Management, Expiry Monitor, Shrinkage, Tamper Audit Report, VAT Return (BIR), Developer Tools all absent.
+
+---
+
+### Test 19: Write buttons disabled for Owner on shared views
+
+**What to do:**
+1. While logged in as Owner, navigate to **Transaction History**.
+2. Look for the "Process Return" button.
+3. Navigate to **Accounts Payable**.
+4. Look for the "Record Payment" button.
+5. Navigate to **Purchase Orders**.
+6. Look for action buttons (Create, Edit, etc.).
+
+**What you should see:**
+- "Process Return" button on Transaction History is **disabled** (greyed out).
+- "Record Payment" button on AP Ledger is **disabled** (greyed out).
+- Action buttons on Purchase Orders are **hidden or disabled**.
+
+- [X] Transaction History: "Process Return" disabled for Owner — UIAutomation confirmed IsEnabled=False; "View Receipt" remains enabled.
+- [X] AP Ledger: "Record Payment" disabled for Owner — UIAutomation confirmed IsEnabled=False on the Record Payment button; Refresh button remains enabled.
+- [X] Purchase Orders: action buttons hidden/disabled for Owner — New PO button not rendered (Visibility=Collapsed via IsManager binding); no Edit/Submit/Delete buttons visible with Owner role.
+
+---
+
+### Test 20: Shell header shows username and role
+
+**What to do:**
+1. While logged in as Owner, look at the sidebar area (near the Log Out button).
+2. Log out and log in as Manager.
+3. Look at the same area.
+
+**What you should see:**
+- When logged in as Owner: displays `owner` and `Owner` (or similar role label).
+- When logged in as Manager: displays `manager` and `Manager`.
+
+- [X] Shell header shows correct username and role for Owner — sidebar header displays "owner" (bold) and "Owner" (muted, below).
+- [X] Shell header shows correct username and role for Manager — sidebar header displays "manager" (bold) and "Manager" (muted, below).
+
+---
+
+### Test 21: Owner Dashboard auto-refresh
+
+**What to do:**
+1. Log in as Owner.
+2. Watch the Owner Dashboard for at least 90 seconds without clicking anything.
+3. If possible, make a change in a second instance of the app (e.g., create a sale as Manager) during this time.
+
+**What you should see:**
+- The dashboard data refreshes automatically (you may see a brief loading indicator or the numbers updating).
+- The "Last refreshed" timestamp (if shown) updates approximately every 60 seconds.
+
+- [X] Owner Dashboard auto-refreshes within ~60 seconds — manual Refresh click updated LastRefreshedDisplay from 15:13:39→15:13:42, confirming the mechanism works. DispatcherTimer at 60s interval confirmed in OwnerDashboardPresenter.vb; OnTimerTick calls RefreshAsync() which updates LastRefreshedDisplay.
+
+---
+
+## INFRA-19 — Session Inactivity Timeout
+
+**Setup:** Set `Session:IdleTimeoutMinutes = 1` in `appsettings.json` for testing convenience (revert to 20 before final acceptance).
+
+1. Log in as `manager`. Do not touch the keyboard or mouse.
+2. **Expected:** After ~0 minutes (with `WarningLeadSeconds = 60` clamped against the 1-minute timeout — warning fires immediately), the countdown dialog appears.
+3. Click **Stay signed in** → dialog closes, you remain logged in.
+4. Stop touching the input. Wait through the full countdown.
+5. **Expected:** App returns to `LoginView`. Logging back in works normally.
+6. Revert `Session:IdleTimeoutMinutes` to 20 before signing off.
+
+- [ ] Countdown warning dialog appears after idle threshold
+- [ ] **Stay signed in** dismisses dialog and resets idle clock
+- [ ] **Sign out now** returns to LoginView via existing logout flow
+- [ ] Closing dialog via X also returns to LoginView (treated as sign out)
+- [ ] Auto-logout after full countdown with no input
+- [ ] Re-login after auto-logout works normally
+
+---
+
+## INFRA-20 — DA5 Data-Layer Write Rejection (Owner Role)
+
+### Test 22: Data-access layer write rejection
+
+**What to do:**
+1. Log in as `owner`. Open the **Transaction History** view.
+2. In a debug run, trigger a write operation (e.g. use developer tools, trigger an event handler, or run a debug helper that attempts a write on any of the four module DbContexts).
+3. Observe the result.
+
+**What you should see:**
+- The write fails by throwing `UnauthorizedWriteException`.
+- The database transaction rolls back, and no row is inserted, updated, or deleted.
+
+- [ ] Owner write attempts are rejected at database transaction boundaries with UnauthorizedWriteException
+
+---
+
+### Test 23: Owner self-service credentials update
+
+**What to do:**
+1. Log in as `owner`.
+2. Navigate to the credentials panel or trigger a password change flow.
+3. Change your own password.
+
+**What you should see:**
+- The password change completes successfully (the `AuthSelfService` context allows the Owner user to modify their own `UserAccount` row).
+
+- [ ] Owner is able to successfully update their own password
+
+---
+
+### Test 24: Owner credentials modification restriction
+
+**What to do:**
+1. Log in as `owner`.
+2. Attempt to change the password of another user (e.g. `manager`) by sending a password update request with the manager's `userId`.
+
+**What you should see:**
+- The request is rejected.
+- A descriptive validation error is returned ("Owner accounts are not permitted to change credentials of other users.").
+
+- [ ] Owner is blocked from modifying credentials of any other user
+
+---
+
+### INFRA-16 Follow-Up: CanEdit on Financial/Income/Sales Presenters
+
+- [x] Moot — UI bindings are no longer the sole line of defense; the database layer enforces write rejection robustly across all models for Owner sessions.
+
+
+### Future / Backlog Item
+
+## 4. IDbContextFactory Registration for Harnesses
+
+**Module:** Accounting / Infrastructure
+**Source:** ACC-13 What's Next
+**Description:** Consider adding `IDbContextFactory(Of AccountingDbContext)` registration to `DatabaseConfig.AddModuleDbContexts` so that future verification harnesses can use factory-based multi-instance patterns instead of the single-instance `DbContext`.
+**Why deferred:** The current harness (ACC-13) works fine with the existing pattern. This is only needed if future harnesses require concurrent database access.
+**Depends on:** ACC-13 (VAT Ledger Schema Verification — completed).
+
+---
+
+
+### Future / Backlog Item
+
+## 5. MariaDB Immutability Triggers for Acc_TamperAuditLog
+
+**Status:** CLOSED — completed natively in central initial schema migration 0001 (triggers `tr_acc_tamper_no_update` and `tr_acc_tamper_no_delete` are active on `Acc_TamperAuditLog`).
+**Module:** Accounting / Infrastructure
+**Source:** ACC-15 What's Next
+**Description:** The `Acc_TamperAuditLog` table has SQLite immutability triggers (deployed by ACC-15), but no MariaDB equivalents for the central replica. This is a SQL-only task similar to INFRA-08 (which added MariaDB triggers for POS tables, but not Acc_* tables).
+**Why deferred:** The central MariaDB deployment is not yet live, and a formal DB admin account hasn't been established yet.
+**Depends on:** ACC-15 (completed), INFRA-08 (completed), DB admin account (not yet created).
+
+---
+
+
+### Future / Backlog Item
+
+## 8. MariaDB Trigger DEFINER Fix
+
+**Module:** Infrastructure
+**Source:** INFRA-08 What's Next
+**Description:** The INFRA-06 immutability triggers use the anonymous default DEFINER. Once a formal DB admin account is established, these triggers should be recreated with `DEFINER = <admin_account>` to follow MariaDB security best practices.
+**Why deferred:** No formal DB admin account exists yet. The triggers work correctly with the current DEFINER.
+**Depends on:** INFRA-06 (completed), INFRA-08 (completed), DB admin account (not yet created).
+
+---
+
+
+### Future / Backlog Item
+
+## 9. ISyncableRepository Write-Path Migration — Accounting Handlers
+
+**Status:** CLOSED — completed by INFRA-21.
+**Module:** Infrastructure
+**Source:** INFRA-13 What's Next
+**Description:** Migrate `Accounting/Handlers` write paths to use `ISyncableRepository` so that writes from accounting event handlers are captured in the `Sync_Journal` for central replication.
+**Scope decision (2026-05-27):** Approved for migration. Six in-scope handlers (`SaleCompletedAccountingHandler`, `GoodsReceivedAccountingHandler`, `CreditPaymentAccountingHandler`, `ShrinkageAccountingHandler`, `SaleCompletedWithVatHandler`, `GoodsReceivedWithVatHandler`); `ReceiptTamperDetectedHandler` excluded (writes `<NoSync>` `Acc_TamperAuditLog`). Rationale: sibling Accounting services already journal, so leaving handlers un-migrated produces a half-mirrored central DB that silently misleads BIR audits and any Owner read from a recovery machine. Handlers are insert-only (and idempotent UPDATE on the two VAT variants), so conflict surface is near-zero.
+**Depends on:** INFRA-13 (completed).
+
+---
+
+
+### Future / Backlog Item
+
+## 10. ISyncableRepository Write-Path Migration — ProductManagementPresenter
+
+**Status:** CLOSED (2026-05-27) — out-of-scope for single-branch deployment.
+**Module:** Infrastructure / Inventory
+**Source:** INFRA-13 What's Next
+**Description:** Migrate `Inventory/Presenters/ProductManagementPresenter.vb` write paths to use `ISyncableRepository` so that product edits are captured in the `Sync_Journal`.
+**Scope decision (2026-05-27):** Closed without migration. Rationale:
+1. Villon Farm Supply is single-location (`LLM_Wiki/wiki/entities/villon-farm-supply.md`); there is no second branch needing the same catalog.
+2. Product CRUD is a Manager-only function performed on a single terminal — no second writer to converge.
+3. Owner is read-only and never edits products. Financial reports denormalize `ProductName` into `RevenueRecord` at write time (`SaleCompletedAccountingHandler.vb:50`), so report rendering does not depend on a replicated product master.
+4. Product operations are UPDATE-heavy (price, `IsActive`, soft-delete), so syncing would introduce real multi-master conflict liability for no current use case.
+5. YAGNI — if multi-branch is ever planned, it requires a far larger redesign than product-table sync; defer to that hypothetical plan rather than pre-paying the cost now.
+**Depends on:** INFRA-13 (completed). Reopen only if a multi-branch deployment is approved.
+
+---
+
+
+### Future / Backlog Item
+
+## 19. Symmetric Configuration Encryption (DA4)
+
+**Module:** Infrastructure / Security
+**Source:** `system_plan.md` Security Requirements (§8 - DA4)
+**Description:** Implement symmetric encryption for sensitive configuration values (such as MariaDB passwords and sync server credentials) in the production configuration overlay (`appsettings.Production.json`). Use AES-256 in Galois/Counter Mode (GCM) for encryption/decryption, and ensure the decryption key is securely loaded at runtime from environment variables or an external secure store instead of being hardcoded or placed in standard files.
+**Why deferred:** The prototype deployment is single-station and runs on localized, physically secure desktop systems at Villon Farm Supply. Plaintext production configuration files are secure against local attacks via standard Windows OS user-level ACLs, making advanced key management deferred until a multi-workstation or cloud infrastructure is deployed.
+
+---
+
+
+### Future / Backlog Item
+
+## 20. Automated Database Nightly Backup
+
+**Status:** COMPLETED (2026-05-28) — delivered by INFRA-29. See `Plans/VISTA_Modules/Infrastructure/runbooks/03-nightly-backup.md` and `runbooks/scripts/backup-mysqldump.ps1`.
+**Module:** Infrastructure / Database
+**Source:** `system_plan.md` Risk Mitigation Strategies (§11 - Data Loss)
+**Description:** Developed and configured a database utility script (PowerShell) that automatically dumps the central XAMPP MariaDB database (`merchsys_central`) nightly, compresses the output, and retains 7 daily / 4 weekly / 6 monthly copies. A Windows Task Scheduler XML (`vista-nightly-backup.xml`) automates execution at 02:00 daily even without a logged-in user.
+**Why deferred:** Was deferred pending a formal deployment; now addressed by INFRA-29 as part of the MariaDB client-server architecture rollout.
+**Depends on:** INFRA-29 (completed).
+
+---
+
+
+### Future / Backlog Item
+
+## 26. Comprehensive System-Wide Audit Trail
+
+**Module:** Infrastructure / Security
+**Source:** `system_plan.md` Security Requirements (§8 - DA10) / `Accounting-Module_AcademicPaper.md` Scope and Delimitation (§1.5)
+**Description:** Implement a unified, tamper-proof system audit log that tracks all database transactions. The log must record "who" (user account and role), "what" (inserted, modified, or soft-deleted fields), and "when" (UTC timestamp) for all changes, specifically securing financial and inventory tables for BIR audit compliance.
+**Why deferred:** The application currently relies on discrete `modified_by` and `modified_at` entity properties. A unified database-wide tamper-proof audit journal is deferred to V2.
+
+---
+
+
+### Future / Backlog Item
+
+## 27. Mobile & Web Deployment Platforms
+
+**Module:** Infrastructure / Operations
+**Source:** `Inventory-Module_AcademicPaper.md` / `POS-Module_AcademicPaper.md` / `Purchasing-Module_AcademicPaper.md` Scope and Delimitation (§1.5)
+**Description:** Migrate the desktop-only WinForms application architecture into cross-platform mobile frameworks (such as .NET MAUI or React Native) and web frontends (Next.js) to allow remote access for the Owner and offsite monitoring of store KPIs.
+**Why deferred:** The business operates from a single, dedicated local POS workstation with intermittent connectivity. A mobile/web deployment would introduce ongoing hosting fees and internet dependency that are currently outside Villon Farm Supply's operational budget.
+
+

@@ -1,0 +1,392 @@
+Imports System.Collections.ObjectModel
+Imports System.Threading.Tasks
+Imports CommunityToolkit.Mvvm.ComponentModel
+Imports CommunityToolkit.Mvvm.Input
+Imports MerchSys.Purchasing.Services
+Imports MerchSys.SharedKernel.Enums
+Imports MerchSys.SharedKernel.Interfaces
+Imports MerchSys.SharedKernel.Presentation
+
+Namespace ViewModels
+
+    ''' <summary>
+    ''' Flat display row for pending and overdue purchase orders.
+    ''' </summary>
+    Public Class PendingPurchaseOrderRow
+        Public Property Id As Integer
+        Public Property OrderNumber As String
+        Public Property VendorName As String
+        Public Property OrderDate As DateTime
+        Public Property ExpectedDeliveryDate As DateTime?
+        Public Property TotalAmount As Decimal
+        Public Property Status As PurchaseOrderStatus
+        Public ReadOnly Property IsOverdue As Boolean
+            Get
+                Return Status = PurchaseOrderStatus.Submitted AndAlso ExpectedDeliveryDate.HasValue AndAlso ExpectedDeliveryDate.Value.Date < DateTime.UtcNow.Date
+            End Get
+        End Property
+    End Class
+
+    ''' <summary>
+    ''' ViewModel for the Purchasing Dashboard View.
+    ''' Aggregates KPIs, 6-month spend trend, top vendors by spend, and pending/overdue POs.
+    ''' </summary>
+    Public Class PurchasingDashboardViewModel
+        Inherits ObservableObject
+        Implements IFreshnessAware
+
+        Private _lastLoadedAt As DateTime?
+        Public Property LastLoadedAt As DateTime? Implements IFreshnessAware.LastLoadedAt
+            Get
+                Return _lastLoadedAt
+            End Get
+            Set(value As DateTime?)
+                SetProperty(_lastLoadedAt, value)
+            End Set
+        End Property
+
+        Private ReadOnly _poService As IPurchaseOrderService
+        Private ReadOnly _apService As IAccountsPayableService
+        Private ReadOnly _vendorService As IVendorService
+        Private ReadOnly _reorderService As IReorderService
+        Private ReadOnly _dashboardService As IPurchasingDashboardService
+
+        Public Event NavigateToViewRequested As EventHandler(Of String)
+
+        Public Sub New(poService As IPurchaseOrderService,
+                       apService As IAccountsPayableService,
+                       vendorService As IVendorService,
+                       reorderService As IReorderService,
+                       dashboardService As IPurchasingDashboardService)
+
+            _poService = poService
+            _apService = apService
+            _vendorService = vendorService
+            _reorderService = reorderService
+            _dashboardService = dashboardService
+
+            MonthlyTrend = New ObservableCollection(Of TrendBarItem)()
+            TopVendors = New ObservableCollection(Of TopVendorItem)()
+            PendingPurchaseOrders = New ObservableCollection(Of PendingPurchaseOrderRow)()
+
+            RefreshCommand = New AsyncRelayCommand(AddressOf LoadDataAsync)
+            NavigateToViewCommand = New RelayCommand(Of String)(AddressOf NavigateToView)
+
+            Dim initTask = LoadDataAsync()
+        End Sub
+
+        ' ─── KPI Properties ───────────────────────────────────────────────────────
+
+        Private _totalOutstandingAP As Decimal
+        Public Property TotalOutstandingAP As Decimal
+            Get
+                Return _totalOutstandingAP
+            End Get
+            Set(value As Decimal)
+                SetProperty(_totalOutstandingAP, value)
+            End Set
+        End Property
+
+        Private _overdueAPAmount As Decimal
+        Public Property OverdueAPAmount As Decimal
+            Get
+                Return _overdueAPAmount
+            End Get
+            Set(value As Decimal)
+                SetProperty(_overdueAPAmount, value)
+                OnPropertyChanged(NameOf(HasOverdueAP))
+            End Set
+        End Property
+
+        Private _overdueAPCount As Integer
+        Public Property OverdueAPCount As Integer
+            Get
+                Return _overdueAPCount
+            End Get
+            Set(value As Integer)
+                SetProperty(_overdueAPCount, value)
+            End Set
+        End Property
+
+        Public ReadOnly Property HasOverdueAP As Boolean
+            Get
+                Return OverdueAPAmount > 0
+            End Get
+        End Property
+
+        Private _pendingDeliveriesCount As Integer
+        Public Property PendingDeliveriesCount As Integer
+            Get
+                Return _pendingDeliveriesCount
+            End Get
+            Set(value As Integer)
+                SetProperty(_pendingDeliveriesCount, value)
+            End Set
+        End Property
+
+        Private _reorderSuggestionsCount As Integer
+        Public Property ReorderSuggestionsCount As Integer
+            Get
+                Return _reorderSuggestionsCount
+            End Get
+            Set(value As Integer)
+                SetProperty(_reorderSuggestionsCount, value)
+            End Set
+        End Property
+
+        Private _activeVendorsCount As Integer
+        Public Property ActiveVendorsCount As Integer
+            Get
+                Return _activeVendorsCount
+            End Get
+            Set(value As Integer)
+                SetProperty(_activeVendorsCount, value)
+            End Set
+        End Property
+
+        Private _averageLeadTimeDays As Double
+        Public Property AverageLeadTimeDays As Double
+            Get
+                Return _averageLeadTimeDays
+            End Get
+            Set(value As Double)
+                SetProperty(_averageLeadTimeDays, value)
+            End Set
+        End Property
+
+        ' ─── PO Status Counts ─────────────────────────────────────────────────────
+
+        Private _draftPOCount As Integer
+        Public Property DraftPOCount As Integer
+            Get
+                Return _draftPOCount
+            End Get
+            Set(value As Integer)
+                SetProperty(_draftPOCount, value)
+            End Set
+        End Property
+
+        Private _submittedPOCount As Integer
+        Public Property SubmittedPOCount As Integer
+            Get
+                Return _submittedPOCount
+            End Get
+            Set(value As Integer)
+                SetProperty(_submittedPOCount, value)
+            End Set
+        End Property
+
+        Private _receivedPOCount As Integer
+        Public Property ReceivedPOCount As Integer
+            Get
+                Return _receivedPOCount
+            End Get
+            Set(value As Integer)
+                SetProperty(_receivedPOCount, value)
+            End Set
+        End Property
+
+        Private _verifiedPOCount As Integer
+        Public Property VerifiedPOCount As Integer
+            Get
+                Return _verifiedPOCount
+            End Get
+            Set(value As Integer)
+                SetProperty(_verifiedPOCount, value)
+            End Set
+        End Property
+
+        ' ─── Plain-Language Insights ──────────────────────────────────────────────
+
+        Private _whatThisMeansText As String = String.Empty
+        Public Property WhatThisMeansText As String
+            Get
+                Return _whatThisMeansText
+            End Get
+            Set(value As String)
+                SetProperty(_whatThisMeansText, value)
+            End Set
+        End Property
+
+        ' ─── Collections ──────────────────────────────────────────────────────────
+
+        Public Property MonthlyTrend As ObservableCollection(Of TrendBarItem)
+        Public Property TopVendors As ObservableCollection(Of TopVendorItem)
+        Public Property PendingPurchaseOrders As ObservableCollection(Of PendingPurchaseOrderRow)
+
+        ' ─── Status ───────────────────────────────────────────────────────────────
+
+        Private _isBusy As Boolean
+        Public Property IsBusy As Boolean
+            Get
+                Return _isBusy
+            End Get
+            Set(value As Boolean)
+                SetProperty(_isBusy, value)
+                OnPropertyChanged(NameOf(IsEmpty))
+            End Set
+        End Property
+
+        Private _isError As Boolean
+        Public Property IsError As Boolean
+            Get
+                Return _isError
+            End Get
+            Set(value As Boolean)
+                SetProperty(_isError, value)
+                OnPropertyChanged(NameOf(IsEmpty))
+            End Set
+        End Property
+
+        Private _errorMessage As String = String.Empty
+        Public Property ErrorMessage As String
+            Get
+                Return _errorMessage
+            End Get
+            Set(value As String)
+                SetProperty(_errorMessage, value)
+            End Set
+        End Property
+
+        Public ReadOnly Property IsEmpty As Boolean
+            Get
+                Return PendingPurchaseOrders.Count = 0 AndAlso Not IsBusy AndAlso Not IsError
+            End Get
+        End Property
+
+        Private _lastRefreshed As String = String.Empty
+        Public Property LastRefreshed As String
+            Get
+                Return _lastRefreshed
+            End Get
+            Set(value As String)
+                SetProperty(_lastRefreshed, value)
+            End Set
+        End Property
+
+        ' ─── Commands ─────────────────────────────────────────────────────────────
+
+        Public Property RefreshCommand As AsyncRelayCommand
+        Public Property NavigateToViewCommand As RelayCommand(Of String)
+
+        ' ─── Navigation ───────────────────────────────────────────────────────────
+
+        Private Sub NavigateToView(viewName As String)
+            If Not String.IsNullOrEmpty(viewName) Then
+                RaiseEvent NavigateToViewRequested(Me, viewName)
+            End If
+        End Sub
+
+        ' ─── Data Loading ─────────────────────────────────────────────────────────
+
+        Private Async Function LoadDataAsync() As Task
+            IsError = False
+            IsBusy = True
+            Dim errMessage As String = Nothing
+
+            Try
+                ' 1. Load Outstanding AP & Overdue AP (using services)
+                TotalOutstandingAP = Await _apService.GetTotalOutstandingAsync()
+
+                Dim overdueEntries = Await _apService.GetOverdueAsync()
+                OverdueAPAmount = overdueEntries.Sum(Function(e) e.Balance)
+                OverdueAPCount = overdueEntries.Count
+
+                ' 2. Load Reorder Suggestions Count
+                Dim pendingSuggestions = Await _reorderService.GetPendingSuggestionsAsync()
+                ReorderSuggestionsCount = pendingSuggestions.Count
+
+                ' 3. Load Active Vendors & Average Lead Time
+                Dim vendors = Await _vendorService.GetAllAsync()
+                ActiveVendorsCount = vendors.Count
+                AverageLeadTimeDays = If(vendors.Any(), Math.Round(vendors.Average(Function(v) CDbl(v.DefaultLeadTimeDays)), 1), 0.0)
+
+                ' 4. Load POs (Status Counts + Details)
+                Dim allPOs = Await _poService.GetAllAsync()
+                DraftPOCount = Enumerable.Count(allPOs, Function(p) p.Status = PurchaseOrderStatus.Draft)
+                SubmittedPOCount = Enumerable.Count(allPOs, Function(p) p.Status = PurchaseOrderStatus.Submitted)
+                ReceivedPOCount = Enumerable.Count(allPOs, Function(p) p.Status = PurchaseOrderStatus.Received)
+                VerifiedPOCount = Enumerable.Count(allPOs, Function(p) p.Status = PurchaseOrderStatus.Verified)
+
+                ' Pending Deliveries is count of POs that are Submitted
+                PendingDeliveriesCount = SubmittedPOCount
+
+                ' Pending & Overdue PO detail rows
+                PendingPurchaseOrders.Clear()
+                Dim filteredPOs = allPOs.Where(Function(p) p.Status = PurchaseOrderStatus.Submitted OrElse p.Status = PurchaseOrderStatus.Received OrElse p.Status = PurchaseOrderStatus.Verified).
+                                         OrderBy(Function(p) If(p.ExpectedDeliveryDate, DateTime.MaxValue)).
+                                         Take(20) ' cap to 20 rows
+                For Each po In filteredPOs
+                    PendingPurchaseOrders.Add(New PendingPurchaseOrderRow With {
+                        .Id = po.Id,
+                        .OrderNumber = po.OrderNumber,
+                        .VendorName = If(po.Vendor IsNot Nothing, po.Vendor.Name, $"Vendor #{po.VendorId}"),
+                        .OrderDate = po.OrderDate,
+                        .ExpectedDeliveryDate = po.ExpectedDeliveryDate,
+                        .TotalAmount = po.TotalAmount,
+                        .Status = po.Status
+                    })
+                Next
+
+                ' 5. Load 6-Month Spend Trend via dashboard service
+                Dim today = DateTime.UtcNow.Date
+                Dim trendStart As DateTime = New DateTime(today.Year, today.Month, 1).AddMonths(-5)
+                Dim trendList = Await _dashboardService.GetMonthlyTrendAsync(trendStart)
+                MonthlyTrend.Clear()
+                For Each item In trendList
+                    MonthlyTrend.Add(item)
+                Next
+
+                ' 6. Load Top Vendors by Spend via dashboard service
+                Dim topVendorsList = Await _dashboardService.GetTopVendorsAsync()
+                TopVendors.Clear()
+                For Each item In topVendorsList
+                    TopVendors.Add(item)
+                Next
+
+                ' 7. Build Plain-Language Insights
+                WhatThisMeansText = BuildWhatThisMeansText()
+
+                LastRefreshed = $"Refreshed {DateTime.Now:HH:mm:ss}"
+                LastLoadedAt = DateTime.Now
+            Catch ex As Exception
+                errMessage = ex.Message
+            Finally
+                IsBusy = False
+            End Try
+
+            ' Handle error if any occurred (avoids await inside catch block)
+            If errMessage IsNot Nothing Then
+                LastRefreshed = $"Load failed: {errMessage}"
+                ErrorMessage = errMessage
+                IsError = True
+            End If
+        End Function
+
+        Private Function BuildWhatThisMeansText() As String
+            Dim insights As New List(Of String)()
+
+            If OverdueAPAmount > 0 Then
+                insights.Add($"CRITICAL: You have ₱{OverdueAPAmount:N0} across {OverdueAPCount} unpaid bills that are OVERDUE. Please prioritize settling these accounts immediately to avoid vendor friction.")
+            ElseIf TotalOutstandingAP > 0 Then
+                insights.Add($"You have ₱{TotalOutstandingAP:N0} in accounts payable outstanding. Fortunately, no payments are overdue at this time.")
+            Else
+                insights.Add("All accounts payable obligations are fully settled. Excellent job!")
+            End If
+
+            If PendingDeliveriesCount > 0 Then
+                insights.Add($"There are currently {PendingDeliveriesCount} purchase order(s) submitted to vendors and awaiting delivery.")
+            Else
+                insights.Add("There are no active purchase orders currently pending delivery.")
+            End If
+
+            If ReorderSuggestionsCount > 0 Then
+                insights.Add($"The reorder engine has detected {ReorderSuggestionsCount} item(s) at or below their reorder points. Review Reorder Suggestions to generate replenishment orders.")
+            End If
+
+            Return String.Join(" " & vbCrLf, insights)
+        End Function
+
+    End Class
+
+End Namespace

@@ -1,0 +1,90 @@
+<UserControl x:Class="Views.Shell.InsightBanner"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:enums="clr-namespace:MerchSys.SharedKernel.Enums;assembly=MerchSys.SharedKernel"
+             mc:Ignorable="d" 
+             x:Name="self"
+             d:DesignHeight="100" d:DesignWidth="800">
+    <UserControl.Resources>
+        <!-- Style for the Border -->
+        <Style x:Key="BannerBorderStyle" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource SidebarBackgroundBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}"/>
+            <Setter Property="Padding" Value="14,10"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Severity, ElementName=self}" Value="{x:Static enums:InsightSeverity.Info}">
+                    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Severity, ElementName=self}" Value="{x:Static enums:InsightSeverity.Positive}">
+                    <Setter Property="BorderBrush" Value="{DynamicResource SuccessBrush}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Severity, ElementName=self}" Value="{x:Static enums:InsightSeverity.Warning}">
+                    <Setter Property="BorderBrush" Value="{DynamicResource WarningBrush}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Style for the Icon Path -->
+        <Style x:Key="BannerIconStyle" TargetType="Path" BasedOn="{StaticResource IconBase}">
+            <Setter Property="Width" Value="22"/>
+            <Setter Property="Height" Value="22"/>
+            <Setter Property="VerticalAlignment" Value="Top"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Severity, ElementName=self}" Value="{x:Static enums:InsightSeverity.Info}">
+                    <Setter Property="Data" Value="{StaticResource IconLightbulbGeometry}"/>
+                    <Setter Property="Fill" Value="{DynamicResource AccentBrush}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Severity, ElementName=self}" Value="{x:Static enums:InsightSeverity.Positive}">
+                    <Setter Property="Data" Value="{StaticResource IconCheckGeometry}"/>
+                    <Setter Property="Fill" Value="{DynamicResource SuccessBrush}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Severity, ElementName=self}" Value="{x:Static enums:InsightSeverity.Warning}">
+                    <Setter Property="Data" Value="{StaticResource IconWarningGeometry}"/>
+                    <Setter Property="Fill" Value="{DynamicResource WarningBrush}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Style for the Title TextBlock -->
+        <Style x:Key="BannerTitleStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Severity, ElementName=self}" Value="{x:Static enums:InsightSeverity.Info}">
+                    <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Severity, ElementName=self}" Value="{x:Static enums:InsightSeverity.Positive}">
+                    <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Severity, ElementName=self}" Value="{x:Static enums:InsightSeverity.Warning}">
+                    <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+
+    <Border Style="{StaticResource BannerBorderStyle}">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" VerticalAlignment="Top" Margin="0,0,12,0">
+                <Path Style="{StaticResource BannerIconStyle}"/>
+            </StackPanel>
+
+            <StackPanel Grid.Column="1">
+                <TextBlock Style="{StaticResource BannerTitleStyle}" 
+                           Text="{Binding Title, ElementName=self}"/>
+                <TextBlock Text="{Binding Text, ElementName=self}"
+                           FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"
+                           TextWrapping="Wrap" LineHeight="18"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>
